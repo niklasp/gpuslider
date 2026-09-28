@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const port = 4174;
+const site = 5184;
 
 export default defineConfig( {
 	testDir: 'tests',
@@ -11,6 +12,18 @@ export default defineConfig( {
 		viewport: { width: 1000, height: 700 },
 	},
 	projects: [
+		{
+			name: 'site',
+			testDir: 'site/tests',
+			use: {
+				...devices[ 'Desktop Chrome' ],
+				baseURL: `http://localhost:${ site }`,
+				viewport: { width: 1300, height: 800 },
+				launchOptions: {
+					args: [ '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist' ],
+				},
+			},
+		},
 		{
 			name: 'chromium',
 			use: {
@@ -37,9 +50,16 @@ export default defineConfig( {
 			},
 		},
 	],
-	webServer: {
-		command: `node bin/serve.mjs ${ port }`,
-		port,
-		reuseExistingServer: true,
-	},
+	webServer: [
+		{
+			command: `node bin/serve.mjs ${ port }`,
+			port,
+			reuseExistingServer: true,
+		},
+		{
+			command: `npm run dev --prefix site -- --port ${ site } --strictPort`,
+			port: site,
+			reuseExistingServer: true,
+		},
+	],
 } );

@@ -18,6 +18,8 @@
 	--ss-gap: 0px;
 
 	position: relative;
+	/* As a flex or grid item it would otherwise be as wide as its images. */
+	min-width: 0;
 	overflow: hidden;
 }
 
