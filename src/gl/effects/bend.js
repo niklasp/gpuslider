@@ -7,7 +7,7 @@
  * @param {Object} [options]        Options.
  * @param {number} [options.amount] Depth of the arc at rest.
  * @param {number} [options.speed]  Depth that the speed adds.
- * @return {Object} Effect.
+ * @return {import('../program.js').Effect} Effect.
  */
 export const bend = ( { amount = 0.5, speed = 0.25 } = {} ) => ( {
 	params: { amount, speed },

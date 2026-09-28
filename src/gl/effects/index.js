@@ -6,3 +6,4 @@ export { split } from './split.js';
 export { magnify } from './magnify.js';
 export { spotlight } from './spotlight.js';
 export { bend } from './bend.js';
+export { coverflow } from './coverflow.js';

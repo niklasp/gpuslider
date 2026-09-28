@@ -19,7 +19,7 @@ async function compare( page, setup, act = () => {} ) {
 	await act();
 	await settled( page );
 	const plain = await shot( page );
-	await open( page, { ...setup, layers: 'gl' } );
+	await open( page, { ...setup, plugins: 'gl' } );
 	test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 	await act();
 	await settled( page );
@@ -89,7 +89,7 @@ test.describe( 'the canvas draws what the page would', () => {
 		expect( far ).toBeLessThan( 0.01 );
 		// And it is not the middle that is drawn.
 		const focus = await page.locator( '#slider .ss-track' ).screenshot();
-		await open( page, { n: 4, layers: 'gl', css: '.ss { --ss-per-view: 2; }' } );
+		await open( page, { n: 4, plugins: 'gl', css: '.ss { --ss-per-view: 2; }' } );
 		await painted( page );
 		const middle = await page.locator( '#slider .ss-track' ).screenshot();
 		expect( ( await difference( page, focus, middle ) ).mean ).toBeGreaterThan( 3 );
@@ -127,7 +127,7 @@ test.describe( 'the canvas draws what the page would', () => {
 
 test.describe( 'the canvas follows the slider', () => {
 	test( 'while it is dragged', async ( { page } ) => {
-		await open( page, { n: 4, layers: 'gl' } );
+		await open( page, { n: 4, plugins: 'gl' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await painted( page );
 		const box = await page.locator( '#slider' ).boundingBox();
@@ -151,7 +151,7 @@ test.describe( 'the canvas follows the slider', () => {
 	} );
 
 	test( 'at rest nothing is drawn', async ( { page } ) => {
-		await open( page, { n: 4, o: { loop: true }, layers: 'gl' } );
+		await open( page, { n: 4, o: { loop: true }, plugins: 'gl' } );
 		await page.evaluate( () => window.slider.next() );
 		await settled( page );
 		await page.waitForTimeout( 200 );
@@ -177,10 +177,10 @@ test.describe( 'without the canvas', () => {
 				return type === 'webgl2' ? null : get.call( this, type, ...rest );
 			};
 		} );
-		await open( page, { n: 4, layers: 'gl' } );
+		await open( page, { n: 4, plugins: 'gl' } );
 		await page.waitForTimeout( 300 );
 		expect(
-			await page.evaluate( () => window.slider.layers[ 0 ].canvas )
+			await page.evaluate( () => window.slider.plugins.gl.canvas )
 		).toBe( null );
 		expect( await page.locator( '.ss-canvas' ).count() ).toBe( 0 );
 		expect( await page.locator( '.ss-drawn' ).count() ).toBe( 0 );
@@ -191,13 +191,13 @@ test.describe( 'without the canvas', () => {
 	} );
 
 	test( 'a lost context gives the media back, a new one takes it again', async ( { page } ) => {
-		await open( page, { n: 4, layers: 'gl' } );
+		await open( page, { n: 4, plugins: 'gl' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await page.waitForFunction(
 			() => document.querySelectorAll( '.ss-drawn' ).length > 0
 		);
 		await page.evaluate( () => {
-			window.slider.layers[ 0 ].canvas
+			window.slider.plugins.gl.canvas
 				.getContext( 'webgl2' )
 				.getExtension( 'WEBGL_lose_context' )
 				.loseContext();
@@ -218,17 +218,17 @@ test.describe( 'without the canvas', () => {
 	} );
 
 	test( 'off screen the context is given back', async ( { page } ) => {
-		await open( page, { n: 4, layers: 'gl' } );
+		await open( page, { n: 4, plugins: 'gl' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await page.evaluate( () => window.scrollTo( 0, 1500 ) );
-		await page.waitForFunction( () => ! window.slider.layers[ 0 ].canvas );
+		await page.waitForFunction( () => ! window.slider.plugins.gl.canvas );
 		expect( await page.locator( '.ss-drawn' ).count() ).toBe( 0 );
 		await page.evaluate( () => window.scrollTo( 0, 0 ) );
-		await page.waitForFunction( () => !! window.slider.layers[ 0 ].canvas );
+		await page.waitForFunction( () => !! window.slider.plugins.gl.canvas );
 	} );
 
 	test( 'more sliders than contexts: the rest is drawn by the page', async ( { page } ) => {
-		await open( page, { n: 3, layers: 'gl', css: '.ss { margin-block: 4px; } .ss-slide { height: 30px; } .tall, button, [data-ss-dots] { display: none; }' } );
+		await open( page, { n: 3, plugins: 'gl', css: '.ss { margin-block: 4px; } .ss-slide { height: 30px; } .tall, button, [data-ss-dots] { display: none; }' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		const drawing = await page.evaluate( async () => {
 			const first = document.getElementById( 'slider' );
@@ -243,20 +243,20 @@ test.describe( 'without the canvas', () => {
 				document.body.append( copy );
 				sliders.push(
 					window.lib.createSlider( copy, {
-						layers: [ window.lib.gl() ],
+						plugins: [ window.lib.gl() ],
 					} )
 				);
 			}
 			await new Promise( ( done ) => setTimeout( done, 500 ) );
 			window.all = sliders;
-			return sliders.filter( ( slider ) => slider.layers[ 0 ].canvas ).length;
+			return sliders.filter( ( slider ) => slider.plugins.gl.canvas ).length;
 		} );
 		expect( drawing ).toBe( 12 );
 		// One goes, the next one in line takes its context.
 		const after = await page.evaluate( async () => {
 			window.all[ 0 ].destroy();
 			await new Promise( ( done ) => setTimeout( done, 300 ) );
-			return window.all.filter( ( slider ) => slider.layers[ 0 ].canvas )
+			return window.all.filter( ( slider ) => slider.plugins.gl.canvas )
 				.length;
 		} );
 		expect( after ).toBe( 12 );

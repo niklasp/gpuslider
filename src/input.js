@@ -23,21 +23,18 @@ const NO_DRAG = `${ TYPING }, [data-ss-prev], [data-ss-next], [data-ss-dots], [d
 
 /**
  * @param {HTMLElement} root   The slider.
- * @param {Object}      slider What the input drives: `motion`, `layout()`,
- *                             `options`, `grab()`, `drag( pos )`,
- *                             `release( velocity, from )`, `next()`,
- *                             `prev()`, `to( index )`, `count()`.
- * @return {Function} Removes the listeners.
+ * @param {Object}      slider The slider.
+ * @param {AbortSignal} signal Ends the listening.
  */
-export function createInput( root, slider ) {
+export function createInput( root, slider, signal ) {
 	const win = root.ownerDocument.defaultView;
 	const { options, motion } = slider;
 	let pointer = null;
+	// Ends the listening to the pointer that is down.
+	let held;
 
 	const stop = () => {
-		win.removeEventListener( 'pointermove', move );
-		win.removeEventListener( 'pointerup', up );
-		win.removeEventListener( 'pointercancel', up );
+		held?.abort();
 		pointer = null;
 	};
 
@@ -69,9 +66,11 @@ export function createInput( root, slider ) {
 		if ( motion.pos !== motion.target ) {
 			lock( event );
 		}
-		win.addEventListener( 'pointermove', move );
-		win.addEventListener( 'pointerup', up );
-		win.addEventListener( 'pointercancel', up );
+		held = new win.AbortController();
+		const { signal: until } = held;
+		win.addEventListener( 'pointermove', move, { signal: until } );
+		win.addEventListener( 'pointerup', up, { signal: until } );
+		win.addEventListener( 'pointercancel', up, { signal: until } );
 	}
 
 	// Past the ends the slider follows only a part of the way.
@@ -184,14 +183,12 @@ export function createInput( root, slider ) {
 
 		// The click that ends a drag is not a click on what is under it.
 		if ( Math.abs( motion.pos - from ) > SLOP ) {
+			const soon = new win.AbortController();
 			root.addEventListener( 'click', swallow, {
 				capture: true,
-				once: true,
+				signal: soon.signal,
 			} );
-			win.setTimeout(
-				() => root.removeEventListener( 'click', swallow, true ),
-				0
-			);
+			win.setTimeout( () => soon.abort(), 0 );
 		}
 	}
 
@@ -206,36 +203,28 @@ export function createInput( root, slider ) {
 		) {
 			return;
 		}
-		const forward = slider.layout().rtl ? 'ArrowLeft' : 'ArrowRight';
-		const back = slider.layout().rtl ? 'ArrowRight' : 'ArrowLeft';
-		if ( event.key === forward ) {
-			slider.next();
-		} else if ( event.key === back ) {
-			slider.prev();
-		} else if ( event.key === 'Home' ) {
-			slider.to( 0 );
-		} else if ( event.key === 'End' ) {
-			slider.to( slider.count() - 1 );
-		} else {
-			return;
+		const { rtl } = slider.layout();
+		const act = {
+			ArrowRight: rtl ? slider.prev : slider.next,
+			ArrowLeft: rtl ? slider.next : slider.prev,
+			Home: () => slider.to( 0 ),
+			End: () => slider.to( slider.count() - 1 ),
+		}[ event.key ];
+		if ( act ) {
+			act();
+			event.preventDefault();
 		}
-		event.preventDefault();
 	}
 
 	// Images and links would start a native drag and drop.
 	const native = ( event ) => event.preventDefault();
 
-	root.addEventListener( 'pointerdown', down );
-	root.addEventListener( 'keydown', key );
-	root.addEventListener( 'dragstart', native );
-	root.addEventListener( 'wheel', wheel, { passive: false } );
-
-	return () => {
+	root.addEventListener( 'pointerdown', down, { signal } );
+	root.addEventListener( 'keydown', key, { signal } );
+	root.addEventListener( 'dragstart', native, { signal } );
+	root.addEventListener( 'wheel', wheel, { passive: false, signal } );
+	signal.addEventListener( 'abort', () => {
 		stop();
 		win.clearTimeout( rolling );
-		root.removeEventListener( 'wheel', wheel );
-		root.removeEventListener( 'pointerdown', down );
-		root.removeEventListener( 'keydown', key );
-		root.removeEventListener( 'dragstart', native );
-	};
+	} );
 }

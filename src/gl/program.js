@@ -40,6 +40,22 @@
  * Effects are chained in the order given.
  */
 
+/**
+ * @typedef {Object} Effect
+ * @property {Record<string, number | number[]>} [params]     Numbers, or
+ *           arrays of 2 to 4, that the bodies use by their name.
+ * @property {string}                            [vertex]     Moves the mesh.
+ * @property {string}                            [uv]         Moves the lookup.
+ * @property {string}                            [color]      Changes the
+ *           result.
+ * @property {string}                            [transition] For a stack:
+ *           mixes two slides.
+ * @property {string | string[]}                 [head]       GLSL the bodies
+ *           need: helper functions.
+ * @property {boolean}                           [animated]   Moves without
+ *           the slider moving.
+ */
+
 const COMMON = `
 const float PI = 3.14159265;
 uniform float uProgress;
@@ -111,7 +127,7 @@ void main() {
 const TYPES = [ , 'float', 'vec2', 'vec3', 'vec4' ];
 
 /**
- * @param {Object[]}    effects    Effects.
+ * @param {Effect[]}    effects    Effects.
  * @param {string|null} transition The transition of a stack when no effect
  *                                 has one; null for a row.
  * @return {Object} `vertex` and `fragment` (sources), `params` (uniform name

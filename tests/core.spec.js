@@ -156,8 +156,8 @@ test.describe( 'keyboard and controls', () => {
 
 	test( 'arrows are disabled at the ends', async ( { page } ) => {
 		await open( page, { n: 3 } );
-		const prev = page.locator( '[data-ss-prev]' );
-		const next = page.locator( '[data-ss-next]' );
+		const prev = page.locator( '#slider > [data-ss-prev]' );
+		const next = page.locator( '#slider > [data-ss-next]' );
 		await expect( prev ).toBeDisabled();
 		await next.click();
 		await expect( prev ).toBeEnabled();

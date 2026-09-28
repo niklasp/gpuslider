@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const IDS = [ 'one', 'several', 'auto', 'tall', 'stack' ];
+const IDS = [ 'one', 'several', 'auto', 'tall', 'stack', 'covers', 'remote' ];
 
 /** What is known about every slider of the page. */
 const sliders = ( page ) =>
@@ -16,7 +16,7 @@ const sliders = ( page ) =>
 							made: root.dataset.made,
 							on: root.classList.contains( 'ss-on' ),
 							same: slider.root === root,
-							layers: slider.layers.length,
+							plugins: Object.keys( slider.plugins ).length,
 						},
 					];
 				} )
@@ -30,7 +30,7 @@ async function drawn( page, id ) {
 	return page
 		.waitForFunction(
 			( name ) =>
-				!! window.sliders[ name ].layers[ 0 ]?.canvas &&
+				!! window.sliders[ name ].plugins.gl?.canvas &&
 				!! document.querySelector( `#${ name } .ss-drawn` ),
 			id,
 			{ timeout: 4000 }
@@ -77,14 +77,14 @@ test( 'an effect switched on reaches every slider', async ( { page } ) => {
 		.toEqual( IDS );
 	const after = await sliders( page );
 	for ( const id of IDS ) {
-		expect( after[ id ], id ).toMatchObject( { on: true, same: true, layers: 2 } );
+		expect( after[ id ], id ).toMatchObject( { on: true, same: true, plugins: 2 } );
 		expect( await drawn( page, id ), id ).toBe( true );
 	}
 	// A bent row has a mesh, and that is another canvas than before.
 	expect( await drawn( page, 'several' ) ).toBe( true );
 	expect(
 		await page.evaluate( () =>
-			window.sliders.several.layers[ 0 ].canvas
+			window.sliders.several.plugins.gl.canvas
 				.getContext( 'webgl2' )
 				.getContextAttributes().depth
 		)
@@ -191,8 +191,53 @@ test( 'a click on a slide opens the lightbox, Escape closes it', async ( { page 
 	const dialog = page.locator( 'dialog.ss-lightbox' );
 	await expect( dialog ).toBeVisible();
 	await page.waitForFunction(
-		() => window.sliders.several.layers[ 1 ].progress === 1
+		() => window.sliders.several.plugins.lightbox.progress === 1
 	);
 	await page.keyboard.press( 'Escape' );
 	await expect( dialog ).toBeHidden();
+} );
+
+test( 'buttons outside of a slider drive it, and the page hears it', async ( { page } ) => {
+	const buttons = page.getByTestId( 'remote-buttons' );
+	await page.locator( '#remote' ).scrollIntoViewIfNeeded();
+	await buttons.getByRole( 'button', { name: 'On' } ).click();
+	await expect
+		.poll( () => page.evaluate( () => window.sliders.remote.index ) )
+		.toBe( 1 );
+	await buttons.getByRole( 'button', { name: '5' } ).click();
+	await expect
+		.poll( () => page.evaluate( () => window.sliders.remote.index ) )
+		.toBe( 4 );
+	await expect(
+		buttons.getByRole( 'button', { name: '5' } )
+	).toHaveAttribute( 'aria-current', 'true' );
+	await page.waitForFunction( () => window.sliders.remote.resting );
+	const events = page.getByTestId( 'events' );
+	await expect( events ).toContainText( 'change 4' );
+	await expect( events.locator( 'li' ).first() ).toHaveText( 'settle 4' );
+	// No other slider has moved.
+	expect( await page.evaluate( () => window.sliders.several.index ) ).toBe( 0 );
+} );
+
+test( 'covers: turned by the canvas, or by CSS without it', async ( { page } ) => {
+	expect( await drawn( page, 'covers' ) ).toBe( true );
+	expect(
+		await page.evaluate( () => Object.keys( window.sliders.covers.plugins ) )
+	).toEqual( [ 'gl', 'lightbox' ] );
+	await page.getByRole( 'switch', { name: 'Canvas' } ).click();
+	await expect
+		.poll( () =>
+			page.evaluate( () => Object.keys( window.sliders.covers.plugins ) )
+		)
+		.toEqual( [ 'progress', 'lightbox' ] );
+	await page.locator( '#covers' ).scrollIntoViewIfNeeded();
+	await page.waitForFunction( () => window.sliders.covers.resting );
+	const turned = await page.evaluate( () => {
+		const { slides, index } = window.sliders.covers;
+		const turn = ( slide ) =>
+			getComputedStyle( slide.querySelector( '.ss-media' ) ).rotate;
+		return [ turn( slides[ index ] ), turn( slides[ index + 1 ] ) ];
+	} );
+	expect( turned[ 0 ] ).toMatch( /^(none|y 0deg)$/ );
+	expect( turned[ 1 ] ).toBe( 'y 45deg' );
 } );

@@ -5,7 +5,7 @@ import { expect } from '@playwright/test';
  *
  * @param {import('@playwright/test').Page} page    Page.
  * @param {Object}                          [setup] `n`, `o` (options), `css`,
- *                                                  `dir`, `layers`, `effects`.
+ *                                                  `dir`, `plugins`, `effects`.
  */
 export async function open( page, setup = {} ) {
 	const query = new URLSearchParams();
@@ -171,7 +171,7 @@ export async function difference( page, a, b ) {
  */
 export const draws = ( page ) =>
 	page
-		.waitForFunction( () => !! window.slider.layers[ 0 ]?.canvas, null, {
+		.waitForFunction( () => !! window.slider.plugins.gl?.canvas, null, {
 			// The layer hears that it is on the screen a moment after it
 			// was made.
 			timeout: 2000,

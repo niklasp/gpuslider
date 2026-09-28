@@ -21,7 +21,8 @@
 			"@/*": [ "./src/*" ],
 			"shaderslide": [ "../src/index.js" ],
 			"shaderslide/gl": [ "../src/gl/index.js" ],
-			"shaderslide/lightbox": [ "../src/lightbox.js" ]
+			"shaderslide/lightbox": [ "../src/lightbox.js" ],
+			"shaderslide/plugins": [ "../src/plugins/index.js" ]
 		}
 	},
 	"include": [ "src" ]

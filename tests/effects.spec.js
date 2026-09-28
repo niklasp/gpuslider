@@ -57,7 +57,7 @@ test.describe( 'transitions', () => {
 			await open( page, {
 				n: 3,
 				o: { mode: 'stack' },
-				layers: 'gl',
+				plugins: 'gl',
 				effects: name,
 			} );
 			expect( logged ).toEqual( [] );
@@ -103,7 +103,7 @@ test.describe( 'effects', () => {
 			};
 			await open( page, setup );
 			const plain = await shot( page );
-			await open( page, { ...setup, layers: 'gl', effects } );
+			await open( page, { ...setup, plugins: 'gl', effects } );
 			expect( logged ).toEqual( [] );
 			test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 			await painted( page );
@@ -113,7 +113,7 @@ test.describe( 'effects', () => {
 	}
 
 	test( 'stretch and split follow the speed and let go', async ( { page } ) => {
-		await open( page, { n: 5, layers: 'gl', effects: 'stretch;split' } );
+		await open( page, { n: 5, plugins: 'gl', effects: 'stretch;split' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await painted( page );
 		const speeds = await page.evaluate(
@@ -141,7 +141,7 @@ test.describe( 'effects', () => {
 			window.slider.track.style.transform = 'translate3d(-400px,0,0)';
 		} );
 		const plain = await shot( page );
-		await open( page, { n: 5, layers: 'gl', effects: 'stretch' } );
+		await open( page, { n: 5, plugins: 'gl', effects: 'stretch' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await painted( page );
 		// Held at the same place, but with the speed of a move.
@@ -160,7 +160,7 @@ test.describe( 'effects', () => {
 	} );
 
 	test( 'the pointer moves the lens and leaves', async ( { page } ) => {
-		await open( page, { n: 3, layers: 'gl', effects: 'magnify' } );
+		await open( page, { n: 3, plugins: 'gl', effects: 'magnify' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await painted( page );
 		const rest = await shot( page );
@@ -184,7 +184,7 @@ test.describe( 'effects', () => {
 		const setup = { n: 6, css: '.ss { --ss-per-view: 3; --ss-gap: 10px; }' };
 		await open( page, setup );
 		const plain = await shot( page );
-		await open( page, { ...setup, layers: 'gl', effects: 'bend' } );
+		await open( page, { ...setup, plugins: 'gl', effects: 'bend' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await painted( page );
 		const { mean } = await difference( page, plain, await shot( page ) );
@@ -207,7 +207,7 @@ test.describe( 'effects', () => {
 			window.slider = window.lib.createSlider(
 				document.getElementById( 'slider' ),
 				{
-					layers: [
+					plugins: [
 						window.lib.gl( {
 							effects: [ wobble( { amount: 0.05 } ) ],
 							preserve: true,

@@ -112,31 +112,62 @@ Browsers allow about 16 contexts per page; sliders beyond the cap run as tier 2 
 
 ```js
 import { createSlider } from 'shaderslide';
-import { gl, warp, lens } from 'shaderslide/gl';
+import { gl, stretch, magnify } from 'shaderslide/gl';
 
 const slider = createSlider( element, {
 	perView: 3,
 	gap: 16,
 	loop: true,
-	layers: [ gl( { effects: [ warp(), lens() ] } ) ],
+	plugins: [ gl( { effects: [ stretch(), magnify() ] } ) ],
 } );
 slider.next();
 slider.on( 'change', ( index ) => {} );
 slider.destroy();
 ```
 
-- Vanilla ES modules, no dependencies, plain JavaScript with JSDoc types.
-- The canvas is a layer passed in by the caller, so a slider without effects never downloads WebGL code, and unused effects are not bundled.
+- Vanilla ES modules, no dependencies, plain JavaScript with JSDoc types. The type declarations are generated from the JSDoc (`npm run types`), so there is one source for both.
+- The canvas is a plugin passed in by the caller, so a slider without effects never downloads WebGL code, and unused effects are not bundled.
 - Built with esbuild. `npm run size` prints gzipped bytes and fails over budget.
 
-| Part | Budget (gzip) |
-|---|---|
-| Core: engine, layout, input, DOM, controls, with every feature of phase 4 | 6 KB |
-| Canvas layer without effects | 6 KB |
-| One effect | 1 KB |
+| Part | Budget (gzip) | Measured on 2026-09-28 |
+|---|---|---|
+| Core: engine, layout, input, DOM, controls, events, every feature of phase 4 | 6.5 KB | 6.1 KB |
+| Canvas layer without effects | 6 KB | 5.9 KB |
+| One effect or transition | 1 KB | 0.2 to 0.7 KB |
+| Lightbox, on top of the canvas layer | 2 KB | 1.6 KB |
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
-The core budget was 4 KB before any code existed. After phase 1 the core measures 4.3 KB, and autoplay, wheel, free scrolling and auto height are still to come.
+
+The core budget has moved twice, and both times because the core got more to do, not because the code got loose:
+
+- 4 KB was a guess before any code existed. With autoplay, wheel, free scrolling and auto height it became 6 KB.
+- The public API of decision 12 (events, buttons anywhere, slides that come and go, `set()`, `use()`) cost 0.9 KB. After taking out what could go, the core is at 6.1 KB and the budget at 6.5 KB.
+
+A way back under 6 KB exists and is the user's to decide: controls (0.8 KB) and autoplay as plugins of their own, as Embla does. See decision 12.
+
+### 12. A public API that others build on
+
+The library is meant for npm. What people build on cannot change every month, so the shape is decided once, after a look at the two sliders most people know: [Embla](https://www.embla-carousel.com/docs/api) and [Swiper](https://swiperjs.com/swiper-api).
+
+| Question | Embla | Swiper | Here | Why |
+|---|---|---|---|---|
+| Extensions | `plugins`, a list of functions called with options; `plugins()` returns them by name | `modules`, functions that get `{ swiper, extendParams, on, emit }` | `plugins: [ fn ]`, each `( slider ) => object`; `slider.plugins.name` | One word that both camps know. The object is the plugin: its hooks for the slider, its methods for the page |
+| Events | `on( name, fn )`, `off`, `emit`; the listener gets the carousel and the name | `on`, `once`, `off`, `emit`, and an `on` option; the listener gets the swiper first | `on` (returns the remover), `once`, `off`, `emit`, `on` option, `*` for all | Listeners get **what the event says first, then the slider**: `( index ) => …` is what most listeners need, and the slider is there for the rest |
+| Events of extensions | `autoplay:play` … | events of modules are events of the swiper | `plugin:event`, by `slider.emit()` | One bus, names that cannot clash |
+| Buttons | not in the core: the page calls `scrollNext()` | `navigation: { nextEl, prevEl }`, selector or element | Attributes in the slider, `data-ss-for="id"` anywhere else, or `prev`/`next`/`dots`/`pause` as element or selector | Works without a line of script, and with one for those who have the element |
+| Go to | `scrollTo( index )`, `canScrollNext()`, `scrollProgress()`, `slidesInView()` | `slideTo()`, `isEnd`, `progress` | `to( index )`, `toSlide( index )`, `canNext`, `canPrev`, `progress`, `visible()` | The same information under short names |
+| Change of options | `reInit( options )` | `update()`, some params live | `set( options )`, `update()` | No second slider has to be made for another gap or loop |
+| Slides that come and go | `reInit()`, or the option that watches them | `appendSlide()` … or `update()` | The slider watches its track; frameworks render, nothing to call | React, Vue and the block editor add and remove elements on their own |
+| Animations | the page reads `scrollProgress()` and styles | `effect: 'coverflow'` … and `creativeEffect` | On the canvas: effects (GLSL). On the page: the `progress` plugin writes `--ss-p`, `--ss-away`, `--ss-share` on every slide, CSS does the rest | Both are a plugin away, neither is in the core. `coverflow()` is the proof on the canvas, the covers of the site without the canvas the proof in CSS |
+
+Decided with it:
+
+- **`layers` became `plugins`.** A lightbox is no layer. Nothing was published, so the rename cost nothing.
+- **What a plugin may touch is the public API.** The built-in plugins (`gl`, `lightbox`, `progress`) use nothing else. `slider.signal` ends with the slider, for listeners that need no removing; `grab()`, `drag()` and `release()` move the slider as a pointer does, for plugins that bring another input.
+- **Controls, autoplay, wheel and keyboard stay in the core for now.** Embla has them as plugins, which keeps its core small and makes the first slider with arrows a matter of three imports. Here a slider with arrows is markup. Splitting them off later is possible without breaking anything: the options stay, the code moves.
+- **Typed events.** `slider.on( 'change', ( index ) => … )` knows that `index` is a number. `tests/types/use.ts` is compiled by `npm run types` and fails when the declarations stop saying what the library does.
+- **A wrapper for React** is 60 lines in the site (`site/src/components/ShaderSlider.tsx`). A package of its own waits until somebody needs it.
+- **Nothing is published** until the user says so. `npm run types && npm run size && npm test` runs before every publish (`prepublishOnly`). The name `shaderslide` was free on npm on 2026-09-28.
 
 ## Modules
 
@@ -146,13 +177,15 @@ The core budget was 4 KB before any code existed. After phase 1 the core measure
 | `src/layout.js` | Measures slides; snap points, bounds, loop wrap. Pure functions apart from `measure()` |
 | `src/input.js` | Pointer drag with direction lock, click suppression, keyboard, wheel |
 | `src/dom.js` | Moves the slides (row) or fades them (stack); roles, `inert` |
-| `src/controls.js` | Wires `[data-ss-prev]`, `[data-ss-next]`, `[data-ss-dots]` |
-| `src/index.js` | `createSlider()`: options, events, layers |
+| `src/controls.js` | Arrows, dots, `[data-ss-to]`: in the slider, or anywhere with `data-ss-for` |
+| `src/index.js` | `createSlider()`: options, events, plugins |
+| `src/plugins/progress.js` | Tells the slides where they are, for animations in CSS |
+| `src/lightbox.js` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
 | `src/style.css` | Layout for all three tiers |
 | `src/gl/layer.js` | The canvas layer: context pool, visibility, the draw |
 | `src/gl/program.js` | Builds one shader from the chosen effects |
 | `src/gl/textures.js` | Image and video textures |
-| `src/gl/place.js` | Where `object-fit` and `object-position` put the pixels |
+| `src/gl/fit.js` | Where `object-fit` and `object-position` put the pixels |
 | `src/gl/effects/*.js` | One effect per file |
 
 ## Phases
@@ -167,9 +200,13 @@ Each phase ends with something that runs and with tests.
 | 3 | Effects | Hook system and the proving set: velocity warp, pointer lens, mesh bend, stack transitions | Done: 5 effects, 20 transitions |
 | 4 | Features | Video, auto height, autoplay, wheel, RTL, free scrolling | Done |
 | 5 | Breadth | Post pass, real phones, size audit, README | README done; the rest is open |
+| 6 | Lightbox and site | A click lets the image grow to the screen; a site with controls for everything | Done |
+| 7 | Public API | Events, plugins by name, buttons anywhere, slides that come and go, types | Done; not published |
 
 ## Open
 
+- **Before 1.0:** the name, the licence (MIT is in `package.json` as a placeholder), and whether controls and autoplay become plugins (decision 12). After 1.0 these cost a major version.
+- **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
 - **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 5.8 of 6 KB).
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
@@ -190,6 +227,10 @@ Each phase ends with something that runs and with tests.
 - With WebGL, the canvas has the slide's pixels and the media element is hidden.
 - Context loss falls back to the DOM media.
 - Bundle sizes stay in budget.
+- Every event is heard, in its order, with what it says (`tests/api.spec.js`).
+- Buttons outside of the slider drive it and no other slider.
+- A slide that is added is drawn, labelled and reachable.
+- The type declarations compile against a file that uses the whole API.
 
 ## Risks
 

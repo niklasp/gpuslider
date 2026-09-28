@@ -39,14 +39,14 @@ const FADE =
 
 /**
  * @param {Object}   [options]             Options.
- * @param {Object[]} [options.effects]     Effects, in the order they apply.
+ * @param {import('./program.js').Effect[]} [options.effects] Effects, in
+ *                                         the order they apply.
  * @param {number}   [options.maxSize]     Largest side of a texture, px.
  * @param {number}   [options.density]     Most device pixels per px drawn.
  * @param {number}   [options.perspective] Distance of the eye for meshes
  *                                         that bend, px.
  * @param {boolean}  [options.preserve]    Keep the drawing readable, for
  *                                         tests and screenshots.
- * @return {Function} Layer, for the `layers` of a slider.
  */
 export function gl( {
 	effects = [],
@@ -55,17 +55,27 @@ export function gl( {
 	perspective = 1200,
 	preserve = false,
 } = {} ) {
-	return ( slider ) => {
+	// The plugin, for the `plugins` of a slider.
+	return ( /** @type {import('../index.js').Slider} */ slider ) => {
 		const { root, slides, win } = slider;
 		const doc = root.ownerDocument;
 		const stack = slider.options.mode === 'stack';
 		const shader = compose( effects, stack ? FADE : null );
-		const media = slides.map( ( slide ) =>
-			slide.querySelector( '.ss-media' )
-		);
-		// Per slide: the box of the media in its slide and what CSS says.
-		const boxes = slides.map( () => null );
-		const numbers = slides.map( () => new Float32Array( 13 ) );
+		// Per slide: its media, the box of the media in its slide with
+		// what CSS says, and the numbers of `fit()`.
+		const media = [];
+		const boxes = [];
+		const numbers = [];
+		const read = () => {
+			slides.forEach( ( slide, i ) => {
+				media[ i ] = slide.querySelector( '.ss-media' );
+				boxes[ i ] = null;
+				numbers[ i ] ||= new Float32Array( 13 );
+			} );
+			media.length = slides.length;
+			boxes.length = slides.length;
+		};
+		read();
 		// The quad about to be drawn, for whoever changes it (see `change`).
 		const next = { x: 0, y: 0, w: 0, h: 0, a: null, radius: 0, speed: 0 };
 		const kind = `${ shader.mesh }${ preserve }`;
@@ -227,6 +237,7 @@ export function gl( {
 			root.prepend( canvas );
 			root.classList.add( 'ss-gl' );
 			slider.wake();
+			slider.emit( 'gl:on', canvas );
 		}
 
 		function detach( lost ) {
@@ -239,6 +250,7 @@ export function gl( {
 			live--;
 			drawn.forEach( ( element ) => show( element, false ) );
 			root.classList.remove( 'ss-gl' );
+			slider.emit( 'gl:off', !! lost );
 			spare.canvas.remove();
 			spare.lost = null;
 			textures.destroy();
@@ -344,6 +356,8 @@ export function gl( {
 		};
 
 		const layer = {
+			name: 'gl',
+
 			/** The canvas, while the layer draws. */
 			get canvas() {
 				return context?.spare.canvas || null;
@@ -362,6 +376,8 @@ export function gl( {
 			 * @return {boolean} Whether the canvas draws it.
 			 */
 			shows: ( element ) => drawn.has( element ),
+
+			slides: read,
 
 			measure() {
 				const around = root.getBoundingClientRect();

@@ -12,8 +12,11 @@
  * lightbox fades in.
  *
  *     createSlider( element, {
- *         layers: [ gl(), lightbox( { effects: [ stretch() ] } ) ],
+ *         plugins: [ gl(), lightbox( { effects: [ stretch() ] } ) ],
  *     } );
+ *
+ * Events of the slider: `lightbox:open` and `lightbox:close`, both with the
+ * index of the slide.
  *
  * Opens on a click on a slide, or on a `[data-ss-zoom]` in it. The image
  * of the lightbox is the one of the slide, in the size the browser picks
@@ -34,15 +37,16 @@ const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-ss-no-zoom
 
 /**
  * @param {Object}   [options]          Options.
- * @param {Object[]} [options.effects]  Effects of the canvas.
+ * @param {import('./gl/program.js').Effect[]} [options.effects] Effects of
+ *                                      the canvas.
  * @param {number}   [options.duration] Time of opening and closing, ms.
  * @param {number}   [options.punch]    How much the speed of the opening
  *                                      counts as speed for the effects.
- * @param {Object}   [options.slider]   Options for the slider in the
- *                                      lightbox.
+ * @param {import('./index.js').Options} [options.slider] Options for the
+ *                                      slider in the lightbox.
  * @param {Object}   [options.canvas]   Options for its canvas layer.
- * @param {Object}   [options.labels]   `close`, `prev`, `next`, `dialog`.
- * @return {Function} Layer, for the `layers` of a slider.
+ * @param {Record<string, string>} [options.labels] `close`, `prev`,
+ *                                      `next`, `dialog`.
  */
 export function lightbox( {
 	effects = [],
@@ -52,18 +56,20 @@ export function lightbox( {
 	canvas = {},
 	labels = {},
 } = {} ) {
-	return ( slider ) => {
+	// The plugin, for the `plugins` of a slider.
+	return ( /** @type {import('./index.js').Slider} */ slider ) => {
 		const { root, slides, win } = slider;
 		const doc = root.ownerDocument;
 		const still = win.matchMedia( '(prefers-reduced-motion: reduce)' );
 		// The slides that have something to show.
-		const items = [];
-		slides.forEach( ( slide, i ) => {
-			const media = slide.querySelector( '.ss-media' );
-			if ( media ) {
-				items.push( { i, media } );
-			}
-		} );
+		let items = [];
+		const read = () => {
+			items = slides.flatMap( ( slide, i ) => {
+				const media = slide.querySelector( '.ss-media' );
+				return media ? [ { i, media } ] : [];
+			} );
+		};
+		read();
 
 		let dialog = null;
 		let box = null;
@@ -280,11 +286,12 @@ export function lightbox( {
 				perView: 1,
 				gap: 0,
 				start: item,
-				layers: [ driver, gl( { effects, ...canvas } ) ],
+				plugins: [ driver, gl( { effects, ...canvas } ) ],
 			} );
-			layer = shown.layers[ 1 ];
+			layer = shown.plugins.gl;
 			layer.change = change;
 			box.focus( { preventScroll: true } );
+			slider.emit( 'lightbox:open', items[ item ].i );
 		}
 
 		function hide() {
@@ -319,32 +326,27 @@ export function lightbox( {
 			from = null;
 			box.firstChild.replaceChildren();
 			dialog.close();
+			slider.emit( 'lightbox:close', items[ active ]?.i );
 			if ( ! wasPaused ) {
 				slider.play();
 			}
 		}
 
-		const click = ( event ) => {
-			const slide = event.target.closest( '.ss-slide' );
+		const off = slider.on( 'click', ( { index, event } ) => {
 			const zoom = event.target.closest( '[data-ss-zoom]' );
 			if (
-				! slide ||
-				event.defaultPrevented ||
-				( ! zoom && event.target.closest( NOT_A_CLICK ) )
+				! event.defaultPrevented &&
+				( zoom || ! event.target.closest( NOT_A_CLICK ) )
 			) {
-				return;
+				show( items.findIndex( ( { i } ) => i === index ) );
 			}
-			const item = items.findIndex(
-				( { i } ) => slides[ i ] === slide
-			);
-			if ( item >= 0 ) {
-				show( item );
-			}
-		};
-		root.addEventListener( 'click', click );
+		} );
 		root.classList.add( 'ss-zooms' );
 
 		return {
+			name: 'lightbox',
+			slides: read,
+
 			/**
 			 * @param {number} index Slide to open the lightbox with.
 			 */
@@ -362,7 +364,7 @@ export function lightbox( {
 			},
 
 			destroy() {
-				root.removeEventListener( 'click', click );
+				off();
 				root.classList.remove( 'ss-zooms' );
 				shown?.destroy();
 				shown = null;

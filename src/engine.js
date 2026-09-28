@@ -33,7 +33,6 @@ const FOLLOW = 10;
  *                                    the time.
  * @param {Function} handlers.settle  Called when the position has arrived.
  * @param {Function} [handlers.busy]  Whether something else needs frames.
- * @return {Object} Engine.
  */
 export function createEngine( win, { frame, settle, busy } ) {
 	/** @type {Motion} */

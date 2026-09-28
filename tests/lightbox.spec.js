@@ -3,17 +3,18 @@ import { open, settled, drag, index, difference, expect } from './helpers.js';
 
 const setup = {
 	n: 5,
-	layers: 'gl,lightbox',
+	plugins: 'gl,lightbox',
 	css: '.ss { --ss-per-view: 2; --ss-gap: 10px; } .ss-slide { border-radius: 12px; overflow: hidden; }',
 };
 
-const box = ( page ) => page.evaluate( () => window.slider.layers[ 1 ] );
+const box = ( page ) =>
+	page.evaluate( () => !! window.slider.plugins.lightbox );
 
 /** Waits until the lightbox is as far open as it goes. */
 const opened = ( page, progress = 1 ) =>
 	page.waitForFunction(
 		( to ) => {
-			const layer = window.slider.layers[ 1 ];
+			const layer = window.slider.plugins.lightbox;
 			return (
 				layer.progress === to &&
 				( to === 0 ? ! layer.slider : layer.slider.resting )
@@ -26,7 +27,7 @@ const opened = ( page, progress = 1 ) =>
 const draws = ( page ) =>
 	page
 		.waitForFunction(
-			() => !! window.slider.layers[ 1 ].slider?.layers[ 1 ].canvas,
+			() => !! window.slider.plugins.lightbox.slider?.plugins.gl.canvas,
 			null,
 			{ timeout: 2000 }
 		)
@@ -49,8 +50,8 @@ test.describe( 'lightbox', () => {
 			await page.evaluate( () => ( {
 				modal: document.querySelector( 'dialog' ).matches( ':modal' ),
 				focus: !! document.activeElement.closest( 'dialog' ),
-				at: window.slider.layers[ 1 ].slider.index,
-				slides: window.slider.layers[ 1 ].slider.slides.length,
+				at: window.slider.plugins.lightbox.slider.index,
+				slides: window.slider.plugins.lightbox.slider.slides.length,
 			} ) )
 		).toEqual( { modal: true, focus: true, at: 1, slides: 5 } );
 		await page.keyboard.press( 'Escape' );
@@ -78,18 +79,18 @@ test.describe( 'lightbox', () => {
 				.getBoundingClientRect();
 			return { x: r.left, y: r.top, w: r.width, h: r.height };
 		} );
-		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		await page.evaluate( () => window.slider.plugins.lightbox.open( 1 ) );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await page.waitForFunction(
-			() => window.slider.layers[ 1 ].progress > 0
+			() => window.slider.plugins.lightbox.progress > 0
 		);
 
 		// What the canvas of the lightbox has, as a box around everything
 		// that is not transparent.
 		const drawn = () =>
 			page.evaluate( () => {
-				const layer = window.slider.layers[ 1 ];
-				const { canvas } = layer.slider.layers[ 1 ];
+				const layer = window.slider.plugins.lightbox;
+				const { canvas } = layer.slider.plugins.gl;
 				const g = canvas.getContext( 'webgl2' );
 				const w = canvas.width;
 				const h = canvas.height;
@@ -137,7 +138,7 @@ test.describe( 'lightbox', () => {
 		// Escape half way: it turns round and goes back into the slide.
 		await page.keyboard.press( 'Escape' );
 		await page.waitForFunction(
-			( was ) => window.slider.layers[ 1 ].progress < was - 0.1,
+			( was ) => window.slider.plugins.lightbox.progress < was - 0.1,
 			later.t
 		);
 		const back = await drawn();
@@ -146,11 +147,11 @@ test.describe( 'lightbox', () => {
 
 	test( 'open, the canvas shows the whole image as the page would', async ( { page } ) => {
 		await open( page, { ...setup, open: 150 } );
-		await page.evaluate( () => window.slider.layers[ 1 ].open( 2 ) );
+		await page.evaluate( () => window.slider.plugins.lightbox.open( 2 ) );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await opened( page );
 		await page.waitForFunction( () =>
-			window.slider.layers[ 1 ].slider.slides[ 2 ].querySelector(
+			window.slider.plugins.lightbox.slider.slides[ 2 ].querySelector(
 				'.ss-drawn'
 			)
 		);
@@ -160,7 +161,7 @@ test.describe( 'lightbox', () => {
 		const canvas = await shot();
 		// The same without the canvas: the image of the page.
 		await page.evaluate( () => {
-			const inner = window.slider.layers[ 1 ].slider;
+			const inner = window.slider.plugins.lightbox.slider;
 			inner.root.querySelector( 'canvas' ).style.visibility = 'hidden';
 			inner.root
 				.querySelectorAll( '.ss-drawn' )
@@ -173,10 +174,10 @@ test.describe( 'lightbox', () => {
 
 	test( 'the lightbox is a slider: arrows, keys and drags', async ( { page } ) => {
 		await open( page, { ...setup, open: 150 } );
-		await page.evaluate( () => window.slider.layers[ 1 ].open( 0 ) );
+		await page.evaluate( () => window.slider.plugins.lightbox.open( 0 ) );
 		await opened( page );
 		const at = () =>
-			page.evaluate( () => window.slider.layers[ 1 ].slider.index );
+			page.evaluate( () => window.slider.plugins.lightbox.slider.index );
 		await page.keyboard.press( 'ArrowRight' );
 		await expect.poll( at ).toBe( 1 );
 		await page.locator( 'dialog [data-ss-next]' ).click();
@@ -200,7 +201,7 @@ test.describe( 'lightbox', () => {
 
 	test( 'a click next to the image closes it', async ( { page } ) => {
 		await open( page, { ...setup, open: 150 } );
-		await page.evaluate( () => window.slider.layers[ 1 ].open( 0 ) );
+		await page.evaluate( () => window.slider.plugins.lightbox.open( 0 ) );
 		await opened( page );
 		// The image is 16:9 in a view of 1000 by 700: below it is room.
 		await page.mouse.click( 500, 350 );
@@ -219,9 +220,9 @@ test.describe( 'lightbox', () => {
 			};
 		} );
 		await open( page, { ...setup, open: 600 } );
-		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		await page.evaluate( () => window.slider.plugins.lightbox.open( 1 ) );
 		await page.waitForFunction(
-			() => window.slider.layers[ 1 ].progress > 0.05
+			() => window.slider.plugins.lightbox.progress > 0.05
 		);
 		const half = await page.evaluate( () =>
 			Number(
@@ -241,9 +242,9 @@ test.describe( 'lightbox', () => {
 	test( 'reduced motion: it is there at once', async ( { page } ) => {
 		await page.emulateMedia( { reducedMotion: 'reduce' } );
 		await open( page, { ...setup, open: 3000 } );
-		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		await page.evaluate( () => window.slider.plugins.lightbox.open( 1 ) );
 		await page.waitForFunction(
-			() => window.slider.layers[ 1 ].progress === 1,
+			() => window.slider.plugins.lightbox.progress === 1,
 			null,
 			{ timeout: 1500 }
 		);
@@ -251,7 +252,7 @@ test.describe( 'lightbox', () => {
 
 	test( 'destroy takes the dialog away', async ( { page } ) => {
 		await open( page, { ...setup, open: 150 } );
-		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		await page.evaluate( () => window.slider.plugins.lightbox.open( 1 ) );
 		await opened( page );
 		await page.evaluate( () => window.slider.destroy() );
 		expect( await page.locator( 'dialog' ).count() ).toBe( 0 );

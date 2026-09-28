@@ -2,9 +2,12 @@
  * The canvas layer and its effects.
  *
  *     import { createSlider } from 'shaderslide';
- *     import { gl, warp } from 'shaderslide/gl';
+ *     import { gl, stretch } from 'shaderslide/gl';
  *
- *     createSlider( element, { layers: [ gl( { effects: [ warp() ] } ) ] } );
+ *     createSlider( element, { plugins: [ gl( { effects: [ stretch() ] } ) ] } );
+ */
+/**
+ * @typedef {import('./program.js').Effect} Effect
  */
 export { gl } from './layer.js';
 export * from './effects/index.js';

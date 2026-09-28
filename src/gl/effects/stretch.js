@@ -4,7 +4,7 @@
  *
  * @param {Object} [options]        Options.
  * @param {number} [options.amount] How much; negative bows the other way.
- * @return {Object} Effect.
+ * @return {import('../program.js').Effect} Effect.
  */
 export const stretch = ( { amount = 1 } = {} ) => ( {
 	params: { amount },

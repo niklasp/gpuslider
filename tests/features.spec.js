@@ -64,14 +64,14 @@ test.describe( 'auto height', () => {
 	} );
 
 	test( 'the canvas draws slides of different heights', async ( { page } ) => {
-		await open( page, { ...setup, layers: 'gl' } );
+		await open( page, { ...setup, plugins: 'gl' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await painted( page );
 		await page.evaluate( () => window.slider.to( 2 ) );
 		await settled( page );
 		await painted( page );
 		const canvas = await page.evaluate( () => {
-			const { canvas } = window.slider.layers[ 0 ];
+			const { canvas } = window.slider.plugins.gl;
 			return {
 				css: Math.round( canvas.getBoundingClientRect().height ),
 				root: window.slider.root.clientHeight,
@@ -83,7 +83,7 @@ test.describe( 'auto height', () => {
 		await settled( page );
 		const after = await page.evaluate( () =>
 			Math.round(
-				window.slider.layers[ 0 ].canvas.getBoundingClientRect().height
+				window.slider.plugins.gl.canvas.getBoundingClientRect().height
 			)
 		);
 		expect( after ).toBe( canvas.css );
@@ -221,7 +221,7 @@ test.describe( 'video', () => {
 	} );
 
 	test( 'the canvas draws its frames', async ( { page } ) => {
-		await open( page, { n: 4, video: '0', layers: 'gl' } );
+		await open( page, { n: 4, video: '0', plugins: 'gl' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await expect
 			.poll( () =>
@@ -232,7 +232,7 @@ test.describe( 'video', () => {
 			.toBe( true );
 		const read = () =>
 			page.evaluate( () => {
-				const { canvas } = window.slider.layers[ 0 ];
+				const { canvas } = window.slider.plugins.gl;
 				const g = canvas.getContext( 'webgl2' );
 				const pixels = new Uint8Array( 4 * 64 * 64 );
 				g.readPixels( 100, 100, 64, 64, g.RGBA, g.UNSIGNED_BYTE, pixels );

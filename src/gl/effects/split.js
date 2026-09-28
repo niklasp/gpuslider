@@ -4,7 +4,7 @@
  *
  * @param {Object} [options]        Options.
  * @param {number} [options.amount] How much.
- * @return {Object} Effect.
+ * @return {import('../program.js').Effect} Effect.
  */
 export const split = ( { amount = 1 } = {} ) => ( {
 	params: { amount },

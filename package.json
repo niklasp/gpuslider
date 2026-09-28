@@ -8,13 +8,27 @@
 		"*.css"
 	],
 	"exports": {
-		".": "./src/index.js",
-		"./gl": "./src/gl/index.js",
-		"./lightbox": "./src/lightbox.js",
+		".": {
+			"types": "./types/index.d.ts",
+			"default": "./src/index.js"
+		},
+		"./gl": {
+			"types": "./types/gl/index.d.ts",
+			"default": "./src/gl/index.js"
+		},
+		"./lightbox": {
+			"types": "./types/lightbox.d.ts",
+			"default": "./src/lightbox.js"
+		},
+		"./plugins": {
+			"types": "./types/plugins/index.d.ts",
+			"default": "./src/plugins/index.js"
+		},
 		"./style.css": "./src/style.css"
 	},
 	"files": [
 		"src",
+		"types",
 		"dist"
 	],
 	"scripts": {
@@ -23,10 +37,14 @@
 		"build": "node bin/build.mjs",
 		"size": "node bin/build.mjs --check",
 		"media": "node bin/make-media.mjs",
-		"test": "playwright test"
+		"test": "playwright test",
+		"types": "tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
+		"prepublishOnly": "npm run types && npm run size && npm test"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.63.0",
-		"esbuild": "^0.28.2"
-	}
+		"esbuild": "^0.28.2",
+		"typescript": "^7.0.2"
+	},
+	"types": "./types/index.d.ts"
 }

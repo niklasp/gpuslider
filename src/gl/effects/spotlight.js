@@ -5,7 +5,7 @@
  * @param {Object} [options]      Options.
  * @param {number} [options.size] Radius, in heights of the slide.
  * @param {number} [options.dim]  How dark the rest is, 0 to 1.
- * @return {Object} Effect.
+ * @return {import('../program.js').Effect} Effect.
  */
 export const spotlight = ( { size = 0.5, dim = 0.45 } = {} ) => ( {
 	params: { size, dim },

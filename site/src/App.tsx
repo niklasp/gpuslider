@@ -1,10 +1,17 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import {
+	useCallback,
+	useLayoutEffect,
+	useRef,
+	useState,
+	type CSSProperties,
+} from 'react';
+import { Button } from '@/components/ui/button';
 import 'shaderslide/style.css';
 import './site.css';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Controls } from '@/components/Controls';
 import { ShaderSlider, Slide } from '@/components/ShaderSlider';
-import { DEFAULTS, keyOf, layersOf, type Config } from '@/lib/config';
+import { DEFAULTS, keyOf, pluginsOf, type Config } from '@/lib/config';
 
 const media = ( name: string ) => `/media/${ name }`;
 
@@ -61,7 +68,19 @@ export default function App() {
 		duration: config.duration,
 		autoplay: config.autoplay ? 3500 : 0,
 	};
-	const shared = { made, measured, layers: () => layersOf( config ) };
+	const shared = { made, measured, plugins: () => pluginsOf( config ) };
+
+	// What the slider with the buttons outside of it said last.
+	const [ log, setLog ] = useState< string[] >( [] );
+	const heard = useCallback( ( name: string, detail: unknown ) => {
+		const said =
+			typeof detail === 'number' || typeof detail === 'boolean'
+				? ` ${ detail }`
+				: Array.isArray( detail ) && typeof detail[ 0 ] === 'number'
+				? ` ${ detail.join( ', ' ) }`
+				: '';
+		setLog( ( now ) => [ `${ name }${ said }`, ...now ].slice( 0, 8 ) );
+	}, [] );
 
 	return (
 		<TooltipProvider>
@@ -110,7 +129,7 @@ export default function App() {
 							<h3 className="text-2xl font-semibold md:text-4xl">
 								No dependency
 							</h3>
-							<p className="text-white/80">The core is 5 KB.</p>
+							<p className="text-white/80">The core is 6 KB.</p>
 						</Slide>
 						<Slide src={ media( '4.jpg' ) } alt="Pink colour field" className="hero">
 							<h3 className="text-2xl font-semibold md:text-4xl">Idle is free</h3>
@@ -227,7 +246,7 @@ export default function App() {
 						pause={ config.autoplay }
 						made={ made }
 						measured={ measured }
-						layers={ () => layersOf( config, true ) }
+						plugins={ () => pluginsOf( config, 'stack' ) }
 					>
 						<Slide src={ media( '6.jpg' ) } alt="Violet colour field" className="hero">
 							<h3 className="text-2xl font-semibold md:text-4xl">
@@ -252,6 +271,101 @@ export default function App() {
 							<p className="text-white/80">Switch the canvas off to see it.</p>
 						</Slide>
 					</ShaderSlider>
+				</Section>
+
+				<Section
+					title="Covers"
+					note="An animation as a plugin. On the canvas it is an effect that turns the mesh; with the canvas off, the progress plugin tells the slides where they are and CSS turns them."
+				>
+					<ShaderSlider
+						id="covers"
+						label="Covers"
+						options={ { ...options, align: 'center' } }
+						className="covers"
+						style={ look }
+						made={ made }
+						measured={ measured }
+						plugins={ () => pluginsOf( config, 'covers' ) }
+					>
+						{ [ 5, 6, 7, 8, 1, 2, 3 ].map( ( n ) => (
+							<Slide
+								key={ n }
+								src={ media( `${ n }.jpg` ) }
+								alt={ `Colour field ${ n }` }
+								className="cover"
+							/>
+						) ) }
+					</ShaderSlider>
+				</Section>
+
+				<Section
+					title="Buttons anywhere, and events"
+					note="The buttons are not in the slider: they name it with data-ss-for. The list is what the slider says while it is used."
+				>
+					<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_16rem]">
+						<ShaderSlider
+							id="remote"
+							label="Driven from outside"
+							options={ options }
+							className="cards"
+							style={
+								{
+									...look,
+									'--ss-per-view': 2,
+									'--ss-gap': `${ config.gap }px`,
+								} as CSSProperties
+							}
+							heard={ heard }
+							bare
+							{ ...shared }
+						>
+							{ [ 2, 4, 6, 8, 1, 3 ].map( ( n ) => (
+								<Slide
+									key={ n }
+									src={ media( `${ n }.jpg` ) }
+									alt={ `Colour field ${ n }` }
+									className="card wide"
+								/>
+							) ) }
+						</ShaderSlider>
+						<div className="grid content-start gap-4">
+							<nav
+								data-ss-for="remote"
+								data-testid="remote-buttons"
+								aria-label="Driven from outside"
+								className="flex flex-wrap gap-2"
+							>
+								<Button variant="outline" size="sm" data-ss-prev>
+									Back
+								</Button>
+								<Button variant="outline" size="sm" data-ss-next>
+									On
+								</Button>
+								{ [ 0, 2, 4 ].map( ( n ) => (
+									<Button
+										key={ n }
+										variant="outline"
+										size="sm"
+										data-ss-to={ n }
+										className="aria-[current]:bg-foreground aria-[current]:text-background"
+									>
+										{ n + 1 }
+									</Button>
+								) ) }
+							</nav>
+							<ol
+								data-testid="events"
+								aria-label="Events"
+								className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
+							>
+								{ log.map( ( line, i ) => (
+									<li key={ log.length - i } className="first:text-foreground">
+										{ line }
+									</li>
+								) ) }
+							</ol>
+						</div>
+					</div>
 				</Section>
 			</main>
 		</TooltipProvider>

@@ -8,9 +8,13 @@ import {
 	magnify,
 	spotlight,
 	bend,
+	coverflow,
+	type Effect,
 } from 'shaderslide/gl';
 import * as transitions from '../../../src/gl/transitions/index.js';
 import { lightbox } from 'shaderslide/lightbox';
+import { progress } from 'shaderslide/plugins';
+import type { Create } from 'shaderslide';
 
 export const EFFECTS = {
 	stretch: { label: 'Stretch', hint: 'The image gives way to the speed' },
@@ -68,34 +72,41 @@ const make = ( name: EffectName, k: number ) =>
 	} )[ name ]();
 
 /**
- * The layers of a slider.
+ * The plugins of a slider.
  *
  * @param config The settings.
- * @param stack  Whether the slider is a stack: it has a transition, and no
- *               mesh to bend.
+ * @param kind   A stack has a transition, and no mesh to bend. Covers turn
+ *               away from the middle: on the canvas by an effect, on the
+ *               page by CSS that the `progress` plugin feeds.
  */
-export function layersOf( config: Config, stack = false ) {
+export function pluginsOf(
+	config: Config,
+	kind: 'row' | 'stack' | 'covers' = 'row'
+) {
 	const names = config.effects.filter(
-		( name ) => ! stack || name !== 'bend'
+		( name ) => kind === 'row' || name !== 'bend'
 	);
-	const effects = () => names.map( ( name ) => make( name, config.intensity ) );
-	const layers = [];
+	const effects = (): Effect[] =>
+		names.map( ( name ) => make( name, config.intensity ) );
+	const plugins: Create[] = [];
 	if ( config.canvas ) {
-		layers.push(
-			gl( {
-				effects: stack
-					? [
-							...effects(),
-							( transitions as Record< string, () => object > )[
-								config.transition
-							](),
-					  ]
-					: effects(),
-			} )
-		);
+		const more: Effect[] = [];
+		if ( kind === 'stack' ) {
+			more.push(
+				( transitions as Record< string, () => Effect > )[
+					config.transition
+				]()
+			);
+		}
+		if ( kind === 'covers' ) {
+			more.push( coverflow( { angle: 45, depth: 0.35 } ) );
+		}
+		plugins.push( gl( { effects: [ ...effects(), ...more ] } ) );
+	} else if ( kind === 'covers' ) {
+		plugins.push( progress() );
 	}
 	if ( config.lightbox ) {
-		layers.push(
+		plugins.push(
 			lightbox( {
 				// In the lightbox the image is the point: what moves with
 				// the speed, and no more.
@@ -107,7 +118,7 @@ export function layersOf( config: Config, stack = false ) {
 			} )
 		);
 	}
-	return layers;
+	return plugins;
 }
 
 /** What of the settings makes a slider another slider. */

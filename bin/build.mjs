@@ -45,11 +45,17 @@ const parts = [];
 
 parts.push( {
 	name: 'core',
-	budget: 6144,
+	budget: 6656,
 	size: await measure(
 		`export * from './src/index.js';`,
 		'shaderslide.js'
 	),
+} );
+
+parts.push( {
+	name: 'plugin: progress',
+	budget: 1024,
+	size: await measure( `export * from './src/plugins/progress.js';` ),
 } );
 
 if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {

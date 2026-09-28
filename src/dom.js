@@ -56,8 +56,10 @@ export function createDom( root, track, slides ) {
 	};
 
 	const given = [];
+	// A label like the ones given here came with a copy of a slide.
+	const own = /^\d+ \/ \d+$/;
 	const attribute = ( el, name, value ) => {
-		if ( ! el.hasAttribute( name ) ) {
+		if ( ! el.hasAttribute( name ) || own.test( el.getAttribute( name ) ) ) {
 			el.setAttribute( name, value );
 			given.push( [ el, name ] );
 		}
