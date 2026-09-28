@@ -21,7 +21,8 @@
  *     params      numbers, or arrays of 2 to 4, that the bodies use by
  *                 their name
  *     head        GLSL the bodies need: helper functions
- *     animated    true when it moves without the slider moving
+ *     animated    true when it moves without the slider moving; 'pointer'
+ *                 when it does so while the pointer is over the slider
  *
  * `uv` runs over the quad from the top left, 0 to 1. The quad is the media
  * of a slide, or the whole view in a stack.
@@ -38,6 +39,7 @@
  *     uTime       seconds
  *     uSize       size of the quad, px
  *     uView       size of the view, px
+ *     uQuad       the quad in the view, px: left, top, width, height
  *
  * Effects are chained in the order given.
  */
@@ -54,8 +56,9 @@
  *           mixes two slides.
  * @property {string | string[]}                 [head]       GLSL the bodies
  *           need: helper functions.
- * @property {boolean}                           [animated]   Moves without
- *           the slider moving.
+ * @property {boolean | 'pointer'}               [animated]   Moves without
+ *           the slider moving: always, or while the pointer is over the
+ *           slider.
  */
 
 const COMMON = `
@@ -68,13 +71,13 @@ uniform float uPointerIn;
 uniform float uTime;
 uniform vec2 uSize;
 uniform vec2 uView;
+uniform vec4 uQuad;
 `;
 
 const VERTEX = `#version 300 es
 precision highp float;
 in vec2 aPos;
 out vec2 vUv;
-uniform vec4 uQuad;
 uniform float uDepth;
 `;
 
@@ -135,7 +138,9 @@ const TYPES = [ , 'float', 'vec2', 'vec3', 'vec4' ];
  *                                 has one; null for a row.
  * @return {Object} `vertex` and `fragment` (sources), `params` (uniform name
  *                  to value), `mesh` (whether the quad needs to bend),
- *                  `pointer`, `animated`.
+ *                  `pointer`, `animated`, `hover` (animated while the
+ *                  pointer is over the slider) and `placed` (whether a
+ *                  slide at rest looks different from what the page draws).
  */
 export function compose( effects, transition ) {
 	const heads = new Set();
@@ -177,7 +182,7 @@ export function compose( effects, transition ) {
 			}
 		}
 	} );
-	const head = COMMON + uniforms + [ ...heads ].join( '\n' );
+	const head = COMMON + uniforms + [ ...heads ].join( '\n' ) + '\n';
 
 	const vertex =
 		VERTEX +
@@ -201,16 +206,18 @@ export function compose( effects, transition ) {
 		hooks.color +
 		MAIN.replace( 'CALLS', calls.color );
 
+	const written =
+		[ ...heads ].join( '' ) + base + hooks.uv + hooks.color + hooks.vertex;
 	return {
 		vertex,
 		fragment,
 		params,
 		mesh: !! hooks.vertex,
 		// Whether something the effects wrote reads the pointer.
-		pointer: /uPointer/.test(
-			base + hooks.uv + hooks.color + hooks.vertex
-		),
-		animated: effects.some( ( effect ) => effect.animated ),
+		pointer: /uPointer/.test( written ),
+		animated: effects.some( ( effect ) => effect.animated === true ),
+		hover: effects.some( ( effect ) => effect.animated === 'pointer' ),
+		placed: /uProgress|uView|uQuad/.test( written ),
 	};
 }
 

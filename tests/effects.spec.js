@@ -102,6 +102,14 @@ test.describe( 'effects', () => {
 		'spotlight',
 		'bend:{"amount":0}',
 		'stretch;split;magnify;spotlight',
+		'smear',
+		'shift',
+		'tilt',
+		'waves',
+		'reveal',
+		'glass',
+		'pixels',
+		'smear;shift;tilt;waves;reveal;glass;pixels',
 	];
 	for ( const effects of REST ) {
 		test( `${ effects }: at rest the slides are as the page draws them`, async ( { page } ) => {
@@ -239,4 +247,118 @@ test.describe( 'effects', () => {
 		);
 		expect( logged ).toEqual( [] );
 	} );
+} );
+
+test.describe( 'effects of the pointer', () => {
+	// What the canvas shows at rest, with the pointer resting on it, and
+	// while the pointer moves over it.
+	const three = async ( page, effects ) => {
+		const logged = errors( page );
+		await open( page, { n: 3, plugins: 'gl', effects } );
+		expect( logged ).toEqual( [] );
+		if ( ! ( await draws( page ) ) ) {
+			return null;
+		}
+		await painted( page );
+		const rest = await shot( page );
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 200, box.y + 100 );
+		for ( let i = 1; i <= 12; i++ ) {
+			await page.mouse.move( box.x + 200 + i * 30, box.y + 100 + i * 8 );
+			await page.waitForTimeout( 16 );
+		}
+		const moving = await shot( page );
+		await page.waitForTimeout( 1200 );
+		const over = await shot( page );
+		await page.mouse.move( box.x + 400, box.y + 650 );
+		await page.waitForTimeout( 1200 );
+		const left = await shot( page );
+		return {
+			moving: ( await difference( page, rest, moving ) ).mean,
+			over: ( await difference( page, rest, over ) ).mean,
+			left: ( await difference( page, rest, left ) ).mean,
+		};
+	};
+
+	for ( const name of [ 'smear', 'shift' ] ) {
+		test( `${ name }: with the speed of the pointer, and no longer`, async ( { page } ) => {
+			const seen = await three( page, name );
+			test.skip( ! seen, 'No WebGL 2 in this browser.' );
+			expect( seen.moving ).toBeGreaterThan( 0.2 );
+			expect( seen.over ).toBeLessThan( 0.2 );
+			expect( seen.left ).toBeLessThan( 0.2 );
+			await settled( page );
+		} );
+	}
+
+	for ( const name of [ 'tilt', 'reveal', 'glass', 'pixels' ] ) {
+		test( `${ name }: where the pointer is, while it is there`, async ( { page } ) => {
+			const seen = await three( page, name );
+			test.skip( ! seen, 'No WebGL 2 in this browser.' );
+			expect( seen.over ).toBeGreaterThan( 0.2 );
+			expect( seen.left ).toBeLessThan( 0.2 );
+			await settled( page );
+		} );
+	}
+
+	test( 'waves: run while the pointer is over the slider, and only then', async ( { page } ) => {
+		await open( page, { n: 3, plugins: 'gl', effects: 'waves' } );
+		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
+		await painted( page );
+		const rest = await shot( page );
+		const frames = () => page.evaluate( () => window.frames_ );
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 400, box.y + 150 );
+		await page.waitForTimeout( 800 );
+		const one = await shot( page );
+		const before = await frames();
+		await page.waitForTimeout( 300 );
+		const two = await shot( page );
+		expect( await frames() ).toBeGreaterThan( before + 5 );
+		expect( ( await difference( page, rest, one ) ).mean ).toBeGreaterThan( 0.1 );
+		expect( ( await difference( page, one, two ) ).mean ).toBeGreaterThan( 0.02 );
+		await page.mouse.move( box.x + 400, box.y + 650 );
+		await settled( page );
+		const after = await frames();
+		await page.waitForTimeout( 300 );
+		expect( await frames() ).toBe( after );
+		expect(
+			( await difference( page, rest, await shot( page ) ) ).mean
+		).toBeLessThan( 0.2 );
+	} );
+} );
+
+test.describe( 'effects that lay out', () => {
+	const setup = {
+		n: 6,
+		css: '.ss { --ss-per-view: 3; --ss-gap: 10px; }',
+		o: { align: 'center', contain: false, start: 2 },
+	};
+
+	for ( const name of [ 'coverflow', 'pile', 'fan', 'parallax' ] ) {
+		test( `${ name }: another picture than the row, at rest and on the way`, async ( { page } ) => {
+			const logged = errors( page );
+			await open( page, setup );
+			const plain = await shot( page );
+			await open( page, { ...setup, plugins: 'gl', effects: name, lazy: 1 } );
+			expect( logged ).toEqual( [] );
+			// It does not wait for somebody to come.
+			await page
+				.waitForFunction( () => !! window.slider.plugins.gl.canvas, null, {
+					timeout: 3000,
+				} )
+				.catch( () => {} );
+			test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
+			await painted( page );
+			const rest = await shot( page );
+			expect( ( await difference( page, plain, rest ) ).mean ).toBeGreaterThan( 2 );
+			await test.info().attach( name, { body: rest, contentType: 'image/png' } );
+			await page.evaluate( () => window.slider.next() );
+			await settled( page );
+			// The next slide is where this one was, and looks as it did.
+			await open( page, { ...setup, plugins: 'gl', effects: name, o: { ...setup.o, start: 3 } } );
+			await painted( page );
+			expect( await page.evaluate( () => window.slider.index ) ).toBe( 3 );
+		} );
+	}
 } );

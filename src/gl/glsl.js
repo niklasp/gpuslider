@@ -40,3 +40,23 @@ vec2 aspectUv( vec2 uv ) {
 vec2 fromAspect( vec2 p ) {
 	return p / vec2( uSize.x / uSize.y, 1.0 ) + 0.5;
 }`;
+
+/**
+ * `near( uv, size )`: 1 under the pointer, nothing `size` heights of the
+ * slide away from it, and nothing while the pointer is not over the slider.
+ * `rawNear( uv, size )`: the same wherever the pointer is.
+ */
+export const NEAR = `
+float rawNear( vec2 uv, float size ) {
+	vec2 d = ( uv - uPointer ) * vec2( uSize.x / uSize.y, 1.0 ) / size;
+	return exp( -3.0 * dot( d, d ) );
+}
+float near( vec2 uv, float size ) {
+	return rawNear( uv, size ) * uPointerIn;
+}`;
+
+/** `toCentre()`: how far the slide is from the middle of the view, px. */
+export const CENTRE = `
+float toCentre() {
+	return uView.x * 0.5 - uQuad.x - uQuad.z * 0.5;
+}`;

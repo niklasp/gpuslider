@@ -434,8 +434,14 @@ export function gl( {
 								root.addEventListener( name, leave, listening )
 						);
 					}
-					// What moves by itself needs its canvas before it does.
-					if ( shader.animated || slider.plugins.autoplay ) {
+					// What moves by itself needs its canvas before it does,
+					// and what looks different at rest should not wait for
+					// somebody to come.
+					if (
+						shader.animated ||
+						shader.placed ||
+						slider.plugins.autoplay
+					) {
 						( win.requestIdleCallback || win.setTimeout )( want );
 					}
 					attach();
@@ -615,6 +621,7 @@ export function gl( {
 				( !! context &&
 					( pointer.moving ||
 						shader.animated ||
+						( shader.hover && pointer.tin > 0 ) ||
 					media.some(
 						( element, i ) =>
 							element?.tagName === 'VIDEO' &&
