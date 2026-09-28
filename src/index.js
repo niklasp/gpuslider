@@ -492,6 +492,16 @@ export function createSlider( root, options = {} ) {
 		update,
 		/** Requests a frame: for plugins that changed what they draw. */
 		wake: engine.wake,
+		/**
+		 * Moves the slider and where it is going by the same distance: what
+		 * it is doing goes on from there.
+		 *
+		 * @param {number} by Distance, px.
+		 */
+		shift( by ) {
+			engine.shift( by );
+			engine.wake();
+		},
 
 		/**
 		 * For what moves the slider by hand, as a pointer does: `grab()`,

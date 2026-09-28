@@ -19,3 +19,5 @@ export { videos } from './videos.js';
 export { autoHeight } from './auto-height.js';
 export { stack } from './stack.js';
 export { progress } from './progress.js';
+export { marquee } from './marquee.js';
+export { thumbs } from './thumbs.js';

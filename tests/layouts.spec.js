@@ -128,7 +128,13 @@ test.describe( 'downwards', () => {
 		await page.waitForFunction(
 			() => document.querySelectorAll( '.ss-drawn' ).length >= 2
 		);
-		await settled( page );
+		// Held, the slider does not rest: two frames more, for the pictures.
+		await page.evaluate(
+			() =>
+				new Promise( ( done ) =>
+					requestAnimationFrame( () => requestAnimationFrame( done ) )
+				)
+		);
 		const { mean, far } = await difference( page, plain, await shot( page ) );
 		expect( mean ).toBeLessThan( 2 );
 		expect( far ).toBeLessThan( 0.01 );
@@ -241,5 +247,151 @@ test.describe( 'rows', () => {
 		// Small slides: the browsers make images small in their own ways.
 		const { mean } = await difference( page, plain, await shot( page ) );
 		expect( mean ).toBeLessThan( 3 );
+	} );
+} );
+
+test.describe( 'marquee', () => {
+	const setup = {
+		n: 6,
+		core: 1,
+		o: { loop: true, free: true },
+		css: '.ss { --ss-per-view: 3; --ss-gap: 10px; }',
+	};
+	const pos = ( page ) => page.evaluate( () => window.slider.motion.pos );
+	const run = ( page, options ) =>
+		page.evaluate(
+			( o ) => window.slider.use( window.lib.marquee( o ) ),
+			options
+		);
+
+	test( 'runs evenly, and on after a drag', async ( { page } ) => {
+		await open( page, setup );
+		await run( page, { speed: 200 } );
+		const from = await pos( page );
+		await page.waitForTimeout( 1000 );
+		const way = ( await pos( page ) ) - from;
+		expect( way ).toBeGreaterThan( 120 );
+		expect( way ).toBeLessThan( 320 );
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 600, box.y + 150 );
+		await page.mouse.down();
+		await page.mouse.move( box.x + 500, box.y + 150, { steps: 5 } );
+		expect( await page.evaluate( () => window.slider.motion.dragging ) ).toBe( true );
+		await page.waitForTimeout( 100 );
+		await page.mouse.up();
+		const then = await pos( page );
+		await page.waitForTimeout( 600 );
+		expect( await pos( page ) ).toBeGreaterThan( then + 60 );
+	} );
+
+	test( 'the slides go round', async ( { page } ) => {
+		await open( page, setup );
+		await run( page, { speed: 3000 } );
+		await page.waitForTimeout( 1200 );
+		// More than a round of 1620 px, and every slide in view is drawn in
+		// the view.
+		expect( await pos( page ) ).toBeGreaterThan( 1700 );
+		const lefts = await page.evaluate( () =>
+			window.slider.visible().map( ( i ) => {
+				const root = window.slider.root.getBoundingClientRect();
+				const r = window.slider.slides[ i ].getBoundingClientRect();
+				return r.right > root.left && r.left < root.right;
+			} )
+		);
+		expect( lefts.length ).toBeGreaterThanOrEqual( 3 );
+		expect( lefts.every( Boolean ) ).toBe( true );
+	} );
+
+	test( 'stands still when told to, off the screen, and for who asks for less motion', async ( { page } ) => {
+		await open( page, setup );
+		await run( page, { speed: 200 } );
+		const stands = async () => {
+			await page.waitForTimeout( 150 );
+			const from = await pos( page );
+			await page.waitForTimeout( 300 );
+			return ( await pos( page ) ) === from;
+		};
+		expect( await stands() ).toBe( false );
+		await page.evaluate( () => window.slider.plugins.marquee.pause() );
+		expect( await stands() ).toBe( true );
+		// And asks for no frames.
+		const frames = await page.evaluate( () => window.frames_ );
+		await page.waitForTimeout( 200 );
+		expect( await page.evaluate( () => window.frames_ ) ).toBe( frames );
+		await page.evaluate( () => window.slider.plugins.marquee.play() );
+		expect( await stands() ).toBe( false );
+		await page.evaluate( () => window.scrollTo( 0, 1500 ) );
+		expect( await stands() ).toBe( true );
+		await page.evaluate( () => window.scrollTo( 0, 0 ) );
+		expect( await stands() ).toBe( false );
+		await page.emulateMedia( { reducedMotion: 'reduce' } );
+		expect( await stands() ).toBe( true );
+	} );
+} );
+
+test.describe( 'thumbnails', () => {
+	const make = ( page ) =>
+		page.evaluate( () => {
+			const two = document.getElementById( 'slider' ).cloneNode( true );
+			two.id = 'thumbs';
+			two.querySelectorAll( 'button, [data-ss-dots], .ss-content' ).forEach(
+				( el ) => el.remove()
+			);
+			two.style.cssText = '--ss-per-view: 4; --ss-gap: 8px; margin-top: 8px';
+			two.querySelectorAll( '.ss-slide' ).forEach( ( slide ) => {
+				slide.style.height = '80px';
+				slide.removeAttribute( 'style' );
+				slide.style.height = '80px';
+				[ ...slide.attributes ].forEach(
+					( { name } ) =>
+						/^(role|aria-|inert)/.test( name ) &&
+						slide.removeAttribute( name )
+				);
+			} );
+			two.querySelector( '.ss-track' ).removeAttribute( 'style' );
+			document.getElementById( 'slider' ).after( two );
+			window.thumbs = window.lib.core.createSlider( two, {
+				plugins: [ window.lib.thumbs( window.slider ) ],
+			} );
+		} );
+	const active = ( page ) =>
+		page.evaluate( () =>
+			window.thumbs.slides.findIndex( ( slide ) =>
+				slide.classList.contains( 'ss-active' )
+			)
+		);
+
+	test( 'a click on one takes the slider to its slide', async ( { page } ) => {
+		await open( page, { n: 8 } );
+		await make( page );
+		await expect.poll( () => active( page ) ).toBe( 0 );
+		await page.locator( '#thumbs .ss-slide' ).nth( 2 ).click();
+		await settled( page );
+		expect( await index( page ) ).toBe( 2 );
+		expect( await active( page ) ).toBe( 2 );
+		await expect(
+			page.locator( '#thumbs .ss-slide' ).nth( 2 )
+		).toHaveAttribute( 'aria-current', 'true' );
+	} );
+
+	test( 'the one of the slide that is shown comes into view', async ( { page } ) => {
+		await open( page, { n: 8 } );
+		await make( page );
+		await page.evaluate( () => window.slider.to( 6 ) );
+		await settled( page );
+		await page.waitForFunction( () => window.thumbs.resting );
+		expect( await active( page ) ).toBe( 6 );
+		expect( await page.evaluate( () => window.thumbs.visible() ) ).toContain( 6 );
+	} );
+
+	test( 'they are buttons, for keys too', async ( { page } ) => {
+		await open( page, { n: 8 } );
+		await make( page );
+		const third = page.locator( '#thumbs .ss-slide' ).nth( 3 );
+		await expect( third ).toHaveAttribute( 'role', 'button' );
+		await third.focus();
+		await page.keyboard.press( 'Enter' );
+		await settled( page );
+		expect( await index( page ) ).toBe( 3 );
 	} );
 } );

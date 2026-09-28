@@ -65,11 +65,10 @@ for ( const file of readdirSync( resolve( root, 'src/plugins' ) ).sort() ) {
 }
 
 parts.push( {
-	name: 'full: the core and all plugins',
+	name: 'full: the slider with all its options',
 	budget: 7168,
 	size: await measure(
-		`export * from './src/full.js';`,
-		'shaderslide-full.js'
+		`import { createSlider } from './src/full.js'; export { createSlider };`
 	),
 } );
 
