@@ -444,7 +444,8 @@ export function gl( {
 					if (
 						shader.animated ||
 						shader.placed ||
-						slider.plugins.autoplay
+						slider.plugins.autoplay ||
+						slider.plugins.marquee
 					) {
 						( win.requestIdleCallback || win.setTimeout )( want );
 					}

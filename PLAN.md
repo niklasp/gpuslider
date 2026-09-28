@@ -172,7 +172,7 @@ Decided with it:
 - **Listeners get `( detail, slider )`.** Left to me by the user on 2026-09-28, and kept.
 - **Typed events.** `slider.on( 'change', ( index ) => … )` knows that `index` is a number. `tests/types/use.ts` is compiled by `npm run types` and fails when the declarations stop saying what the library does.
 - **For React** there is `useSlider` in `shaderslide/react` (decision 14). The site uses it.
-- **Nothing is published** until the user says so. `npm run types && npm run size && npm test && npm run test:dist` runs before every publish (`prepublishOnly`). The name `shaderslide` was free on npm on 2026-09-29, and is not reserved: until it is, the README names no CDN.
+- **Nothing is published** until the user says so. `npm run types && npm run size && npm test && npm run test:dist` runs before every publish (`prepublishOnly`), and `dist/` and the types are built before every pack (`prepack`). The name `shaderslide` was free on npm on 2026-09-29, and is not reserved: until it is, the README names no CDN.
 
 ### 13. The core moves slides; everything else is a plugin
 
@@ -220,13 +220,13 @@ Asked for by the user on 2026-09-28: as fast as possible, for everyone, with wha
 - **The lightbox has its own style sheet**, `lightbox.css`: `style.css` is 0.7 KB for pages without one.
 - **No file for `<script>` without `type="module"`** yet. Every browser that runs the library knows modules.
 
-The site is the proof. Lighthouse, the build of the site (`vite build`, served by `vite preview`), one run each; mobile is a slow phone on slow 4G. Before: 2026-09-28, 7 sliders. After: 2026-09-29, 14 sliders.
+The site is the proof. Lighthouse, the build of the site (`vite build`, served by `vite preview`); mobile is a slow phone on slow 4G. The numbers move by a point or two from run to run: mobile was 98 and 97 in two runs after. Before: 2026-09-28, 7 sliders. After: 2026-09-29, 14 sliders.
 
 | | Before | After |
 |---|---|---|
-| Mobile: performance | 83 | 98 |
+| Mobile: performance | 83 | 97 to 98 |
 | Mobile: accessibility, best practices, SEO, agentic browsing | 93, 96, 83, 25 | 100, 100, 100, 100 |
-| Mobile: FCP, LCP, TBT, CLS | not kept | 1.1 s, 2.4 s, 0 ms, 0.002 |
+| Mobile: FCP, LCP, TBT, CLS | not kept | 1.1 s, 2.4 to 2.6 s, 0 ms, 0.002 |
 | Desktop: performance | 100 | 100 |
 | Desktop: the other four | 93, 96, 83, 25 | 100, 100, 100, 100 |
 
@@ -295,7 +295,7 @@ Each phase ends with something that runs and with tests.
 - **Effects that lay out are cut** at the edge of the slider: the canvas is as large as the slider. A canvas that is larger than its slider by what an effect asks for would lift this.
 - **One context for all sliders of a page**, or drawing in a worker (`OffscreenCanvas`): the next steps for pages with many sliders. Both change how textures get to the canvas.
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
-- **A canvas test in WebKit fails about once in 500 runs** when three browsers share the machine: the picture is compared before the canvas shows. It did not fail in 276 runs of WebKit alone.
+- **Canvas tests in WebKit that fail now and then.** "At rest the slides are as the page draws them" failed for two effects in one run of all browsers with `dist/` (the picture was compared before the canvas showed), and in no other run, nor in 276 runs of WebKit alone. Whether a visitor can see a frame without a picture there is not known. The test of the slider that goes down failed the same way more often, and waits for the picture now.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
 - **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.5 of 6.5 KB).

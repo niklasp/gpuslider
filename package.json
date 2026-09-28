@@ -5,7 +5,9 @@
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": [
-		"*.css"
+		"*.css",
+		"./src/auto.js",
+		"./dist/auto.js"
 	],
 	"exports": {
 		".": {
@@ -53,7 +55,8 @@
 		"test": "playwright test",
 		"types": "rm -rf types && tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
 		"prepublishOnly": "npm run types && npm run size && npm test && npm run test:dist",
-		"test:dist": "node bin/build.mjs && FROM=dist playwright test"
+		"test:dist": "node bin/build.mjs && FROM=dist playwright test",
+		"prepack": "node bin/build.mjs --check && npm run types"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.63.0",

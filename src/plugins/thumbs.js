@@ -24,7 +24,11 @@ export function thumbs( of ) {
 			slides.forEach( ( slide, i ) => {
 				const on = i === of.index;
 				slide.classList.toggle( 'ss-active', on );
-				slide.toggleAttribute( 'aria-current', on );
+				if ( on ) {
+					slide.setAttribute( 'aria-current', 'true' );
+				} else {
+					slide.removeAttribute( 'aria-current' );
+				}
 			} );
 			slider.toSlide( of.index );
 		};

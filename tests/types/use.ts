@@ -14,8 +14,12 @@ import {
 	autoplay,
 	autoHeight,
 	stack,
+	marquee,
+	thumbs,
 } from 'shaderslide/plugins';
 import { createSlider as createFull } from 'shaderslide/full';
+import { useSlider } from 'shaderslide/react';
+import { auto, sliders } from 'shaderslide/auto';
 
 const counter = ( { step = 1 } = {} ) => ( slider: Slider ) => {
 	let frames = 0;
@@ -68,7 +72,6 @@ slider.on( 'change', ( index, it ) => {
 	const same: Slider = it;
 	return [ n, same ];
 } );
-slider.on( 'edge', ( { start, end } ) => start && end );
 slider.on( 'click', ( { index, event } ) => [ index.toFixed(), event.clientX ] );
 slider.on( 'frame', ( view ) => view.places[ 0 ].p + view.velocity + view.layout.width );
 slider.on( '*', ( name, detail ) => [ name.length, detail ] );
@@ -85,6 +88,25 @@ slider.use( counter( { step: 2 } ) );
 slider.plugins.lightbox.open( 1 );
 slider.wake();
 slider.plugins.autoplay.pause();
+slider.shift( 12, true );
+
+const ticker = createSlider( document.body, {
+	axis: 'y',
+	loop: true,
+	free: true,
+	plugins: [ marquee( { speed: -40, hover: 0.2, scroll: 0.5, pause: '.pause' } ) ],
+} );
+ticker.plugins.marquee.pause();
+createSlider( document.body, { plugins: [ thumbs( slider ) ] } );
+
+function Photos() {
+	const [ ref, made_ ] = useSlider( { loop: true, plugins: [ controls() ] }, [] );
+	made_?.next();
+	return ref.current;
+}
+
+auto( document.body );
+const found: Slider | undefined = sliders.get( document.body );
 
 const full = createFull( document.body, {
 	loop: true,
@@ -104,7 +126,13 @@ createSlider( document.body, { autoplay: 3500 } );
 autoplay( { delay: 'long' } );
 // @ts-expect-error: no such mode.
 createFull( document.body, { mode: 'pile' } );
+// @ts-expect-error: a speed is a number.
+marquee( { speed: 'fast' } );
+// @ts-expect-error: thumbnails are the thumbnails of a slider.
+thumbs();
+// @ts-expect-error: no such axis.
+createSlider( document.body, { axis: 'z' } );
 // @ts-expect-error: angles are numbers.
 coverflow( { angle: 'steep' } );
 
-export { position, can };
+export { position, can, Photos, found };

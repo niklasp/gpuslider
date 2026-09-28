@@ -128,15 +128,17 @@ test.describe( 'downwards', () => {
 		await page.waitForFunction(
 			() => document.querySelectorAll( '.ss-drawn' ).length >= 2
 		);
-		// Held, the slider does not rest: two frames more, for the pictures.
-		await page.evaluate(
-			() =>
-				new Promise( ( done ) =>
-					requestAnimationFrame( () => requestAnimationFrame( done ) )
-				)
-		);
-		const { mean, far } = await difference( page, plain, await shot( page ) );
-		expect( mean ).toBeLessThan( 2 );
+		// Held, the slider does not rest, and nothing says when the canvas
+		// has the pictures of the slides that came into view: it has them
+		// soon.
+		let far = 1;
+		await expect
+			.poll( async () => {
+				const now = await difference( page, plain, await shot( page ) );
+				far = now.far;
+				return now.mean;
+			} )
+			.toBeLessThan( 2 );
 		expect( far ).toBeLessThan( 0.01 );
 	} );
 
@@ -369,6 +371,32 @@ test.describe( 'marquee', () => {
 		expect( await stands() ).toBe( false );
 	} );
 
+	test( 'it gets its canvas without anybody coming', async ( { page } ) => {
+		// Not by `open()`, which waits for a rest that a ticker has not.
+		const query = new URLSearchParams( {
+			n: '6',
+			core: '1',
+			o: JSON.stringify( setup.o ),
+			css: setup.css,
+			plugins: 'gl,marquee',
+			lazy: '1',
+			...( process.env.FROM ? { from: process.env.FROM } : {} ),
+		} );
+		await page.goto( `/tests/page.html?${ query }` );
+		await page.waitForFunction( () => window.ready );
+		// Asked of the browser: the slider has no canvas yet.
+		test.skip(
+			! ( await page.evaluate(
+				() => !! document.createElement( 'canvas' ).getContext( 'webgl2' )
+			) ),
+			'No WebGL 2 in this browser.'
+		);
+		await expect( page.locator( '#slider canvas' ) ).toHaveCount( 1 );
+		await expect
+			.poll( () => page.locator( '#slider .ss-drawn' ).count() )
+			.toBeGreaterThanOrEqual( 3 );
+	} );
+
 	test( 'a slider with ends stands still', async ( { page } ) => {
 		await open( page, { ...setup, o: {} } );
 		await run( page, { speed: 200 } );
@@ -419,7 +447,7 @@ test.describe( 'thumbnails', () => {
 		expect( await active( page ) ).toBe( 2 );
 		await expect(
 			page.locator( '#thumbs .ss-slide' ).nth( 2 )
-		).toHaveAttribute( 'aria-current', '' );
+		).toHaveAttribute( 'aria-current', 'true' );
 		await expect( page.locator( '#thumbs [aria-current]' ) ).toHaveCount( 1 );
 		// A resize leaves them what they are.
 		await page.setViewportSize( { width: 900, height: 700 } );

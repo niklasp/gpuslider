@@ -80,7 +80,13 @@ test( 'a slider that nobody uses has no canvas', async ( { page } ) => {
 	await page.waitForTimeout( 500 );
 	await expect( page.locator( '.ss-canvas' ) ).toHaveCount( 0 );
 	expect( await drawn( page, 'several' ) ).toBe( true );
-	await expect( page.locator( '.ss-canvas' ) ).toHaveCount( 1 );
+	await expect( page.locator( '#several .ss-canvas' ) ).toHaveCount( 1 );
+	await expect( page.locator( '#one .ss-canvas' ) ).toHaveCount( 0 );
+	// The ticker moves by itself: it has its canvas once it is in view,
+	// without anybody coming.
+	await page.mouse.move( 2, 300 );
+	await page.locator( '#ticker' ).scrollIntoViewIfNeeded();
+	await expect( page.locator( '#ticker .ss-canvas' ) ).toHaveCount( 1 );
 } );
 
 test( 'the controls stay at the top', async ( { page } ) => {
