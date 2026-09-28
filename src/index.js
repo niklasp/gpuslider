@@ -1,18 +1,16 @@
 /**
  * shaderslide: a slider with its own motion, made to be drawn on a canvas.
  *
- * This is the core. It moves the slides of the page and knows nothing
- * about WebGL: what draws on a canvas is a plugin, passed in by the caller
- * (see `gl/`).
+ * This is the core: it moves the slides of the page when they are dragged
+ * or told to. Everything else is a plugin, passed in by the caller: arrows
+ * and dots, keys, the wheel, autoplay (see `plugins/`), and what draws on a
+ * canvas (see `gl/`). `shaderslide/full` is the core with all of `plugins/`.
  *
  *     <div class="ss" id="photos">
  *         <div class="ss-track">
  *             <div class="ss-slide"><img class="ss-media" src="…" alt="…"></div>
  *             …
  *         </div>
- *         <button data-ss-prev>…</button>
- *         <button data-ss-next>…</button>
- *         <div data-ss-dots></div>
  *     </div>
  *
  * A plugin is a function that gets the slider and returns an object. All
@@ -36,13 +34,9 @@
  *     measure               the layout, after it was measured
  *     slides                the slides, after some were added or removed
  *     visible               indexes of the slides in view, when they change
- *     edge                  { start, end }: whether it is at one, when that
- *                           changes
  *     dragstart, dragend    the motion; the velocity it was let go with
  *     click                 { index, event }: a click on a slide that was
  *                           not the end of a drag
- *     screen                whether the slider is on the screen
- *     play, pause           autoplay
  *     destroy               the slider
  *     *                     the name of any event, then what it gets
  *
@@ -54,12 +48,11 @@ import {
 	place,
 	positionOf,
 	nearest,
-	heightOf,
+	resist,
 	mod,
 } from './layout.js';
 import { createInput } from './input.js';
 import { createDom } from './dom.js';
-import { createControls } from './controls.js';
 
 /**
  * @typedef {import('./layout.js').Layout} Layout
@@ -108,11 +101,6 @@ import { createControls } from './controls.js';
  */
 
 /**
- * @typedef {HTMLElement | HTMLElement[] | string} Elements An element,
- *          several, or a selector.
- */
-
-/**
  * @typedef {Object} Events What the listeners of each event get, before the
  *          slider.
  * @property {Slider}           ready     The slider.
@@ -122,15 +110,11 @@ import { createControls } from './controls.js';
  * @property {Layout}           measure   The layout.
  * @property {HTMLElement[]}    slides    The slides.
  * @property {number[]}         visible   Indexes of the slides in view.
- * @property {{ start: boolean, end: boolean }} edge Whether it is at one.
  * @property {Motion}           dragstart The motion.
  * @property {number}           dragend   Velocity it was let go with, px per
  *                                        second.
  * @property {{ index: number, event: MouseEvent }} click The slide and the
  *                                        click.
- * @property {boolean}          screen    Whether it is on the screen.
- * @property {undefined}        play      Nothing.
- * @property {undefined}        pause     Nothing.
  * @property {Slider}           destroy   The slider.
  */
 
@@ -166,24 +150,9 @@ import { createControls } from './controls.js';
  * @property {boolean}                [contain]  No empty space at the ends.
  * @property {boolean}                [free]     Rest anywhere, not only on
  *                                               slides.
- * @property {boolean}                [autoHeight] The slider is as high as
- *                                               the slides in view.
- * @property {number}                 [autoplay] Time a slide stays, ms; 0
- *                                               for no autoplay.
- * @property {boolean}                [wheel]    Sideways scrolling by
- *                                               trackpad or wheel.
  * @property {number}                 [duration] Time of a move, ms.
  * @property {number}                 [start]    First slide shown.
  * @property {boolean}                [drag]     Pointer dragging.
- * @property {boolean}                [keyboard] Arrow keys, Home, End.
- * @property {HTMLElement}            [controls] Where the arrows and dots
- *                                               are; the slider itself by
- *                                               default.
- * @property {Elements}               [prev]     Buttons that go back,
- *                                               anywhere on the page.
- * @property {Elements}               [next]     Buttons that go on.
- * @property {Elements}               [pause]    Buttons that stop autoplay.
- * @property {Elements}               [dots]     Elements to fill with dots.
  * @property {{ [K in keyof Events]?: Listener<K> } & Record<string, Function>} [on]
  *                                               Listeners, by the name of
  *                                               their event.
@@ -202,9 +171,6 @@ const DEFAULTS = {
 	duration: 600,
 	start: 0,
 	drag: true,
-	keyboard: true,
-	wheel: true,
-	autoplay: 0,
 	plugins: [],
 };
 
@@ -257,7 +223,6 @@ export function createSlider( root, options = {} ) {
 			'ss-on',
 			o.mode === 'stack' && 'ss-stack',
 			o.perView === 'auto' && 'ss-auto',
-			o.autoHeight && 'ss-tall',
 		].filter( Boolean );
 		root.classList.add( ...classes );
 		if ( o.perView > 0 ) {
@@ -298,49 +263,11 @@ export function createSlider( root, options = {} ) {
 		velocity: 0,
 	};
 
-	// Whether the slider is on the screen, and whether the visitor is
-	// busy with it: autoplay and videos depend on both.
-	let awake = true;
-	let held = false;
-	let paused = false;
-	let height = -1;
-	let timer = 0;
-	// What was told last, to tell only what changes.
+	// The slides in view that were told last.
 	let seen = '';
-	let edges = '';
-
-	const schedule = () => {
-		win.clearTimeout( timer );
-		if (
-			o.autoplay > 0 &&
-			awake &&
-			! held &&
-			! paused &&
-			! motion.dragging &&
-			! win.document.hidden
-		) {
-			timer = win.setTimeout( () => {
-				const last = ! layout.loop && current() === count() - 1;
-				go( last ? 0 : index + 1 );
-			}, o.autoplay );
-		}
-	};
 
 	const visible = () =>
 		places.flatMap( ( { visible: is }, i ) => ( is ? [ i ] : [] ) );
-
-	const tell = () => {
-		const now = visible();
-		if ( String( now ) !== seen ) {
-			seen = String( now );
-			emit( 'visible', now );
-		}
-		const edge = { start: ! slider.canPrev, end: ! slider.canNext };
-		if ( `${ edge.start }${ edge.end }` !== edges ) {
-			edges = `${ edge.start }${ edge.end }`;
-			emit( 'edge', edge );
-		}
-	};
 
 	const engine = createEngine( win, {
 		frame( motion, dt, now ) {
@@ -348,16 +275,16 @@ export function createSlider( root, options = {} ) {
 			view.velocity = still.matches
 				? 0
 				: motion.smooth / ( layout.width || 1 );
-			dom.frame( layout, motion, places, awake );
-			if ( o.autoHeight ) {
-				const to = Math.round( heightOf( layout, places ) * 10 ) / 10;
-				if ( to !== height ) {
-					height = to;
-					track.style.height = `${ to }px`;
+			dom.frame( layout, motion, places );
+			used.forEach( ( plugin ) => plugin.frame?.( view, dt, now ) );
+			// Costs nothing while nobody listens.
+			if ( listeners.get( 'visible' )?.size ) {
+				const now_ = visible();
+				if ( String( now_ ) !== seen ) {
+					seen = String( now_ );
+					emit( 'visible', now_ );
 				}
 			}
-			used.forEach( ( plugin ) => plugin.frame?.( view, dt, now ) );
-			tell();
 			emit( 'frame', view );
 		},
 		settle( motion ) {
@@ -368,7 +295,6 @@ export function createSlider( root, options = {} ) {
 			}
 			place( layout, motion.pos, places );
 			dom.settle( places );
-			schedule();
 			emit( 'settle', current() );
 		},
 		busy: () => used.some( ( plugin ) => plugin.busy?.() ),
@@ -382,14 +308,12 @@ export function createSlider( root, options = {} ) {
 		index = to;
 		if ( current() !== before ) {
 			previous = before;
-			controls.update();
 			emit( 'change', current() );
 		}
 	};
 
 	const go = ( to, instant ) => {
 		const before = current();
-		win.clearTimeout( timer );
 		aim( within( to ), before );
 		engine.to( positionOf( layout, index ), instant || still.matches );
 	};
@@ -441,21 +365,10 @@ export function createSlider( root, options = {} ) {
 		} else {
 			engine.to( positionOf( layout, index ), resting );
 		}
-		height = -1;
-		controls.update();
 		if ( changed ) {
 			emit( 'slides', slides );
 		}
 		emit( 'measure', layout );
-	};
-
-	const stop = ( on ) => {
-		if ( on !== paused ) {
-			paused = on;
-			schedule();
-			controls.update();
-			emit( on ? 'pause' : 'play' );
-		}
 	};
 
 	const slider = {
@@ -530,15 +443,6 @@ export function createSlider( root, options = {} ) {
 		next: () => go( index + 1 ),
 		prev: () => go( index - 1 ),
 
-		/** Whether autoplay is stopped by `pause()`. */
-		get paused() {
-			return paused;
-		},
-		/** Stops autoplay until `play()`. */
-		pause: () => stop( true ),
-		/** Lets autoplay go on. */
-		play: () => stop( false ),
-
 		/** The plugins that have a name, by their name. */
 		plugins,
 
@@ -573,7 +477,6 @@ export function createSlider( root, options = {} ) {
 			dress();
 			engine.duration( o.duration );
 			update();
-			schedule();
 		},
 
 		/**
@@ -590,14 +493,14 @@ export function createSlider( root, options = {} ) {
 		 * `release( velocity )`.
 		 */
 		grab() {
-			win.clearTimeout( timer );
 			engine.grab();
 			emit( 'dragstart', motion );
 		},
 		/**
-		 * @param {number} position Position, px.
+		 * @param {number} position Position, px. Past its ends the slider
+		 *                          follows only a part of the way.
 		 */
-		drag: ( position ) => engine.drag( position ),
+		drag: ( position ) => engine.drag( resist( layout, position ) ),
 		/**
 		 * @param {number} velocity Velocity it is let go with, px per
 		 *                          second.
@@ -679,15 +582,11 @@ export function createSlider( root, options = {} ) {
 			}
 			emit( 'destroy', slider );
 			destroyed = true;
-			win.clearTimeout( timer );
 			observer.disconnect();
-			watcher.disconnect();
 			children.disconnect();
 			ending.abort();
-			track.style.height = '';
 			used.forEach( ( plugin ) => plugin.destroy?.() );
 			engine.destroy();
-			controls.destroy();
 			dom.destroy();
 			root.classList.remove( ...classes, 'ss-dragging' );
 			listeners.clear();
@@ -697,10 +596,10 @@ export function createSlider( root, options = {} ) {
 	// Sizes change with the window, with images that load and with styles.
 	let wide = 0;
 	const observer = new win.ResizeObserver( ( entries ) => {
-		// With auto height the slider changes its own height on every
-		// frame of a move: that is no reason to measure.
+		// The slider alone, and as wide as before: its height has changed,
+		// which a plugin may do on every frame of a move. What the height
+		// of its slides does is seen on them.
 		const own =
-			o.autoHeight &&
 			entries.every( ( entry ) => entry.target === root ) &&
 			Math.abs( root.clientWidth - wide ) < 1;
 		if ( ! own ) {
@@ -715,7 +614,6 @@ export function createSlider( root, options = {} ) {
 	);
 
 	read();
-	const controls = createControls( root, slider, o, signal );
 	createInput( root, slider, signal );
 
 	layout = measure( root, track, slides, o, dom.moved );
@@ -732,34 +630,6 @@ export function createSlider( root, options = {} ) {
 	// Slides that are added or removed.
 	const children = new win.MutationObserver( update );
 	children.observe( track, { childList: true } );
-
-	const watcher = new win.IntersectionObserver( ( entries ) => {
-		const on = entries[ entries.length - 1 ].isIntersecting;
-		if ( on !== awake ) {
-			awake = on;
-			emit( 'screen', on );
-		}
-		schedule();
-		// For the videos, which follow the view.
-		engine.wake();
-	} );
-	watcher.observe( root );
-
-	// Autoplay waits while the visitor points at the slider or is in it.
-	[ 'pointerenter', 'pointerleave', 'focusin', 'focusout' ].forEach(
-		( name, i ) =>
-			root.addEventListener(
-				name,
-				( event ) => {
-					if ( event.pointerType !== 'touch' ) {
-						held = i % 2 === 0;
-						schedule();
-					}
-				},
-				{ signal }
-			)
-	);
-	win.document.addEventListener( 'visibilitychange', schedule, { signal } );
 
 	// A click on a slide. The click that ends a drag does not come here.
 	root.addEventListener(

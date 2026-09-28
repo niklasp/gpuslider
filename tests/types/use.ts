@@ -5,7 +5,16 @@
 import { createSlider, type Slider, type Plugin, type Create } from 'shaderslide';
 import { gl, stretch, coverflow, liquid, type Effect } from 'shaderslide/gl';
 import { lightbox } from 'shaderslide/lightbox';
-import { progress } from 'shaderslide/plugins';
+import {
+	progress,
+	controls,
+	keyboard,
+	wheel,
+	videos,
+	autoplay,
+	autoHeight,
+} from 'shaderslide/plugins';
+import { createSlider as createFull } from 'shaderslide/full';
 
 const counter = ( { step = 1 } = {} ) => ( slider: Slider ) => {
 	let frames = 0;
@@ -31,6 +40,13 @@ const made: Create[] = [
 	gl( { effects: [ stretch(), coverflow( { angle: 40 } ), liquid(), wobble() ] } ),
 	lightbox( { duration: 400, slider: { loop: true } } ),
 	progress( { range: 2 } ),
+	controls( { next: '.next', prev: document.querySelector< HTMLElement >( '.prev' )! } ),
+	keyboard(),
+	wheel(),
+	videos(),
+	autoplay( 3500 ),
+	autoplay( { delay: 3500, pause: '.pause' } ),
+	autoHeight(),
 	counter(),
 ];
 
@@ -38,8 +54,6 @@ const slider = createSlider( document.querySelector< HTMLElement >( '.ss' )!, {
 	loop: true,
 	perView: 'auto',
 	align: 'center',
-	next: '.next',
-	prev: document.querySelector< HTMLElement >( '.prev' )!,
 	plugins: made,
 	on: {
 		change: ( index ) => index.toFixed(),
@@ -68,9 +82,24 @@ slider.set( { loop: false, duration: 300 } );
 slider.use( counter( { step: 2 } ) );
 slider.plugins.lightbox.open( 1 );
 slider.wake();
+slider.plugins.autoplay.pause();
+
+const full = createFull( document.body, {
+	loop: true,
+	autoplay: 3500,
+	autoHeight: true,
+	wheel: false,
+	next: '.next',
+	plugins: [ gl() ],
+} );
+full.next();
 
 // @ts-expect-error: a change says a number.
 slider.on( 'change', ( index: string ) => index );
+// @ts-expect-error: autoplay is a plugin, not an option of the core.
+createSlider( document.body, { autoplay: 3500 } );
+// @ts-expect-error: a delay is a number.
+autoplay( { delay: 'long' } );
 // @ts-expect-error: no such mode.
 createSlider( document.body, { mode: 'pile' } );
 // @ts-expect-error: angles are numbers.

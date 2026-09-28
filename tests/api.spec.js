@@ -78,7 +78,7 @@ test.describe( 'events', () => {
 		expect( ( await heard( page, 'dragend' ) )[ 0 ][ 1 ] ).toBe( 0 );
 	} );
 
-	test( 'visible and edge say what changes, when it changes', async ( { page } ) => {
+	test( 'visible says what changes, when it changes', async ( { page } ) => {
 		await open( page, { css: '.ss { --ss-per-view: 2; }' } );
 		const got = await page.evaluate(
 			() =>
@@ -87,16 +87,10 @@ test.describe( 'events', () => {
 					window.slider.on( 'visible', ( slides ) =>
 						said.push( [ 'visible', slides.join() ] )
 					);
-					window.slider.on( 'edge', ( { start, end } ) =>
-						said.push( [ 'edge', start, end ] )
-					);
 					window.slider.on( 'settle', () => done( said ) );
 					window.slider.to( 3 );
 				} )
 		);
-		expect( got.filter( ( [ name ] ) => name === 'edge' ) ).toEqual( [
-			[ 'edge', false, true ],
-		] );
 		expect( got.at( -1 ) ).toEqual( [ 'visible', '3,4' ] );
 		// On the way the slides between were in view.
 		expect( got.map( ( [ , slides ] ) => slides ) ).toContain( '1,2,3' );
@@ -121,20 +115,21 @@ test.describe( 'events', () => {
 		] );
 	} );
 
-	test( 'screen, play and pause, measure, destroy', async ( { page } ) => {
+	test( 'autoplay says when it stops and goes on; measure, destroy', async ( { page } ) => {
 		await open( page, { o: { autoplay: 5000 } } );
 		await record( page );
-		await page.evaluate( () => window.scrollTo( 0, 1500 ) );
-		await expect.poll( () => heard( page, 'screen' ) ).toEqual( [ [ 'screen', false ] ] );
-		await page.evaluate( () => window.scrollTo( 0, 0 ) );
-		await expect
-			.poll( () => heard( page, 'screen' ) )
-			.toEqual( [ [ 'screen', false ], [ 'screen', true ] ] );
-		await page.locator( '#slider > [data-ss-pause]' ).click();
-		await page.locator( '#slider > [data-ss-pause]' ).click();
+		const button = page.locator( '#slider > [data-ss-pause]' );
+		await button.click();
+		await expect( button ).toHaveAttribute( 'aria-pressed', 'true' );
 		expect(
-			( await heard( page, 'play', 'pause' ) ).map( ( [ name ] ) => name )
-		).toEqual( [ 'pause', 'play' ] );
+			await page.evaluate( () => window.slider.plugins.autoplay.paused )
+		).toBe( true );
+		await button.click();
+		expect(
+			( await heard( page, 'autoplay:play', 'autoplay:pause' ) ).map(
+				( [ name ] ) => name
+			)
+		).toEqual( [ 'autoplay:pause', 'autoplay:play' ] );
 		await page.setViewportSize( { width: 900, height: 700 } );
 		await page.evaluate( () => window.slider.update() );
 		expect( ( await heard( page, 'measure' ) ).length ).toBeGreaterThan( 0 );
@@ -556,5 +551,53 @@ test.describe( 'plugins', () => {
 		);
 		expect( parts.middle ).toBeLessThan( 3 );
 		expect( parts.side ).toBeGreaterThan( 10 );
+	} );
+} );
+
+test.describe( 'the core alone', () => {
+	test( 'moves by drag and by script, and has nothing else', async ( { page } ) => {
+		await open( page, { core: 1 } );
+		expect(
+			await page.evaluate( () => Object.keys( window.slider.plugins ) )
+		).toEqual( [] );
+		await drag( page, -500, { pause: 150 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 1 );
+		await page.evaluate( () => window.slider.next() );
+		await settled( page );
+		expect( await index( page ) ).toBe( 2 );
+		// No arrows, no dots, no keys.
+		await page.locator( '#slider > [data-ss-next]' ).click();
+		await page.locator( '#slider' ).press( 'ArrowRight' ).catch( () => {} );
+		expect( await index( page ) ).toBe( 2 );
+		await expect( page.locator( '#slider .ss-dot' ) ).toHaveCount( 0 );
+		// What assistive technology needs is there.
+		expect(
+			await page.evaluate( () => [
+				window.slider.root.getAttribute( 'role' ),
+				window.slider.slides[ 0 ].getAttribute( 'aria-label' ),
+				window.slider.slides[ 4 ].inert,
+			] )
+		).toEqual( [ 'region', '1 / 5', true ] );
+	} );
+
+	test( 'plugins one by one', async ( { page } ) => {
+		await open( page, { core: 1, plugins: 'controls,keyboard' } );
+		expect(
+			await page.evaluate( () => Object.keys( window.slider.plugins ) )
+		).toEqual( [ 'controls', 'keyboard' ] );
+		await page.locator( '#slider > [data-ss-next]' ).click();
+		expect( await index( page ) ).toBe( 1 );
+		await page.locator( '#slider' ).focus();
+		await page.keyboard.press( 'ArrowRight' );
+		expect( await index( page ) ).toBe( 2 );
+		await expect( page.locator( '#slider .ss-dot' ) ).toHaveCount( 5 );
+		await page.evaluate( () => window.slider.destroy() );
+		await expect( page.locator( '#slider .ss-dot' ) ).toHaveCount( 0 );
+		expect(
+			await page.evaluate( () =>
+				window.slider.root.hasAttribute( 'tabindex' )
+			)
+		).toBe( false );
 	} );
 } );

@@ -1,7 +1,7 @@
 /**
  * The slider in a plain page: no build, no framework.
  */
-import { createSlider } from '../src/index.js';
+import { createSlider } from '../src/full.js';
 import { gl, stretch, split, liquid } from '../src/gl/index.js';
 import { lightbox } from '../src/lightbox.js';
 

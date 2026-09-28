@@ -52,10 +52,25 @@ parts.push( {
 	),
 } );
 
+for ( const file of readdirSync( resolve( root, 'src/plugins' ) ).sort() ) {
+	// Helpers have no plugin of their name.
+	if ( [ 'index.js', 'elements.js', 'screen.js' ].includes( file ) ) {
+		continue;
+	}
+	parts.push( {
+		name: `plugin: ${ file.replace( '.js', '' ) }`,
+		budget: 1024,
+		size: await measure( `export * from './src/plugins/${ file }';` ),
+	} );
+}
+
 parts.push( {
-	name: 'plugin: progress',
-	budget: 1024,
-	size: await measure( `export * from './src/plugins/progress.js';` ),
+	name: 'full: the core and all plugins',
+	budget: 7168,
+	size: await measure(
+		`export * from './src/full.js';`,
+		'shaderslide-full.js'
+	),
 } );
 
 if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
@@ -87,14 +102,16 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 // What the lightbox adds to a page that has the slider and the canvas.
 if ( existsSync( resolve( root, 'src/lightbox.js' ) ) ) {
 	await measure( `export * from './src/lightbox.js';`, 'shaderslide-lightbox.js' );
-	const both = `import { createSlider } from './src/index.js'; import { gl } from './src/gl/index.js';`;
+	// It has arrows and keys of its own, so a page with them is what it
+	// is added to.
+	const both = `import { createSlider } from './src/index.js'; import { controls, keyboard } from './src/plugins/index.js'; import { gl } from './src/gl/index.js';`;
 	parts.push( {
 		name: 'lightbox',
 		budget: 2048,
 		size:
 			( await measure(
-				`${ both } import { lightbox } from './src/lightbox.js'; export { createSlider, gl, lightbox };`
-			) ) - ( await measure( `${ both } export { createSlider, gl };` ) ),
+				`${ both } import { lightbox } from './src/lightbox.js'; export { createSlider, controls, keyboard, gl, lightbox };`
+			) ) - ( await measure( `${ both } export { createSlider, controls, keyboard, gl };` ) ),
 	} );
 }
 

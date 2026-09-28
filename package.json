@@ -1,7 +1,7 @@
 {
 	"name": "shaderslide",
 	"version": "0.0.1",
-	"description": "A slider that draws its media on a WebGL canvas. No dependencies.",
+	"description": "A slider that draws its media on a WebGL canvas. Small core, everything else a plugin. No dependencies.",
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": [
@@ -11,6 +11,10 @@
 		".": {
 			"types": "./types/index.d.ts",
 			"default": "./src/index.js"
+		},
+		"./full": {
+			"types": "./types/full.d.ts",
+			"default": "./src/full.js"
 		},
 		"./gl": {
 			"types": "./types/gl/index.d.ts",

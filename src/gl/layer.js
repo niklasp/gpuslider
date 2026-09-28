@@ -411,15 +411,12 @@ export function gl( {
 				const { g, at, indices, spare } = context;
 				const { layout, places } = view;
 				const to = Math.min( density, win.devicePixelRatio || 1 );
-				if (
-					layout.width !== width ||
-					layout.most !== height ||
-					to !== ratio
-				) {
-					// As high as the view gets: with auto height the view
-					// changes on every frame, the canvas does not.
+				// As high as the view gets: with auto height the view
+				// changes on every frame, the canvas does not.
+				const high = slider.plugins.autoHeight?.most || layout.height;
+				if ( layout.width !== width || high !== height || to !== ratio ) {
 					width = layout.width;
-					height = layout.most;
+					height = high;
 					ratio = to;
 					spare.canvas.style.height = `${ height }px`;
 					spare.canvas.width = Math.max( 1, Math.round( width * ratio ) );

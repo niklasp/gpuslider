@@ -12,9 +12,6 @@
  *                             is on but there are too few slides for it).
  * @property {number}   width  Width of the viewport.
  * @property {number}   height Height of the viewport.
- * @property {number}   most   Height of the viewport at its highest: with
- *                             auto height, when the tallest slide shows.
- * @property {number[]} tall   Height of each slide.
  * @property {number}   gap    Gap between slides.
  * @property {number}   length Length of one round when looping.
  * @property {number[]} left   Start edge of each slide.
@@ -28,6 +25,9 @@
 export const mod = ( value, n ) => ( ( value % n ) + n ) % n;
 
 const ALIGN = { start: 0, center: 0.5, end: 1 };
+
+// How much of the pointer's way the slider follows past its ends.
+const RUBBER = 0.3;
 
 /**
  * Reads the layout from the page, in fractions of a pixel: slides that are
@@ -56,10 +56,8 @@ export function measure( root, track, slides, options, moved = [] ) {
 	const gap = stack ? 0 : parseFloat( style.columnGap ) || 0;
 	const left = [];
 	const size = [];
-	const tall = [];
 	slides.forEach( ( el, i ) => {
 		const r = el.getBoundingClientRect();
-		tall.push( r.height / scale );
 		if ( stack ) {
 			left.push( i * width );
 			size.push( width );
@@ -69,13 +67,7 @@ export function measure( root, track, slides, options, moved = [] ) {
 		left.push( from / scale - ( moved[ i ] || 0 ) );
 		size.push( r.width / scale );
 	} );
-	const most = options.autoHeight
-		? height - around.height / scale + Math.max( 0, ...tall )
-		: height;
-	return arrange(
-		{ stack, rtl, width, height, most, gap, left, size, tall },
-		options
-	);
+	return arrange( { stack, rtl, width, height, gap, left, size }, options );
 }
 
 /**
@@ -215,28 +207,17 @@ export function place( layout, position, out ) {
 }
 
 /**
- * The height of the view for slides of different heights: as high as the
- * tallest slide in it, where a slide counts by how much of it is in the
- * view. So the height follows the move and never jumps.
+ * Past its ends a slider follows only a part of the way.
  *
- * @param {Layout}   layout Layout.
- * @param {Object[]} places Where each slide is.
- * @return {number} Height, px.
+ * @param {Layout} layout   Layout.
+ * @param {number} position Where the pointer would have it.
+ * @return {number} Where it is.
  */
-export function heightOf( layout, places ) {
-	const { tall } = layout;
-	let least = Infinity;
-	for ( let i = 0; i < tall.length; i++ ) {
-		if ( places[ i ].share > 0 ) {
-			least = Math.min( least, tall[ i ] );
-		}
-	}
-	let height = 0;
-	for ( let i = 0; i < tall.length; i++ ) {
-		const { share } = places[ i ];
-		if ( share > 0 ) {
-			height = Math.max( height, least + ( tall[ i ] - least ) * share );
-		}
-	}
-	return height;
+export function resist( layout, position ) {
+	const { snaps, loop } = layout;
+	const to = Math.min(
+		snaps[ snaps.length - 1 ],
+		Math.max( snaps[ 0 ], position )
+	);
+	return loop ? position : to + ( position - to ) * RUBBER;
 }

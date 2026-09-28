@@ -13,6 +13,7 @@ export default defineConfig( {
 			'@': path.resolve( import.meta.dirname, './src' ),
 			'shaderslide/gl': path.resolve( import.meta.dirname, '../src/gl/index.js' ),
 			'shaderslide/lightbox': path.resolve( import.meta.dirname, '../src/lightbox.js' ),
+			'shaderslide/full': path.resolve( import.meta.dirname, '../src/full.js' ),
 			'shaderslide/plugins': path.resolve( import.meta.dirname, '../src/plugins/index.js' ),
 			'shaderslide/style.css': path.resolve( import.meta.dirname, '../src/style.css' ),
 			shaderslide: path.resolve( import.meta.dirname, '../src/index.js' ),

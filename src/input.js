@@ -1,5 +1,5 @@
 /**
- * What the visitor does: dragging with any pointer, and the keyboard.
+ * What the visitor does with a pointer: dragging.
  *
  * A drag belongs to the slider only once it has moved further sideways
  * than up or down. Until then nothing is captured, so a vertical swipe
@@ -12,14 +12,9 @@ const SLOP = 4;
 // Only the last part of a drag says how fast the pointer was let go, ms.
 const RECENT = 100;
 
-// How much of the pointer's way the slider follows past its ends.
-const RUBBER = 0.3;
-
-// A wheel or trackpad has stopped when it is silent for this long, ms.
-const SILENCE = 90;
-
-const TYPING = 'input, textarea, select, [contenteditable]';
-const NO_DRAG = `${ TYPING }, [data-ss-prev], [data-ss-next], [data-ss-dots], [data-ss-pause], [data-ss-no-drag]`;
+// A drag does not begin on what is there to be used.
+const NO_DRAG =
+	'input, textarea, select, button, [contenteditable], [data-ss-no-drag]';
 
 /**
  * @param {HTMLElement} root   The slider.
@@ -46,7 +41,7 @@ export function createInput( root, slider, signal ) {
 	function down( event ) {
 		if (
 			pointer ||
-			rolling ||
+			motion.dragging ||
 			! options.drag ||
 			! event.isPrimary ||
 			event.button > 0 ||
@@ -71,52 +66,6 @@ export function createInput( root, slider, signal ) {
 		win.addEventListener( 'pointermove', move, { signal: until } );
 		win.addEventListener( 'pointerup', up, { signal: until } );
 		win.addEventListener( 'pointercancel', up, { signal: until } );
-	}
-
-	// Past the ends the slider follows only a part of the way.
-	function resist( pos ) {
-		const layout = slider.layout();
-		if ( layout.loop ) {
-			return pos;
-		}
-		const min = layout.snaps[ 0 ];
-		const max = layout.snaps[ layout.snaps.length - 1 ];
-		if ( pos < min ) {
-			return min + ( pos - min ) * RUBBER;
-		}
-		return pos > max ? max + ( pos - max ) * RUBBER : pos;
-	}
-
-	// Sideways scrolling, by a trackpad or a wheel with shift: the slider
-	// follows and comes to rest when the scrolling stops.
-	let rolling = 0;
-	let rolled = 0;
-	let rolledFrom = 0;
-	function wheel( event ) {
-		if (
-			! options.wheel ||
-			pointer ||
-			Math.abs( event.deltaX ) <= Math.abs( event.deltaY )
-		) {
-			return;
-		}
-		// Otherwise the browser goes back in its history.
-		event.preventDefault();
-		if ( ! rolling ) {
-			rolledFrom = motion.pos;
-			rolled = motion.pos;
-			slider.grab();
-		}
-		const direction = slider.layout().rtl ? -1 : 1;
-		// In lines or pages: about as far as in pixels.
-		const unit = event.deltaMode ? 40 : 1;
-		rolled += direction * event.deltaX * unit;
-		slider.drag( resist( rolled ) );
-		win.clearTimeout( rolling );
-		rolling = win.setTimeout( () => {
-			rolling = 0;
-			slider.release( 0, rolledFrom );
-		}, SILENCE );
 	}
 
 	function lock( event ) {
@@ -149,15 +98,12 @@ export function createInput( root, slider, signal ) {
 			lock( event );
 		}
 		const direction = slider.layout().rtl ? -1 : 1;
-		const pos = resist(
-			pointer.from - direction * ( event.clientX - pointer.x )
-		);
+		slider.drag( pointer.from - direction * ( event.clientX - pointer.x ) );
 		const { samples } = pointer;
-		samples.push( event.timeStamp, pos );
+		samples.push( event.timeStamp, motion.pos );
 		while ( samples.length > 4 && event.timeStamp - samples[ 0 ] > RECENT ) {
 			samples.splice( 0, 2 );
 		}
-		slider.drag( pos );
 	}
 
 	function up( event ) {
@@ -192,39 +138,10 @@ export function createInput( root, slider, signal ) {
 		}
 	}
 
-	function key( event ) {
-		if (
-			! options.keyboard ||
-			event.defaultPrevented ||
-			event.altKey ||
-			event.ctrlKey ||
-			event.metaKey ||
-			event.target.closest( TYPING )
-		) {
-			return;
-		}
-		const { rtl } = slider.layout();
-		const act = {
-			ArrowRight: rtl ? slider.prev : slider.next,
-			ArrowLeft: rtl ? slider.next : slider.prev,
-			Home: () => slider.to( 0 ),
-			End: () => slider.to( slider.count() - 1 ),
-		}[ event.key ];
-		if ( act ) {
-			act();
-			event.preventDefault();
-		}
-	}
-
 	// Images and links would start a native drag and drop.
 	const native = ( event ) => event.preventDefault();
 
 	root.addEventListener( 'pointerdown', down, { signal } );
-	root.addEventListener( 'keydown', key, { signal } );
 	root.addEventListener( 'dragstart', native, { signal } );
-	root.addEventListener( 'wheel', wheel, { passive: false, signal } );
-	signal.addEventListener( 'abort', () => {
-		stop();
-		win.clearTimeout( rolling );
-	} );
+	signal.addEventListener( 'abort', stop );
 }

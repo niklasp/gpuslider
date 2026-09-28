@@ -16,7 +16,7 @@ const sliders = ( page ) =>
 							made: root.dataset.made,
 							on: root.classList.contains( 'ss-on' ),
 							same: slider.root === root,
-							plugins: Object.keys( slider.plugins ).length,
+							names: Object.keys( slider.plugins ),
 						},
 					];
 				} )
@@ -77,7 +77,10 @@ test( 'an effect switched on reaches every slider', async ( { page } ) => {
 		.toEqual( IDS );
 	const after = await sliders( page );
 	for ( const id of IDS ) {
-		expect( after[ id ], id ).toMatchObject( { on: true, same: true, plugins: 2 } );
+		expect( after[ id ], id ).toMatchObject( { on: true, same: true } );
+		expect( after[ id ].names, id ).toEqual(
+			expect.arrayContaining( [ 'controls', 'gl', 'lightbox' ] )
+		);
 		expect( await drawn( page, id ), id ).toBe( true );
 	}
 	// A bent row has a mesh, and that is another canvas than before.
@@ -221,15 +224,15 @@ test( 'buttons outside of a slider drive it, and the page hears it', async ( { p
 
 test( 'covers: turned by the canvas, or by CSS without it', async ( { page } ) => {
 	expect( await drawn( page, 'covers' ) ).toBe( true );
-	expect(
-		await page.evaluate( () => Object.keys( window.sliders.covers.plugins ) )
-	).toEqual( [ 'gl', 'lightbox' ] );
+	const mine = () =>
+		page.evaluate( () =>
+			Object.keys( window.sliders.covers.plugins ).filter( ( name ) =>
+				[ 'gl', 'progress', 'lightbox' ].includes( name )
+			)
+		);
+	expect( await mine() ).toEqual( [ 'gl', 'lightbox' ] );
 	await page.getByRole( 'switch', { name: 'Canvas' } ).click();
-	await expect
-		.poll( () =>
-			page.evaluate( () => Object.keys( window.sliders.covers.plugins ) )
-		)
-		.toEqual( [ 'progress', 'lightbox' ] );
+	await expect.poll( mine ).toEqual( [ 'progress', 'lightbox' ] );
 	await page.locator( '#covers' ).scrollIntoViewIfNeeded();
 	await page.waitForFunction( () => window.sliders.covers.resting );
 	const turned = await page.evaluate( () => {

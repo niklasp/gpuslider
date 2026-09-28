@@ -23,6 +23,8 @@
  * from its `srcset` for the whole screen, or the file in `data-ss-full`.
  */
 import { createSlider } from './index.js';
+import { controls } from './plugins/controls.js';
+import { keyboard } from './plugins/keyboard.js';
 import { gl } from './gl/layer.js';
 import { fit, styleOf } from './gl/fit.js';
 
@@ -268,8 +270,8 @@ export function lightbox( {
 					return slide;
 				} )
 			);
-			wasPaused = slider.paused;
-			slider.pause();
+			wasPaused = slider.plugins.autoplay?.paused;
+			slider.plugins.autoplay?.pause();
 			dialog.showModal();
 			t = 0;
 			to = 1;
@@ -286,7 +288,12 @@ export function lightbox( {
 				perView: 1,
 				gap: 0,
 				start: item,
-				plugins: [ driver, gl( { effects, ...canvas } ) ],
+				plugins: [
+					driver,
+					controls(),
+					keyboard(),
+					gl( { effects, ...canvas } ),
+				],
 			} );
 			layer = shown.plugins.gl;
 			layer.change = change;
@@ -328,7 +335,7 @@ export function lightbox( {
 			dialog.close();
 			slider.emit( 'lightbox:close', items[ active ]?.i );
 			if ( ! wasPaused ) {
-				slider.play();
+				slider.plugins.autoplay?.play();
 			}
 		}
 

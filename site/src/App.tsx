@@ -66,7 +66,6 @@ export default function App() {
 		loop: config.loop,
 		free: config.free,
 		duration: config.duration,
-		autoplay: config.autoplay ? 3500 : 0,
 	};
 	const shared = { made, measured, plugins: () => pluginsOf( config ) };
 
@@ -208,9 +207,11 @@ export default function App() {
 						<ShaderSlider
 							id="tall"
 							label="Auto height"
-							options={ { ...options, autoHeight: true } }
+							options={ options }
 							style={ look }
-							{ ...shared }
+							made={ made }
+							measured={ measured }
+							plugins={ () => pluginsOf( config, 'tall' ) }
 						>
 							{ [
 								[ 7, 1600, 700 ],

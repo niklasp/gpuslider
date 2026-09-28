@@ -13,7 +13,15 @@ import {
 } from 'shaderslide/gl';
 import * as transitions from '../../../src/gl/transitions/index.js';
 import { lightbox } from 'shaderslide/lightbox';
-import { progress } from 'shaderslide/plugins';
+import {
+	controls,
+	keyboard,
+	wheel,
+	videos,
+	autoplay,
+	autoHeight,
+	progress,
+} from 'shaderslide/plugins';
 import type { Create } from 'shaderslide';
 
 export const EFFECTS = {
@@ -77,18 +85,26 @@ const make = ( name: EffectName, k: number ) =>
  * @param config The settings.
  * @param kind   A stack has a transition, and no mesh to bend. Covers turn
  *               away from the middle: on the canvas by an effect, on the
- *               page by CSS that the `progress` plugin feeds.
+ *               page by CSS that the `progress` plugin feeds. Tall is as
+ *               high as its slides.
  */
 export function pluginsOf(
 	config: Config,
-	kind: 'row' | 'stack' | 'covers' = 'row'
+	kind: 'row' | 'stack' | 'covers' | 'tall' = 'row'
 ) {
 	const names = config.effects.filter(
 		( name ) => kind === 'row' || name !== 'bend'
 	);
 	const effects = (): Effect[] =>
 		names.map( ( name ) => make( name, config.intensity ) );
-	const plugins: Create[] = [];
+	// The core moves the slides. All else is asked for.
+	const plugins: Create[] = [ controls(), keyboard(), wheel(), videos() ];
+	if ( config.autoplay ) {
+		plugins.push( autoplay( 3500 ) );
+	}
+	if ( kind === 'tall' ) {
+		plugins.push( autoHeight() );
+	}
 	if ( config.canvas ) {
 		const more: Effect[] = [];
 		if ( kind === 'stack' ) {
