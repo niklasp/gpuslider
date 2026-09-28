@@ -69,10 +69,21 @@ test.describe( 'moving', () => {
 	} );
 
 	test( 'a click follows the link, the end of a drag does not', async ( { page } ) => {
-		await open( page );
-		await drag( page, -300, { at: 40, pause: 150 } );
+		await open( page, {
+			css: '.ss-content a { display: block; height: 100%; }',
+		} );
+		await page.evaluate( () => {
+			window.clicks = 0;
+			window.slider.root.addEventListener( 'click', () => window.clicks++ );
+		} );
+		// Starts on the link of the first slide and ends on it: the slider
+		// resists at its start and the pointer stays in the window.
+		await drag( page, 60, { at: 30, pause: 150 } );
 		await settled( page );
 		expect( page.url() ).not.toContain( '#followed' );
+		// Nor does it reach what listens for clicks on the slider, such as
+		// a lightbox.
+		expect( await page.evaluate( () => window.clicks ) ).toBe( 0 );
 		await page.locator( '.ss-slide[data-i="0"] a' ).click();
 		expect( page.url() ).toContain( '#followed' );
 	} );
