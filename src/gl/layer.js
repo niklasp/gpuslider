@@ -423,7 +423,11 @@ export function gl( {
 			measure() {
 				if ( ! shader ) {
 					stack = slider.layout().stack;
-					shader = compose( effects, stack ? FADE : null );
+					shader = compose(
+						effects,
+						stack ? FADE : null,
+						slider.layout().y
+					);
 					kind = `${ shader.mesh }${ preserve }`;
 					if ( shader.pointer ) {
 						[ 'pointerdown', 'pointermove' ].forEach( ( name ) =>
@@ -450,6 +454,7 @@ export function gl( {
 				const scale = root.offsetWidth
 					? around.width / root.offsetWidth || 1
 					: 1;
+				const down = slider.layout().y;
 				slides.forEach( ( slide, i ) => {
 					const element = media[ i ];
 					if ( ! element ) {
@@ -457,11 +462,16 @@ export function gl( {
 					}
 					const outer = slide.getBoundingClientRect();
 					const inner = element.getBoundingClientRect();
+					const x = inner.left - ( down ? around : outer ).left;
+					const y = inner.top - ( down ? outer : around ).top;
 					boxes[ i ] = {
-						// In the slide: the slide moves, this does not.
-						dx: ( inner.left - outer.left ) / scale,
-						// In the view: slides do not move up or down.
-						dy: ( inner.top - around.top ) / scale - root.clientTop,
+						// Along the way of the slides, in the slide: the slide
+						// moves, this does not.
+						dx: ( down ? y : x ) / scale,
+						// Across, in the view: that way slides do not move.
+						dy:
+							( down ? x : y ) / scale -
+							( down ? root.clientLeft : root.clientTop ),
 						at: { x: 0, y: 0, w: inner.width / scale, h: inner.height / scale },
 						style: styleOf( element ),
 					};
@@ -511,8 +521,11 @@ export function gl( {
 					pointer.vy = 0;
 				}
 
+				// Effects have the way of the slides as their x.
+				const down = layout.y;
+				const turn = ( fn, x, y ) => ( down ? fn( y, x ) : fn( x, y ) );
 				g.clear( g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT );
-				g.uniform2f( at.uView, width, height );
+				turn( ( x, y ) => g.uniform2f( at.uView, x, y ), width, height );
 				g.uniform1f( at.uTime, now / 1000 );
 				g.uniform1f( at.uPointerIn, pointer.in );
 				// To the right on the screen, whatever the reading direction.
@@ -520,14 +533,22 @@ export function gl( {
 
 				const quad = ( x, y, w, h, a, b, progress, mix, radius, speed ) => {
 					g.uniform1f( at.uVelocity, velocity + speed );
-					g.uniform4f( at.uQuad, x, y, w, h );
-					g.uniform2f( at.uSize, w, h );
-					g.uniform2f(
-						at.uPointer,
+					if ( down ) {
+						g.uniform4f( at.uQuad, y, x, h, w );
+					} else {
+						g.uniform4f( at.uQuad, x, y, w, h );
+					}
+					turn( ( u, v ) => g.uniform2f( at.uSize, u, v ), w, h );
+					turn(
+						( u, v ) => g.uniform2f( at.uPointer, u, v ),
 						( pointer.x - x ) / w,
 						( pointer.y - y ) / h
 					);
-					g.uniform2f( at.uPointerSpeed, pointer.vx / w, pointer.vy / h );
+					turn(
+						( u, v ) => g.uniform2f( at.uPointerSpeed, u, v ),
+						pointer.vx / w,
+						pointer.vy / h
+					);
 					g.uniform1f( at.uProgress, progress );
 					g.uniform1f( at.uMix, mix );
 					g.uniform1f( at.uRadius, radius );
@@ -555,21 +576,12 @@ export function gl( {
 							next = i;
 						}
 					} );
-					const a = bind(
-						from,
-						0,
-						boxes[ from ]?.dx || 0,
-						boxes[ from ]?.dy || 0,
-						width,
-						height
-					);
-					const b = bind(
-						next,
-						1,
-						boxes[ next ]?.dx || 0,
-						boxes[ next ]?.dy || 0,
-						width,
-						height
+					const [ a, b ] = [ from, next ].map( ( i, unit ) =>
+						turn(
+							( x, y ) => bind( i, unit, x, y, width, height ),
+							boxes[ i ]?.dx || 0,
+							boxes[ i ]?.dy || 0
+						)
 					);
 					if ( a || b ) {
 						quad( 0, 0, width, height, a || EMPTY, b || EMPTY, mix, mix, 0, 0 );
@@ -577,24 +589,29 @@ export function gl( {
 					return;
 				}
 
-				const mirror = layout.rtl;
+				const { span, size, rtl } = layout;
 				places.forEach( ( place, i ) => {
 					const box = boxes[ i ];
 					// A view further on each side: what bends may reach in.
 					if (
 						! box ||
-						place.x + layout.size[ i ] < -width ||
-						place.x > 2 * width
+						place.x + size[ i ] < -span ||
+						place.x > 2 * span
 					) {
 						return;
 					}
-					const x = mirror
-						? width - place.x - layout.size[ i ] + box.dx
-						: place.x + box.dx;
+					const along =
+						( rtl ? span - place.x - size[ i ] : place.x ) + box.dx;
 					next.a = bind( i, 0, 0, 0, box.at.w, box.at.h );
 					if ( next.a ) {
-						next.x = x;
-						next.y = box.dy;
+						turn(
+							( x, y ) => {
+								next.x = x;
+								next.y = y;
+							},
+							along,
+							box.dy
+						);
 						next.w = box.at.w;
 						next.h = box.at.h;
 						next.radius = box.style.radius;

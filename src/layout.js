@@ -1,18 +1,22 @@
 /**
  * Where the slides are and where the slider can stop.
  *
- * All positions are logical px along the reading direction: 0 is the start
- * edge of the track, so right-to-left pages need nothing special past
- * `measure()`.
+ * All positions are logical px along the way of the slides: 0 is the start
+ * edge of the track. Right-to-left pages and sliders that go down need
+ * nothing special past `measure()`.
  *
  * @typedef {Object} Layout
  * @property {boolean}  [stack] Slides lie on top of each other: the `stack`
  *                             plugin says so.
+ * @property {boolean}  y      The slides follow each other downwards.
  * @property {boolean}  rtl    Reading direction is right to left.
  * @property {boolean}  loop   Whether the slider loops (false when the option
  *                             is on but there are too few slides for it).
  * @property {number}   width  Width of the viewport.
  * @property {number}   height Height of the viewport.
+ * @property {number}   span   Its length along the way of the slides: the
+ *                             width, or the height of a slider that goes
+ *                             down.
  * @property {number}   gap    Gap between slides.
  * @property {number}   length Length of one round when looping.
  * @property {number[]} left   Start edge of each slide.
@@ -46,7 +50,8 @@ const RUBBER = 0.3;
  */
 export function measure( root, track, slides, options, moved = [], shape ) {
 	const style = root.ownerDocument.defaultView.getComputedStyle( track );
-	const rtl = style.direction === 'rtl';
+	const y = options.axis === 'y';
+	const rtl = ! y && style.direction === 'rtl';
 	const box = root.getBoundingClientRect();
 	const around = track.getBoundingClientRect();
 	// Boxes are measured as drawn: inside a scaled parent they are scaled.
@@ -55,16 +60,20 @@ export function measure( root, track, slides, options, moved = [], shape ) {
 		box.width / scale - ( root.offsetWidth - root.clientWidth );
 	const height =
 		box.height / scale - ( root.offsetHeight - root.clientHeight );
-	const gap = parseFloat( style.columnGap ) || 0;
+	const gap = parseFloat( y ? style.rowGap : style.columnGap ) || 0;
 	const left = [];
 	const size = [];
 	slides.forEach( ( el, i ) => {
 		const r = el.getBoundingClientRect();
-		const from = rtl ? around.right - r.right : r.left - around.left;
+		let from = rtl ? around.right - r.right : r.left - around.left;
+		if ( y ) {
+			from = r.top - around.top;
+		}
 		left.push( from / scale - ( moved[ i ] || 0 ) );
-		size.push( r.width / scale );
+		size.push( ( y ? r.height : r.width ) / scale );
 	} );
-	const measured = { rtl, width, height, gap, left, size };
+	const span = y ? height : width;
+	const measured = { y, rtl, width, height, span, gap, left, size };
 	shape?.( measured );
 	return arrange( measured, options );
 }
@@ -72,13 +81,14 @@ export function measure( root, track, slides, options, moved = [], shape ) {
 /**
  * Derives the snap points from the measured slides.
  *
- * @param {Object} measured `rtl`, `width`, `height`, `gap`, `left`, `size`.
+ * @param {Object} measured `y`, `rtl`, `width`, `height`, `span`, `gap`,
+ *                          `left`, `size`.
  * @param {Object} options  Slider options: `loop`, `align`, `group`,
  *                          `contain`.
  * @return {Layout} Layout.
  */
 export function arrange( measured, options ) {
-	const { width, gap, left, size } = measured;
+	const { span: width, gap, left, size } = measured;
 	const n = left.length;
 	const align = ALIGN[ options.align ] ?? 0;
 	const end = n ? left[ n - 1 ] + size[ n - 1 ] : 0;
@@ -167,7 +177,7 @@ export function nearest( layout, position ) {
  * @return {Object[]} `out`.
  */
 export function place( layout, position, out ) {
-	const { loop, length, width, gap, left, size, rest } = layout;
+	const { loop, length, span: width, gap, left, size, rest } = layout;
 	const n = left.length;
 	for ( let i = 0; i < n; i++ ) {
 		const slide = out[ i ];

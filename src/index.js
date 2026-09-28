@@ -145,6 +145,9 @@ import { createDom } from './dom.js';
  *                                               decides (`--ss-per-view`).
  * @property {number}                 [gap]      Gap in px. Without it, the
  *                                               CSS decides (`--ss-gap`).
+ * @property {'x'|'y'}                [axis]     `y`: the slides follow each
+ *                                               other downwards. The slider
+ *                                               needs a height then.
  * @property {boolean}                [loop]     Go round.
  * @property {'start'|'center'|'end'} [align]    Where the active slide
  *                                               rests in the view.
@@ -222,6 +225,7 @@ export function createSlider( root, options = {} ) {
 		root.classList.remove( ...classes );
 		classes = [
 			'ss-on',
+			o.axis === 'y' && 'ss-y',
 			o.perView === 'auto' && 'ss-auto',
 		].filter( Boolean );
 		root.classList.add( ...classes );
@@ -274,7 +278,7 @@ export function createSlider( root, options = {} ) {
 			place( layout, motion.pos, places );
 			view.velocity = still.matches
 				? 0
-				: motion.smooth / ( layout.width || 1 );
+				: motion.smooth / ( layout.span || 1 );
 			dom.frame( layout, motion, places );
 			used.forEach( ( plugin ) => plugin.frame?.( view, dt, now ) );
 			// Costs nothing while nobody listens.
@@ -514,8 +518,8 @@ export function createSlider( root, options = {} ) {
 			if ( ! o.free ) {
 				// However fast: not further than what was in view.
 				rest = Math.min(
-					from + layout.width,
-					Math.max( from - layout.width, rest )
+					from + layout.span,
+					Math.max( from - layout.span, rest )
 				);
 			}
 			let to = nearest( layout, rest );

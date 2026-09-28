@@ -1,9 +1,9 @@
 /**
  * What the visitor does with a pointer: dragging.
  *
- * A drag belongs to the slider only once it has moved further sideways
- * than up or down. Until then nothing is captured, so a vertical swipe
- * scrolls the page and a click is a click.
+ * A drag belongs to the slider only once it has moved further along the
+ * way of the slides than across it. Until then nothing is captured, so a
+ * swipe across scrolls the page and a click is a click.
  */
 
 // Distance a pointer has to travel before the direction is decided, px.
@@ -68,9 +68,13 @@ export function createInput( root, slider, signal ) {
 		win.addEventListener( 'pointercancel', up, { signal: until } );
 	}
 
+	// Where a pointer is on the way of the slides.
+	const along = ( event ) =>
+		slider.layout().y ? event.clientY : event.clientX;
+
 	function lock( event ) {
 		pointer.locked = true;
-		pointer.x = event.clientX;
+		pointer.at = along( event );
 		pointer.from = motion.pos;
 		slider.grab();
 		root.classList.add( 'ss-dragging' );
@@ -91,14 +95,14 @@ export function createInput( root, slider, signal ) {
 			if ( dx < SLOP && dy < SLOP ) {
 				return;
 			}
-			if ( dy > dx ) {
+			if ( slider.layout().y ? dx > dy : dy > dx ) {
 				stop();
 				return;
 			}
 			lock( event );
 		}
 		const direction = slider.layout().rtl ? -1 : 1;
-		slider.drag( pointer.from - direction * ( event.clientX - pointer.x ) );
+		slider.drag( pointer.from - direction * ( along( event ) - pointer.at ) );
 		const { samples } = pointer;
 		samples.push( event.timeStamp, motion.pos );
 		while ( samples.length > 4 && event.timeStamp - samples[ 0 ] > RECENT ) {

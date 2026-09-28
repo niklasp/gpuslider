@@ -46,8 +46,11 @@ export function createDom( root, track, slides ) {
 		 * @param {Object[]} places Where each slide is (see `place()`).
 		 */
 		frame( layout, motion, places ) {
-			const { stack, rtl, left } = layout;
-			const direction = rtl ? -1 : 1;
+			const { stack, rtl, y, left } = layout;
+			const to = ( by ) =>
+				y
+					? `translate3d(0,${ by }px,0)`
+					: `translate3d(${ rtl ? -by : by }px,0,0)`;
 			// They lie on top of each other: nothing to move.
 			if ( stack ) {
 				return;
@@ -65,14 +68,10 @@ export function createDom( root, track, slides ) {
 					) / 100;
 				if ( by !== shift[ i ] ) {
 					shift[ i ] = by;
-					slides[ i ].style.transform = by
-						? `translate3d(${ direction * by }px,0,0)`
-						: '';
+					slides[ i ].style.transform = by ? to( by ) : '';
 				}
 			}
-			track.style.transform = `translate3d(${
-				direction * snap( -motion.pos )
-			}px,0,0)`;
+			track.style.transform = to( snap( -motion.pos ) );
 		},
 
 		/**

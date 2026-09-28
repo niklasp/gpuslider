@@ -1,6 +1,7 @@
 /**
  * Arrow keys, Home and End, while the focus is in the slider. The slider
- * itself can have the focus.
+ * itself can have the focus. A slider that goes down takes the arrows up
+ * and down.
  */
 
 const TYPING = 'input, textarea, select, [contenteditable]';
@@ -26,10 +27,10 @@ export function keyboard() {
 				) {
 					return;
 				}
-				const { rtl } = slider.layout();
+				const { rtl, y } = slider.layout();
 				const act = {
-					ArrowRight: rtl ? slider.prev : slider.next,
-					ArrowLeft: rtl ? slider.next : slider.prev,
+					[ y ? 'ArrowDown' : 'ArrowRight' ]: rtl ? slider.prev : slider.next,
+					[ y ? 'ArrowUp' : 'ArrowLeft' ]: rtl ? slider.next : slider.prev,
 					Home: () => slider.to( 0 ),
 					End: () => slider.to( slider.count() - 1 ),
 				}[ event.key ];

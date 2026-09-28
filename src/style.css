@@ -44,6 +44,19 @@
 	scroll-snap-align: start;
 }
 
+/* Downwards. The slider needs a height: the page gives it one. */
+.ss-y > .ss-track {
+	flex-direction: column;
+	height: 100%;
+	overflow: hidden auto;
+	overscroll-behavior: auto contain;
+	scroll-snap-type: y mandatory;
+}
+
+.ss-y .ss-slide {
+	min-height: 0;
+}
+
 /* Each slide as wide as its content. */
 .ss-auto .ss-slide {
 	flex-basis: auto;
@@ -93,6 +106,10 @@
 	overflow: visible;
 	scroll-snap-type: none;
 	will-change: transform;
+}
+
+.ss-on.ss-y {
+	touch-action: pan-x;
 }
 
 .ss-on.ss-dragging {

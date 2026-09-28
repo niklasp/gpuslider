@@ -42,6 +42,11 @@
  *     uQuad       the quad in the view, px: left, top, width, height
  *
  * Effects are chained in the order given.
+ *
+ * Effects are written for slides that follow each other to the side. In a
+ * slider that goes down they get everything turned by a quarter: `uv`, `p`
+ * and the uniforms have the way of the slides as their x. So `stretch`
+ * bows along the way, whatever the way is.
  */
 
 /**
@@ -122,10 +127,11 @@ const named = ( source ) =>
 // Rounded corners, and edges that are soft by a pixel.
 const MAIN = `
 void main() {
-	vec4 color = media( vUv );
+	vec2 uv = vUvTURNED;
+	vec4 color = media( uv );
 	CALLS
 	vec2 half_ = uSize * 0.5;
-	vec2 d = abs( vUv * uSize - half_ ) - half_ + uRadius;
+	vec2 d = abs( uv * uSize - half_ ) - half_ + uRadius;
 	float away = length( max( d, 0.0 ) ) + min( max( d.x, d.y ), 0.0 ) - uRadius;
 	outColor = color * clamp( 0.5 - away, 0.0, 1.0 );
 }`;
@@ -136,21 +142,23 @@ const TYPES = [ , 'float', 'vec2', 'vec3', 'vec4' ];
  * @param {Effect[]}    effects    Effects.
  * @param {string|null} transition The transition of a stack when no effect
  *                                 has one; null for a row.
+ * @param {boolean}     [y]        The slides follow each other downwards.
  * @return {Object} `vertex` and `fragment` (sources), `params` (uniform name
  *                  to value), `mesh` (whether the quad needs to bend),
  *                  `pointer`, `animated`, `hover` (animated while the
  *                  pointer is over the slider) and `placed` (whether a
  *                  slide at rest looks different from what the page draws).
  */
-export function compose( effects, transition ) {
+export function compose( effects, transition, y ) {
+	const turned = y ? '.yx' : '';
 	const heads = new Set();
 	const params = {};
 	const hooks = { vertex: '', uv: '', color: '' };
 	const calls = { vertex: '', uv: '', color: '' };
 	const signature = {
-		vertex: [ 'vec3', 'vec3 p, vec2 uv', 'p = ', '( p, aPos );' ],
+		vertex: [ 'vec3', 'vec3 p, vec2 uv', 'p = ', '( p, a );' ],
 		uv: [ 'vec2', 'vec2 uv', 'uv = ', '( uv );' ],
-		color: [ 'vec4', 'vec4 color, vec2 uv', 'color = ', '( color, vUv );' ],
+		color: [ 'vec4', 'vec4 color, vec2 uv', 'color = ', '( color, uv );' ],
 	};
 	let uniforms = '';
 	let base =
@@ -190,9 +198,10 @@ export function compose( effects, transition ) {
 		hooks.vertex +
 		`void main() {
 	vUv = aPos;
-	vec3 p = vec3( ( aPos - 0.5 ) * uQuad.zw, 0.0 );
+	vec2 a = aPos${ turned };
+	vec3 p = vec3( ( a - 0.5 ) * uQuad.zw, 0.0 );
 	${ calls.vertex }
-	vec2 at = ( uQuad.xy + uQuad.zw * 0.5 + p.xy ) / uView * 2.0 - 1.0;
+	vec2 at = ( ( uQuad.xy + uQuad.zw * 0.5 + p.xy ) / uView * 2.0 - 1.0 )${ turned };
 	gl_Position = vec4( at.x, -at.y, -p.z / uDepth * 0.5, 1.0 - p.z / uDepth );
 }`;
 
@@ -202,9 +211,9 @@ export function compose( effects, transition ) {
 		PICK +
 		base +
 		hooks.uv +
-		`vec4 media( vec2 uv ) {\n${ calls.uv }return base( uv );\n}\n` +
+		`vec4 media( vec2 uv ) {\n${ calls.uv }return base( uv${ turned } );\n}\n` +
 		hooks.color +
-		MAIN.replace( 'CALLS', calls.color );
+		MAIN.replace( 'CALLS', calls.color ).replace( 'TURNED', turned );
 
 	const written =
 		[ ...heads ].join( '' ) + base + hooks.uv + hooks.color + hooks.vertex;

@@ -35,7 +35,7 @@ export function stack() {
 
 			// Every slide is as wide as the view, and one view from the next.
 			layout( measured ) {
-				const { width, left } = measured;
+				const { span: width, left } = measured;
 				measured.stack = true;
 				measured.gap = 0;
 				measured.size = left.map( () => width );
