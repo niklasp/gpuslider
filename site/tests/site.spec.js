@@ -24,9 +24,20 @@ const sliders = ( page ) =>
 		IDS
 	);
 
-/** Scrolls to a slider and says whether its canvas draws. */
+/**
+ * Scrolls to a slider, points at it and says whether its canvas draws: a
+ * slider that nobody uses has none.
+ */
 async function drawn( page, id ) {
-	await page.locator( `#${ id }` ).scrollIntoViewIfNeeded();
+	const slider = page.locator( `#${ id }` );
+	await slider.scrollIntoViewIfNeeded();
+	const box = await slider.boundingBox();
+	const bar = await page.getByTestId( 'controls' ).boundingBox();
+	// Where the controls are not.
+	await page.mouse.move(
+		box.x + box.width / 2,
+		Math.max( box.y + box.height / 2, bar.height + 10 )
+	);
 	return page
 		.waitForFunction(
 			( name ) =>
@@ -47,6 +58,15 @@ test.beforeEach( async ( { page } ) => {
 		( ids ) => ids.every( ( id ) => window.sliders?.[ id ] ),
 		IDS
 	);
+	// The controls come with a script of their own.
+	await page.getByTestId( 'controls' ).getByRole( 'switch' ).waitFor();
+} );
+
+test( 'a slider that nobody uses has no canvas', async ( { page } ) => {
+	await page.waitForTimeout( 500 );
+	await expect( page.locator( '.ss-canvas' ) ).toHaveCount( 0 );
+	expect( await drawn( page, 'several' ) ).toBe( true );
+	await expect( page.locator( '.ss-canvas' ) ).toHaveCount( 1 );
 } );
 
 test( 'the controls stay at the top', async ( { page } ) => {

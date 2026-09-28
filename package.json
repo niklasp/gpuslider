@@ -39,7 +39,7 @@
 		"site": "npm install --prefix site --no-audit --no-fund && npm run dev --prefix site",
 		"build": "node bin/build.mjs",
 		"size": "node bin/build.mjs --check",
-		"media": "node bin/make-media.mjs",
+		"media": "node bin/make-media.mjs && node bin/make-variants.mjs",
 		"test": "playwright test",
 		"types": "tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
 		"prepublishOnly": "npm run types && npm run size && npm test"
@@ -47,6 +47,7 @@
 	"devDependencies": {
 		"@playwright/test": "1.63.0",
 		"esbuild": "^0.28.2",
+		"sharp": "^0.35.5",
 		"typescript": "^7.0.2"
 	},
 	"types": "./types/index.d.ts"

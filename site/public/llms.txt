@@ -1,0 +1,18 @@
+# shaderslide
+
+> A slider for the web that draws its media on a WebGL 2 canvas and owns its motion. The core is 4 KB; arrows, keys, autoplay, the canvas, every effect and the lightbox are plugins that a page imports when it uses them. No dependencies.
+
+This page shows the slider with controls for everything it can do.
+
+## Docs
+
+- [README](https://github.com/wispworks/shaderslide#readme): how to use it, options, events, plugins, effects
+- [PLAN](https://github.com/wispworks/shaderslide/blob/main/PLAN.md): every decision and its reason
+
+## Use
+
+- `import { createSlider } from 'shaderslide'`: the core
+- `import { controls, keyboard, wheel, autoplay, videos, autoHeight, stack, progress } from 'shaderslide/plugins'`
+- `import { gl, stretch, split, magnify } from 'shaderslide/gl'`: the canvas and its effects
+- `import { lightbox } from 'shaderslide/lightbox'`
+- `import { createSlider } from 'shaderslide/full'`: the core with all plugins, by options

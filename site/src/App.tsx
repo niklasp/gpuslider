@@ -1,19 +1,27 @@
 import {
+	lazy,
+	Suspense,
 	useCallback,
-	useLayoutEffect,
+	useEffect,
 	useRef,
 	useState,
 	type CSSProperties,
+	type RefObject,
 } from 'react';
-import { Button } from '@/components/ui/button';
 import 'shaderslide/style.css';
 import './site.css';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Controls } from '@/components/Controls';
+// The controls are most of the script of the page, and no slider waits
+// for them.
+const Controls = lazy( () => import( '@/components/Controls' ) );
 import { ShaderSlider, Slide } from '@/components/ShaderSlider';
 import { DEFAULTS, keyOf, pluginsOf, type Config } from '@/lib/config';
 
-const media = ( name: string ) => `/media/${ name }`;
+/** How wide a slide that fills the page is. */
+const WIDE = '(min-width: 1400px) 1400px, 100vw';
+
+/** A button of the page, as the controls have them. */
+const BUTTON =
+	'inline-flex h-8 cursor-pointer items-center rounded-md border bg-background px-3 text-sm font-medium shadow-xs transition hover:bg-accent disabled:cursor-default disabled:opacity-40 aria-[current]:bg-foreground aria-[current]:text-background dark:border-input dark:bg-input/30';
 
 function Section( {
 	title,
@@ -37,28 +45,49 @@ function Section( {
 	);
 }
 
+type Tell = RefObject< ( ( line: string ) => void ) | null >;
+
+/**
+ * What a slider said last. It keeps its lines to itself: the page around
+ * it is not rendered again for every event of a slider.
+ */
+function Events( { tell }: { tell: Tell } ) {
+	const [ log, setLog ] = useState< string[] >( [] );
+	useEffect( () => {
+		tell.current = ( line ) =>
+			setLog( ( now ) => [ line, ...now ].slice( 0, 8 ) );
+		return () => {
+			tell.current = null;
+		};
+	}, [ tell ] );
+	return (
+		<ol
+			data-testid="events"
+			aria-label="Events"
+			className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
+		>
+			{ log.map( ( line, i ) => (
+				<li key={ log.length - i } className="first:text-foreground">
+					{ line }
+				</li>
+			) ) }
+		</ol>
+	);
+}
+
 export default function App() {
 	const [ config, setConfig ] = useState< Config >( DEFAULTS );
-	const change = ( part: Partial< Config > ) =>
-		setConfig( ( now ) => ( { ...now, ...part } ) );
-
-	// The page begins below the controls, however many rows they take.
-	const page = useRef< HTMLElement >( null );
-	useLayoutEffect( () => {
-		const bar = document.querySelector< HTMLElement >(
-			'[data-testid="controls"]'
-		)!;
-		const fit = () => {
-			page.current!.style.paddingTop = `${ bar.offsetHeight }px`;
-			document.documentElement.style.scrollPaddingTop = `${ bar.offsetHeight }px`;
-		};
-		const observer = new ResizeObserver( fit );
-		observer.observe( bar );
-		fit();
-		return () => observer.disconnect();
-	}, [] );
+	const change = useCallback(
+		( part: Partial< Config > ) =>
+			setConfig( ( now ) => ( { ...now, ...part } ) ),
+		[]
+	);
 
 	const made = keyOf( config );
+	// How wide a slide of several is, for the browser that picks the file.
+	const share = `(max-width: 640px) 77vw, ${ Math.round(
+		100 / config.perView
+	) }vw`;
 	const focus = `${ config.focus.x }% ${ config.focus.y }%`;
 	const measured = `${ config.perView } ${ config.gap } ${ focus }`;
 	const look = { '--ss-focus': focus } as CSSProperties;
@@ -70,7 +99,7 @@ export default function App() {
 	const shared = { made, measured, plugins: () => pluginsOf( config ) };
 
 	// What the slider with the buttons outside of it said last.
-	const [ log, setLog ] = useState< string[] >( [] );
+	const tell: Tell = useRef( null );
 	const heard = useCallback( ( name: string, detail: unknown ) => {
 		const said =
 			typeof detail === 'number' || typeof detail === 'boolean'
@@ -78,14 +107,17 @@ export default function App() {
 				: Array.isArray( detail ) && typeof detail[ 0 ] === 'number'
 				? ` ${ detail.join( ', ' ) }`
 				: '';
-		setLog( ( now ) => [ `${ name }${ said }`, ...now ].slice( 0, 8 ) );
+		tell.current?.( `${ name }${ said }` );
 	}, [] );
 
 	return (
-		<TooltipProvider>
-			<Controls config={ config } onChange={ change } />
+		<>
+			<Suspense
+				fallback={ <header className="sticky top-0 z-40 h-16 border-b" /> }
+			>
+				<Controls config={ config } onChange={ change } />
+			</Suspense>
 			<main
-				ref={ page }
 				id="top"
 				className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-16 px-4 pb-32 md:px-8"
 			>
@@ -112,25 +144,25 @@ export default function App() {
 						pause={ config.autoplay }
 						{ ...shared }
 					>
-						<Slide src={ media( '1.jpg' ) } alt="Warm colour field" className="hero">
+						<Slide image={ 1 } alt="Warm colour field" className="hero" sizes={ WIDE } first>
 							<h3 className="text-2xl font-semibold md:text-4xl">Own motion</h3>
 							<p className="text-white/80">
 								A spring, solved exactly on every frame.
 							</p>
 						</Slide>
-						<Slide src={ media( 'a.mp4' ) } alt="Moving colour field" video className="hero">
+						<Slide video="a" alt="Moving colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">Video</h3>
 							<p className="text-white/80">
 								Plays while its slide is in view, with the same effects.
 							</p>
 						</Slide>
-						<Slide src={ media( '2.jpg' ) } alt="Blue colour field" className="hero">
+						<Slide image={ 2 } alt="Blue colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">
 								No dependency
 							</h3>
 							<p className="text-white/80">The core is 6 KB.</p>
 						</Slide>
-						<Slide src={ media( '4.jpg' ) } alt="Pink colour field" className="hero">
+						<Slide image={ 4 } alt="Pink colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">Idle is free</h3>
 							<p className="text-white/80">
 								No frame is drawn while nothing moves.
@@ -160,9 +192,10 @@ export default function App() {
 						{ [ 1, 2, 3, 4, 5, 6, 7, 8 ].map( ( n ) => (
 							<Slide
 								key={ n }
-								src={ media( `${ n }.jpg` ) }
+								image={ n }
 								alt={ `Colour field ${ n }` }
 								className="card"
+								sizes={ share }
 							/>
 						) ) }
 					</ShaderSlider>
@@ -187,13 +220,12 @@ export default function App() {
 							[ 7, 1600, 700 ],
 							[ 8, 1200, 1500 ],
 							[ 2, 1600, 1200 ],
-						].map( ( [ n, width, height ] ) => (
+						].map( ( [ n ] ) => (
 							<Slide
 								key={ n }
-								src={ media( `${ n }.jpg` ) }
+								image={ n }
 								alt={ `Colour field ${ n }` }
-								width={ width }
-								height={ height }
+								sizes="(max-width: 640px) 90vw, 50vw"
 							/>
 						) ) }
 					</ShaderSlider>
@@ -218,13 +250,12 @@ export default function App() {
 								[ 5, 1400, 1400 ],
 								[ 1, 1600, 900 ],
 								[ 3, 1200, 1600 ],
-							].map( ( [ n, width, height ] ) => (
+							].map( ( [ n ] ) => (
 								<Slide
 									key={ n }
-									src={ media( `${ n }.jpg` ) }
+									image={ n }
 									alt={ `Colour field ${ n }` }
-									width={ width }
-									height={ height }
+									sizes="(min-width: 700px) 672px, 100vw"
 								/>
 							) ) }
 						</ShaderSlider>
@@ -248,23 +279,23 @@ export default function App() {
 						measured={ measured }
 						plugins={ () => pluginsOf( config, 'stack' ) }
 					>
-						<Slide src={ media( '6.jpg' ) } alt="Violet colour field" className="hero">
+						<Slide image={ 6 } alt="Violet colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">
 								On top of each other
 							</h3>
 							<p className="text-white/80">Twenty transitions to choose from.</p>
 						</Slide>
-						<Slide src={ media( '4.jpg' ) } alt="Pink colour field" className="hero">
+						<Slide image={ 4 } alt="Pink colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">
 								Follows the pointer
 							</h3>
 							<p className="text-white/80">Stop half way, go back.</p>
 						</Slide>
-						<Slide src={ media( 'b.mp4' ) } alt="Moving colour field" video className="hero">
+						<Slide video="b" alt="Moving colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">Video too</h3>
 							<p className="text-white/80">A transition into a playing video.</p>
 						</Slide>
-						<Slide src={ media( '2.jpg' ) } alt="Blue colour field" className="hero">
+						<Slide image={ 2 } alt="Blue colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">
 								A crossfade without WebGL
 							</h3>
@@ -290,9 +321,10 @@ export default function App() {
 						{ [ 5, 6, 7, 8, 1, 2, 3 ].map( ( n ) => (
 							<Slide
 								key={ n }
-								src={ media( `${ n }.jpg` ) }
+								image={ n }
 								alt={ `Colour field ${ n }` }
 								className="cover"
+								sizes="(max-width: 640px) 62vw, 33vw"
 							/>
 						) ) }
 					</ShaderSlider>
@@ -322,9 +354,10 @@ export default function App() {
 							{ [ 2, 4, 6, 8, 1, 3 ].map( ( n ) => (
 								<Slide
 									key={ n }
-									src={ media( `${ n }.jpg` ) }
+									image={ n }
 									alt={ `Colour field ${ n }` }
 									className="card wide"
+									sizes="(min-width: 768px) 40vw, 50vw"
 								/>
 							) ) }
 						</ShaderSlider>
@@ -335,39 +368,28 @@ export default function App() {
 								aria-label="Driven from outside"
 								className="flex flex-wrap gap-2"
 							>
-								<Button variant="outline" size="sm" data-ss-prev>
+								<button type="button" className={ BUTTON } data-ss-prev>
 									Back
-								</Button>
-								<Button variant="outline" size="sm" data-ss-next>
+								</button>
+								<button type="button" className={ BUTTON } data-ss-next>
 									On
-								</Button>
+								</button>
 								{ [ 0, 2, 4 ].map( ( n ) => (
-									<Button
+									<button
 										key={ n }
-										variant="outline"
-										size="sm"
+										type="button"
+										className={ BUTTON }
 										data-ss-to={ n }
-										className="aria-[current]:bg-foreground aria-[current]:text-background"
 									>
 										{ n + 1 }
-									</Button>
+									</button>
 								) ) }
 							</nav>
-							<ol
-								data-testid="events"
-								aria-label="Events"
-								className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
-							>
-								{ log.map( ( line, i ) => (
-									<li key={ log.length - i } className="first:text-foreground">
-										{ line }
-									</li>
-								) ) }
-							</ol>
+							<Events tell={ tell } />
 						</div>
 					</div>
 				</Section>
 			</main>
-		</TooltipProvider>
+		</>
 	);
 }

@@ -19,6 +19,8 @@ export default defineConfig( {
 			shaderslide: path.resolve( import.meta.dirname, '../src/index.js' ),
 		},
 	},
+	// One page: what is not there is not found, and is not the page.
+	appType: 'mpa',
 	server: {
 		port: 5183,
 		fs: { allow: [ '..' ] },

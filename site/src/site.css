@@ -28,20 +28,39 @@ html {
 	}
 }
 
+/* A dot is small, what a finger has to hit is not: 24 px at least. */
+.dots {
+	gap: 0;
+}
+
 .dots .ss-dot {
-	width: 8px;
-	height: 8px;
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
 	padding: 0;
 	border: 0;
+	background: none;
+	cursor: pointer;
+	transition: width 0.3s;
+}
+
+.dots .ss-dot::before {
+	content: "";
+	width: 8px;
+	height: 8px;
 	border-radius: 999px;
 	background: rgb(255 255 255 / 0.4);
-	cursor: pointer;
 	transition:
 		background 0.2s,
 		width 0.3s;
 }
 
 .dots .ss-dot[aria-current] {
+	width: 38px;
+}
+
+.dots .ss-dot[aria-current]::before {
 	width: 22px;
 	background: #fff;
 }

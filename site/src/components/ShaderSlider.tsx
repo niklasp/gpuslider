@@ -11,7 +11,11 @@ import {
 	type Slider,
 } from 'shaderslide';
 import { ChevronLeft, ChevronRight, Pause } from 'lucide-react';
-import { cn } from '@/lib/utils';
+
+// Classes that do not contradict each other need no merger.
+const cn = ( ...classes: ( string | undefined )[] ) =>
+	classes.filter( Boolean ).join( ' ' );
+import { image, video } from '@/lib/media';
 
 type Props = {
 	id: string;
@@ -157,31 +161,36 @@ export function ShaderSlider( {
 }
 
 type SlideProps = {
-	src: string;
+	/** Number of an image of the site. */
+	image?: number;
+	/** Name of a video of the site. */
+	video?: 'a' | 'b';
 	alt: string;
-	video?: boolean;
+	/** How wide the slide is on the page: what `sizes` of an image says. */
+	sizes?: string;
+	/** The first thing a visitor sees: loaded before all else. */
+	first?: boolean;
 	className?: string;
-	width?: number;
-	height?: number;
 	children?: ReactNode;
 };
 
 export function Slide( {
-	src,
+	image: n,
+	video: name,
 	alt,
-	video,
+	sizes = '100vw',
+	first,
 	className,
-	width,
-	height,
 	children,
 }: SlideProps ) {
 	return (
 		<div className={ cn( 'ss-slide', className ) }>
-			{ video ? (
+			{ name ? (
 				<video
 					className="ss-media"
-					src={ src }
+					{ ...video( name ) }
 					aria-label={ alt }
+					preload="none"
 					muted
 					playsInline
 					loop
@@ -190,11 +199,13 @@ export function Slide( {
 			) : (
 				<img
 					className="ss-media"
-					src={ src }
+					{ ...image( n! ) }
+					sizes={ sizes }
 					alt={ alt }
-					width={ width }
-					height={ height }
 					draggable={ false }
+					decoding="async"
+					loading={ first ? 'eager' : 'lazy' }
+					fetchPriority={ first ? 'high' : 'auto' }
 				/>
 			) }
 			{ children && (

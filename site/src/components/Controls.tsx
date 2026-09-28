@@ -21,6 +21,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import {
 	Tooltip,
 	TooltipContent,
+	TooltipProvider,
 	TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
@@ -115,12 +116,13 @@ function Toggle( {
 	);
 }
 
-/** The settings of all sliders of the page, fixed to its top. */
-export function Controls( { config, onChange }: Props ) {
+/** The settings of all sliders of the page, which stay at its top. */
+export default function Controls( { config, onChange }: Props ) {
 	return (
+		<TooltipProvider>
 		<header
 			data-testid="controls"
-			className="fixed inset-x-0 top-0 z-40 border-b bg-background/80 backdrop-blur-xl"
+			className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl"
 		>
 			<div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3 md:px-8">
 				<a href="#top" className="mr-1 text-base font-semibold tracking-tight">
@@ -269,7 +271,7 @@ export function Controls( { config, onChange }: Props ) {
 					</PopoverTrigger>
 					<PopoverContent align="start" className="w-auto">
 						<FocusPad
-							image="/media/3.jpg"
+							image="/media/3-480.avif"
 							value={ config.focus }
 							onChange={ ( focus ) => onChange( { focus } ) }
 						/>
@@ -292,5 +294,6 @@ export function Controls( { config, onChange }: Props ) {
 				</Tooltip>
 			</div>
 		</header>
+		</TooltipProvider>
 	);
 }
