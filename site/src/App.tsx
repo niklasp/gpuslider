@@ -240,7 +240,6 @@ export default function App() {
 						label="Stack"
 						options={ {
 							...options,
-							mode: 'stack',
 							duration: Math.max( 900, config.duration * 1.8 ),
 						} }
 						style={ look }

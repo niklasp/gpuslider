@@ -245,3 +245,16 @@ test( 'covers: turned by the canvas, or by CSS without it', async ( { page } ) =
 	// The side towards the middle goes back, as on the canvas.
 	expect( turned[ 1 ] ).toBe( 'y -45deg' );
 } );
+
+test( 'the stack is a stack: one slide in view, the others hidden', async ( { page } ) => {
+	await page.locator( '#stack' ).scrollIntoViewIfNeeded();
+	await page.waitForFunction( () => window.sliders.stack.resting );
+	expect(
+		await page.evaluate( () => ( {
+			stack: window.sliders.stack.layout().stack,
+			shown: window.sliders.stack.slides.map(
+				( slide ) => getComputedStyle( slide ).visibility
+			),
+		} ) )
+	).toEqual( { stack: true, shown: [ 'visible', 'hidden', 'hidden', 'hidden' ] } );
+} );

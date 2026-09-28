@@ -13,6 +13,7 @@ import {
 	videos,
 	autoplay,
 	autoHeight,
+	stack,
 } from 'shaderslide/plugins';
 import { createSlider as createFull } from 'shaderslide/full';
 
@@ -47,6 +48,7 @@ const made: Create[] = [
 	autoplay( 3500 ),
 	autoplay( { delay: 3500, pause: '.pause' } ),
 	autoHeight(),
+	stack(),
 	counter(),
 ];
 
@@ -101,7 +103,7 @@ createSlider( document.body, { autoplay: 3500 } );
 // @ts-expect-error: a delay is a number.
 autoplay( { delay: 'long' } );
 // @ts-expect-error: no such mode.
-createSlider( document.body, { mode: 'pile' } );
+createFull( document.body, { mode: 'pile' } );
 // @ts-expect-error: angles are numbers.
 coverflow( { angle: 'steep' } );
 

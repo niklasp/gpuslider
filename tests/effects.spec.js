@@ -51,6 +51,15 @@ test.describe( 'transitions', () => {
 		await page.close();
 	} );
 
+	test( 'without one: a fade, as the page fades', async ( { page } ) => {
+		await open( page, { n: 3, o: { mode: 'stack' }, plugins: 'gl' } );
+		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
+		await painted( page );
+		await hold( page, 400 );
+		const faded = await difference( page, half, await shot( page ) );
+		expect( faded.mean ).toBeLessThan( 3 );
+	} );
+
 	for ( const name of Object.keys( transitions ) ) {
 		test( name, async ( { page } ) => {
 			const logged = errors( page );

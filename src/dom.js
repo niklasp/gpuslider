@@ -2,12 +2,9 @@
  * Puts the slide elements where the motion says they are, and tells
  * assistive technology what they are.
  *
- * Row: the track moves as a whole (one style per frame). When looping, a
- * slide that left on one side is set down on the other by its own
- * transform, which only changes at that moment.
- *
- * Stack: nothing moves. The two slides around the position are shown, the
- * later one on top with the fraction of the position as its opacity.
+ * The track moves as a whole (one style per frame). When looping, a slide
+ * that left on one side is set down on the other by its own transform,
+ * which only changes at that moment.
  */
 
 /**
@@ -22,7 +19,6 @@ export function createDom( root, track, slides ) {
 	const n = slides.length;
 	// What each slide's style holds, to write only what changes.
 	const shift = new Array( n ).fill( 0 );
-	const shown = new Array( n ).fill( -1 );
 	const given = [];
 	// A label like the ones given here came with a copy of a slide.
 	const own = /^\d+ \/ \d+$/;
@@ -52,24 +48,8 @@ export function createDom( root, track, slides ) {
 		frame( layout, motion, places ) {
 			const { stack, rtl, left } = layout;
 			const direction = rtl ? -1 : 1;
+			// They lie on top of each other: nothing to move.
 			if ( stack ) {
-				for ( let i = 0; i < n; i++ ) {
-					const { p } = places[ i ];
-					// 1 on its place, 0 one slide away. The slide that comes
-					// in is on top; the one below stays opaque so nothing
-					// behind the two shines through half way.
-					const near = Math.max( 0, 1 - Math.abs( p ) );
-					const value = Math.round( near * 1000 ) / 1000;
-					if ( value === shown[ i ] ) {
-						continue;
-					}
-					shown[ i ] = value;
-					const { style } = slides[ i ];
-					style.visibility = value ? '' : 'hidden';
-					style.zIndex = p > 0 ? 1 : 0;
-					style.setProperty( '--ss-near', value );
-					style.setProperty( '--ss-cover', p > 0 ? value : 1 );
-				}
 				return;
 			}
 			// At rest on whole device pixels, so text stays sharp.
@@ -113,14 +93,8 @@ export function createDom( root, track, slides ) {
 		destroy() {
 			given.forEach( ( [ el, name ] ) => el.removeAttribute( name ) );
 			track.style.transform = '';
-			slides.forEach( ( { style } ) => {
-				style.transform = '';
-				style.visibility = '';
-				style.zIndex = '';
-				style.removeProperty( '--ss-near' );
-				style.removeProperty( '--ss-cover' );
-			} );
 			slides.forEach( ( slide ) => {
+				slide.style.transform = '';
 				slide.inert = false;
 			} );
 		},

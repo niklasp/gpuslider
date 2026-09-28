@@ -6,7 +6,8 @@
  * `measure()`.
  *
  * @typedef {Object} Layout
- * @property {boolean}  stack  Slides lie on top of each other.
+ * @property {boolean}  [stack] Slides lie on top of each other: the `stack`
+ *                             plugin says so.
  * @property {boolean}  rtl    Reading direction is right to left.
  * @property {boolean}  loop   Whether the slider loops (false when the option
  *                             is on but there are too few slides for it).
@@ -39,12 +40,13 @@ const RUBBER = 0.3;
  * @param {Object}        options Slider options.
  * @param {number[]}      [moved] How far each slide is moved by its own
  *                                transform at the moment.
+ * @param {Function}      [shape] Gets what was measured and may change it:
+ *                                for plugins that lay out another way.
  * @return {Layout} Layout.
  */
-export function measure( root, track, slides, options, moved = [] ) {
+export function measure( root, track, slides, options, moved = [], shape ) {
 	const style = root.ownerDocument.defaultView.getComputedStyle( track );
 	const rtl = style.direction === 'rtl';
-	const stack = options.mode === 'stack';
 	const box = root.getBoundingClientRect();
 	const around = track.getBoundingClientRect();
 	// Boxes are measured as drawn: inside a scaled parent they are scaled.
@@ -53,28 +55,24 @@ export function measure( root, track, slides, options, moved = [] ) {
 		box.width / scale - ( root.offsetWidth - root.clientWidth );
 	const height =
 		box.height / scale - ( root.offsetHeight - root.clientHeight );
-	const gap = stack ? 0 : parseFloat( style.columnGap ) || 0;
+	const gap = parseFloat( style.columnGap ) || 0;
 	const left = [];
 	const size = [];
 	slides.forEach( ( el, i ) => {
 		const r = el.getBoundingClientRect();
-		if ( stack ) {
-			left.push( i * width );
-			size.push( width );
-			return;
-		}
 		const from = rtl ? around.right - r.right : r.left - around.left;
 		left.push( from / scale - ( moved[ i ] || 0 ) );
 		size.push( r.width / scale );
 	} );
-	return arrange( { stack, rtl, width, height, gap, left, size }, options );
+	const measured = { rtl, width, height, gap, left, size };
+	shape?.( measured );
+	return arrange( measured, options );
 }
 
 /**
  * Derives the snap points from the measured slides.
  *
- * @param {Object} measured `stack`, `rtl`, `width`, `height`, `gap`, `left`,
- *                          `size`.
+ * @param {Object} measured `rtl`, `width`, `height`, `gap`, `left`, `size`.
  * @param {Object} options  Slider options: `loop`, `align`, `group`,
  *                          `contain`.
  * @return {Layout} Layout.
@@ -169,21 +167,10 @@ export function nearest( layout, position ) {
  * @return {Object[]} `out`.
  */
 export function place( layout, position, out ) {
-	const { stack, loop, length, width, gap, left, size, rest } = layout;
+	const { loop, length, width, gap, left, size, rest } = layout;
 	const n = left.length;
 	for ( let i = 0; i < n; i++ ) {
 		const slide = out[ i ];
-		if ( stack ) {
-			let p = i - position / width;
-			if ( loop ) {
-				p = mod( p + n / 2, n ) - n / 2;
-			}
-			slide.x = 0;
-			slide.p = p;
-			slide.share = Math.max( 0, 1 - Math.abs( p ) );
-			slide.visible = slide.share > 0;
-			continue;
-		}
 		let x = left[ i ] - position;
 		if ( loop ) {
 			// Wrapped by its centre, to the round that is closest to the

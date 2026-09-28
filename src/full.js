@@ -16,6 +16,7 @@ import {
 	autoplay,
 	videos,
 	autoHeight,
+	stack,
 } from './plugins/index.js';
 
 export * from './plugins/index.js';
@@ -33,6 +34,7 @@ export * from './plugins/index.js';
  *                                   autoplay.
  * @property {boolean}  [autoHeight] The slider is as high as the slides in
  *                                   view.
+ * @property {'row'|'stack'} [mode]  Slides next to or on top of each other.
  * @property {Elements} [prev]       Buttons that go back, anywhere on the
  *                                   page.
  * @property {Elements} [next]       Buttons that go on.
@@ -50,6 +52,7 @@ export function createSlider( root, options = {} ) {
 		wheel: rolls = true,
 		autoplay: delay = 0,
 		autoHeight: tall = false,
+		mode,
 		prev,
 		next,
 		dots,
@@ -60,6 +63,7 @@ export function createSlider( root, options = {} ) {
 	return create( root, {
 		...rest,
 		plugins: [
+			mode === 'stack' && stack(),
 			controls( { prev, next, dots } ),
 			keys && keyboard(),
 			rolls && wheel(),

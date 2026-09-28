@@ -20,6 +20,7 @@ import {
 	videos,
 	autoplay,
 	autoHeight,
+	stack,
 	progress,
 } from 'shaderslide/plugins';
 import type { Create } from 'shaderslide';
@@ -104,6 +105,9 @@ export function pluginsOf(
 	}
 	if ( kind === 'tall' ) {
 		plugins.push( autoHeight() );
+	}
+	if ( kind === 'stack' ) {
+		plugins.push( stack() );
 	}
 	if ( config.canvas ) {
 		const more: Effect[] = [];

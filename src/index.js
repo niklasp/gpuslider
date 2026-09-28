@@ -18,6 +18,7 @@
  *
  *     const plugin = ( slider ) => ( {
  *         name: 'mine',              // slider.plugins.mine is this object
+ *         layout( measured ) {},     // may change what was measured
  *         measure( view ) {},        // after every layout
  *         slides() {},               // slides were added or removed
  *         frame( view, dt, now ) {}, // every frame while something moves
@@ -83,6 +84,9 @@ import { createDom } from './dom.js';
  * @typedef {Object} Hooks What the slider calls of a plugin.
  * @property {string}                                      [name]    Name
  *           under which the slider has it in `plugins`.
+ * @property {(measured: Record<string, any>) => void}     [layout]  Gets
+ *           what was measured of the slides and may change it, to lay them
+ *           out another way.
  * @property {(view: View) => void}                        [measure] After
  *           every layout.
  * @property {() => void}                                  [slides]  Slides
@@ -135,8 +139,6 @@ import { createDom } from './dom.js';
 
 /**
  * @typedef {Object} Options
- * @property {'row'|'stack'}          [mode]     Slides next to or on top of
- *                                               each other.
  * @property {number|'auto'}          [perView]  Slides per view; `auto`
  *                                               takes each slide's own
  *                                               width. Without it, the CSS
@@ -163,7 +165,6 @@ import { createDom } from './dom.js';
 
 /** @type {Options} */
 const DEFAULTS = {
-	mode: 'row',
 	loop: false,
 	align: 'start',
 	group: 1,
@@ -221,7 +222,6 @@ export function createSlider( root, options = {} ) {
 		root.classList.remove( ...classes );
 		classes = [
 			'ss-on',
-			o.mode === 'stack' && 'ss-stack',
 			o.perView === 'auto' && 'ss-auto',
 		].filter( Boolean );
 		root.classList.add( ...classes );
@@ -353,7 +353,9 @@ export function createSlider( root, options = {} ) {
 		}
 		const changed = read();
 		const resting = ! motion.dragging && motion.pos === motion.target;
-		layout = measure( root, track, slides, o, dom.moved );
+		layout = measure( root, track, slides, o, dom.moved, ( measured ) =>
+			used.forEach( ( plugin ) => plugin.layout?.( measured ) )
+		);
 		view.layout = layout;
 		index = within( index );
 		if ( changed ) {
@@ -459,9 +461,9 @@ export function createSlider( root, options = {} ) {
 				if ( plugin.name ) {
 					plugins[ plugin.name ] = plugin;
 				}
+				// Later than the slider: it is measured again, with it.
 				if ( layout ) {
-					plugin.measure?.( view );
-					engine.wake();
+					update();
 				}
 			}
 			return plugin;
@@ -616,8 +618,7 @@ export function createSlider( root, options = {} ) {
 	read();
 	createInput( root, slider, signal );
 
-	layout = measure( root, track, slides, o, dom.moved );
-	view.layout = layout;
+	// The layout is there from the first `measure` of a plugin on.
 	o.plugins.forEach( slider.use );
 	index = o.start;
 	update();

@@ -17,4 +17,5 @@ export { wheel } from './wheel.js';
 export { autoplay } from './autoplay.js';
 export { videos } from './videos.js';
 export { autoHeight } from './auto-height.js';
+export { stack } from './stack.js';
 export { progress } from './progress.js';

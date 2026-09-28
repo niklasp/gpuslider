@@ -59,8 +59,10 @@ export function gl( {
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
 		const { root, slides, win } = slider;
 		const doc = root.ownerDocument;
-		const stack = slider.options.mode === 'stack';
-		const shader = compose( effects, stack ? FADE : null );
+		// Made with the canvas: by then every plugin of the slider is there.
+		let stack;
+		let shader;
+		let kind;
 		// Per slide: its media, the box of the media in its slide with
 		// what CSS says, and the numbers of `fit()`.
 		const media = [];
@@ -78,7 +80,6 @@ export function gl( {
 		read();
 		// The quad about to be drawn, for whoever changes it (see `change`).
 		const next = { x: 0, y: 0, w: 0, h: 0, a: null, radius: 0, speed: 0 };
-		const kind = `${ shader.mesh }${ preserve }`;
 
 		let context = null;
 		let near = false;
@@ -100,6 +101,19 @@ export function gl( {
 		function attach() {
 			if ( context || destroyed || ! near ) {
 				return;
+			}
+			if ( ! shader ) {
+				stack = slider.layout().stack;
+				shader = compose( effects, stack ? FADE : null );
+				kind = `${ shader.mesh }${ preserve }`;
+				if ( shader.pointer ) {
+					[ 'pointerdown', 'pointermove' ].forEach( ( name ) =>
+						root.addEventListener( name, move, listening )
+					);
+					[ 'pointerleave', 'pointerup', 'pointercancel' ].forEach(
+						( name ) => root.addEventListener( name, leave, listening )
+					);
+				}
 			}
 			const pool = spares.get( doc ) || [];
 			spares.set( doc, pool );
@@ -300,18 +314,7 @@ export function gl( {
 				slider.wake();
 			}
 		};
-		const events = shader.pointer
-			? [
-					[ 'pointerdown', move ],
-					[ 'pointermove', move ],
-					[ 'pointerleave', leave ],
-					[ 'pointerup', leave ],
-					[ 'pointercancel', leave ],
-			  ]
-			: [];
-		events.forEach( ( [ name, fn ] ) =>
-			root.addEventListener( name, fn, { passive: true } )
-		);
+		const listening = { passive: true, signal: slider.signal };
 
 		/**
 		 * Binds the media of a slide to a texture unit and works out where
@@ -543,7 +546,7 @@ export function gl( {
 			busy: () =>
 				!! context &&
 				( pointer.moving ||
-					shader.animated ||
+					shader?.animated ||
 					media.some(
 						( element, i ) =>
 							element?.tagName === 'VIDEO' &&
@@ -556,9 +559,6 @@ export function gl( {
 				destroyed = true;
 				win.clearTimeout( retry );
 				observer.disconnect();
-				events.forEach( ( [ name, fn ] ) =>
-					root.removeEventListener( name, fn )
-				);
 				detach();
 			},
 		};
