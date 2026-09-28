@@ -214,6 +214,11 @@ export function createSlider( root, options = {} ) {
 		next: () => go( index + 1 ),
 		prev: () => go( index - 1 ),
 
+		/** The layers, in the order they were given. */
+		get layers() {
+			return layers;
+		},
+
 		/** Measures again, after a change the slider cannot see. */
 		update,
 		/** Requests a frame: for layers that changed what they draw. */

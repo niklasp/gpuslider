@@ -49,15 +49,24 @@
 		);
 	}
 	const { createSlider } = await import( '../src/index.js' );
+	const canvas = await import( '../src/gl/index.js' );
+	window.lib = { createSlider, ...canvas };
 	const options = JSON.parse( query.get( 'o' ) || '{}' );
 	const names = ( query.get( 'layers' ) || '' ).split( ',' ).filter( Boolean );
 	if ( names.length ) {
-		const layers = await import( '../src/gl/index.js' );
+		// Effects by name, with their parameters: warp, lens:{"size":0.3}
 		const effects = ( query.get( 'effects' ) || '' )
-			.split( ',' )
+			.split( ';' )
 			.filter( Boolean )
-			.map( ( name ) => layers[ name ]() );
-		options.layers = names.map( ( name ) => layers[ name ]( { effects } ) );
+			.map( ( effect ) => {
+				const [ name, ...rest ] = effect.split( ':' );
+				return canvas[ name ](
+					rest.length ? JSON.parse( rest.join( ':' ) ) : undefined
+				);
+			} );
+		options.layers = names.map( ( name ) =>
+			canvas[ name ]( { effects, preserve: true } )
+		);
 	}
 	window.events = [];
 	window.slider = createSlider( document.getElementById( 'slider' ), options );

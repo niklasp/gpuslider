@@ -121,8 +121,10 @@
 	pointer-events: none;
 }
 
-.ss-media.ss-drawn {
-	visibility: hidden;
+/* Transparent, not hidden: the image keeps its place, its text for
+   screen readers and its menu, and a video keeps playing. */
+.ss .ss-media.ss-drawn {
+	opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -23,6 +23,30 @@ export async function open( page, setup = {} ) {
 	} );
 	await page.goto( `/tests/page.html?${ query }` );
 	await page.waitForFunction( () => window.ready );
+	await page.evaluate( () =>
+		Promise.all(
+			[ ...document.images ].map( ( image ) =>
+				image.decode().catch( () => {} )
+			)
+		)
+	);
+	await settled( page );
+}
+
+/**
+ * Waits until the canvas shows the media of every slide in view.
+ *
+ * @param {import('@playwright/test').Page} page Page.
+ */
+export async function painted( page ) {
+	await page.waitForFunction( () => {
+		const { slides, view } = window.slider;
+		return slides.every(
+			( slide, i ) =>
+				! view.places[ i ].visible ||
+				slide.querySelector( '.ss-media.ss-drawn' )
+		);
+	} );
 	await settled( page );
 }
 
@@ -82,3 +106,68 @@ export async function leftOf( page, i ) {
 export const index = ( page ) => page.evaluate( () => window.slider.index );
 
 export { expect };
+
+/**
+ * How much two screenshots of the same size differ.
+ *
+ * @param {import('@playwright/test').Page} page Page, to decode them in.
+ * @param {Buffer}                          a    PNG.
+ * @param {Buffer}                          b    PNG.
+ * @return {Promise<Object>} `mean`: difference per channel, 0 to 255, on
+ *                           average; `far`: share of the pixels that differ
+ *                           by more than 32 in a channel.
+ */
+export async function difference( page, a, b ) {
+	return page.evaluate(
+		async ( files ) => {
+			const [ one, two ] = await Promise.all(
+				files.map( async ( file ) => {
+					const bytes = Uint8Array.from( atob( file ), ( c ) =>
+						c.charCodeAt( 0 )
+					);
+					const bitmap = await createImageBitmap(
+						new Blob( [ bytes ], { type: 'image/png' } )
+					);
+					const canvas = new OffscreenCanvas(
+						bitmap.width,
+						bitmap.height
+					);
+					const context = canvas.getContext( '2d' );
+					context.drawImage( bitmap, 0, 0 );
+					return context.getImageData(
+						0,
+						0,
+						bitmap.width,
+						bitmap.height
+					);
+				} )
+			);
+			if ( one.width !== two.width || one.height !== two.height ) {
+				return { mean: 255, far: 1 };
+			}
+			let sum = 0;
+			let far = 0;
+			for ( let i = 0; i < one.data.length; i += 4 ) {
+				let most = 0;
+				for ( let c = 0; c < 3; c++ ) {
+					const d = Math.abs( one.data[ i + c ] - two.data[ i + c ] );
+					sum += d;
+					most = Math.max( most, d );
+				}
+				far += most > 32 ? 1 : 0;
+			}
+			const pixels = one.data.length / 4;
+			return { mean: sum / pixels / 3, far: far / pixels };
+		},
+		[ a.toString( 'base64' ), b.toString( 'base64' ) ]
+	);
+}
+
+/**
+ * Whether the canvas layer of the slider draws.
+ *
+ * @param {import('@playwright/test').Page} page Page.
+ * @return {Promise<boolean>} Draws.
+ */
+export const draws = ( page ) =>
+	page.evaluate( () => !! window.slider.layers[ 0 ]?.canvas );
