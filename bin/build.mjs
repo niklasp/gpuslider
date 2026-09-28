@@ -45,7 +45,7 @@ const parts = [];
 
 parts.push( {
 	name: 'core',
-	budget: 6656,
+	budget: 5120,
 	size: await measure(
 		`export * from './src/index.js';`,
 		'shaderslide.js'
@@ -77,7 +77,7 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	await measure( `export * from './src/gl/index.js';`, 'shaderslide-gl.js' );
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 6144,
+		budget: 6656,
 		size: await measure(
 			`import { gl } from './src/gl/index.js'; export { gl };`
 		),

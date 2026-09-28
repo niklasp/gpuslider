@@ -32,6 +32,8 @@
  *     uVelocity   how fast the slider moves to the right on the screen, in
  *                 views per second, smoothed
  *     uPointer    the pointer in the quad's uv, smoothed
+ *     uPointerSpeed  how fast it moves, in sizes of the quad per second,
+ *                 smoothed
  *     uPointerIn  1 while the pointer is over the slider, eased
  *     uTime       seconds
  *     uSize       size of the quad, px
@@ -61,6 +63,7 @@ const float PI = 3.14159265;
 uniform float uProgress;
 uniform float uVelocity;
 uniform vec2 uPointer;
+uniform vec2 uPointerSpeed;
 uniform float uPointerIn;
 uniform float uTime;
 uniform vec2 uSize;
@@ -212,35 +215,50 @@ export function compose( effects, transition ) {
 }
 
 /**
- * Compiles a program.
+ * Hands a program to the compiler. Nothing here waits for it: where the
+ * browser compiles on another thread, the page goes on meanwhile.
  *
  * @param {WebGL2RenderingContext} gl       Context.
  * @param {string}                 vertex   Source.
  * @param {string}                 fragment Source.
- * @return {WebGLProgram} Program.
- * @throws {Error} With the log of the compiler.
+ * @return {WebGLProgram} Program, not yet ready (see `ready()`).
  */
 export function build( gl, vertex, fragment ) {
 	const program = gl.createProgram();
-	const shaders = [
-		[ gl.VERTEX_SHADER, vertex ],
-		[ gl.FRAGMENT_SHADER, fragment ],
-	].map( ( [ type, source ] ) => {
-		const shader = gl.createShader( type );
+	[ vertex, fragment ].forEach( ( source, i ) => {
+		const shader = gl.createShader(
+			i ? gl.FRAGMENT_SHADER : gl.VERTEX_SHADER
+		);
 		gl.shaderSource( shader, source );
 		gl.compileShader( shader );
 		gl.attachShader( program, shader );
-		return shader;
 	} );
 	gl.bindAttribLocation( program, 0, 'aPos' );
 	gl.linkProgram( program );
-	if ( ! gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
-		const log =
-			shaders.map( ( shader ) => gl.getShaderInfoLog( shader ) ).join( '' ) ||
-			gl.getProgramInfoLog( program );
-		gl.deleteProgram( program );
-		throw new Error( log );
-	}
-	shaders.forEach( ( shader ) => gl.deleteShader( shader ) );
 	return program;
+}
+
+/**
+ * @param {WebGL2RenderingContext} gl      Context.
+ * @param {WebGLProgram}           program Program.
+ * @return {boolean} Whether the compiler is done with it.
+ * @throws {Error} With the log of the compiler, when it failed.
+ */
+export function ready( gl, program ) {
+	const parallel = gl.getExtension( 'KHR_parallel_shader_compile' );
+	if (
+		parallel &&
+		! gl.getProgramParameter( program, parallel.COMPLETION_STATUS_KHR )
+	) {
+		return false;
+	}
+	if ( ! gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
+		throw new Error(
+			gl
+				.getAttachedShaders( program )
+				.map( ( shader ) => gl.getShaderInfoLog( shader ) )
+				.join( '' ) || gl.getProgramInfoLog( program )
+		);
+	}
+	return true;
 }

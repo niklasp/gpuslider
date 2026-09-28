@@ -243,7 +243,7 @@ test.describe( 'without the canvas', () => {
 				document.body.append( copy );
 				sliders.push(
 					window.lib.createSlider( copy, {
-						plugins: [ window.lib.gl() ],
+						plugins: [ window.lib.gl( { eager: true } ) ],
 					} )
 				);
 			}
@@ -252,13 +252,67 @@ test.describe( 'without the canvas', () => {
 			return sliders.filter( ( slider ) => slider.plugins.gl.canvas ).length;
 		} );
 		expect( drawing ).toBe( 12 );
-		// One goes, the next one in line takes its context.
+		// One goes. A slider that found no context takes it when it is used.
 		const after = await page.evaluate( async () => {
 			window.all[ 0 ].destroy();
-			await new Promise( ( done ) => setTimeout( done, 300 ) );
-			return window.all.filter( ( slider ) => slider.plugins.gl.canvas )
-				.length;
+			const without = window.all.find(
+				( slider, i ) => i && ! slider.plugins.gl.canvas
+			);
+			without.next();
+			await new Promise( ( done ) => setTimeout( done, 500 ) );
+			return [
+				!! without.plugins.gl.canvas,
+				window.all.filter( ( slider ) => slider.plugins.gl.canvas ).length,
+			];
 		} );
-		expect( after ).toBe( 12 );
+		expect( after ).toEqual( [ true, 12 ] );
+	} );
+} );
+
+test.describe( 'the canvas waits for the first sign of use', () => {
+	const canvases = ( page ) => page.locator( '#slider .ss-canvas' ).count();
+
+	test( 'a slider that rests has none', async ( { page } ) => {
+		await open( page, { n: 4, plugins: 'gl', lazy: 1 } );
+		await page.waitForTimeout( 500 );
+		expect( await canvases( page ) ).toBe( 0 );
+		expect( await page.locator( '.ss-drawn' ).count() ).toBe( 0 );
+		// And the page has asked for no frame since.
+		const frames = await page.evaluate( () => window.frames_ );
+		await page.waitForTimeout( 300 );
+		expect( await page.evaluate( () => window.frames_ ) ).toBe( frames );
+	} );
+
+	test( 'a pointer that comes', async ( { page } ) => {
+		await open( page, { n: 4, plugins: 'gl', lazy: 1 } );
+		await page.locator( '#slider' ).hover();
+		await expect.poll( () => canvases( page ) ).toBe( 1 );
+		await painted( page );
+	} );
+
+	test( 'the focus', async ( { page } ) => {
+		await open( page, { n: 4, plugins: 'gl', lazy: 1 } );
+		await page.locator( '#slider' ).focus();
+		await expect.poll( () => canvases( page ) ).toBe( 1 );
+	} );
+
+	test( 'a move', async ( { page } ) => {
+		await open( page, { n: 4, plugins: 'gl', lazy: 1, effects: 'stretch' } );
+		await page.evaluate( () => window.slider.next() );
+		await expect.poll( () => canvases( page ) ).toBe( 1 );
+		await settled( page );
+		await painted( page );
+		expect( await page.evaluate( () => window.slider.index ) ).toBe( 1 );
+	} );
+
+	test( 'what moves by itself has its canvas before it moves', async ( { page } ) => {
+		await open( page, {
+			n: 4,
+			plugins: 'gl',
+			lazy: 1,
+			o: { autoplay: 60000 },
+		} );
+		await expect.poll( () => canvases( page ) ).toBe( 1 );
+		expect( await page.evaluate( () => window.slider.index ) ).toBe( 0 );
 	} );
 } );

@@ -292,7 +292,7 @@ export function lightbox( {
 					driver,
 					controls(),
 					keyboard(),
-					gl( { effects, ...canvas } ),
+					gl( { effects, ...canvas, eager: true } ),
 				],
 			} );
 			layer = shown.plugins.gl;

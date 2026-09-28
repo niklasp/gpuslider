@@ -6,10 +6,16 @@
  * above the canvas. Without WebGL 2, without a free context or after a
  * lost one, the layer does nothing and the page shows its own media.
  *
+ * A slider at rest looks the same with and without the canvas, so the
+ * canvas waits for the first sign of use: a pointer that comes, the focus,
+ * a move. Until then the page pays nothing for it, neither while it loads
+ * nor in memory. What moves by itself (autoplay, an effect that is
+ * animated) has its canvas made when the browser is idle.
+ *
  * Nothing here reads the layout while the slider moves: the boxes of the
  * media are measured with the layout, the rest is arithmetic.
  */
-import { compose, build } from './program.js';
+import { compose, build, ready } from './program.js';
 import { createTextures } from './textures.js';
 import { fit, styleOf } from './fit.js';
 
@@ -24,9 +30,6 @@ const spares = new WeakMap();
 
 // Spares are contexts too, so there are only a few.
 const MAX_SPARE = 3;
-
-// Sliders in view that found no context: they try again when one is free.
-const waiting = new Set();
 
 // Squares per side of a quad that bends.
 const MESH = 32;
@@ -45,6 +48,8 @@ const FADE =
  * @param {number}   [options.density]     Most device pixels per px drawn.
  * @param {number}   [options.perspective] Distance of the eye for meshes
  *                                         that bend, px.
+ * @param {boolean}  [options.eager]       Make the canvas with the slider,
+ *                                         not at the first sign of use.
  * @param {boolean}  [options.preserve]    Keep the drawing readable, for
  *                                         tests and screenshots.
  */
@@ -53,13 +58,15 @@ export function gl( {
 	maxSize = 2048,
 	density = 2,
 	perspective = 1200,
+	eager = false,
 	preserve = false,
 } = {} ) {
 	// The plugin, for the `plugins` of a slider.
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
 		const { root, slides, win } = slider;
 		const doc = root.ownerDocument;
-		// Made with the canvas: by then every plugin of the slider is there.
+		// Made with the first layout: by then every plugin of the slider is
+		// there.
 		let stack;
 		let shader;
 		let kind;
@@ -82,14 +89,28 @@ export function gl( {
 		const next = { x: 0, y: 0, w: 0, h: 0, a: null, radius: 0, speed: 0 };
 
 		let context = null;
+		// A canvas whose shader the compiler still has.
+		let making = null;
 		let near = false;
+		let wanted = eager;
 		let destroyed = false;
 		let retry = 0;
 		let width = 0;
 		let height = 0;
 		let ratio = 0;
-		const pointer = { x: 0, y: 0, in: 0, tx: 0, ty: 0, tin: 0, moving: false };
+		const pointer = {
+			x: 0,
+			y: 0,
+			in: 0,
+			tx: 0,
+			ty: 0,
+			tin: 0,
+			vx: 0,
+			vy: 0,
+			moving: false,
+		};
 		const drawn = new Set();
+		const listening = { passive: true, signal: slider.signal };
 
 		const show = ( element, on ) => {
 			if ( on !== drawn.has( element ) ) {
@@ -99,21 +120,15 @@ export function gl( {
 		};
 
 		function attach() {
-			if ( context || destroyed || ! near ) {
+			if (
+				context ||
+				making ||
+				destroyed ||
+				! near ||
+				! wanted ||
+				! shader
+			) {
 				return;
-			}
-			if ( ! shader ) {
-				stack = slider.layout().stack;
-				shader = compose( effects, stack ? FADE : null );
-				kind = `${ shader.mesh }${ preserve }`;
-				if ( shader.pointer ) {
-					[ 'pointerdown', 'pointermove' ].forEach( ( name ) =>
-						root.addEventListener( name, move, listening )
-					);
-					[ 'pointerleave', 'pointerup', 'pointercancel' ].forEach(
-						( name ) => root.addEventListener( name, leave, listening )
-					);
-				}
 			}
 			const pool = spares.get( doc ) || [];
 			spares.set( doc, pool );
@@ -126,14 +141,12 @@ export function gl( {
 				}
 			}
 			if ( ! spare ) {
+				// The page draws, until the slider is used again.
 				if ( live >= MAX_LIVE ) {
-					waiting.add( attach );
 					return;
 				}
 				const canvas = doc.createElement( 'canvas' );
 				const made = canvas.getContext( 'webgl2', {
-					alpha: true,
-					premultipliedAlpha: true,
 					antialias: shader.mesh,
 					depth: shader.mesh,
 					preserveDrawingBuffer: preserve,
@@ -149,23 +162,38 @@ export function gl( {
 					spare.lost?.();
 				} );
 			}
-			waiting.delete( attach );
+			live++;
+			const key = shader.fragment + shader.vertex;
+			making = {
+				spare,
+				key,
+				program:
+					spare.programs.get( key ) ||
+					build( spare.gl, shader.vertex, shader.fragment ),
+			};
+			slider.wake();
+		}
+
+		// The compiler is done: the canvas takes over.
+		function begin() {
+			const { spare, program, key } = making;
 			const { canvas, programs } = spare;
 			const g = spare.gl;
-			let program = programs.get( shader.fragment + shader.vertex );
-			if ( ! program ) {
-				try {
-					program = build( g, shader.vertex, shader.fragment );
-				} catch ( error ) {
-					// eslint-disable-next-line no-console
-					console.error( 'shaderslide: the shader failed.', error );
-					pool.push( spare );
-					destroyed = true;
+			try {
+				if ( ! ready( g, program ) ) {
 					return;
 				}
-				programs.set( shader.fragment + shader.vertex, program );
+			} catch ( error ) {
+				// eslint-disable-next-line no-console
+				console.error( 'shaderslide:', error );
+				making = null;
+				live--;
+				spares.get( doc ).push( spare );
+				destroyed = true;
+				return;
 			}
-			live++;
+			making = null;
+			programs.set( key, program );
 			g.useProgram( program );
 
 			// One grid for every quad: 0 to 1 from the top left.
@@ -255,7 +283,11 @@ export function gl( {
 		}
 
 		function detach( lost ) {
-			waiting.delete( attach );
+			if ( making ) {
+				live--;
+				spares.get( doc ).push( making.spare );
+				making = null;
+			}
 			if ( ! context ) {
 				return;
 			}
@@ -278,7 +310,6 @@ export function gl( {
 			} else {
 				g.getExtension( 'WEBGL_lose_context' )?.loseContext();
 			}
-			[ ...waiting ].forEach( ( other ) => other() );
 		}
 
 		const observer = new win.IntersectionObserver(
@@ -314,7 +345,14 @@ export function gl( {
 				slider.wake();
 			}
 		};
-		const listening = { passive: true, signal: slider.signal };
+		// The first sign of use.
+		const want = () => {
+			wanted = true;
+			attach();
+		};
+		[ 'pointerenter', 'pointerdown', 'focusin' ].forEach( ( name ) =>
+			root.addEventListener( name, want, { ...listening, once: true } )
+		);
 
 		/**
 		 * Binds the media of a slide to a texture unit and works out where
@@ -335,7 +373,7 @@ export function gl( {
 			const box = boxes[ i ];
 			g.activeTexture( g.TEXTURE0 + unit );
 			g.bindTexture( g.TEXTURE_2D, nothing );
-			if ( ! element || ! box || ! box.w || ! box.h ) {
+			if ( ! element || ! box || ! box.at.w || ! box.at.h ) {
 				return null;
 			}
 			const iw = element.naturalWidth || element.videoWidth;
@@ -383,6 +421,25 @@ export function gl( {
 			slides: read,
 
 			measure() {
+				if ( ! shader ) {
+					stack = slider.layout().stack;
+					shader = compose( effects, stack ? FADE : null );
+					kind = `${ shader.mesh }${ preserve }`;
+					if ( shader.pointer ) {
+						[ 'pointerdown', 'pointermove' ].forEach( ( name ) =>
+							root.addEventListener( name, move, listening )
+						);
+						[ 'pointerleave', 'pointerup', 'pointercancel' ].forEach(
+							( name ) =>
+								root.addEventListener( name, leave, listening )
+						);
+					}
+					// What moves by itself needs its canvas before it does.
+					if ( shader.animated || slider.plugins.autoplay ) {
+						( win.requestIdleCallback || win.setTimeout )( want );
+					}
+					attach();
+				}
 				const around = root.getBoundingClientRect();
 				const scale = root.offsetWidth
 					? around.width / root.offsetWidth || 1
@@ -399,8 +456,6 @@ export function gl( {
 						dx: ( inner.left - outer.left ) / scale,
 						// In the view: slides do not move up or down.
 						dy: ( inner.top - around.top ) / scale - root.clientTop,
-						w: inner.width / scale,
-						h: inner.height / scale,
 						at: { x: 0, y: 0, w: inner.width / scale, h: inner.height / scale },
 						style: styleOf( element ),
 					};
@@ -408,11 +463,17 @@ export function gl( {
 			},
 
 			frame( view, dt, now ) {
+				const { layout, places, motion } = view;
+				if ( making ) {
+					begin();
+				}
 				if ( ! context ) {
+					if ( motion.dragging || motion.pos !== motion.target ) {
+						want();
+					}
 					return;
 				}
 				const { g, at, indices, spare } = context;
-				const { layout, places } = view;
 				const to = Math.min( density, win.devicePixelRatio || 1 );
 				// As high as the view gets: with auto height the view
 				// changes on every frame, the canvas does not.
@@ -428,15 +489,20 @@ export function gl( {
 				}
 
 				const follow = 1 - Math.exp( -FOLLOW * dt );
+				const { x: wasX, y: wasY } = pointer;
 				pointer.x += ( pointer.tx - pointer.x ) * follow;
 				pointer.y += ( pointer.ty - pointer.y ) * follow;
 				pointer.in += ( pointer.tin - pointer.in ) * follow;
+				pointer.vx = ( pointer.x - wasX ) / dt;
+				pointer.vy = ( pointer.y - wasY ) / dt;
 				pointer.moving =
 					Math.abs( pointer.tx - pointer.x ) > 0.1 ||
 					Math.abs( pointer.ty - pointer.y ) > 0.1 ||
 					Math.abs( pointer.tin - pointer.in ) > 0.002;
 				if ( ! pointer.moving ) {
 					pointer.in = pointer.tin;
+					pointer.vx = 0;
+					pointer.vy = 0;
 				}
 
 				g.clear( g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT );
@@ -455,6 +521,7 @@ export function gl( {
 						( pointer.x - x ) / w,
 						( pointer.y - y ) / h
 					);
+					g.uniform2f( at.uPointerSpeed, pointer.vx / w, pointer.vy / h );
 					g.uniform1f( at.uProgress, progress );
 					g.uniform1f( at.uMix, mix );
 					g.uniform1f( at.uRadius, radius );
@@ -518,12 +585,12 @@ export function gl( {
 					const x = mirror
 						? width - place.x - layout.size[ i ] + box.dx
 						: place.x + box.dx;
-					next.a = bind( i, 0, 0, 0, box.w, box.h );
+					next.a = bind( i, 0, 0, 0, box.at.w, box.at.h );
 					if ( next.a ) {
 						next.x = x;
 						next.y = box.dy;
-						next.w = box.w;
-						next.h = box.h;
+						next.w = box.at.w;
+						next.h = box.at.h;
 						next.radius = box.style.radius;
 						next.speed = 0;
 						layer.change?.( i, next );
@@ -544,16 +611,17 @@ export function gl( {
 			},
 
 			busy: () =>
-				!! context &&
-				( pointer.moving ||
-					shader?.animated ||
+				!! making ||
+				( !! context &&
+					( pointer.moving ||
+						shader.animated ||
 					media.some(
 						( element, i ) =>
 							element?.tagName === 'VIDEO' &&
 							! element.paused &&
 							slider.view.places[ i ].visible &&
 							! ( 'requestVideoFrameCallback' in element )
-					) ),
+					) ) ),
 
 			destroy() {
 				destroyed = true;
