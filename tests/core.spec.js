@@ -20,9 +20,57 @@ test.describe( 'moving', () => {
 
 	test( 'a short fast drag goes on', async ( { page } ) => {
 		await open( page );
-		await drag( page, -120, { steps: 4 } );
+		// Pointer events made in the page: how fast the mouse of the test
+		// is depends on how busy the machine is.
+		await page.evaluate( async () => {
+			const root = document.getElementById( 'slider' );
+			const box = root.getBoundingClientRect();
+			const fire = ( type, x, target = window ) =>
+				target.dispatchEvent(
+					new PointerEvent( type, {
+						bubbles: true,
+						isPrimary: true,
+						pointerId: 1,
+						clientX: box.left + x,
+						clientY: box.top + 150,
+					} )
+				);
+			fire( 'pointerdown', 400, root );
+			for ( const x of [ 370, 340, 310, 280 ] ) {
+				fire( 'pointermove', x );
+				await new Promise( ( done ) => setTimeout( done, 4 ) );
+			}
+			fire( 'pointerup', 280 );
+		} );
 		await settled( page );
+		// One slide on, however fast it was.
 		expect( await index( page ) ).toBe( 1 );
+	} );
+
+	test( 'a fast drag over several slides goes as far as a view', async ( { page } ) => {
+		await open( page, { n: 12, css: '.ss { --ss-per-view: 4; }' } );
+		await page.evaluate( async () => {
+			const root = document.getElementById( 'slider' );
+			const box = root.getBoundingClientRect();
+			const fire = ( type, x, target = window ) =>
+				target.dispatchEvent(
+					new PointerEvent( type, {
+						bubbles: true,
+						isPrimary: true,
+						pointerId: 1,
+						clientX: box.left + x,
+						clientY: box.top + 150,
+					} )
+				);
+			fire( 'pointerdown', 400, root );
+			for ( const x of [ 370, 340, 310, 280 ] ) {
+				fire( 'pointermove', x );
+				await new Promise( ( done ) => setTimeout( done, 4 ) );
+			}
+			fire( 'pointerup', 280 );
+		} );
+		await settled( page );
+		expect( await index( page ) ).toBe( 4 );
 	} );
 
 	test( 'the slider follows the pointer while it is held', async ( { page } ) => {

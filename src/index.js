@@ -349,6 +349,13 @@ export function createSlider( root, options = {} ) {
 		release( velocity, from ) {
 			const glide = o.free ? GLIDE_FREE : GLIDE;
 			let rest = motion.pos + velocity * glide;
+			if ( ! o.free ) {
+				// However fast: not further than what was in view.
+				rest = Math.min(
+					from + layout.width,
+					Math.max( from - layout.width, rest )
+				);
+			}
 			let to = nearest( layout, rest );
 			if (
 				! o.free &&
