@@ -239,5 +239,6 @@ test( 'covers: turned by the canvas, or by CSS without it', async ( { page } ) =
 		return [ turn( slides[ index ] ), turn( slides[ index + 1 ] ) ];
 	} );
 	expect( turned[ 0 ] ).toMatch( /^(none|y 0deg)$/ );
-	expect( turned[ 1 ] ).toBe( 'y 45deg' );
+	// The side towards the middle goes back, as on the canvas.
+	expect( turned[ 1 ] ).toBe( 'y -45deg' );
 } );

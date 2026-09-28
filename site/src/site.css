@@ -72,6 +72,6 @@ html {
  * turns is the image, not the slide, which the slider moves and measures.
  */
 .covers:not(:has(.ss-canvas)) .cover .ss-media {
-	rotate: y calc(var(--ss-p, 0) * 45deg);
+	rotate: y calc(var(--ss-p, 0) * -45deg);
 	translate: 0 0 calc(var(--ss-away, 0) * -120px);
 }

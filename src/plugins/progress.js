@@ -16,7 +16,7 @@
  *     }
  *     .ss-slide > * {
  *         scale: calc( 1 - var(--ss-away) * 0.2 );
- *         rotate: y calc( var(--ss-p) * 30deg );
+ *         rotate: y calc( var(--ss-p) * -30deg );
  *     }
  *
  * This styles the slides of the page. What the canvas draws of them is

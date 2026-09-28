@@ -209,7 +209,7 @@ createSlider( element, { align: 'center', plugins: [ progress() ] } );
 ```css
 .ss-slide { perspective: 1200px; }
 .ss-slide > * {
-	rotate: y calc( var(--ss-p) * 45deg );
+	rotate: y calc( var(--ss-p) * -45deg );
 	scale: calc( 1 - var(--ss-away) * 0.2 );
 }
 ```

@@ -28,8 +28,7 @@
 	},
 	"files": [
 		"src",
-		"types",
-		"dist"
+		"types"
 	],
 	"scripts": {
 		"start": "node bin/serve.mjs",
