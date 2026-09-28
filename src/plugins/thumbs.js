@@ -7,7 +7,8 @@
  *     createSlider( two, { plugins: [ thumbs( photos ) ] } );
  *
  * The thumbnail of the slide that is shown has the class `ss-active` and
- * `aria-current`.
+ * `aria-current`. A thumbnail is named by the text of its picture (`alt`),
+ * or by its number.
  */
 
 /**
@@ -23,7 +24,7 @@ export function thumbs( of ) {
 			slides.forEach( ( slide, i ) => {
 				const on = i === of.index;
 				slide.classList.toggle( 'ss-active', on );
-				slide.setAttribute( 'aria-current', String( on ) );
+				slide.toggleAttribute( 'aria-current', on );
 			} );
 			slider.toSlide( of.index );
 		};
@@ -31,7 +32,10 @@ export function thumbs( of ) {
 			slides.forEach( ( slide, i ) => {
 				slide.setAttribute( 'role', 'button' );
 				slide.removeAttribute( 'aria-roledescription' );
-				slide.setAttribute( 'aria-label', `${ i + 1 }` );
+				slide.setAttribute(
+					'aria-label',
+					slide.querySelector( 'img' )?.alt || `${ i + 1 }`
+				);
 				slide.tabIndex = 0;
 			} );
 		dress();

@@ -42,6 +42,8 @@ export function createEngine( win, { frame, settle, busy } ) {
 	let last = 0;
 	let before = 0;
 	let moving = false;
+	// How far it was pushed since the last frame.
+	let pushed = 0;
 
 	const tick = ( now ) => {
 		request = 0;
@@ -70,9 +72,11 @@ export function createEngine( win, { frame, settle, busy } ) {
 		}
 		before = motion.pos;
 
+		const vel = motion.vel + pushed / dt;
+		pushed = 0;
 		motion.smooth +=
-			( motion.vel - motion.smooth ) * ( 1 - Math.exp( -FOLLOW * dt ) );
-		if ( motion.vel === 0 && Math.abs( motion.smooth ) < 1 ) {
+			( vel - motion.smooth ) * ( 1 - Math.exp( -FOLLOW * dt ) );
+		if ( vel === 0 && Math.abs( motion.smooth ) < 1 ) {
 			motion.smooth = 0;
 		}
 
@@ -132,15 +136,20 @@ export function createEngine( win, { frame, settle, busy } ) {
 		},
 
 		/**
-		 * Shifts everything by a distance without anyone seeing it: used to
-		 * bring the position back into the first round of a loop.
+		 * Shifts everything by a distance. The speed of the slider does not
+		 * know of it, unless it is a push: so the position is brought back
+		 * into the first round of a loop without anyone seeing it.
 		 *
-		 * @param {number} by Distance.
+		 * @param {number}  by     Distance.
+		 * @param {boolean} [push] Whether it counts as speed.
 		 */
-		shift( by ) {
+		shift( by, push ) {
 			motion.pos += by;
 			motion.target += by;
 			before += by;
+			if ( push ) {
+				pushed += by;
+			}
 		},
 
 		/** A pointer takes the position. */

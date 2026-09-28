@@ -496,10 +496,12 @@ export function createSlider( root, options = {} ) {
 		 * Moves the slider and where it is going by the same distance: what
 		 * it is doing goes on from there.
 		 *
-		 * @param {number} by Distance, px.
+		 * @param {number}  by     Distance, px.
+		 * @param {boolean} [push] Whether it counts as speed of the slider,
+		 *                         which effects react to.
 		 */
-		shift( by ) {
-			engine.shift( by );
+		shift( by, push ) {
+			engine.shift( by, push );
 			engine.wake();
 		},
 

@@ -14,6 +14,22 @@ const KEEP = /^\s*#/;
  *                  nobody needs.
  */
 export function compact( text ) {
+	// The parts of a shader are put together as they are: a part that
+	// begins or ends with a new line may be what keeps a `#define` of its
+	// neighbour on a line of its own. And `#version` is the first thing of
+	// a shader, so nothing is put before it.
+	return (
+		( /^\s*\n/.test( text ) ? '\n' : '' ) +
+		pack( text ).trim() +
+		( /\n\s*$/.test( text ) ? '\n' : '' )
+	);
+}
+
+/**
+ * @param {string} text GLSL.
+ * @return {string} The same, small.
+ */
+function pack( text ) {
 	return text
 		.replace( /\/\*[\s\S]*?\*\//g, '' )
 		.split( '\n' )

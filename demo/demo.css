@@ -149,27 +149,40 @@ header p {
 .dots {
 	position: absolute;
 	inset-inline: 0;
-	bottom: 14px;
+	bottom: 6px;
 	z-index: 2;
 	display: flex;
 	justify-content: center;
-	gap: 8px;
 }
 
+/* A dot is small, what a finger has to hit is not: 24 px at least. */
 .ss-dot {
-	width: 8px;
-	height: 8px;
+	display: grid;
+	place-items: center;
+	width: 24px;
+	height: 24px;
 	padding: 0;
 	border: 0;
-	border-radius: 50%;
-	background: #fff6;
+	background: none;
 	cursor: pointer;
+	transition: width 0.3s;
+}
+
+.ss-dot::before {
+	content: "";
+	width: 8px;
+	height: 8px;
+	border-radius: 99px;
+	background: #fff6;
 	transition: background 0.2s, width 0.3s;
 }
 
 .ss-dot[aria-current] {
+	width: 38px;
+}
+
+.ss-dot[aria-current]::before {
 	width: 22px;
-	border-radius: 4px;
 	background: #fff;
 }
 
@@ -211,4 +224,9 @@ header p {
 	border-inline: 9px solid currentcolor;
 	border-inline-end: 0;
 	translate: 1px;
+}
+
+.note {
+	margin: -8px 0 16px;
+	color: var(--dim);
 }

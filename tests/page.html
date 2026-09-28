@@ -4,7 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>shaderslide test page</title>
-<link rel="stylesheet" href="../src/style.css">
+<script>
+	// ?from=dist tests what is built for the pages of others.
+	window.from = new URLSearchParams( location.search ).get( 'from' ) || 'src';
+	for ( const name of [ 'style', 'lightbox' ] ) {
+		document.write(
+			`<link rel="stylesheet" href="../${ window.from }/${ name }.css">`
+		);
+	}
+</script>
 <style>
 	body { margin: 0; }
 	.ss { width: 800px; margin: 40px 100px; }
@@ -43,6 +51,7 @@
 	 *     &heights=1      slides as high as their media
 	 *     &open=500       time the lightbox takes to open, ms
 	 *     &lazy=1         the canvas waits for the first sign of use
+	 *     &from=dist      what is built, not the source
 	 */
 	const query = new URLSearchParams( location.search );
 	const n = Number( query.get( 'n' ) ) || 5;
@@ -68,12 +77,13 @@
 			</div>`
 		);
 	}
-	const core = await import( '../src/index.js' );
-	const full = await import( '../src/full.js' );
+	const from = `../${ window.from }`;
+	const core = await import( `${ from }/index.js` );
+	const full = await import( `${ from }/full.js` );
 	const { createSlider } = query.get( 'core' ) ? core : full;
-	const canvas = await import( '../src/gl/index.js' );
-	const { lightbox } = await import( '../src/lightbox.js' );
-	const others = await import( '../src/plugins/index.js' );
+	const canvas = await import( `${ from }/gl${ from === '../src' ? '/index' : '' }.js` );
+	const { lightbox } = await import( `${ from }/lightbox.js` );
+	const others = await import( `${ from }/plugins${ from === '../src' ? '/index' : '' }.js` );
 	window.lib = { createSlider, core, lightbox, ...canvas, ...others };
 	const options = JSON.parse( query.get( 'o' ) || '{}' );
 	const names = ( query.get( 'plugins' ) || '' ).split( ',' ).filter( Boolean );

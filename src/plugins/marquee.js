@@ -1,10 +1,17 @@
 /**
  * The slider runs by itself, evenly and without an end: a ticker.
  *
- * For a slider that loops, best one that may rest anywhere (`free`). A
- * visitor can still drag it; let go, it runs on.
+ * For a slider that loops (another one stands still), best one that may
+ * rest anywhere (`free`). A visitor can still drag it; let go, it runs on.
  *
  *     marquee( { speed: 60 } )
+ *
+ * With `scroll` it runs faster while the page is scrolled, and the effects
+ * of the canvas see that as speed of the slider: pictures that stretch
+ * with the scrolling.
+ *
+ * While it runs the slider is at no slide: its `index` is the one it was
+ * at last, and it tells no `change`.
  *
  * It stands still while the slider is not on the screen, for visitors who
  * ask for less motion, and when it is told to: by `pause()`, or by a
@@ -21,10 +28,9 @@ import { onScreen } from './screen.js';
  *                                  way.
  * @param {number} [options.hover]  What is left of the speed while a
  *                                  pointer is over the slider: 0 stops it.
- * @param {number} [options.scroll] How much of the speed the page scrolls
- *                                  with is added, and told to the effects
- *                                  of the canvas as the speed of the
- *                                  slider. 0 for none.
+ * @param {number} [options.scroll] How much of the speed the page is
+ *                                  scrolled with is added, whichever way
+ *                                  it is scrolled. 0 for none.
  * @param {import('./elements.js').Elements} [options.pause] Buttons that
  *                                  stop it.
  */
@@ -38,12 +44,18 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 		let seen = true;
 		let over = false;
 		let paused = false;
-		// Where the page was scrolled to, and how fast it scrolls.
+		// Where the page was scrolled to, and how fast it is scrolled.
 		let was = win.scrollY;
 		let pace = 0;
+		// What is left of the speed: eased, for the pointer over the slider.
+		let rate = 1;
 
 		const running = () =>
-			seen && ! paused && ! still.matches && ! doc.hidden;
+			seen &&
+			! paused &&
+			! still.matches &&
+			! doc.hidden &&
+			slider.layout().loop;
 
 		const show = () =>
 			all( 'pause' ).forEach( ( el ) =>
@@ -65,6 +77,7 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 		root.addEventListener( 'pointerenter', () => ( over = true ), { signal } );
 		root.addEventListener( 'pointerleave', () => ( over = false ), { signal } );
 		doc.addEventListener( 'visibilitychange', slider.wake, { signal } );
+		still.addEventListener( 'change', slider.wake, { signal } );
 		doc.addEventListener(
 			'click',
 			( { target } ) =>
@@ -87,22 +100,17 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 			play: () => stop( false ),
 
 			frame( view, dt ) {
-				if ( ! running() ) {
-					return;
-				}
 				const now = win.scrollY;
-				pace += ( ( now - was ) / dt - pace ) * ( 1 - Math.exp( -8 * dt ) );
+				const ease = 1 - Math.exp( -8 * dt );
+				pace += ( Math.abs( now - was ) / dt - pace ) * ease;
 				was = now;
-				const more = Math.abs( pace ) < 1 ? 0 : pace * scroll;
-				if ( ! motion.dragging ) {
-					slider.shift(
-						( speed * ( over ? hover : 1 ) +
-							Math.sign( speed ) * Math.abs( more ) ) *
-							dt
-					);
-				}
-				if ( more ) {
-					motion.smooth = Math.sign( speed ) * Math.abs( more );
+				if ( running() && ! motion.dragging ) {
+					const way = Math.sign( speed );
+					rate += ( ( over ? hover : 1 ) - rate ) * ease;
+					slider.shift( speed * rate * dt );
+					if ( pace * scroll > 1 ) {
+						slider.shift( way * pace * scroll * dt, true );
+					}
 				}
 			},
 

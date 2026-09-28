@@ -28,11 +28,21 @@
 			"types": "./types/plugins/index.d.ts",
 			"default": "./src/plugins/index.js"
 		},
-		"./style.css": "./src/style.css"
+		"./react": {
+			"types": "./types/react.d.ts",
+			"default": "./src/react.js"
+		},
+		"./auto": {
+			"types": "./types/auto.d.ts",
+			"default": "./src/auto.js"
+		},
+		"./style.css": "./src/style.css",
+		"./lightbox.css": "./src/lightbox.css"
 	},
 	"files": [
 		"src",
-		"types"
+		"types",
+		"dist"
 	],
 	"scripts": {
 		"start": "node bin/serve.mjs",
@@ -41,14 +51,27 @@
 		"size": "node bin/build.mjs --check",
 		"media": "node bin/make-media.mjs && node bin/make-variants.mjs",
 		"test": "playwright test",
-		"types": "tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
-		"prepublishOnly": "npm run types && npm run size && npm test"
+		"types": "rm -rf types && tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
+		"prepublishOnly": "npm run types && npm run size && npm test && npm run test:dist",
+		"test:dist": "node bin/build.mjs && FROM=dist playwright test"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.63.0",
+		"@types/react": "^19.3.0",
 		"esbuild": "^0.28.2",
+		"react": "^19.3.0",
 		"sharp": "^0.35.5",
 		"typescript": "^7.0.2"
 	},
-	"types": "./types/index.d.ts"
+	"types": "./types/index.d.ts",
+	"unpkg": "./dist/auto.js",
+	"jsdelivr": "./dist/auto.js",
+	"peerDependencies": {
+		"react": ">=18"
+	},
+	"peerDependenciesMeta": {
+		"react": {
+			"optional": true
+		}
+	}
 }

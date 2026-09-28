@@ -2,12 +2,12 @@
  * The slider in a plain page: no build, no framework.
  */
 import { createSlider } from '../src/full.js';
-import { gl, stretch, split, liquid } from '../src/gl/index.js';
+import { gl, stretch, split, waves, liquid } from '../src/gl/index.js';
 import { lightbox } from '../src/lightbox.js';
 
 const $ = ( id ) => document.getElementById( id );
 const plugins = () => [
-	gl( { effects: [ stretch(), split() ] } ),
+	gl( { effects: [ stretch(), split(), waves() ] } ),
 	lightbox( { effects: [ stretch() ] } ),
 ];
 

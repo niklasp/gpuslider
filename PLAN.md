@@ -18,7 +18,7 @@ The question it answers: how far can a canvas slider go and still be small, fast
 
 - Rendering text or arbitrary HTML into the canvas. WebGL cannot draw DOM.
 - WebGL 1. A second backend before the first one is complete (see decision 7).
-- A framework wrapper. The core is vanilla; wrappers are a few lines and can come later.
+- Components for frameworks. The core is vanilla, and the page renders its slides with whatever renders the page. For React there is a hook of 0.1 KB (decision 14).
 
 ## Decisions
 
@@ -71,7 +71,7 @@ The DOM positioner always runs, because slide content is DOM in every tier. The 
 - Stack transitions are a fourth hook, `transition`, with two textures and `progress`. The 20 transitions of Gutenslider Pro port through a shim (`getFromColor`, `getToColor`, `progress`).
 - A post pass (slides into a framebuffer, then one full-canvas shader) is for effects that cross slide borders, such as a ripple under the pointer. Only allocated when an effect asks for it.
 
-Uniforms every effect gets: `uProgress` (slide offset from its snap, in slides), `uVelocity` (smoothed, viewport widths per second), `uPointer` (smoothed, canvas uv) and `uPointerActive`, `uTime`, `uResolution`, `uRect`.
+Uniforms every effect gets: `uProgress` (slide offset from its snap, in slides), `uVelocity` (smoothed, views per second), `uPointer` (smoothed, uv of the slide), `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`.
 
 ### 7. WebGL 2, written by hand
 
@@ -129,18 +129,26 @@ slider.destroy();
 - The canvas is a plugin passed in by the caller, so a slider without effects never downloads WebGL code, and unused effects are not bundled.
 - Built with esbuild. `npm run size` prints gzipped bytes and fails over budget.
 
-| Part | Budget (gzip) | Measured on 2026-09-28 |
+| Part | Budget (gzip) | Measured on 2026-09-29 |
 |---|---|---|
-| Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.4 KB |
-| A plugin | 1 KB | 0.3 to 0.8 KB |
-| Full: the core and every plugin of `plugins/` | 7 KB | 6.7 KB |
-| Canvas layer without effects | 6 KB | 5.9 KB |
+| Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.5 KB |
+| A plugin | 1 KB | 0.3 to 0.9 KB |
+| Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.7 KB |
+| `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
+| Canvas layer without effects | 6.5 KB | 6.5 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 1.6 KB |
+| A page in React with arrows and dots | 5.5 KB | 5.2 KB |
+| The same with the canvas and one effect | 12 KB | 11.6 KB |
+
+Two budgets were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
+
+- **Canvas layer, 6 to 6.5 KB.** It got the late start, the compile on another thread, the speed of the pointer and the turn for sliders that go down (decisions 14 and 15). What a page loads first became less by it, what it loads in all became 0.6 KB more.
+- **Full means what `createSlider` of `shaderslide/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
 
-The history of the core budget: 4 KB was a guess before any code existed. With autoplay, wheel, free scrolling and auto height it became 6 KB, with the public API 6.5 KB (the core measured 6.2 KB). Then the user decided: separate as much as possible. Everything that is not moving slides left the core (decision 13), which measures 4.4 KB with the whole public API in it.
+The history of the core budget: 4 KB was a guess before any code existed. With autoplay, wheel, free scrolling and auto height it became 6 KB, with the public API 6.5 KB (the core measured 6.2 KB). Then the user decided: separate as much as possible. Everything that is not moving slides left the core (decision 13), which measures 4.5 KB with the whole public API and both axes in it.
 
 ### 12. A public API that others build on
 
@@ -163,8 +171,8 @@ Decided with it:
 - **What a plugin may touch is the public API.** The built-in plugins (`gl`, `lightbox`, `progress`) use nothing else. `slider.signal` ends with the slider, for listeners that need no removing; `grab()`, `drag()` and `release()` move the slider as a pointer does, for plugins that bring another input.
 - **Listeners get `( detail, slider )`.** Left to me by the user on 2026-09-28, and kept.
 - **Typed events.** `slider.on( 'change', ( index ) => … )` knows that `index` is a number. `tests/types/use.ts` is compiled by `npm run types` and fails when the declarations stop saying what the library does.
-- **A wrapper for React** is 60 lines in the site (`site/src/components/ShaderSlider.tsx`). A package of its own waits until somebody needs it.
-- **Nothing is published** until the user says so. `npm run types && npm run size && npm test` runs before every publish (`prepublishOnly`). The name `shaderslide` was free on npm on 2026-09-28.
+- **For React** there is `useSlider` in `shaderslide/react` (decision 14). The site uses it.
+- **Nothing is published** until the user says so. `npm run types && npm run size && npm test && npm run test:dist` runs before every publish (`prepublishOnly`). The name `shaderslide` was free on npm on 2026-09-29, and is not reserved: until it is, the README names no CDN.
 
 ### 13. The core moves slides; everything else is a plugin
 
@@ -187,13 +195,53 @@ Decided by the user on 2026-09-28: "separate as much as possible".
 | `autoHeight()` | 0.4 KB | option `autoHeight` |
 | `stack()` | 0.4 KB | option `mode: 'stack'` |
 | `progress()` | 0.3 KB | was a plugin already |
+| `marquee( { speed, hover, scroll } )` | 0.9 KB | new (decision 15) |
+| `thumbs( other )` | 0.5 KB | new (decision 15) |
 
 - **`shaderslide/full`** is the core with all of them, by the options they had before. One import for a page that wants a slider and not a construction kit. Swiper has the same as `swiper/bundle`.
 - **A plugin can lay out.** The hook `layout( measured )` gets what the slider measured of its slides (`left`, `size`, `gap`, `width`) and may change it. The stack is this: every slide one view wide, one view from the next. The core has no mode. New layouts are plugins.
 - **The canvas makes its shader with its canvas**, not when the plugin is made: by then every plugin of the slider is there, and the order of `plugins` does not matter.
 - **Gone without a replacement:** the events `edge` (`canNext` and `canPrev` say it on every `change`) and `screen` (one `IntersectionObserver` on `slider.root` is the same), and the option `controls` (`data-ss-for` and the elements handed to `controls()` do it).
 - **A drag does not begin on a `button`.** Before, it did not begin on the arrows and dots, which the core no longer knows. Swiper does the same.
-- **Tree shaking** is what makes this pay: `package.json` says `sideEffects: [ "*.css" ]`, every export is a function without effects at import. `npm run size` bundles `import { gl } from 'shaderslide/gl'` and gets the canvas layer alone, none of the 26 effects and transitions next to it.
+- **Tree shaking** is what makes this pay: `package.json` says `sideEffects: [ "*.css" ]`, every export is a function without effects at import. `npm run size` bundles `import { gl } from 'shaderslide/gl'` and gets the canvas layer alone, none of the 36 effects and transitions next to it.
+- **Against advice:** the reviewer of the split advised to keep the stack in the core. It became a plugin, because the hook `layout()` made it 0.4 KB outside and 0.2 KB less inside.
+
+### 14. Fast for the page it is in
+
+Asked for by the user on 2026-09-28: as fast as possible, for everyone, with what Google recommends for pages today.
+
+- **The canvas is made at the first sign of use**: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same. A slider that moves by itself (`autoplay`, `marquee`) or whose effects show at rest gets its canvas when the page has time (`requestIdleCallback`). `eager: true` is as before. Why: a context, its shaders and the textures of a slider cost the main thread 50 to 200 ms, and most sliders of a page are never touched.
+- **Shaders compile on another thread** where the browser has `KHR_parallel_shader_compile`. Nothing waits for them: the page draws until they are ready.
+- **The list of sliders that wait for a context is gone.** With contexts made late, a slider without one gets one when it is next used.
+- **`dist/` for pages without a bundler.** Modules that share what they have in common (`index`, `full`, `plugins`, `gl`, `lightbox`), and `auto.js`: one file of 7.1 KB that makes a slider of every `[data-ss]` and loads the canvas and the lightbox only for sliders that ask for them, when the page has time. Its lightbox brings a second copy of the core (4.5 KB, loaded late, only with a lightbox): one request at the start was worth more.
+- **The shaders of `dist/` are made small** (`bin/glsl.mjs`): comments and spaces go, 3 to 8 % of what has shaders. The first two tries broke every shader (`#version` not first; a `#define` on the line of its neighbour), and the tests found both, because `npm run test:dist` runs them with what is built.
+- **`exports` of the package point at `src/`**, not at `dist/`. A bundler makes the script small itself and leaves out what is not used, and the source has the comments a debugger shows. The price: the shaders in a bundle are not made small, about 0.3 KB of the canvas layer.
+- **React**: `useSlider( options, remake )` in `shaderslide/react`, 0.1 KB. React is an optional peer. A component would have to decide about the markup of the slides, which is the page's.
+- **The lightbox has its own style sheet**, `lightbox.css`: `style.css` is 0.7 KB for pages without one.
+- **No file for `<script>` without `type="module"`** yet. Every browser that runs the library knows modules.
+
+The site is the proof. Lighthouse 13, the build of the site, measured on 2026-09-28; mobile is a slow phone on slow 4G:
+
+| | Before | After |
+|---|---|---|
+| Mobile: performance | 83 | 96 to 97 |
+| Mobile: accessibility, best practices, SEO | 93, 96, 83 | 100, 100, 100 |
+| Mobile: LCP, TBT, CLS | 4.4 s, 250 ms, 0 | 2.6 s, 0 ms, 0.002 |
+| Desktop: performance | 100 | 100 |
+
+What did it, in the site: the page is rendered at build time and hydrated, the controls are a chunk of their own, the first image is in the HTML with `fetchpriority="high"` and all images are AVIF in four widths with `srcset` and `sizes`, the style sheet is inline, the script has `fetchpriority="low"`. In the library: the late canvas.
+
+### 15. More layouts, more for the pointer
+
+Asked for by the user on 2026-09-28, with the galleries of Codrops as the measure.
+
+- **Downwards**: `axis: 'y'`. The layout has `span`, the extent along the way of the slides, and everything that was a width is that. Effects are written for a row: in a slider that goes down, the composer turns `uv`, `p` and the uniforms by a quarter, so `stretch` bows along the way whatever the way is. No effect had to be written twice.
+- **Rows** are CSS: a grid that flows in columns. The slider measures columns as snaps. Nothing in the script.
+- **Layouts that are effects**: `coverflow`, `pile`, `fan`. The slider moves as ever, the vertex shader says where a slide is drawn. They cost 0.3 KB each and no line in the core. They are cut at the edge of the slider, which has to have padding for them.
+- **A ticker**: `marquee()`. `slider.shift( by, push )` moves the slider and its target by the same distance; as a push it counts as speed, which is how the pictures stretch while the page is scrolled and not while the ticker just runs. A ticker is at no slide: `index` and `change` stand still while it runs.
+- **Thumbnails**: `thumbs( other )`. Two sliders, the slides of one are the buttons of the other.
+- **Seven effects for the pointer**: `smear`, `shift` (both by the speed of the pointer, the new uniform `uPointerSpeed`), `tilt`, `waves`, `reveal`, `glass`, `pixels`. `animated: 'pointer'` is for effects that move while the pointer is over the slider and only then: `waves` costs frames while it is looked at, none after.
+- **Not done:** effects that cross the borders of slides (a trail over the whole slider). They need the post pass (Open).
 
 ## Modules
 
@@ -204,10 +252,13 @@ Decided by the user on 2026-09-28: "separate as much as possible".
 | `src/input.js` | Pointer drag with direction lock, click suppression |
 | `src/dom.js` | Moves the slides; roles, `inert` |
 | `src/index.js` | `createSlider()`: options, events, plugins |
-| `src/full.js` | The core with every plugin of `plugins/`, by options |
-| `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `videos`, `autoHeight`, `stack`, `progress` |
-| `src/lightbox.js` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
+| `src/full.js` | The core with the plugins that options switch |
+| `src/auto.js` | Sliders from `data-ss`, without a script of one's own |
+| `src/react.js` | `useSlider` |
+| `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress` |
+| `src/lightbox.js`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
 | `src/style.css` | Layout for all three tiers |
+| `bin/build.mjs`, `bin/glsl.mjs` | Sizes against budgets; `dist/`, with the shaders made small |
 | `src/gl/layer.js` | The canvas layer: context pool, visibility, the draw |
 | `src/gl/program.js` | Builds one shader from the chosen effects |
 | `src/gl/textures.js` | Image and video textures |
@@ -228,12 +279,21 @@ Each phase ends with something that runs and with tests.
 | 5 | Breadth | Post pass, real phones, size audit, README | README done; the rest is open |
 | 6 | Lightbox and site | A click lets the image grow to the screen; a site with controls for everything | Done |
 | 7 | Public API | Events, plugins by name, buttons anywhere, slides that come and go, types | Done; not published |
+| 8 | The split | A core that moves slides, ten plugins, `shaderslide/full` | Done |
+| 9 | Fast | The late canvas, the site at 96 to 100 in Lighthouse, `dist/` and `auto.js`, `useSlider` | Done |
+| 10 | Layouts and the pointer | Downwards, rows, pile, fan, ticker, thumbnails, seven pointer effects | Done: 16 effects, 20 transitions |
 
 ## Open
 
-- **Before 1.0:** the name, the licence (MIT is in `package.json` as a placeholder), and whether controls and autoplay become plugins (decision 12). After 1.0 these cost a major version.
+- **Before 1.0:** the name and the licence (MIT is in `package.json` as a placeholder). The user on 2026-09-28: later. After 1.0 these cost a major version.
+- **A ticker with dots.** `marquee()` moves the slider past its slides without being at one. Telling `change` while it runs would make dots and thumbnails follow.
+- **Effects that lay out are cut** at the edge of the slider: the canvas is as large as the slider. A canvas that is larger than its slider by what an effect asks for would lift this.
+- **One context for all sliders of a page**, or drawing in a worker (`OffscreenCanvas`): the next steps for pages with many sliders. Both change how textures get to the canvas.
+- **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
+- **A canvas test in WebKit fails about once in 500 runs** when three browsers share the machine: the picture is compared before the canvas shows. It did not fail in 276 runs of WebKit alone.
+- **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
-- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 5.8 of 6 KB).
+- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.5 of 6.5 KB).
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
@@ -257,6 +317,11 @@ Each phase ends with something that runs and with tests.
 - Buttons outside of the slider drive it and no other slider.
 - A slide that is added is drawn, labelled and reachable.
 - The type declarations compile against a file that uses the whole API.
+- The canvas waits for the first sign of use.
+- Downwards: drag, keys, wheel, and the canvas draws what the page draws.
+- The ticker runs, stands still when it has to, and asks for no frame then.
+- `auto.js` makes the sliders of a page, and loads the canvas for those that ask.
+- All of it again with `dist/` (`npm run test:dist`).
 
 ## Risks
 
@@ -264,6 +329,6 @@ Each phase ends with something that runs and with tests.
 |---|---|
 | Canvas and DOM content drift apart by a frame | Both are written in the same frame from the same `pos`; the canvas never reads layout while moving |
 | Texture memory on phones | Upload at drawn size, cap the size, free textures of slides far from view |
-| Shader compile stutter on the first move | Compile at creation, before the first interaction |
+| Shader compile stutter on the first move | The canvas is made when the pointer comes, not when it presses, and compiles on another thread; the page draws until it is ready |
 | Many sliders on one page | Context pool with a cap; the rest run as tier 2 |
 | Headless browsers without a GPU | Tests run with software WebGL and assert pixels, not looks |

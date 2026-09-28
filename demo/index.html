@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>shaderslide</title>
 <link rel="stylesheet" href="../src/style.css">
+<link rel="stylesheet" href="../src/lightbox.css">
 <link rel="stylesheet" href="demo.css">
 </head>
 <body>
@@ -118,6 +119,25 @@
 	</div>
 </section>
 
+<section>
+	<h2>Without a script of one's own</h2>
+	<p class="note">This one is made by <code>auto.js</code> from what its element says: <code>data-ss</code> has the options, <code>data-ss-gl</code> names the effects of the canvas, which is loaded for it.</p>
+	<div class="ss cards" id="plain" aria-label="Made from its attributes"
+		data-ss='{ "loop": true, "free": true }' data-ss-gl="stretch waves" data-ss-lightbox="stretch">
+		<div class="ss-track">
+			<div class="ss-slide"><img class="ss-media" src="media/8.jpg" alt="Eight"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/6.jpg" alt="Six"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/4.jpg" alt="Four"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/2.jpg" alt="Two"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/7.jpg" alt="Seven"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/5.jpg" alt="Five"></div>
+		</div>
+		<button class="arrow" data-ss-prev aria-label="Previous slide">‹</button>
+		<button class="arrow" data-ss-next aria-label="Next slide">›</button>
+	</div>
+</section>
+
 <script type="module" src="demo.js"></script>
+<script type="module" src="../src/auto.js"></script>
 </body>
 </html>

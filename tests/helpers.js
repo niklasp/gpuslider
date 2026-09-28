@@ -12,6 +12,10 @@ export async function open( page, setup = {} ) {
 	for ( const [ key, value ] of Object.entries( setup ) ) {
 		query.set( key, key === 'o' ? JSON.stringify( value ) : String( value ) );
 	}
+	// FROM=dist tests what is built.
+	if ( process.env.FROM ) {
+		query.set( 'from', process.env.FROM );
+	}
 	// Counts the frames the page asks for.
 	await page.addInitScript( () => {
 		window.frames_ = 0;

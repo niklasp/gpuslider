@@ -4,12 +4,9 @@ import {
 	type CSSProperties,
 	type ReactNode,
 } from 'react';
-import {
-	createSlider,
-	type Create,
-	type Options,
-	type Slider,
-} from 'shaderslide';
+import { type Create, type Options, type Slider } from 'shaderslide';
+import { useSlider } from 'shaderslide/react';
+import { thumbs } from 'shaderslide/plugins';
 import { ChevronLeft, ChevronRight, Pause } from 'lucide-react';
 
 // Classes that do not contradict each other need no merger.
@@ -30,6 +27,8 @@ type Props = {
 	heard?: ( name: string, detail: unknown ) => void;
 	/** No arrows and dots in the slider: they are somewhere else. */
 	bare?: boolean;
+	/** Is given the slider when it is made, and null when it ends. */
+	onSlider?: ( slider: Slider | null ) => void;
 	/** Changes with what makes the slider another slider. */
 	made: string;
 	/** Changes with what the slider has to measure again for. */
@@ -57,51 +56,55 @@ export function ShaderSlider( {
 	pause,
 	heard,
 	bare,
+	onSlider,
 	children,
 }: Props ) {
-	const root = useRef< HTMLDivElement >( null );
 	const state = useRef< HTMLParagraphElement >( null );
-	const slider = useRef< Slider | null >( null );
-	const at = useRef( 0 );
 	// The listener of now, for a slider that was made before.
 	const hears = useRef( heard );
 	hears.current = heard;
 
-	useEffect( () => {
-		const made_ = createSlider( root.current!, {
+	// The options and plugins follow from `made`.
+	const [ root, slider ] = useSlider(
+		{
 			...options,
-			start: at.current,
 			plugins: plugins(),
 			on: {
 				'*': ( name: string, detail: unknown ) =>
 					name !== 'frame' && hears.current?.( name, detail ),
 			},
-		} );
-		slider.current = made_;
+		},
+		[ made ]
+	);
+
+	useEffect( () => {
+		if ( ! slider ) {
+			return;
+		}
 		const names = ( window as unknown as { sliders: Record< string, unknown > } );
-		names.sliders = { ...names.sliders, [ id ]: made_ };
+		names.sliders = { ...names.sliders, [ id ]: slider };
 
 		const tell = () => {
 			if ( state.current ) {
-				const drawing = made_.plugins.gl?.canvas ? 'canvas' : 'page';
-				state.current.textContent = `${ made_.index + 1 } of ${ made_.count() } · drawn by the ${ drawing } · ${ Math.abs(
-					made_.view.velocity
+				const drawing = slider.plugins.gl?.canvas ? 'canvas' : 'page';
+				state.current.textContent = `${ slider.index + 1 } of ${ slider.count() } · drawn by the ${ drawing } · ${ Math.abs(
+					slider.view.velocity
 				).toFixed( 1 ) } views per second`;
 			}
 		};
-		made_.on( 'frame', tell );
 		tell();
-		return () => {
-			at.current = made_.index;
-			made_.destroy();
-			slider.current = null;
-		};
-		// The options and plugins follow from `made`.
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ made ] );
+		return slider.on( 'frame', tell );
+	}, [ slider, id ] );
 
 	useEffect( () => {
-		slider.current?.update();
+		onSlider?.( slider );
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ slider ] );
+
+	useEffect( () => {
+		slider?.update();
+		// A new slider has measured itself.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ measured ] );
 
 	return (
@@ -156,6 +159,33 @@ export function ShaderSlider( {
 				ref={ state }
 				className="mt-2 font-mono text-xs text-muted-foreground"
 			/>
+		</div>
+	);
+}
+
+/**
+ * The thumbnails of a slider: a slider of its own, whose slides are the
+ * buttons of the other one.
+ */
+export function Thumbs( {
+	id,
+	label,
+	of,
+	children,
+}: {
+	id: string;
+	label: string;
+	/** The slider they are the thumbnails of, once it is made. */
+	of: Slider | null;
+	children: ReactNode;
+} ) {
+	const [ root ] = useSlider(
+		{ contain: true, plugins: of ? [ thumbs( of ) ] : [] },
+		[ of ]
+	);
+	return (
+		<div ref={ root } id={ id } aria-label={ label } className="ss thumbs">
+			<div className="ss-track">{ children }</div>
 		</div>
 	);
 }

@@ -23,7 +23,8 @@
 			"shaderslide/gl": [ "../src/gl/index.js" ],
 			"shaderslide/lightbox": [ "../src/lightbox.js" ],
 			"shaderslide/plugins": [ "../src/plugins/index.js" ],
-			"shaderslide/full": [ "../src/full.js" ]
+			"shaderslide/full": [ "../src/full.js" ],
+			"shaderslide/react": [ "../src/react.js" ]
 		}
 	},
 	"include": [ "src" ]

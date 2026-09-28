@@ -9,13 +9,17 @@ export default defineConfig( {
 	// The generated media of the repo: /media/1.jpg
 	publicDir: path.resolve( import.meta.dirname, 'public' ),
 	resolve: {
+		// The library is outside of the site: one React for both.
+		dedupe: [ 'react', 'react-dom' ],
 		alias: {
 			'@': path.resolve( import.meta.dirname, './src' ),
 			'shaderslide/gl': path.resolve( import.meta.dirname, '../src/gl/index.js' ),
 			'shaderslide/lightbox': path.resolve( import.meta.dirname, '../src/lightbox.js' ),
+			'shaderslide/react': path.resolve( import.meta.dirname, '../src/react.js' ),
 			'shaderslide/full': path.resolve( import.meta.dirname, '../src/full.js' ),
 			'shaderslide/plugins': path.resolve( import.meta.dirname, '../src/plugins/index.js' ),
 			'shaderslide/style.css': path.resolve( import.meta.dirname, '../src/style.css' ),
+			'shaderslide/lightbox.css': path.resolve( import.meta.dirname, '../src/lightbox.css' ),
 			shaderslide: path.resolve( import.meta.dirname, '../src/index.js' ),
 		},
 	},

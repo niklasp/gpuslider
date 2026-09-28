@@ -27,9 +27,11 @@ import {
 import {
 	DEFAULTS,
 	EFFECTS,
+	POINTERS,
 	TRANSITIONS,
 	type Config,
 	type EffectName,
+	type PointerName,
 } from '@/lib/config';
 import { FocusPad } from '@/components/FocusPad';
 
@@ -161,6 +163,32 @@ export default function Controls( { config, onChange }: Props ) {
 						</Tooltip>
 					) ) }
 				</ToggleGroup>
+
+				<div className="grid gap-1.5">
+					<Label htmlFor="pointer" className="text-xs text-muted-foreground">
+						Under the pointer
+					</Label>
+					<Select
+						value={ config.pointer }
+						disabled={ ! config.canvas }
+						onValueChange={ ( pointer: PointerName ) =>
+							onChange( { pointer } )
+						}
+					>
+						<SelectTrigger id="pointer" size="sm" className="w-32">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{ ( Object.keys( POINTERS ) as PointerName[] ).map(
+								( name ) => (
+									<SelectItem key={ name } value={ name }>
+										{ POINTERS[ name ] }
+									</SelectItem>
+								)
+							) }
+						</SelectContent>
+					</Select>
+				</div>
 
 				<Range
 					id="intensity"

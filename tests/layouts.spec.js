@@ -284,6 +284,41 @@ test.describe( 'marquee', () => {
 		expect( await pos( page ) ).toBeGreaterThan( then + 60 );
 	} );
 
+	test( 'slower under the pointer, faster with the page', async ( { page } ) => {
+		await open( page, setup );
+		await run( page, { speed: 200, hover: 0, scroll: 1 } );
+		const way = async ( ms ) => {
+			const from = await pos( page );
+			await page.waitForTimeout( ms );
+			return ( await pos( page ) ) - from;
+		};
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 400, box.y + 150 );
+		await page.waitForTimeout( 800 );
+		expect( await way( 300 ) ).toBeLessThan( 5 );
+		await page.mouse.move( box.x + 400, box.y + 600 );
+		await page.waitForTimeout( 800 );
+		expect( await way( 300 ) ).toBeGreaterThan( 40 );
+		// The page is scrolled: further than by itself, and the effects of
+		// the canvas are told of a speed.
+		const fast = page.evaluate( async () => {
+			let most = 0;
+			const from = window.slider.motion.pos;
+			const off = window.slider.on( 'frame', ( view ) => {
+				most = Math.max( most, view.velocity );
+			} );
+			for ( let i = 0; i < 30; i++ ) {
+				window.scrollBy( 0, i < 15 ? 20 : -20 );
+				await new Promise( ( done ) => requestAnimationFrame( done ) );
+			}
+			off();
+			return { most, way: window.slider.motion.pos - from };
+		} );
+		const { most, way: far } = await fast;
+		expect( far ).toBeGreaterThan( 200 );
+		expect( most ).toBeGreaterThan( 0.2 );
+	} );
+
 	test( 'the slides go round', async ( { page } ) => {
 		await open( page, setup );
 		await run( page, { speed: 3000 } );
@@ -315,17 +350,30 @@ test.describe( 'marquee', () => {
 		await page.evaluate( () => window.slider.plugins.marquee.pause() );
 		expect( await stands() ).toBe( true );
 		// And asks for no frames.
-		const frames = await page.evaluate( () => window.frames_ );
+		await page.evaluate( () => {
+			window.drawn = 0;
+			window.slider.on( 'frame', () => window.drawn++ );
+		} );
 		await page.waitForTimeout( 200 );
-		expect( await page.evaluate( () => window.frames_ ) ).toBe( frames );
+		expect( await page.evaluate( () => window.drawn ) ).toBe( 0 );
 		await page.evaluate( () => window.slider.plugins.marquee.play() );
 		expect( await stands() ).toBe( false );
+		expect( await page.evaluate( () => window.drawn ) ).toBeGreaterThan( 5 );
 		await page.evaluate( () => window.scrollTo( 0, 1500 ) );
 		expect( await stands() ).toBe( true );
 		await page.evaluate( () => window.scrollTo( 0, 0 ) );
 		expect( await stands() ).toBe( false );
 		await page.emulateMedia( { reducedMotion: 'reduce' } );
 		expect( await stands() ).toBe( true );
+		await page.emulateMedia( { reducedMotion: 'no-preference' } );
+		expect( await stands() ).toBe( false );
+	} );
+
+	test( 'a slider with ends stands still', async ( { page } ) => {
+		await open( page, { ...setup, o: {} } );
+		await run( page, { speed: 200 } );
+		await page.waitForTimeout( 300 );
+		expect( await pos( page ) ).toBe( 0 );
 	} );
 } );
 
@@ -371,7 +419,14 @@ test.describe( 'thumbnails', () => {
 		expect( await active( page ) ).toBe( 2 );
 		await expect(
 			page.locator( '#thumbs .ss-slide' ).nth( 2 )
-		).toHaveAttribute( 'aria-current', 'true' );
+		).toHaveAttribute( 'aria-current', '' );
+		await expect( page.locator( '#thumbs [aria-current]' ) ).toHaveCount( 1 );
+		// A resize leaves them what they are.
+		await page.setViewportSize( { width: 900, height: 700 } );
+		await page.waitForTimeout( 200 );
+		await expect(
+			page.locator( '#thumbs .ss-slide' ).nth( 2 )
+		).toHaveAttribute( 'role', 'button' );
 	} );
 
 	test( 'the one of the slide that is shown comes into view', async ( { page } ) => {

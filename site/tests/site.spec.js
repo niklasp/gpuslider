@@ -1,6 +1,20 @@
 import { test, expect } from '@playwright/test';
 
-const IDS = [ 'one', 'several', 'auto', 'tall', 'stack', 'covers', 'remote' ];
+const IDS = [
+	'one',
+	'several',
+	'ticker',
+	'photos',
+	'down',
+	'rows',
+	'pile',
+	'fan',
+	'auto',
+	'tall',
+	'stack',
+	'covers',
+	'remote',
+];
 
 /** What is known about every slider of the page. */
 const sliders = ( page ) =>
@@ -116,7 +130,7 @@ test( 'an effect switched on reaches every slider', async ( { page } ) => {
 
 test( 'the transition reaches the stack', async ( { page } ) => {
 	const before = await sliders( page );
-	await page.getByRole( 'combobox' ).click();
+	await page.getByRole( 'combobox', { name: 'Transition of the stack' } ).click();
 	await page.getByRole( 'option', { name: 'burn' } ).click();
 	await expect
 		.poll( async () => ( await sliders( page ) ).stack.made )
@@ -168,6 +182,8 @@ test( 'slides per view change without making the slider again', async ( { page }
 test( 'the focus point moves what the slides show', async ( { page } ) => {
 	expect( await drawn( page, 'several' ) ).toBe( true );
 	const shot = () => page.locator( '#several .ss-track' ).screenshot();
+	// Under the pointer there are waves, and no rest.
+	await page.mouse.move( 2, 300 );
 	await page.waitForFunction( () => window.sliders.several.resting );
 	const middle = await shot();
 	await page.getByRole( 'button', { name: 'Focus point' } ).click();
@@ -277,4 +293,48 @@ test( 'the stack is a stack: one slide in view, the others hidden', async ( { pa
 			),
 		} ) )
 	).toEqual( { stack: true, shown: [ 'visible', 'hidden', 'hidden', 'hidden' ] } );
+} );
+
+test( 'the ticker runs, and stops when told to', async ( { page } ) => {
+	await page.locator( '#ticker' ).scrollIntoViewIfNeeded();
+	const pos = () => page.evaluate( () => window.sliders.ticker.motion.pos );
+	const from = await pos();
+	await expect.poll( pos ).toBeGreaterThan( from + 20 );
+	await page.locator( '#ticker [data-ss-pause]' ).click();
+	await page.waitForTimeout( 200 );
+	const then = await pos();
+	await page.waitForTimeout( 300 );
+	expect( await pos() ).toBe( then );
+} );
+
+test( 'a thumbnail takes the photos to its slide', async ( { page } ) => {
+	await page.locator( '#thumbs' ).scrollIntoViewIfNeeded();
+	const third = page.locator( '#thumbs .ss-slide' ).nth( 2 );
+	await expect( third ).toHaveAttribute( 'role', 'button' );
+	await third.click();
+	await expect
+		.poll( () => page.evaluate( () => window.sliders.photos.index ) )
+		.toBe( 2 );
+	await expect( third ).toHaveClass( /ss-active/ );
+	// Made again with other settings, the photos still have them.
+	await page.getByRole( 'button', { name: 'Bend' } ).click();
+	await page.locator( '#thumbs .ss-slide' ).nth( 4 ).click();
+	await expect
+		.poll( () => page.evaluate( () => window.sliders.photos.index ) )
+		.toBe( 4 );
+} );
+
+test( 'downwards: the keys go down, the slides are below each other', async ( { page } ) => {
+	await page.locator( '#down' ).scrollIntoViewIfNeeded();
+	const tops = await page.evaluate( () =>
+		[ ...document.querySelectorAll( '#down .ss-slide' ) ]
+			.slice( 0, 2 )
+			.map( ( slide ) => slide.getBoundingClientRect().top )
+	);
+	expect( tops[ 1 ] ).toBeGreaterThan( tops[ 0 ] + 100 );
+	await page.locator( '#down' ).focus();
+	await page.keyboard.press( 'ArrowDown' );
+	await expect
+		.poll( () => page.evaluate( () => window.sliders.down.index ) )
+		.toBe( 1 );
 } );

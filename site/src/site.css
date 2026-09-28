@@ -69,6 +69,84 @@ html {
 	aspect-ratio: 4 / 3;
 }
 
+.photo {
+	aspect-ratio: 3 / 2;
+}
+
+.thumbs {
+	--ss-per-view: 6;
+	--ss-gap: 8px;
+}
+
+.thumbs .thumb {
+	aspect-ratio: 3 / 2;
+	overflow: hidden;
+	border-radius: 0.5rem;
+	opacity: 0.5;
+	cursor: pointer;
+	transition: opacity 0.2s;
+}
+
+.thumbs .thumb:hover,
+.thumbs .thumb.ss-active {
+	opacity: 1;
+}
+
+.thumbs .thumb:focus-visible {
+	outline: 2px solid;
+	outline-offset: -2px;
+}
+
+/* A slider that goes down needs a height: its slides share it. */
+.down {
+	--ss-per-view: 1.4;
+
+	height: min(64vh, 520px);
+}
+
+.rows {
+	height: min(64vh, 520px);
+}
+
+.rows > .ss-track {
+	display: grid;
+	grid-auto-flow: column;
+	grid-template-rows: repeat(2, minmax(0, 1fr));
+	grid-auto-columns: calc((100% - 2 * var(--ss-gap)) / 3);
+	gap: var(--ss-gap);
+	height: 100%;
+}
+
+.rows .ss-slide {
+	overflow: hidden;
+	border-radius: 0.75rem;
+}
+
+@media (max-width: 640px) {
+	.thumbs {
+		--ss-per-view: 4;
+	}
+
+	.rows > .ss-track {
+		grid-auto-columns: calc((100% - var(--ss-gap)) / 2);
+	}
+}
+
+/* Laid out by an effect: room around the slide for what leaves its place. */
+.laid {
+	--ss-per-view: 2.2;
+	--ss-gap: 0px;
+
+	padding-block: 4rem;
+	border-radius: 0;
+}
+
+@media (max-width: 640px) {
+	.laid {
+		--ss-per-view: 1.6;
+	}
+}
+
 /* Covers: three in view, the one in the middle faces the visitor. */
 .covers {
 	--ss-per-view: 3;

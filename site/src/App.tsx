@@ -9,12 +9,14 @@ import {
 	type RefObject,
 } from 'react';
 import 'shaderslide/style.css';
+import 'shaderslide/lightbox.css';
 import './site.css';
 // The controls are most of the script of the page, and no slider waits
 // for them.
 const Controls = lazy( () => import( '@/components/Controls' ) );
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { ShaderSlider, Slide, Thumbs } from '@/components/ShaderSlider';
 import { DEFAULTS, keyOf, pluginsOf, type Config } from '@/lib/config';
+import type { Slider } from 'shaderslide';
 
 /** How wide a slide that fills the page is. */
 const WIDE = '(min-width: 1400px) 1400px, 100vw';
@@ -98,6 +100,9 @@ export default function App() {
 	};
 	const shared = { made, measured, plugins: () => pluginsOf( config ) };
 
+	// The slider that has thumbnails.
+	const [ photos, setPhotos ] = useState< Slider | null >( null );
+
 	// What the slider with the buttons outside of it said last.
 	const tell: Tell = useRef( null );
 	const heard = useCallback( ( name: string, detail: unknown ) => {
@@ -160,7 +165,9 @@ export default function App() {
 							<h3 className="text-2xl font-semibold md:text-4xl">
 								No dependency
 							</h3>
-							<p className="text-white/80">The core is 6 KB.</p>
+							<p className="text-white/80">
+								The core is 4.5 KB. All else is asked for.
+							</p>
 						</Slide>
 						<Slide image={ 4 } alt="Pink colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">Idle is free</h3>
@@ -199,6 +206,153 @@ export default function App() {
 							/>
 						) ) }
 					</ShaderSlider>
+				</Section>
+
+				<Section
+					title="Ticker"
+					note="Runs by itself and without an end, slower under the pointer. Scroll the page: it runs faster, and the images give way to the speed. Drag it, and it runs on."
+				>
+					<ShaderSlider
+						id="ticker"
+						label="Ticker"
+						options={ { loop: true, free: true, duration: config.duration } }
+						className="cards"
+						style={
+							{
+								...look,
+								'--ss-per-view': 4.5,
+								'--ss-gap': `${ config.gap }px`,
+							} as CSSProperties
+						}
+						made={ made }
+						measured={ measured }
+						plugins={ () => pluginsOf( config, 'ticker' ) }
+						pause
+						bare
+					>
+						{ [ 8, 6, 4, 2, 7, 5, 3, 1 ].map( ( n ) => (
+							<Slide
+								key={ n }
+								image={ n }
+								alt={ `Colour field ${ n }` }
+								className="card"
+								sizes="(max-width: 640px) 77vw, 22vw"
+							/>
+						) ) }
+					</ShaderSlider>
+				</Section>
+
+				<Section
+					title="With thumbnails"
+					note="Two sliders: the slides of the small one are the buttons of the large one."
+				>
+					<div className="grid max-w-4xl gap-3">
+						<ShaderSlider
+							id="photos"
+							label="Photos"
+							options={ options }
+							style={ look }
+							onSlider={ setPhotos }
+							{ ...shared }
+						>
+							{ [ 3, 5, 7, 1, 8, 2, 6, 4 ].map( ( n ) => (
+								<Slide
+									key={ n }
+									image={ n }
+									alt={ `Colour field ${ n }` }
+									className="photo"
+									sizes="(min-width: 900px) 896px, 100vw"
+								/>
+							) ) }
+						</ShaderSlider>
+						<Thumbs id="thumbs" label="Thumbnails of the photos" of={ photos }>
+							{ [ 3, 5, 7, 1, 8, 2, 6, 4 ].map( ( n ) => (
+								<Slide
+									key={ n }
+									image={ n }
+									alt={ `Colour field ${ n }` }
+									className="thumb"
+									sizes="150px"
+								/>
+							) ) }
+						</Thumbs>
+					</div>
+				</Section>
+
+				<Section
+					title="Downwards, and in rows"
+					note="The same slider with its slides below each other: drag up and down, or use the keys. And two rows, which are a grid of CSS and nothing of the script."
+				>
+					<div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+						<ShaderSlider
+							id="down"
+							label="Downwards"
+							options={ { ...options, axis: 'y' } }
+							className="down"
+							style={ { ...look, '--ss-gap': `${ config.gap }px` } as CSSProperties }
+							made={ made }
+							measured={ measured }
+							plugins={ () => pluginsOf( config, 'down' ) }
+							bare
+						>
+							{ [ 6, 1, 4, 7, 2 ].map( ( n ) => (
+								<Slide
+									key={ n }
+									image={ n }
+									alt={ `Colour field ${ n }` }
+									sizes="(min-width: 768px) 40vw, 100vw"
+								/>
+							) ) }
+						</ShaderSlider>
+						<ShaderSlider
+							id="rows"
+							label="Two rows"
+							options={ options }
+							className="rows"
+							style={ { ...look, '--ss-gap': `${ config.gap }px` } as CSSProperties }
+							{ ...shared }
+						>
+							{ [ 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4 ].map( ( n, i ) => (
+								<Slide
+									key={ i }
+									image={ n }
+									alt={ `Colour field ${ n }` }
+									sizes="(min-width: 768px) 20vw, 50vw"
+								/>
+							) ) }
+						</ShaderSlider>
+					</div>
+				</Section>
+
+				<Section
+					title="A pile, and a fan"
+					note="Layouts that are effects of the canvas: the slider moves as ever, the effect says where a slide is drawn. Without the canvas they are rows."
+				>
+					<div className="grid gap-6 md:grid-cols-2">
+						{ ( [ 'pile', 'fan' ] as const ).map( ( kind ) => (
+							<ShaderSlider
+								key={ kind }
+								id={ kind }
+								label={ kind === 'pile' ? 'A pile' : 'A fan' }
+								options={ { ...options, align: 'center' } }
+								className="laid"
+								style={ look }
+								made={ made }
+								measured={ measured }
+								plugins={ () => pluginsOf( config, kind ) }
+							>
+								{ [ 2, 4, 6, 8, 1, 3, 5 ].map( ( n ) => (
+									<Slide
+										key={ n }
+										image={ n }
+										alt={ `Colour field ${ n }` }
+										className="cover"
+										sizes="(max-width: 640px) 60vw, 25vw"
+									/>
+								) ) }
+							</ShaderSlider>
+						) ) }
+					</div>
 				</Section>
 
 				<Section
