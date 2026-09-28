@@ -77,6 +77,51 @@ function Events( { tell }: { tell: Tell } ) {
 	);
 }
 
+type PhotosProps = Pick<
+	Parameters< typeof ShaderSlider >[ 0 ],
+	'options' | 'style' | 'made' | 'measured' | 'plugins'
+>;
+
+/**
+ * A slider and its thumbnails. It keeps the slider to itself: the page
+ * around it is not rendered again when the slider is made.
+ */
+function Photos( props: PhotosProps ) {
+	const [ photos, setPhotos ] = useState< Slider | null >( null );
+	const images = [ 3, 5, 7, 1, 8, 2, 6, 4 ];
+	return (
+		<div className="grid max-w-4xl gap-3">
+			<ShaderSlider
+				id="photos"
+				label="Photos"
+				onSlider={ setPhotos }
+				{ ...props }
+			>
+				{ images.map( ( n ) => (
+					<Slide
+						key={ n }
+						image={ n }
+						alt={ `Colour field ${ n }` }
+						className="photo"
+						sizes="(min-width: 900px) 896px, 100vw"
+					/>
+				) ) }
+			</ShaderSlider>
+			<Thumbs id="thumbs" label="Thumbnails of the photos" of={ photos }>
+				{ images.map( ( n ) => (
+					<Slide
+						key={ n }
+						image={ n }
+						alt={ `Colour field ${ n }` }
+						className="thumb"
+						sizes="150px"
+					/>
+				) ) }
+			</Thumbs>
+		</div>
+	);
+}
+
 export default function App() {
 	const [ config, setConfig ] = useState< Config >( DEFAULTS );
 	const change = useCallback(
@@ -99,9 +144,6 @@ export default function App() {
 		duration: config.duration,
 	};
 	const shared = { made, measured, plugins: () => pluginsOf( config ) };
-
-	// The slider that has thumbnails.
-	const [ photos, setPhotos ] = useState< Slider | null >( null );
 
 	// What the slider with the buttons outside of it said last.
 	const tell: Tell = useRef( null );
@@ -246,37 +288,7 @@ export default function App() {
 					title="With thumbnails"
 					note="Two sliders: the slides of the small one are the buttons of the large one."
 				>
-					<div className="grid max-w-4xl gap-3">
-						<ShaderSlider
-							id="photos"
-							label="Photos"
-							options={ options }
-							style={ look }
-							onSlider={ setPhotos }
-							{ ...shared }
-						>
-							{ [ 3, 5, 7, 1, 8, 2, 6, 4 ].map( ( n ) => (
-								<Slide
-									key={ n }
-									image={ n }
-									alt={ `Colour field ${ n }` }
-									className="photo"
-									sizes="(min-width: 900px) 896px, 100vw"
-								/>
-							) ) }
-						</ShaderSlider>
-						<Thumbs id="thumbs" label="Thumbnails of the photos" of={ photos }>
-							{ [ 3, 5, 7, 1, 8, 2, 6, 4 ].map( ( n ) => (
-								<Slide
-									key={ n }
-									image={ n }
-									alt={ `Colour field ${ n }` }
-									className="thumb"
-									sizes="150px"
-								/>
-							) ) }
-						</Thumbs>
-					</div>
+					<Photos options={ options } style={ look } { ...shared } />
 				</Section>
 
 				<Section

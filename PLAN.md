@@ -220,14 +220,19 @@ Asked for by the user on 2026-09-28: as fast as possible, for everyone, with wha
 - **The lightbox has its own style sheet**, `lightbox.css`: `style.css` is 0.7 KB for pages without one.
 - **No file for `<script>` without `type="module"`** yet. Every browser that runs the library knows modules.
 
-The site is the proof. Lighthouse 13, the build of the site, measured on 2026-09-28; mobile is a slow phone on slow 4G:
+The site is the proof. Lighthouse, the build of the site (`vite build`, served by `vite preview`), one run each; mobile is a slow phone on slow 4G. Before: 2026-09-28, 7 sliders. After: 2026-09-29, 14 sliders.
 
 | | Before | After |
 |---|---|---|
-| Mobile: performance | 83 | 96 to 97 |
-| Mobile: accessibility, best practices, SEO | 93, 96, 83 | 100, 100, 100 |
-| Mobile: LCP, TBT, CLS | 4.4 s, 250 ms, 0 | 2.6 s, 0 ms, 0.002 |
+| Mobile: performance | 83 | 98 |
+| Mobile: accessibility, best practices, SEO, agentic browsing | 93, 96, 83, 25 | 100, 100, 100, 100 |
+| Mobile: FCP, LCP, TBT, CLS | not kept | 1.1 s, 2.4 s, 0 ms, 0.002 |
 | Desktop: performance | 100 | 100 |
+| Desktop: the other four | 93, 96, 83, 25 | 100, 100, 100, 100 |
+
+What is left on its list: 63 KB of script that the first view does not use (React and the controls of the site), and images that could be 21 KB smaller.
+
+One thing cost 20 points twice and is a rule for pages in React: **state that changes right after the page is there belongs below the page.** The site is rendered at build time, and its controls are a chunk that comes later. When a component above them is rendered again before they are there (the list of events; the slider that the thumbnails need), React throws their HTML away and renders them anew: a layout shift of 0.43. Both states are now in components of their own.
 
 What did it, in the site: the page is rendered at build time and hydrated, the controls are a chunk of their own, the first image is in the HTML with `fetchpriority="high"` and all images are AVIF in four widths with `srcset` and `sizes`, the style sheet is inline, the script has `fetchpriority="low"`. In the library: the late canvas.
 
