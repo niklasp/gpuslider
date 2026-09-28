@@ -41,6 +41,10 @@
 				<div class="ss-content"><h3>Own motion</h3><p>A spring, solved exactly on every frame.</p><a href="#many">A link that survives a drag</a></div>
 			</div>
 			<div class="ss-slide">
+				<video class="ss-media" src="media/a.mp4" muted playsinline loop autoplay aria-label="Moving colour field"></video>
+				<div class="ss-content"><h3>Video</h3><p>Plays while its slide is in view, and gets the same effects.</p></div>
+			</div>
+			<div class="ss-slide">
 				<img class="ss-media" src="media/2.jpg" alt="Blue colour field, number two">
 				<div class="ss-content"><h3>No dependency</h3><p>The core is a few kilobytes.</p></div>
 			</div>
@@ -93,7 +97,23 @@
 </section>
 
 <section>
-	<h2>Stack</h2>
+	<h2>As high as the slide</h2>
+	<div class="ss narrow" id="tall" aria-label="Auto height">
+		<div class="ss-track">
+			<div class="ss-slide"><img class="ss-media" src="media/7.jpg" width="1600" height="700" alt="Seven"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/5.jpg" width="1400" height="1400" alt="Five"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/1.jpg" width="1600" height="900" alt="One"></div>
+			<div class="ss-slide"><img class="ss-media" src="media/3.jpg" width="1200" height="1600" alt="Three"></div>
+		</div>
+		<button class="arrow" data-ss-prev aria-label="Previous slide">‹</button>
+		<button class="arrow" data-ss-next aria-label="Next slide">›</button>
+		<div class="dots" data-ss-dots></div>
+	</div>
+	<p class="after">The page goes on below, and moves with the height.</p>
+</section>
+
+<section>
+	<h2>Stack, playing by itself</h2>
 	<div class="ss hero" id="stack" aria-label="Stack">
 		<div class="ss-track">
 			<div class="ss-slide">
@@ -111,6 +131,7 @@
 		</div>
 		<button class="arrow" data-ss-prev aria-label="Previous slide">‹</button>
 		<button class="arrow" data-ss-next aria-label="Next slide">›</button>
+		<button class="pause" data-ss-pause aria-label="Pause autoplay"></button>
 		<div class="dots" data-ss-dots></div>
 	</div>
 </section>

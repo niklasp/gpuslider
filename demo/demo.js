@@ -23,7 +23,8 @@ const SLIDERS = {
 	one: { loop: true },
 	several: { loop: true },
 	auto: { perView: 'auto', align: 'center', loop: true },
-	stack: { mode: 'stack', loop: true, duration: 1100 },
+	tall: { autoHeight: true, loop: true },
+	stack: { mode: 'stack', loop: true, duration: 1100, autoplay: 3500 },
 };
 
 window.sliders = {};

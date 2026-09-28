@@ -23,6 +23,37 @@ export function createDom( root, track, slides ) {
 	// What each slide's style holds, to write only what changes.
 	const shift = new Array( n ).fill( 0 );
 	const shown = new Array( n ).fill( -1 );
+	// Videos play while their slide is in the view, and only then.
+	const videos = slides.map( ( slide ) => [
+		...slide.querySelectorAll( 'video' ),
+	] );
+	const playing = new Array( n ).fill( null );
+	// Videos that start by themselves would do so wherever they are: the
+	// slider starts them instead.
+	const self = videos.flat().filter( ( video ) => video.autoplay );
+	const resume = new WeakSet( self );
+	self.forEach( ( video ) => {
+		video.autoplay = false;
+		video.pause();
+	} );
+	const play = ( i, on ) => {
+		if ( on === playing[ i ] ) {
+			return;
+		}
+		playing[ i ] = on;
+		videos[ i ].forEach( ( video ) => {
+			if ( ! on ) {
+				if ( ! video.paused ) {
+					resume.add( video );
+					video.pause();
+				}
+			} else if ( resume.has( video ) ) {
+				resume.delete( video );
+				// Refused without a gesture, unless the video is muted.
+				video.play()?.catch( () => {} );
+			}
+		} );
+	};
 
 	const given = [];
 	const attribute = ( el, name, value ) => {
@@ -48,10 +79,16 @@ export function createDom( root, track, slides ) {
 		 * @param {Object}   layout Layout.
 		 * @param {Object}   motion Motion.
 		 * @param {Object[]} places Where each slide is (see `place()`).
+		 * @param {boolean}  awake  Whether the slider is on the screen.
 		 */
-		frame( layout, motion, places ) {
+		frame( layout, motion, places, awake ) {
 			const { stack, rtl, left } = layout;
 			const direction = rtl ? -1 : 1;
+			for ( let i = 0; i < n; i++ ) {
+				if ( videos[ i ].length ) {
+					play( i, awake && places[ i ].visible );
+				}
+			}
 			if ( stack ) {
 				for ( let i = 0; i < n; i++ ) {
 					const { p } = places[ i ];
@@ -111,6 +148,9 @@ export function createDom( root, track, slides ) {
 		},
 
 		destroy() {
+			self.forEach( ( video ) => {
+				video.autoplay = true;
+			} );
 			given.forEach( ( [ el, name ] ) => el.removeAttribute( name ) );
 			track.style.transform = '';
 			slides.forEach( ( { style } ) => {

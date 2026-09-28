@@ -15,8 +15,11 @@ const RECENT = 100;
 // How much of the pointer's way the slider follows past its ends.
 const RUBBER = 0.3;
 
+// A wheel or trackpad has stopped when it is silent for this long, ms.
+const SILENCE = 90;
+
 const TYPING = 'input, textarea, select, [contenteditable]';
-const NO_DRAG = `${ TYPING }, [data-ss-prev], [data-ss-next], [data-ss-dots], [data-ss-no-drag]`;
+const NO_DRAG = `${ TYPING }, [data-ss-prev], [data-ss-next], [data-ss-dots], [data-ss-pause], [data-ss-no-drag]`;
 
 /**
  * @param {HTMLElement} root   The slider.
@@ -46,6 +49,7 @@ export function createInput( root, slider ) {
 	function down( event ) {
 		if (
 			pointer ||
+			rolling ||
 			! options.drag ||
 			! event.isPrimary ||
 			event.button > 0 ||
@@ -68,6 +72,52 @@ export function createInput( root, slider ) {
 		win.addEventListener( 'pointermove', move );
 		win.addEventListener( 'pointerup', up );
 		win.addEventListener( 'pointercancel', up );
+	}
+
+	// Past the ends the slider follows only a part of the way.
+	function resist( pos ) {
+		const layout = slider.layout();
+		if ( layout.loop ) {
+			return pos;
+		}
+		const min = layout.snaps[ 0 ];
+		const max = layout.snaps[ layout.snaps.length - 1 ];
+		if ( pos < min ) {
+			return min + ( pos - min ) * RUBBER;
+		}
+		return pos > max ? max + ( pos - max ) * RUBBER : pos;
+	}
+
+	// Sideways scrolling, by a trackpad or a wheel with shift: the slider
+	// follows and comes to rest when the scrolling stops.
+	let rolling = 0;
+	let rolled = 0;
+	let rolledFrom = 0;
+	function wheel( event ) {
+		if (
+			! options.wheel ||
+			pointer ||
+			Math.abs( event.deltaX ) <= Math.abs( event.deltaY )
+		) {
+			return;
+		}
+		// Otherwise the browser goes back in its history.
+		event.preventDefault();
+		if ( ! rolling ) {
+			rolledFrom = motion.pos;
+			rolled = motion.pos;
+			slider.grab();
+		}
+		const direction = slider.layout().rtl ? -1 : 1;
+		// In lines or pages: about as far as in pixels.
+		const unit = event.deltaMode ? 40 : 1;
+		rolled += direction * event.deltaX * unit;
+		slider.drag( resist( rolled ) );
+		win.clearTimeout( rolling );
+		rolling = win.setTimeout( () => {
+			rolling = 0;
+			slider.release( 0, rolledFrom );
+		}, SILENCE );
 	}
 
 	function lock( event ) {
@@ -99,18 +149,10 @@ export function createInput( root, slider ) {
 			}
 			lock( event );
 		}
-		const layout = slider.layout();
-		const direction = layout.rtl ? -1 : 1;
-		let pos = pointer.from - direction * ( event.clientX - pointer.x );
-		if ( ! layout.loop ) {
-			const min = layout.snaps[ 0 ];
-			const max = layout.snaps[ layout.snaps.length - 1 ];
-			if ( pos < min ) {
-				pos = min + ( pos - min ) * RUBBER;
-			} else if ( pos > max ) {
-				pos = max + ( pos - max ) * RUBBER;
-			}
-		}
+		const direction = slider.layout().rtl ? -1 : 1;
+		const pos = resist(
+			pointer.from - direction * ( event.clientX - pointer.x )
+		);
 		const { samples } = pointer;
 		samples.push( event.timeStamp, pos );
 		while ( samples.length > 4 && event.timeStamp - samples[ 0 ] > RECENT ) {
@@ -186,9 +228,12 @@ export function createInput( root, slider ) {
 	root.addEventListener( 'pointerdown', down );
 	root.addEventListener( 'keydown', key );
 	root.addEventListener( 'dragstart', native );
+	root.addEventListener( 'wheel', wheel, { passive: false } );
 
 	return () => {
 		stop();
+		win.clearTimeout( rolling );
+		root.removeEventListener( 'wheel', wheel );
 		root.removeEventListener( 'pointerdown', down );
 		root.removeEventListener( 'keydown', key );
 		root.removeEventListener( 'dragstart', native );

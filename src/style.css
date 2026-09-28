@@ -59,6 +59,16 @@
 	max-width: none;
 }
 
+/* Auto height: every slide as high as its content, the slider as high as
+   the slides in view. */
+.ss-tall > .ss-track {
+	align-items: start;
+}
+
+.ss-tall .ss-media {
+	height: auto;
+}
+
 /* Content on top of the media. */
 .ss-content {
 	position: absolute;

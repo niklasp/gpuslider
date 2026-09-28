@@ -16,7 +16,14 @@
  *     </div>
  */
 import { createEngine } from './engine.js';
-import { measure, place, positionOf, nearest, mod } from './layout.js';
+import {
+	measure,
+	place,
+	positionOf,
+	nearest,
+	heightOf,
+	mod,
+} from './layout.js';
 import { createInput } from './input.js';
 import { createDom } from './dom.js';
 import { createControls } from './controls.js';
@@ -36,6 +43,14 @@ import { createControls } from './controls.js';
  *                                               rests in the view.
  * @property {number}                 [group]    Slides per step.
  * @property {boolean}                [contain]  No empty space at the ends.
+ * @property {boolean}                [free]     Rest anywhere, not only on
+ *                                               slides.
+ * @property {boolean}                [autoHeight] The slider is as high as
+ *                                               the slides in view.
+ * @property {number}                 [autoplay] Time a slide stays, ms; 0
+ *                                               for no autoplay.
+ * @property {boolean}                [wheel]    Sideways scrolling by
+ *                                               trackpad or wheel.
  * @property {number}                 [duration] Time of a move, ms.
  * @property {number}                 [start]    First slide shown.
  * @property {boolean}                [drag]     Pointer dragging.
@@ -56,11 +71,16 @@ const DEFAULTS = {
 	start: 0,
 	drag: true,
 	keyboard: true,
+	wheel: true,
+	autoplay: 0,
 	layers: [],
 };
 
 // How far a let-go slider would glide on, in seconds of its velocity.
 const GLIDE = 0.2;
+
+// The same for a slider that may rest anywhere: it glides further.
+const GLIDE_FREE = 0.45;
 
 // A drag faster than this moves on by a slide even when it was short,
 // px per second.
@@ -94,6 +114,7 @@ export function createSlider( root, options = {} ) {
 		'ss-on',
 		o.mode === 'stack' && 'ss-stack',
 		o.perView === 'auto' && 'ss-auto',
+		o.autoHeight && 'ss-tall',
 	].filter( Boolean );
 	root.classList.add( ...classes );
 	if ( o.perView > 0 ) {
@@ -118,13 +139,45 @@ export function createSlider( root, options = {} ) {
 		velocity: 0,
 	};
 
+	// Whether the slider is on the screen, and whether the visitor is
+	// busy with it: autoplay and videos depend on both.
+	let awake = true;
+	let held = false;
+	let paused = false;
+	let height = -1;
+	let timer = 0;
+
+	const schedule = () => {
+		win.clearTimeout( timer );
+		if (
+			o.autoplay > 0 &&
+			awake &&
+			! held &&
+			! paused &&
+			! motion.dragging &&
+			! win.document.hidden
+		) {
+			timer = win.setTimeout( () => {
+				const last = ! layout.loop && current() === count() - 1;
+				go( last ? 0 : index + 1 );
+			}, o.autoplay );
+		}
+	};
+
 	const engine = createEngine( win, {
 		frame( motion, dt, now ) {
 			place( layout, motion.pos, places );
 			view.velocity = still.matches
 				? 0
 				: motion.smooth / ( layout.width || 1 );
-			dom.frame( layout, motion, places );
+			dom.frame( layout, motion, places, awake );
+			if ( o.autoHeight ) {
+				const to = Math.round( heightOf( layout, places ) * 10 ) / 10;
+				if ( to !== height ) {
+					height = to;
+					track.style.height = `${ to }px`;
+				}
+			}
 			layers.forEach( ( layer ) => layer.frame?.( view, dt, now ) );
 			emit( 'frame', view );
 		},
@@ -136,6 +189,7 @@ export function createSlider( root, options = {} ) {
 			}
 			place( layout, motion.pos, places );
 			dom.settle( places );
+			schedule();
 			emit( 'settle', current() );
 		},
 		busy: () => layers.some( ( layer ) => layer.busy?.() ),
@@ -149,6 +203,7 @@ export function createSlider( root, options = {} ) {
 		index = layout.loop
 			? to
 			: Math.min( count() - 1, Math.max( 0, to ) );
+		win.clearTimeout( timer );
 		engine.to( positionOf( layout, index ), instant || still.matches );
 		if ( current() !== before ) {
 			controls.update();
@@ -172,6 +227,7 @@ export function createSlider( root, options = {} ) {
 		} else {
 			engine.to( positionOf( layout, index ), resting );
 		}
+		height = -1;
 		controls.update();
 	};
 
@@ -214,6 +270,23 @@ export function createSlider( root, options = {} ) {
 		next: () => go( index + 1 ),
 		prev: () => go( index - 1 ),
 
+		/** Whether autoplay is stopped by `pause()`. */
+		get paused() {
+			return paused;
+		},
+		/** Stops autoplay until `play()`. */
+		pause() {
+			paused = true;
+			schedule();
+			controls.update();
+		},
+		/** Lets autoplay go on. */
+		play() {
+			paused = false;
+			schedule();
+			controls.update();
+		},
+
 		/** The layers, in the order they were given. */
 		get layers() {
 			return layers;
@@ -240,7 +313,14 @@ export function createSlider( root, options = {} ) {
 
 		destroy() {
 			destroyed = true;
+			win.clearTimeout( timer );
 			observer.disconnect();
+			watcher.disconnect();
+			hold.forEach( ( [ name, fn ] ) =>
+				root.removeEventListener( name, fn )
+			);
+			win.document.removeEventListener( 'visibilitychange', schedule );
+			track.style.height = '';
 			removeInput();
 			layers.forEach( ( layer ) => layer.destroy?.() );
 			engine.destroy();
@@ -258,14 +338,20 @@ export function createSlider( root, options = {} ) {
 		motion,
 		layout: () => layout,
 		count,
-		grab: engine.grab,
+		grab() {
+			win.clearTimeout( timer );
+			engine.grab();
+		},
 		drag: engine.drag,
 		next: slider.next,
 		prev: slider.prev,
 		to: slider.to,
 		release( velocity, from ) {
-			let to = nearest( layout, motion.pos + velocity * GLIDE );
+			const glide = o.free ? GLIDE_FREE : GLIDE;
+			let rest = motion.pos + velocity * glide;
+			let to = nearest( layout, rest );
 			if (
+				! o.free &&
 				to === nearest( layout, from ) &&
 				Math.abs( velocity ) > FLICK
 			) {
@@ -273,12 +359,16 @@ export function createSlider( root, options = {} ) {
 			}
 			if ( ! layout.loop ) {
 				to = Math.min( count() - 1, Math.max( 0, to ) );
+				rest = Math.min(
+					layout.snaps[ count() - 1 ],
+					Math.max( layout.snaps[ 0 ], rest )
+				);
 			}
 			const before = current();
 			index = to;
 			engine.release(
 				still.matches ? 0 : velocity,
-				positionOf( layout, index )
+				o.free ? rest : positionOf( layout, index )
 			);
 			if ( current() !== before ) {
 				controls.update();
@@ -297,9 +387,47 @@ export function createSlider( root, options = {} ) {
 	engine.to( positionOf( layout, index ), true );
 
 	// Sizes change with the window, with images that load and with styles.
-	const observer = new win.ResizeObserver( update );
+	let wide = layout.width;
+	const observer = new win.ResizeObserver( ( entries ) => {
+		// With auto height the slider changes its own height on every
+		// frame of a move: that is no reason to measure.
+		const own =
+			o.autoHeight &&
+			entries.every( ( entry ) => entry.target === root ) &&
+			Math.abs( root.clientWidth - wide ) < 1;
+		if ( ! own ) {
+			update();
+			wide = root.clientWidth;
+		}
+	} );
 	observer.observe( root );
 	slides.forEach( ( slide ) => observer.observe( slide ) );
+
+	const watcher = new win.IntersectionObserver( ( entries ) => {
+		awake = entries[ entries.length - 1 ].isIntersecting;
+		schedule();
+		// For the videos, which follow the view.
+		engine.wake();
+	} );
+	watcher.observe( root );
+
+	// Autoplay waits while the visitor points at the slider or is in it.
+	const hold = [
+		[ 'pointerenter', true ],
+		[ 'pointerleave', false ],
+		[ 'focusin', true ],
+		[ 'focusout', false ],
+	].map( ( [ name, on ] ) => {
+		const fn = ( event ) => {
+			if ( event.pointerType !== 'touch' ) {
+				held = on;
+				schedule();
+			}
+		};
+		root.addEventListener( name, fn );
+		return [ name, fn ];
+	} );
+	win.document.addEventListener( 'visibilitychange', schedule );
 
 	return slider;
 }

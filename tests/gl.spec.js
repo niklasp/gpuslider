@@ -163,7 +163,10 @@ test.describe( 'without the canvas', () => {
 			};
 		} );
 		await open( page, { n: 4, layers: 'gl' } );
-		expect( await draws( page ) ).toBe( false );
+		await page.waitForTimeout( 300 );
+		expect(
+			await page.evaluate( () => window.slider.layers[ 0 ].canvas )
+		).toBe( null );
 		expect( await page.locator( '.ss-canvas' ).count() ).toBe( 0 );
 		expect( await page.locator( '.ss-drawn' ).count() ).toBe( 0 );
 		await drag( page, -500, { pause: 150 } );

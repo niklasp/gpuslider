@@ -1,6 +1,7 @@
 /**
- * Arrows and dots: finds `[data-ss-prev]`, `[data-ss-next]` and
- * `[data-ss-dots]` and keeps them in step with the slider.
+ * Arrows, dots and the button that stops autoplay: finds `[data-ss-prev]`,
+ * `[data-ss-next]`, `[data-ss-dots]` and `[data-ss-pause]` and keeps them
+ * in step with the slider.
  *
  * The dots container is filled with one button per snap.
  */
@@ -15,6 +16,9 @@ export function createControls( scope, slider ) {
 	const prev = [ ...scope.querySelectorAll( '[data-ss-prev]' ) ];
 	const next = [ ...scope.querySelectorAll( '[data-ss-next]' ) ];
 	const dots = [ ...scope.querySelectorAll( '[data-ss-dots]' ) ];
+	const pause = [ ...scope.querySelectorAll( '[data-ss-pause]' ) ];
+	const toggle = () => slider[ slider.paused ? 'play' : 'pause' ]();
+	pause.forEach( ( el ) => el.addEventListener( 'click', toggle ) );
 	const back = () => slider.prev();
 	const forward = () => slider.next();
 	prev.forEach( ( el ) => el.addEventListener( 'click', back ) );
@@ -61,6 +65,9 @@ export function createControls( scope, slider ) {
 					}
 				} )
 			);
+			pause.forEach( ( el ) =>
+				el.setAttribute( 'aria-pressed', String( slider.paused ) )
+			);
 			prev.forEach( ( el ) => {
 				el.disabled = ! loop && index <= 0;
 			} );
@@ -70,6 +77,9 @@ export function createControls( scope, slider ) {
 		},
 
 		destroy() {
+			pause.forEach( ( el ) =>
+				el.removeEventListener( 'click', toggle )
+			);
 			prev.forEach( ( el ) => el.removeEventListener( 'click', back ) );
 			next.forEach( ( el ) =>
 				el.removeEventListener( 'click', forward )

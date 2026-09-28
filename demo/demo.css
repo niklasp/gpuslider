@@ -209,3 +209,43 @@ label {
 select {
 	font: inherit;
 }
+
+.narrow {
+	max-width: 640px;
+}
+
+.after {
+	color: var(--dim);
+}
+
+.pause {
+	position: absolute;
+	inset-inline-end: 14px;
+	bottom: 10px;
+	z-index: 2;
+	width: 28px;
+	height: 28px;
+	border: 0;
+	border-radius: 50%;
+	background: #0008;
+	color: #fff;
+	cursor: pointer;
+}
+
+.pause::before {
+	content: "";
+	display: block;
+	width: 3px;
+	height: 10px;
+	margin: auto;
+	border-inline: 3px solid currentcolor;
+}
+
+.pause[aria-pressed="true"]::before {
+	width: 0;
+	height: 0;
+	border-block: 5px solid transparent;
+	border-inline: 9px solid currentcolor;
+	border-inline-end: 0;
+	translate: 1px;
+}

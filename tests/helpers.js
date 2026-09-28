@@ -170,4 +170,13 @@ export async function difference( page, a, b ) {
  * @return {Promise<boolean>} Draws.
  */
 export const draws = ( page ) =>
-	page.evaluate( () => !! window.slider.layers[ 0 ]?.canvas );
+	page
+		.waitForFunction( () => !! window.slider.layers[ 0 ]?.canvas, null, {
+			// The layer hears that it is on the screen a moment after it
+			// was made.
+			timeout: 2000,
+		} )
+		.then(
+			() => true,
+			() => false
+		);

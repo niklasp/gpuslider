@@ -22,6 +22,9 @@ let live = 0;
 // creating new ones for sliders that come and go would still hit the limit.
 const spares = new WeakMap();
 
+// Spares are contexts too, so there are only a few.
+const MAX_SPARE = 3;
+
 // Sliders in view that found no context: they try again when one is free.
 const waiting = new Set();
 
@@ -240,8 +243,12 @@ export function gl( {
 			g.deleteTexture( nothing );
 			g.deleteVertexArray( mesh );
 			buffers.forEach( ( buffer ) => g.deleteBuffer( buffer ) );
-			if ( ! lost ) {
+			if ( lost ) {
+				// Gone.
+			} else if ( spares.get( doc ).length < MAX_SPARE ) {
 				spares.get( doc ).push( spare );
+			} else {
+				g.getExtension( 'WEBGL_lose_context' )?.loseContext();
 			}
 			[ ...waiting ].forEach( ( other ) => other() );
 		}
@@ -374,11 +381,15 @@ export function gl( {
 				const to = Math.min( density, win.devicePixelRatio || 1 );
 				if (
 					layout.width !== width ||
-					layout.height !== height ||
+					layout.most !== height ||
 					to !== ratio
 				) {
-					( { width, height } = layout );
+					// As high as the view gets: with auto height the view
+					// changes on every frame, the canvas does not.
+					width = layout.width;
+					height = layout.most;
 					ratio = to;
+					spare.canvas.style.height = `${ height }px`;
 					spare.canvas.width = Math.max( 1, Math.round( width * ratio ) );
 					spare.canvas.height = Math.max( 1, Math.round( height * ratio ) );
 					g.viewport( 0, 0, spare.canvas.width, spare.canvas.height );

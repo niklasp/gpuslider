@@ -12,6 +12,9 @@
  *                             is on but there are too few slides for it).
  * @property {number}   width  Width of the viewport.
  * @property {number}   height Height of the viewport.
+ * @property {number}   most   Height of the viewport at its highest: with
+ *                             auto height, when the tallest slide shows.
+ * @property {number[]} tall   Height of each slide.
  * @property {number}   gap    Gap between slides.
  * @property {number}   length Length of one round when looping.
  * @property {number[]} left   Start edge of each slide.
@@ -53,18 +56,26 @@ export function measure( root, track, slides, options, moved = [] ) {
 	const gap = stack ? 0 : parseFloat( style.columnGap ) || 0;
 	const left = [];
 	const size = [];
+	const tall = [];
 	slides.forEach( ( el, i ) => {
+		const r = el.getBoundingClientRect();
+		tall.push( r.height / scale );
 		if ( stack ) {
 			left.push( i * width );
 			size.push( width );
 			return;
 		}
-		const r = el.getBoundingClientRect();
 		const from = rtl ? around.right - r.right : r.left - around.left;
 		left.push( from / scale - ( moved[ i ] || 0 ) );
 		size.push( r.width / scale );
 	} );
-	return arrange( { stack, rtl, width, height, gap, left, size }, options );
+	const most = options.autoHeight
+		? height - around.height / scale + Math.max( 0, ...tall )
+		: height;
+	return arrange(
+		{ stack, rtl, width, height, most, gap, left, size, tall },
+		options
+	);
 }
 
 /**
@@ -161,7 +172,8 @@ export function nearest( layout, position ) {
  * @param {Object[]} out      One object per slide, filled with `x` (start
  *                            edge in the viewport), `p` (distance from its
  *                            resting place in slides: 1 is one slide after
- *                            the active one) and `visible`.
+ *                            the active one), `share` (how much of it is in
+ *                            the view, 0 to 1) and `visible`.
  * @return {Object[]} `out`.
  */
 export function place( layout, position, out ) {
@@ -176,7 +188,8 @@ export function place( layout, position, out ) {
 			}
 			slide.x = 0;
 			slide.p = p;
-			slide.visible = Math.abs( p ) < 1;
+			slide.share = Math.max( 0, 1 - Math.abs( p ) );
+			slide.visible = slide.share > 0;
 			continue;
 		}
 		let x = left[ i ] - position;
@@ -188,7 +201,42 @@ export function place( layout, position, out ) {
 		}
 		slide.x = x;
 		slide.p = ( x - rest[ i ] ) / ( size[ i ] + gap || 1 );
+		slide.share = Math.max(
+			0,
+			Math.min(
+				1,
+				( Math.min( x + size[ i ], width ) - Math.max( x, 0 ) ) /
+					( size[ i ] || 1 )
+			)
+		);
 		slide.visible = x + size[ i ] > 0 && x < width;
 	}
 	return out;
+}
+
+/**
+ * The height of the view for slides of different heights: as high as the
+ * tallest slide in it, where a slide counts by how much of it is in the
+ * view. So the height follows the move and never jumps.
+ *
+ * @param {Layout}   layout Layout.
+ * @param {Object[]} places Where each slide is.
+ * @return {number} Height, px.
+ */
+export function heightOf( layout, places ) {
+	const { tall } = layout;
+	let least = Infinity;
+	for ( let i = 0; i < tall.length; i++ ) {
+		if ( places[ i ].share > 0 ) {
+			least = Math.min( least, tall[ i ] );
+		}
+	}
+	let height = 0;
+	for ( let i = 0; i < tall.length; i++ ) {
+		const { share } = places[ i ];
+		if ( share > 0 ) {
+			height = Math.max( height, least + ( tall[ i ] - least ) * share );
+		}
+	}
+	return height;
 }
