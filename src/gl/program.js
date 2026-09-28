@@ -9,10 +9,12 @@
  *     uv          vec2 ( vec2 uv )               moves the lookup
  *     color       vec4 ( vec4 color, vec2 uv )   changes the result; may
  *                                                call `media( uv )`
- *     transition  vec4 ( vec2 uv )               stack only: mixes
- *                                                `getFromColor( uv )` and
- *                                                `getToColor( uv )` by
- *                                                `progress`
+ * and, for a stack,
+ *
+ *     transition  GLSL with a function `vec4 transition( vec2 uv )` that
+ *                 mixes `getFromColor( uv )` and `getToColor( uv )` by
+ *                 `progress`, 0 to 1. `resolution` and `time` are there
+ *                 too: what is written for gl-transitions runs as it is
  *
  * and
  *
@@ -39,6 +41,7 @@
  */
 
 const COMMON = `
+const float PI = 3.14159265;
 uniform float uProgress;
 uniform float uVelocity;
 uniform vec2 uPointer;
@@ -86,12 +89,13 @@ vec4 getFromColor( vec2 uv ) { return pick( uA, uBoxA, uRectA, uCut.x, uv ); }
 vec4 getToColor( vec2 uv ) { return pick( uB, uBoxB, uRectB, uCut.y, uv ); }
 `;
 
-// The names the transitions of gl-transitions and Gutenslider use.
-const NAMES = `
-#define progress uMix
-#define resolution uSize
-#define time uTime
-`;
+// The names that transitions use, for them only.
+const NAMES = [ 'progress uMix', 'resolution uSize', 'time uTime' ];
+const named = ( source ) =>
+	NAMES.map( ( name ) => `#define ${ name }\n` ).join( '' ) +
+	source +
+	NAMES.map( ( name ) => `\n#undef ${ name.split( ' ' )[ 0 ] }` ).join( '' ) +
+	'\nvec4 base( vec2 uv ) { return transition( uv ); }\n';
 
 // Rounded corners, and edges that are soft by a pixel.
 const MAIN = `
@@ -108,8 +112,8 @@ const TYPES = [ , 'float', 'vec2', 'vec3', 'vec4' ];
 
 /**
  * @param {Object[]}    effects    Effects.
- * @param {string|null} transition Body of the transition of a stack; null
- *                                 for a row.
+ * @param {string|null} transition The transition of a stack when no effect
+ *                                 has one; null for a row.
  * @return {Object} `vertex` and `fragment` (sources), `params` (uniform name
  *                  to value), `mesh` (whether the quad needs to bend),
  *                  `pointer`, `animated`.
@@ -128,7 +132,7 @@ export function compose( effects, transition ) {
 	let base =
 		transition === null
 			? 'vec4 base( vec2 uv ) { return getFromColor( uv ); }\n'
-			: `${ NAMES }vec4 base( vec2 uv ) {${ transition }\n}\n`;
+			: named( transition );
 	effects.forEach( ( effect, k ) => {
 		[ effect.head ].flat().forEach( ( head ) => head && heads.add( head ) );
 		// The bodies use their parameters by name; each effect has its own.
@@ -142,7 +146,7 @@ export function compose( effects, transition ) {
 			params[ `e${ k }_${ name }` ] = [ value ].flat();
 		}
 		if ( effect.transition && transition !== null ) {
-			base = `${ NAMES }${ define }vec4 base( vec2 uv ) {${ effect.transition }\n}\n${ undefine }`;
+			base = named( define + effect.transition + '\n' + undefine );
 		}
 		for ( const hook in hooks ) {
 			if ( effect[ hook ] ) {

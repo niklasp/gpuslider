@@ -8,3 +8,4 @@
  */
 export { gl } from './layer.js';
 export * from './effects/index.js';
+export * from './transitions/index.js';

@@ -61,18 +61,20 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 			`import { gl } from './src/gl/index.js'; export { gl };`
 		),
 	} );
-	const dir = resolve( root, 'src/gl/effects' );
-	for ( const file of readdirSync( dir ).sort() ) {
-		if ( ! file.endsWith( '.js' ) || file === 'index.js' ) {
-			continue;
+	for ( const kind of [ 'effects', 'transitions' ] ) {
+		const dir = resolve( root, 'src/gl', kind );
+		for ( const file of readdirSync( dir ).sort() ) {
+			if ( ! file.endsWith( '.js' ) || file === 'index.js' ) {
+				continue;
+			}
+			parts.push( {
+				name: `${ kind.slice( 0, -1 ) }: ${ file.replace( '.js', '' ) }`,
+				budget: 1024,
+				size: await measure(
+					`export * from './src/gl/${ kind }/${ file }';`
+				),
+			} );
 		}
-		parts.push( {
-			name: `effect: ${ file.replace( '.js', '' ) }`,
-			budget: 1024,
-			size: await measure(
-				`export * from './src/gl/effects/${ file }';`
-			),
-		} );
 	}
 }
 

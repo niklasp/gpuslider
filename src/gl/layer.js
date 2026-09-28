@@ -31,7 +31,8 @@ const MESH = 32;
 // How fast the pointer of the shader follows the real one, per second.
 const FOLLOW = 8;
 
-const FADE = 'return mix( getFromColor( uv ), getToColor( uv ), progress );';
+const FADE =
+	'vec4 transition( vec2 uv ) { return mix( getFromColor( uv ), getToColor( uv ), progress ); }';
 
 /**
  * @param {Object}   [options]             Options.
