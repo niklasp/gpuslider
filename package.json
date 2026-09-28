@@ -10,6 +10,7 @@
 	"exports": {
 		".": "./src/index.js",
 		"./gl": "./src/gl/index.js",
+		"./lightbox": "./src/lightbox.js",
 		"./style.css": "./src/style.css"
 	},
 	"files": [

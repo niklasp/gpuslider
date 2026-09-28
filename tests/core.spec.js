@@ -385,6 +385,19 @@ test.describe( 'stack', () => {
 		expect( await seen() ).toEqual( [ 'hidden', 'visible', 'hidden' ] );
 	} );
 
+	test( 'slides with an aspect-ratio and a max-height are as wide as the slider', async ( { page } ) => {
+		await open( page, {
+			n: 3,
+			o: { mode: 'stack' },
+			css: '.ss-slide { height: auto; aspect-ratio: 16 / 9; max-height: 200px; }',
+		} );
+		const size = await page.evaluate( () => {
+			const r = window.slider.slides[ 0 ].getBoundingClientRect();
+			return [ r.width, r.height ];
+		} );
+		expect( size ).toEqual( [ 800, 200 ] );
+	} );
+
 	test( 'dragging runs through the fade', async ( { page } ) => {
 		await open( page, { n: 3, o: { mode: 'stack', loop: true } } );
 		await drag( page, -500, { pause: 150 } );

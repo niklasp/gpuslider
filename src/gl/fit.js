@@ -38,11 +38,13 @@ export function styleOf( media ) {
  * @param {number}       qw    Width of the quad.
  * @param {number}       qh    Height of the quad.
  * @param {Object}       style From `styleOf()`.
- * @param {Float32Array} out   Nine numbers: `box` (quad uv to texture uv:
- *                             scale x and y, offset x and y), `rect` (the
- *                             element in quad uv: left, top, right, bottom)
- *                             and `cut` (1 when the image leaves a part of
- *                             its element empty).
+ * @param {Float32Array} out   Thirteen numbers: `box` (quad uv to texture
+ *                             uv: scale x and y, offset x and y), `rect`
+ *                             (the element in quad uv: left, top, right,
+ *                             bottom), `cut` (1 when the image leaves a
+ *                             part of its element empty) and the whole
+ *                             image in px of the quad (left, top, width,
+ *                             height).
  * @return {number} Width the whole image is drawn at, px.
  */
 export function fit( iw, ih, box, qw, qh, style, out ) {
@@ -84,5 +86,9 @@ export function fit( iw, ih, box, qw, qh, style, out ) {
 		top + dh < y + h - 0.5
 			? 1
 			: 0;
+	out[ 9 ] = left;
+	out[ 10 ] = top;
+	out[ 11 ] = dw;
+	out[ 12 ] = dh;
 	return dw;
 }

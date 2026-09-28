@@ -1,0 +1,259 @@
+import { test } from '@playwright/test';
+import { open, settled, drag, index, difference, expect } from './helpers.js';
+
+const setup = {
+	n: 5,
+	layers: 'gl,lightbox',
+	css: '.ss { --ss-per-view: 2; --ss-gap: 10px; } .ss-slide { border-radius: 12px; overflow: hidden; }',
+};
+
+const box = ( page ) => page.evaluate( () => window.slider.layers[ 1 ] );
+
+/** Waits until the lightbox is as far open as it goes. */
+const opened = ( page, progress = 1 ) =>
+	page.waitForFunction(
+		( to ) => {
+			const layer = window.slider.layers[ 1 ];
+			return (
+				layer.progress === to &&
+				( to === 0 ? ! layer.slider : layer.slider.resting )
+			);
+		},
+		progress
+	);
+
+/** Whether the canvas of the lightbox draws. */
+const draws = ( page ) =>
+	page
+		.waitForFunction(
+			() => !! window.slider.layers[ 1 ].slider?.layers[ 1 ].canvas,
+			null,
+			{ timeout: 2000 }
+		)
+		.then(
+			() => true,
+			() => false
+		);
+
+test.describe( 'lightbox', () => {
+	test( 'a click on a slide opens it, Escape closes it', async ( { page } ) => {
+		await open( page, setup );
+		const dialog = page.locator( 'dialog.ss-lightbox' );
+		await page.locator( '.ss-slide[data-i="1"] .ss-content' ).click( {
+			position: { x: 200, y: 200 },
+		} );
+		await expect( dialog ).toBeVisible();
+		await opened( page );
+		// The page behind it cannot be reached, the focus is in the dialog.
+		expect(
+			await page.evaluate( () => ( {
+				modal: document.querySelector( 'dialog' ).matches( ':modal' ),
+				focus: !! document.activeElement.closest( 'dialog' ),
+				at: window.slider.layers[ 1 ].slider.index,
+				slides: window.slider.layers[ 1 ].slider.slides.length,
+			} ) )
+		).toEqual( { modal: true, focus: true, at: 1, slides: 5 } );
+		await page.keyboard.press( 'Escape' );
+		await opened( page, 0 );
+		await expect( dialog ).toBeHidden();
+		expect( await box( page ) ).toBeTruthy();
+	} );
+
+	test( 'the end of a drag and a click on a link do not open it', async ( { page } ) => {
+		await open( page, setup );
+		await drag( page, -300, { pause: 150 } );
+		await settled( page );
+		await page.locator( '.ss-slide[data-i="1"] a' ).click();
+		await page.waitForTimeout( 100 );
+		expect( await page.locator( 'dialog[open]' ).count() ).toBe( 0 );
+		expect( page.url() ).toContain( '#followed' );
+	} );
+
+	test( 'the image grows out of its slide and goes back into it', async ( { page } ) => {
+		await open( page, { ...setup, open: 4000 } );
+		// Where the image of the second slide is.
+		const thumb = await page.evaluate( () => {
+			const r = window.slider.slides[ 1 ]
+				.querySelector( '.ss-media' )
+				.getBoundingClientRect();
+			return { x: r.left, y: r.top, w: r.width, h: r.height };
+		} );
+		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
+		await page.waitForFunction(
+			() => window.slider.layers[ 1 ].progress > 0
+		);
+
+		// What the canvas of the lightbox has, as a box around everything
+		// that is not transparent.
+		const drawn = () =>
+			page.evaluate( () => {
+				const layer = window.slider.layers[ 1 ];
+				const { canvas } = layer.slider.layers[ 1 ];
+				const g = canvas.getContext( 'webgl2' );
+				const w = canvas.width;
+				const h = canvas.height;
+				const pixels = new Uint8Array( 4 * w * h );
+				g.readPixels( 0, 0, w, h, g.RGBA, g.UNSIGNED_BYTE, pixels );
+				let x0 = w;
+				let y0 = h;
+				let x1 = 0;
+				let y1 = 0;
+				for ( let y = 0; y < h; y += 2 ) {
+					for ( let x = 0; x < w; x += 2 ) {
+						if ( pixels[ 4 * ( y * w + x ) + 3 ] > 128 ) {
+							x0 = Math.min( x0, x );
+							x1 = Math.max( x1, x );
+							y0 = Math.min( y0, h - y );
+							y1 = Math.max( y1, h - y );
+						}
+					}
+				}
+				const ratio = w / canvas.clientWidth;
+				return {
+					t: layer.progress,
+					x: x0 / ratio,
+					y: y0 / ratio,
+					w: ( x1 - x0 ) / ratio,
+					h: ( y1 - y0 ) / ratio,
+				};
+			} );
+
+		const early = await drawn();
+		expect( early.t ).toBeLessThan( 0.5 );
+		// Between the slide and the screen, and growing.
+		expect( early.w ).toBeGreaterThan( thumb.w - 4 );
+		expect( early.w ).toBeLessThan( 900 );
+		await page.waitForTimeout( 300 );
+		const later = await drawn();
+		expect( later.w ).toBeGreaterThan( early.w );
+		expect( later.h ).toBeGreaterThan( early.h );
+		// It starts where the slide is: its middle is closer to it than
+		// to the middle of the screen.
+		expect( Math.abs( early.x + early.w / 2 - 500 ) ).toBeGreaterThan(
+			Math.abs( later.x + later.w / 2 - 500 )
+		);
+
+		// Escape half way: it turns round and goes back into the slide.
+		await page.keyboard.press( 'Escape' );
+		await page.waitForFunction(
+			( was ) => window.slider.layers[ 1 ].progress < was - 0.1,
+			later.t
+		);
+		const back = await drawn();
+		expect( back.w ).toBeLessThan( later.w );
+	} );
+
+	test( 'open, the canvas shows the whole image as the page would', async ( { page } ) => {
+		await open( page, { ...setup, open: 150 } );
+		await page.evaluate( () => window.slider.layers[ 1 ].open( 2 ) );
+		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
+		await opened( page );
+		await page.waitForFunction( () =>
+			window.slider.layers[ 1 ].slider.slides[ 2 ].querySelector(
+				'.ss-drawn'
+			)
+		);
+		await opened( page );
+		const shot = () =>
+			page.locator( 'dialog .ss-track' ).screenshot();
+		const canvas = await shot();
+		// The same without the canvas: the image of the page.
+		await page.evaluate( () => {
+			const inner = window.slider.layers[ 1 ].slider;
+			inner.root.querySelector( 'canvas' ).style.visibility = 'hidden';
+			inner.root
+				.querySelectorAll( '.ss-drawn' )
+				.forEach( ( el ) => el.classList.remove( 'ss-drawn' ) );
+		} );
+		const { mean, far } = await difference( page, canvas, await shot() );
+		expect( mean ).toBeLessThan( 2 );
+		expect( far ).toBeLessThan( 0.01 );
+	} );
+
+	test( 'the lightbox is a slider: arrows, keys and drags', async ( { page } ) => {
+		await open( page, { ...setup, open: 150 } );
+		await page.evaluate( () => window.slider.layers[ 1 ].open( 0 ) );
+		await opened( page );
+		const at = () =>
+			page.evaluate( () => window.slider.layers[ 1 ].slider.index );
+		await page.keyboard.press( 'ArrowRight' );
+		await expect.poll( at ).toBe( 1 );
+		await page.locator( 'dialog [data-ss-next]' ).click();
+		await expect.poll( at ).toBe( 2 );
+		await opened( page );
+		await page.mouse.move( 700, 350 );
+		await page.mouse.down();
+		await page.mouse.move( 680, 350 );
+		await page.mouse.move( 100, 350, { steps: 6 } );
+		await page.waitForTimeout( 150 );
+		await page.mouse.up();
+		await expect.poll( at ).toBe( 3 );
+		await opened( page );
+		// It goes back to the slide it was left at, and the slider behind
+		// has that slide in view.
+		await page.locator( 'dialog [data-ss-close]' ).click();
+		await opened( page, 0 );
+		await settled( page );
+		expect( await index( page ) ).toBe( 3 );
+	} );
+
+	test( 'a click next to the image closes it', async ( { page } ) => {
+		await open( page, { ...setup, open: 150 } );
+		await page.evaluate( () => window.slider.layers[ 1 ].open( 0 ) );
+		await opened( page );
+		// The image is 16:9 in a view of 1000 by 700: below it is room.
+		await page.mouse.click( 500, 350 );
+		await page.waitForTimeout( 300 );
+		expect( await page.locator( 'dialog[open]' ).count() ).toBe( 1 );
+		await page.mouse.click( 500, 680 );
+		await opened( page, 0 );
+		expect( await page.locator( 'dialog[open]' ).count() ).toBe( 0 );
+	} );
+
+	test( 'without WebGL 2 it fades', async ( { page } ) => {
+		await page.addInitScript( () => {
+			const get = HTMLCanvasElement.prototype.getContext;
+			HTMLCanvasElement.prototype.getContext = function ( type, ...rest ) {
+				return type === 'webgl2' ? null : get.call( this, type, ...rest );
+			};
+		} );
+		await open( page, { ...setup, open: 600 } );
+		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		await page.waitForFunction(
+			() => window.slider.layers[ 1 ].progress > 0.05
+		);
+		const half = await page.evaluate( () =>
+			Number(
+				getComputedStyle(
+					document.querySelector( 'dialog .ss-slide:nth-child(2) .ss-media' )
+				).opacity
+			)
+		);
+		expect( half ).toBeGreaterThan( 0 );
+		expect( half ).toBeLessThan( 1 );
+		await opened( page );
+		await page.keyboard.press( 'Escape' );
+		await opened( page, 0 );
+		expect( await page.locator( 'dialog[open]' ).count() ).toBe( 0 );
+	} );
+
+	test( 'reduced motion: it is there at once', async ( { page } ) => {
+		await page.emulateMedia( { reducedMotion: 'reduce' } );
+		await open( page, { ...setup, open: 3000 } );
+		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		await page.waitForFunction(
+			() => window.slider.layers[ 1 ].progress === 1,
+			null,
+			{ timeout: 1500 }
+		);
+	} );
+
+	test( 'destroy takes the dialog away', async ( { page } ) => {
+		await open( page, { ...setup, open: 150 } );
+		await page.evaluate( () => window.slider.layers[ 1 ].open( 1 ) );
+		await opened( page );
+		await page.evaluate( () => window.slider.destroy() );
+		expect( await page.locator( 'dialog' ).count() ).toBe( 0 );
+	} );
+} );

@@ -80,6 +80,21 @@ test.describe( 'the canvas draws what the page would', () => {
 		expect( far ).toBeLessThan( 0.01 );
 	} );
 
+	test( 'the focus point, for all slides and for one', async ( { page } ) => {
+		const { mean, far } = await compare( page, {
+			n: 4,
+			css: '.ss { --ss-per-view: 2; --ss-focus: 0% 100%; } .ss-slide:nth-child(2) { --ss-focus: 100% 30%; }',
+		} );
+		expect( mean ).toBeLessThan( 2 );
+		expect( far ).toBeLessThan( 0.01 );
+		// And it is not the middle that is drawn.
+		const focus = await page.locator( '#slider .ss-track' ).screenshot();
+		await open( page, { n: 4, layers: 'gl', css: '.ss { --ss-per-view: 2; }' } );
+		await painted( page );
+		const middle = await page.locator( '#slider .ss-track' ).screenshot();
+		expect( ( await difference( page, focus, middle ) ).mean ).toBeGreaterThan( 3 );
+	} );
+
 	test( 'media smaller than its slide', async ( { page } ) => {
 		const { mean, far } = await compare( page, {
 			n: 4,

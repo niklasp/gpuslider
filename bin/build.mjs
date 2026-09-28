@@ -78,6 +78,20 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	}
 }
 
+// What the lightbox adds to a page that has the slider and the canvas.
+if ( existsSync( resolve( root, 'src/lightbox.js' ) ) ) {
+	await measure( `export * from './src/lightbox.js';`, 'shaderslide-lightbox.js' );
+	const both = `import { createSlider } from './src/index.js'; import { gl } from './src/gl/index.js';`;
+	parts.push( {
+		name: 'lightbox',
+		budget: 2048,
+		size:
+			( await measure(
+				`${ both } import { lightbox } from './src/lightbox.js'; export { createSlider, gl, lightbox };`
+			) ) - ( await measure( `${ both } export { createSlider, gl };` ) ),
+	} );
+}
+
 let failed = false;
 for ( const { name, size, budget } of parts ) {
 	const over = size > budget;

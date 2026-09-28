@@ -65,7 +65,9 @@ export function gl( {
 		);
 		// Per slide: the box of the media in its slide and what CSS says.
 		const boxes = slides.map( () => null );
-		const numbers = slides.map( () => new Float32Array( 9 ) );
+		const numbers = slides.map( () => new Float32Array( 13 ) );
+		// The quad about to be drawn, for whoever changes it (see `change`).
+		const next = { x: 0, y: 0, w: 0, h: 0, a: null, radius: 0, speed: 0 };
 		const kind = `${ shader.mesh }${ preserve }`;
 
 		let context = null;
@@ -341,11 +343,25 @@ export function gl( {
 			return out;
 		};
 
-		return {
+		const layer = {
 			/** The canvas, while the layer draws. */
 			get canvas() {
 				return context?.spare.canvas || null;
 			},
+
+			/**
+			 * Called with every slide of a row before it is drawn, with its
+			 * index and its quad: `x`, `y`, `w`, `h` in px of the canvas,
+			 * `a` (numbers of `fit()`), `radius` and `speed`, which is
+			 * added to the speed of the slider. What it changes is drawn.
+			 */
+			change: null,
+
+			/**
+			 * @param {HTMLElement} element Media element.
+			 * @return {boolean} Whether the canvas draws it.
+			 */
+			shows: ( element ) => drawn.has( element ),
 
 			measure() {
 				const around = root.getBoundingClientRect();
@@ -412,12 +428,10 @@ export function gl( {
 				g.uniform1f( at.uTime, now / 1000 );
 				g.uniform1f( at.uPointerIn, pointer.in );
 				// To the right on the screen, whatever the reading direction.
-				g.uniform1f(
-					at.uVelocity,
-					( layout.rtl ? 1 : -1 ) * view.velocity
-				);
+				const velocity = ( layout.rtl ? 1 : -1 ) * view.velocity;
 
-				const quad = ( x, y, w, h, a, b, progress, mix, radius ) => {
+				const quad = ( x, y, w, h, a, b, progress, mix, radius, speed ) => {
+					g.uniform1f( at.uVelocity, velocity + speed );
 					g.uniform4f( at.uQuad, x, y, w, h );
 					g.uniform2f( at.uSize, w, h );
 					g.uniform2f(
@@ -469,7 +483,7 @@ export function gl( {
 						height
 					);
 					if ( a || b ) {
-						quad( 0, 0, width, height, a || EMPTY, b || EMPTY, mix, mix, 0 );
+						quad( 0, 0, width, height, a || EMPTY, b || EMPTY, mix, mix, 0, 0 );
 					}
 					return;
 				}
@@ -488,9 +502,27 @@ export function gl( {
 					const x = mirror
 						? width - place.x - layout.size[ i ] + box.dx
 						: place.x + box.dx;
-					const a = bind( i, 0, 0, 0, box.w, box.h );
-					if ( a ) {
-						quad( x, box.dy, box.w, box.h, a, null, place.p, 0, box.style.radius );
+					next.a = bind( i, 0, 0, 0, box.w, box.h );
+					if ( next.a ) {
+						next.x = x;
+						next.y = box.dy;
+						next.w = box.w;
+						next.h = box.h;
+						next.radius = box.style.radius;
+						next.speed = 0;
+						layer.change?.( i, next );
+						quad(
+							next.x,
+							next.y,
+							next.w,
+							next.h,
+							next.a,
+							null,
+							place.p,
+							0,
+							next.radius,
+							next.speed
+						);
 					}
 				} );
 			},
@@ -517,6 +549,7 @@ export function gl( {
 				detach();
 			},
 		};
+		return layer;
 	};
 }
 

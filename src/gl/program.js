@@ -187,7 +187,10 @@ export function compose( effects, transition ) {
 		fragment,
 		params,
 		mesh: !! hooks.vertex,
-		pointer: /uPointer/.test( fragment + hooks.vertex ),
+		// Whether something the effects wrote reads the pointer.
+		pointer: /uPointer/.test(
+			base + hooks.uv + hooks.color + hooks.vertex
+		),
 		animated: effects.some( ( effect ) => effect.animated ),
 	};
 }
