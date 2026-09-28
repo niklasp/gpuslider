@@ -190,4 +190,44 @@ test.describe( 'effects', () => {
 		const { mean } = await difference( page, plain, await shot( page ) );
 		expect( mean ).toBeGreaterThan( 3 );
 	} );
+
+	test( 'an effect of your own, as in the README', async ( { page } ) => {
+		const logged = errors( page );
+		await open( page, { n: 3 } );
+		const plain = await shot( page );
+		await page.evaluate( () => {
+			const wobble = ( { amount = 0.02 } = {} ) => ( {
+				params: { amount },
+				animated: true,
+				uv: `
+				uv.x += sin( uv.y * 20.0 + uTime * 3.0 ) * amount;
+				return uv;`,
+			} );
+			window.slider.destroy();
+			window.slider = window.lib.createSlider(
+				document.getElementById( 'slider' ),
+				{
+					layers: [
+						window.lib.gl( {
+							effects: [ wobble( { amount: 0.05 } ) ],
+							preserve: true,
+						} ),
+					],
+				}
+			);
+		} );
+		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
+		await page.waitForFunction( () =>
+			document.querySelector( '.ss-media.ss-drawn' )
+		);
+		const { mean } = await difference( page, plain, await shot( page ) );
+		expect( mean ).toBeGreaterThan( 1 );
+		// It moves by itself: frames go on.
+		const before = await page.evaluate( () => window.frames_ );
+		await page.waitForTimeout( 300 );
+		expect( await page.evaluate( () => window.frames_ ) ).toBeGreaterThan(
+			before + 5
+		);
+		expect( logged ).toEqual( [] );
+	} );
 } );

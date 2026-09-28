@@ -400,3 +400,28 @@ test.describe( 'at rest', () => {
 		} );
 	} );
 } );
+
+test.describe( 'without the script', () => {
+	test.use( { javaScriptEnabled: false } );
+
+	test( 'the slider is a scroller that snaps', async ( { page } ) => {
+		await page.goto( '/demo/' );
+		const track = page.locator( '#several .ss-track' );
+		const style = await track.evaluate( ( el ) => {
+			const { overflowX, scrollSnapType } = getComputedStyle( el );
+			return {
+				overflowX,
+				scrollSnapType,
+				scrolls: el.scrollWidth > el.clientWidth,
+				on: el.parentElement.classList.contains( 'ss-on' ),
+			};
+		} );
+		expect( style ).toEqual( {
+			overflowX: 'auto',
+			scrollSnapType: 'x mandatory',
+			scrolls: true,
+			on: false,
+		} );
+		await expect( page.locator( '#several img' ).first() ).toBeVisible();
+	} );
+} );

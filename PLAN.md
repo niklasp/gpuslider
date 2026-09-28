@@ -159,14 +159,23 @@ The core budget was 4 KB before any code existed. After phase 1 the core measure
 
 Each phase ends with something that runs and with tests.
 
-| # | Phase | Result |
-|---|---|---|
-| 0 | Skeleton | Repo, this plan, static server, size script, generated demo media, no-script demo |
-| 1 | Engine and DOM | Drag, snap, loop, keyboard, arrows, dots, several per view, stack crossfade. A complete slider without WebGL |
-| 2 | Canvas layer | Media drawn on the canvas in row and stack, fallbacks, context loss, off-screen pause |
-| 3 | Effects | Hook system and the proving set: velocity warp, pointer lens, mesh bend, one stack transition |
-| 4 | Features | Video, auto height, autoplay, wheel, RTL, free scrolling |
-| 5 | Breadth | Remaining transitions, post pass, size audit, README |
+| # | Phase | Result | State on 2026-09-28 |
+|---|---|---|---|
+| 0 | Skeleton | Repo, this plan, static server, size script, generated demo media, no-script demo | Done |
+| 1 | Engine and DOM | Drag, snap, loop, keyboard, arrows, dots, several per view, stack crossfade. A complete slider without WebGL | Done |
+| 2 | Canvas layer | Media drawn on the canvas in row and stack, fallbacks, context loss, off-screen pause | Done |
+| 3 | Effects | Hook system and the proving set: velocity warp, pointer lens, mesh bend, stack transitions | Done: 5 effects, 20 transitions |
+| 4 | Features | Video, auto height, autoplay, wheel, RTL, free scrolling | Done |
+| 5 | Breadth | Post pass, real phones, size audit, README | README done; the rest is open |
+
+## Open
+
+- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 5.8 of 6 KB).
+- **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
+- **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
+- **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
+- **Pointer effects and `prefers-reduced-motion`.** Moves and speed effects are off for visitors who ask for less motion; effects under the pointer are not.
+- **A WebGPU layer**, as an experiment (decision 7).
 
 ## Tests (Playwright)
 
