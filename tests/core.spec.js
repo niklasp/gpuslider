@@ -1,0 +1,391 @@
+import { test } from '@playwright/test';
+import { open, settled, drag, leftOf, index, expect } from './helpers.js';
+
+test.describe( 'moving', () => {
+	test( 'a drag past half a slide goes to the next slide', async ( { page } ) => {
+		await open( page );
+		await drag( page, -500, { pause: 150 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 1 );
+		expect( await leftOf( page, 1 ) ).toBe( 0 );
+	} );
+
+	test( 'a short slow drag goes back', async ( { page } ) => {
+		await open( page );
+		await drag( page, -120, { pause: 150 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 0 );
+		expect( await leftOf( page, 0 ) ).toBe( 0 );
+	} );
+
+	test( 'a short fast drag goes on', async ( { page } ) => {
+		await open( page );
+		await drag( page, -120, { steps: 4 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 1 );
+	} );
+
+	test( 'the slider follows the pointer while it is held', async ( { page } ) => {
+		await open( page );
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 400, box.y + 150 );
+		await page.mouse.down();
+		await page.mouse.move( box.x + 380, box.y + 150 );
+		await page.mouse.move( box.x + 200, box.y + 150 );
+		await page.waitForTimeout( 50 );
+		// From where the drag was recognised, not from where it began.
+		const left = await leftOf( page, 0 );
+		expect( left ).toBeLessThan( -170 );
+		expect( left ).toBeGreaterThan( -205 );
+		await page.mouse.up();
+	} );
+
+	test( 'past the ends the slider resists and comes back', async ( { page } ) => {
+		await open( page );
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 200, box.y + 150 );
+		await page.mouse.down();
+		await page.mouse.move( box.x + 220, box.y + 150 );
+		await page.mouse.move( box.x + 500, box.y + 150 );
+		await page.waitForTimeout( 50 );
+		const left = await leftOf( page, 0 );
+		expect( left ).toBeGreaterThan( 50 );
+		expect( left ).toBeLessThan( 120 );
+		await page.waitForTimeout( 150 );
+		await page.mouse.up();
+		await settled( page );
+		expect( await leftOf( page, 0 ) ).toBe( 0 );
+	} );
+
+	test( 'a vertical drag is left to the page', async ( { page } ) => {
+		await open( page );
+		await drag( page, -60, { dy: 300 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 0 );
+		expect( await leftOf( page, 0 ) ).toBe( 0 );
+		expect(
+			await page.evaluate( () => window.slider.motion.dragging )
+		).toBe( false );
+	} );
+
+	test( 'a click follows the link, the end of a drag does not', async ( { page } ) => {
+		await open( page );
+		await drag( page, -300, { at: 40, pause: 150 } );
+		await settled( page );
+		expect( page.url() ).not.toContain( '#followed' );
+		await page.locator( '.ss-slide[data-i="0"] a' ).click();
+		expect( page.url() ).toContain( '#followed' );
+	} );
+} );
+
+test.describe( 'keyboard and controls', () => {
+	test( 'arrow keys, Home and End', async ( { page } ) => {
+		await open( page );
+		await page.locator( '#slider' ).focus();
+		await page.keyboard.press( 'ArrowRight' );
+		await page.keyboard.press( 'ArrowRight' );
+		expect( await index( page ) ).toBe( 2 );
+		await page.keyboard.press( 'ArrowLeft' );
+		expect( await index( page ) ).toBe( 1 );
+		await page.keyboard.press( 'End' );
+		expect( await index( page ) ).toBe( 4 );
+		await page.keyboard.press( 'Home' );
+		await settled( page );
+		expect( await index( page ) ).toBe( 0 );
+		expect( await leftOf( page, 0 ) ).toBe( 0 );
+	} );
+
+	test( 'arrows are disabled at the ends', async ( { page } ) => {
+		await open( page, { n: 3 } );
+		const prev = page.locator( '[data-ss-prev]' );
+		const next = page.locator( '[data-ss-next]' );
+		await expect( prev ).toBeDisabled();
+		await next.click();
+		await expect( prev ).toBeEnabled();
+		await next.click();
+		await expect( next ).toBeDisabled();
+		expect( await index( page ) ).toBe( 2 );
+	} );
+
+	test( 'dots show and set the slide', async ( { page } ) => {
+		await open( page, { n: 4 } );
+		const dots = page.locator( '[data-ss-dot]' );
+		await expect( dots ).toHaveCount( 4 );
+		await expect( dots.nth( 0 ) ).toHaveAttribute( 'aria-current', 'true' );
+		await dots.nth( 2 ).click();
+		await settled( page );
+		await expect( dots.nth( 2 ) ).toHaveAttribute( 'aria-current', 'true' );
+		expect( await leftOf( page, 2 ) ).toBe( 0 );
+	} );
+
+	test( 'events: change when the move starts, settle when it ends', async ( { page } ) => {
+		await open( page );
+		await page.evaluate( () => {
+			window.events.length = 0;
+			window.slider.next();
+		} );
+		expect( await page.evaluate( () => window.events ) ).toEqual( [
+			[ 'change', 1 ],
+		] );
+		await settled( page );
+		expect( await page.evaluate( () => window.events ) ).toEqual( [
+			[ 'change', 1 ],
+			[ 'settle', 1 ],
+		] );
+	} );
+} );
+
+test.describe( 'layout', () => {
+	test( 'several per view with a gap', async ( { page } ) => {
+		await open( page, {
+			n: 6,
+			css: '.ss { --ss-per-view: 3; --ss-gap: 20px; }',
+		} );
+		// ( 800 - 2 * 20 ) / 3
+		expect( await leftOf( page, 1 ) ).toBe( 273 );
+		// The last three slides fill the view: four places to rest.
+		expect( await page.evaluate( () => window.slider.count() ) ).toBe( 4 );
+		await page.evaluate( () => window.slider.to( 3 ) );
+		await settled( page );
+		expect( await leftOf( page, 3 ) ).toBe( 0 );
+		expect( await leftOf( page, 5 ) ).toBe( 547 );
+	} );
+
+	test( 'options set the custom properties', async ( { page } ) => {
+		await open( page, { n: 6, o: { perView: 2, gap: 10 } } );
+		expect( await leftOf( page, 1 ) ).toBe( 405 );
+	} );
+
+	test( 'groups', async ( { page } ) => {
+		await open( page, { n: 6, o: { perView: 2, group: 2 } } );
+		expect( await page.evaluate( () => window.slider.count() ) ).toBe( 3 );
+		await page.evaluate( () => window.slider.next() );
+		await settled( page );
+		expect( await leftOf( page, 2 ) ).toBe( 0 );
+	} );
+
+	test( 'centred', async ( { page } ) => {
+		await open( page, {
+			n: 5,
+			o: { align: 'center', contain: false },
+			css: '.ss { --ss-per-view: 2; }',
+		} );
+		expect( await leftOf( page, 0 ) ).toBe( 200 );
+		await page.evaluate( () => window.slider.next() );
+		await settled( page );
+		expect( await leftOf( page, 1 ) ).toBe( 200 );
+	} );
+
+	test( 'slides of different widths', async ( { page } ) => {
+		await open( page, {
+			n: 5,
+			o: { perView: 'auto' },
+			css: '.ss-slide { width: 300px; } .ss-slide:nth-child(2) { width: 450px; } .ss-media { width: 100% !important; }',
+		} );
+		await page.evaluate( () => window.slider.to( 2 ) );
+		await settled( page );
+		expect( await leftOf( page, 2 ) ).toBe( 0 );
+		expect( await leftOf( page, 1 ) ).toBe( -450 );
+	} );
+
+	test( 'a resize keeps the slide', async ( { page } ) => {
+		await open( page, { css: '.ss { width: auto; }' } );
+		await page.evaluate( () => window.slider.to( 2, { instant: true } ) );
+		await settled( page );
+		await page.setViewportSize( { width: 700, height: 700 } );
+		await page.waitForTimeout( 100 );
+		await settled( page );
+		expect( await index( page ) ).toBe( 2 );
+		expect( await leftOf( page, 2 ) ).toBe( 0 );
+		expect(
+			await page.evaluate( () => window.slider.slides[ 2 ].offsetWidth )
+		).toBe( 500 );
+	} );
+
+	test( 'right to left', async ( { page } ) => {
+		await open( page, {
+			dir: 'rtl',
+			css: '.ss { --ss-per-view: 2; }',
+		} );
+		// The first slide is at the right.
+		expect( await leftOf( page, 0 ) ).toBe( 400 );
+		await page.locator( '#slider' ).focus();
+		await page.keyboard.press( 'ArrowLeft' );
+		await settled( page );
+		expect( await index( page ) ).toBe( 1 );
+		expect( await leftOf( page, 1 ) ).toBe( 400 );
+		// Dragging to the right goes forward.
+		await drag( page, 300, { pause: 150 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 2 );
+		expect( await leftOf( page, 2 ) ).toBe( 400 );
+	} );
+} );
+
+test.describe( 'loop', () => {
+	test( 'forward past the end', async ( { page } ) => {
+		await open( page, { n: 4, o: { loop: true } } );
+		for ( let i = 0; i < 5; i++ ) {
+			await page.evaluate( () => window.slider.next() );
+		}
+		await settled( page );
+		expect( await index( page ) ).toBe( 1 );
+		expect( await leftOf( page, 1 ) ).toBe( 0 );
+		// Back in the first round.
+		expect( await page.evaluate( () => window.slider.motion.pos ) ).toBe(
+			800
+		);
+	} );
+
+	test( 'back before the start', async ( { page } ) => {
+		await open( page, { n: 4, o: { loop: true } } );
+		await page.evaluate( () => window.slider.prev() );
+		await page.waitForTimeout( 60 );
+		// The last slide comes in from the left while the first one leaves.
+		const last = await leftOf( page, 3 );
+		expect( last ).toBeLessThan( 0 );
+		expect( last ).toBeGreaterThan( -800 );
+		await settled( page );
+		expect( await index( page ) ).toBe( 3 );
+		expect( await leftOf( page, 3 ) ).toBe( 0 );
+	} );
+
+	test( 'dragging back from the first slide', async ( { page } ) => {
+		await open( page, { n: 4, o: { loop: true } } );
+		await drag( page, 500, { pause: 150 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 3 );
+	} );
+
+	test( 'several per view: no hole at either end', async ( { page } ) => {
+		await open( page, {
+			n: 5,
+			o: { loop: true },
+			css: '.ss { --ss-per-view: 3; }',
+		} );
+		await page.evaluate( () => window.slider.to( 4, { instant: true } ) );
+		await settled( page );
+		const lefts = [];
+		for ( let i = 0; i < 5; i++ ) {
+			lefts.push( await leftOf( page, i ) );
+		}
+		// Slides 5, 1 and 2 fill the view, each a third of it wide. At rest
+		// the track is on a whole pixel, so they are within one of theirs.
+		expect( lefts[ 4 ] ).toBe( 0 );
+		expect( Math.abs( lefts[ 0 ] - 266.67 ) ).toBeLessThan( 1 );
+		expect( Math.abs( lefts[ 1 ] - 533.33 ) ).toBeLessThan( 1 );
+	} );
+
+	test( 'dots take the short way round', async ( { page } ) => {
+		await open( page, { n: 5, o: { loop: true } } );
+		await page.evaluate( () => window.slider.to( 4 ) );
+		await page.waitForTimeout( 60 );
+		expect(
+			await page.evaluate( () => window.slider.motion.target )
+		).toBe( -800 );
+		await settled( page );
+		expect( await index( page ) ).toBe( 4 );
+	} );
+
+	test( 'too few slides to loop: the slider does not loop', async ( { page } ) => {
+		await open( page, {
+			n: 3,
+			o: { loop: true },
+			css: '.ss { --ss-per-view: 3; }',
+		} );
+		expect(
+			await page.evaluate( () => window.slider.layout().loop )
+		).toBe( false );
+	} );
+} );
+
+test.describe( 'stack', () => {
+	test( 'slides lie on top of each other and fade', async ( { page } ) => {
+		await open( page, { n: 3, o: { mode: 'stack' } } );
+		expect( await leftOf( page, 1 ) ).toBe( 0 );
+		const seen = () =>
+			page.evaluate( () =>
+				window.slider.slides.map(
+					( el ) => getComputedStyle( el ).visibility
+				)
+			);
+		expect( await seen() ).toEqual( [ 'visible', 'hidden', 'hidden' ] );
+		await page.evaluate( () => window.slider.next() );
+		await page.waitForTimeout( 80 );
+		expect( await seen() ).toEqual( [ 'visible', 'visible', 'hidden' ] );
+		const cover = await page.evaluate( () =>
+			Number(
+				getComputedStyle(
+					window.slider.slides[ 1 ].querySelector( '.ss-media' )
+				).opacity
+			)
+		);
+		expect( cover ).toBeGreaterThan( 0 );
+		expect( cover ).toBeLessThan( 1 );
+		await settled( page );
+		expect( await seen() ).toEqual( [ 'hidden', 'visible', 'hidden' ] );
+	} );
+
+	test( 'dragging runs through the fade', async ( { page } ) => {
+		await open( page, { n: 3, o: { mode: 'stack', loop: true } } );
+		await drag( page, -500, { pause: 150 } );
+		await settled( page );
+		expect( await index( page ) ).toBe( 1 );
+	} );
+} );
+
+test.describe( 'at rest', () => {
+	test( 'no frame is requested', async ( { page } ) => {
+		await open( page, { o: { loop: true } } );
+		await page.evaluate( () => window.slider.next() );
+		await settled( page );
+		await page.waitForTimeout( 100 );
+		const before = await page.evaluate( () => window.frames_ );
+		await page.waitForTimeout( 400 );
+		expect( await page.evaluate( () => window.frames_ ) ).toBe( before );
+	} );
+
+	test( 'slides out of view are inert', async ( { page } ) => {
+		await open( page, { css: '.ss { --ss-per-view: 2; }' } );
+		const inert = () =>
+			page.evaluate( () => window.slider.slides.map( ( el ) => el.inert ) );
+		expect( await inert() ).toEqual( [ false, false, true, true, true ] );
+		await page.evaluate( () => window.slider.to( 2 ) );
+		await settled( page );
+		expect( await inert() ).toEqual( [ true, true, false, false, true ] );
+	} );
+
+	test( 'reduced motion: moves are instant', async ( { page } ) => {
+		await page.emulateMedia( { reducedMotion: 'reduce' } );
+		await open( page );
+		await page.evaluate( () => window.slider.next() );
+		await page.waitForTimeout( 50 );
+		expect( await leftOf( page, 1 ) ).toBe( 0 );
+	} );
+
+	test( 'destroy gives the page back', async ( { page } ) => {
+		await open( page );
+		await page.evaluate( () => window.slider.to( 2, { instant: true } ) );
+		await settled( page );
+		await page.evaluate( () => window.slider.destroy() );
+		const state = await page.evaluate( () => {
+			const root = document.getElementById( 'slider' );
+			return {
+				classes: root.className,
+				role: root.getAttribute( 'role' ),
+				transform: root.querySelector( '.ss-track' ).style.transform,
+				dots: root.querySelectorAll( '[data-ss-dot]' ).length,
+				inert: [ ...root.querySelectorAll( '.ss-slide' ) ].some(
+					( el ) => el.inert
+				),
+			};
+		} );
+		expect( state ).toEqual( {
+			classes: 'ss',
+			role: null,
+			transform: '',
+			dots: 0,
+			inert: false,
+		} );
+	} );
+} );

@@ -1,0 +1,30 @@
+{
+	"name": "shaderslide",
+	"version": "0.0.1",
+	"description": "A slider that draws its media on a WebGL canvas. No dependencies.",
+	"type": "module",
+	"license": "MIT",
+	"sideEffects": [
+		"*.css"
+	],
+	"exports": {
+		".": "./src/index.js",
+		"./gl": "./src/gl/index.js",
+		"./style.css": "./src/style.css"
+	},
+	"files": [
+		"src",
+		"dist"
+	],
+	"scripts": {
+		"start": "node bin/serve.mjs",
+		"build": "node bin/build.mjs",
+		"size": "node bin/build.mjs --check",
+		"media": "node bin/make-media.mjs",
+		"test": "playwright test"
+	},
+	"devDependencies": {
+		"@playwright/test": "1.63.0",
+		"esbuild": "^0.28.2"
+	}
+}

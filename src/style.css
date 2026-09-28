@@ -1,0 +1,132 @@
+/*
+ * shaderslide: the layout, in three tiers.
+ *
+ * 1. Without the script the track is a native scroller with scroll-snap.
+ * 2. With the script (.ss-on) the slides are moved by transforms.
+ * 3. With the canvas layer (.ss-gl) the canvas draws the media.
+ *
+ * The page decides the layout; the script only measures it:
+ *
+ *     --ss-per-view  slides per view, fractions allowed
+ *     --ss-gap       gap between slides
+ *
+ * Both can change in media queries.
+ */
+
+.ss {
+	--ss-per-view: 1;
+	--ss-gap: 0px;
+
+	position: relative;
+	overflow: hidden;
+}
+
+.ss-track {
+	position: relative;
+	display: flex;
+	gap: var(--ss-gap);
+	overflow-x: auto;
+	overscroll-behavior-x: contain;
+	scroll-snap-type: x mandatory;
+	scrollbar-width: none;
+}
+
+.ss-slide {
+	position: relative;
+	flex: 0 0
+		calc(
+			( 100% - ( var(--ss-per-view) - 1 ) * var(--ss-gap) ) /
+				var(--ss-per-view)
+		);
+	min-width: 0;
+	scroll-snap-align: start;
+}
+
+/* Each slide as wide as its content. */
+.ss-auto .ss-slide {
+	flex-basis: auto;
+}
+
+.ss-media {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.ss-auto .ss-media {
+	width: auto;
+	max-width: none;
+}
+
+/* Content on top of the media. */
+.ss-content {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+/* Tier 2: the script moves the slides. */
+
+.ss-on {
+	touch-action: pan-y;
+	cursor: grab;
+}
+
+.ss-on > .ss-track {
+	overflow: visible;
+	scroll-snap-type: none;
+	will-change: transform;
+}
+
+.ss-on.ss-dragging {
+	cursor: grabbing;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.ss-on:focus-visible {
+	outline: 2px solid Highlight;
+	outline-offset: 2px;
+}
+
+/* Stack: all slides in one place, the two around the position shown. */
+
+.ss-stack > .ss-track {
+	display: grid;
+	gap: 0;
+	will-change: auto;
+}
+
+.ss-stack .ss-slide {
+	grid-area: 1 / 1;
+	min-height: 0;
+}
+
+.ss-stack .ss-media {
+	opacity: var(--ss-cover, 1);
+}
+
+.ss-stack .ss-content {
+	opacity: var(--ss-near, 1);
+}
+
+/* Tier 3: the canvas draws the media. */
+
+.ss-canvas {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+}
+
+.ss-media.ss-drawn {
+	visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ss-track {
+		scroll-behavior: auto;
+	}
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>shaderslide test page</title>
+<link rel="stylesheet" href="../src/style.css">
+<style>
+	body { margin: 0; }
+	.ss { width: 800px; margin: 40px 100px; }
+	.ss-slide { height: 300px; }
+	.ss-content { padding: 20px; color: #fff; }
+	.tall { height: 2000px; }
+</style>
+<style id="extra"></style>
+</head>
+<body>
+<div class="ss" id="slider" aria-label="Test">
+	<div class="ss-track"></div>
+	<button data-ss-prev>Previous</button>
+	<button data-ss-next>Next</button>
+	<div data-ss-dots></div>
+</div>
+<div class="tall"></div>
+<script type="module">
+	/*
+	 * The page of the tests, set up by its address:
+	 *
+	 *     ?n=5            number of slides
+	 *     &o={…}          slider options, JSON
+	 *     &css=…          extra styles
+	 *     &dir=rtl        reading direction
+	 *     &layers=gl      layers, by name
+	 */
+	const query = new URLSearchParams( location.search );
+	const n = Number( query.get( 'n' ) ) || 5;
+	document.getElementById( 'extra' ).textContent = query.get( 'css' ) || '';
+	if ( query.get( 'dir' ) ) {
+		document.documentElement.dir = query.get( 'dir' );
+	}
+	const track = document.querySelector( '.ss-track' );
+	for ( let i = 0; i < n; i++ ) {
+		track.insertAdjacentHTML(
+			'beforeend',
+			`<div class="ss-slide" data-i="${ i }">
+				<img class="ss-media" src="../demo/media/${ ( i % 8 ) + 1 }.jpg" alt="Slide ${ i + 1 }">
+				<div class="ss-content"><a href="#followed">Link ${ i + 1 }</a></div>
+			</div>`
+		);
+	}
+	const { createSlider } = await import( '../src/index.js' );
+	const options = JSON.parse( query.get( 'o' ) || '{}' );
+	const names = ( query.get( 'layers' ) || '' ).split( ',' ).filter( Boolean );
+	if ( names.length ) {
+		const layers = await import( '../src/gl/index.js' );
+		const effects = ( query.get( 'effects' ) || '' )
+			.split( ',' )
+			.filter( Boolean )
+			.map( ( name ) => layers[ name ]() );
+		options.layers = names.map( ( name ) => layers[ name ]( { effects } ) );
+	}
+	window.events = [];
+	window.slider = createSlider( document.getElementById( 'slider' ), options );
+	[ 'change', 'settle' ].forEach( ( name ) =>
+		window.slider.on( name, ( value ) => window.events.push( [ name, value ] ) )
+	);
+	window.ready = true;
+</script>
+</body>
+</html>
