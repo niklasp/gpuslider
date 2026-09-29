@@ -138,14 +138,14 @@ slider.destroy();
 | Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.8 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 6.75 KB | 6.5 KB (6672 of 6912 B) |
-| Canvas layer of WebGPU without effects | 9 KB | 8.4 KB |
+| Canvas layer of WebGL 2 without effects | 6.75 KB | 6.6 KB (6755 of 6912 B) |
+| Canvas layer of WebGPU without effects | 9 KB | 8.5 KB |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.1 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.1 KB |
 | A page in React with arrows and dots | 6 KB | 5.6 KB |
-| The same with the canvas and one effect | 12.5 KB | 11.9 KB |
+| The same with the canvas and one effect | 12.5 KB | 12 KB |
 
 Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
@@ -279,14 +279,14 @@ The comparison (`npm run bench`, `bench/`; the numbers are in the README). Same 
 | Sliders on the canvas | 12 of a page | all | A page has about 16 contexts of WebGL, the layer takes 12 |
 | Script in a frame, for a slider | 0.02 to 0.03 ms | 0.03 to 0.06 ms | WebGPU is told more for a frame: an encoder, a pass, its views, its groups |
 | Late frames, 20 sliders moving | none | none | |
-| Size | 6.5 KB | 8.4 KB | The translation, and mipmaps that WebGPU does not make by itself |
+| Size | 6.6 KB | 8.5 KB | The translation, and mipmaps that WebGPU does not make by itself |
 | Reach | all | about 87 % | |
 
 Not measured: the time of the GPU; phones; a browser with a window (`--headed` does, and was not run here). Without a window Chromium draws every frame and shows it to nobody.
 
 One thing was made faster by the measuring: the views of the textures that a bent slide is drawn into were made on every frame, and are kept now.
 
-Budgets that I set, the user's to take back: the WebGPU layer 9 KB (8.4 measured), `canvas()` 0.5 KB (0.3).
+Budgets that I set, the user's to take back: the WebGPU layer 9 KB (8.5 measured), `canvas()` 0.5 KB (0.3).
 
 Open, for WebGPU: videos without a copy (`importExternalTexture`, which needs a shader of its own kind); one encoder for all sliders of a frame, which would save script in a frame (how much is not measured); drawing in a worker.
 
@@ -425,6 +425,18 @@ From the list of what is open, asked for by the user on 2026-09-29: "A real phon
 - **Made of `<Slider>`** (decision 24), which it is the first page of the site to use beside the docs.
 - **Open until a phone has said it**: what a finger feels like, whether the film plays in its slide on iOS and is drawn by the canvas, how many sliders a phone gives a canvas to.
 
+### 27. A picture that is empty is asked for again
+
+From the list of what is open, asked for by the user on 2026-09-29: "The flaky WebKit test. It fails now and then, and prepublishOnly runs the full suite, so a publish would fail about as often."
+
+- **What it was**: WebKit gives a bitmap with nothing in it for an image that is loaded and decoded, probably because it has let go of the pixels since; why was not found out. It was seen for slides out of view on a machine that is busy: `createImageBitmap()` resolves, the bitmap has the size that was asked for, and every pixel of it is 0. The canvas took the slide over with it, so the slide stayed without its picture (the difference of 8.89 that the test of the slider that goes down saw every time). This is not the empty bitmap of an image that is not decoded yet, which `decode()` keeps away.
+- **A visitor could see it**, on a phone that is short of memory more likely than on a desk. It was a fault of the library, not of the test.
+- **Four by four pixels say whether a bitmap is empty** (`empty()` in `src/gl/fit.js`, for both layers). If it is, the canvas does not take the slide over, the page goes on drawing it, and the image is asked for again after 200 ms, ten times at most: after that the bitmap is taken as it is, because a picture may be transparent all over.
+- **Rejected: the image itself in place of the bitmap.** At that moment WebKit has nothing to draw of it either: WebGL got a black strip, WebGPU nothing.
+- **Measured**: the test of the slider that goes down, 18 times with each layer in WebKit beside other tests. The empty bitmap came 14 times in the 36 runs, and all 36 ended with the right picture. Before, the same test failed in 10 of 16 and in 4 of 16 runs. "At rest the slides are as the page draws them", which failed now and then the same way, has not failed since; it was too rare before for that to say much.
+- **It costs** 83 bytes in the WebGL layer and 80 in the one of WebGPU.
+- **The other test that failed now and then** was a fault of the test. In Chromium "a drag: dragstart, dragend with its velocity, change, settle" heard a `settle` before the drag, in 8 of 120 runs: the browser tells the sizes for the first time later in a frame than a test can ask whether the slider rests, the slider measures and says `settle` a frame after. The test listens from when the slider has rested for a frame now: 200 of 200 runs. That a slider says `settle` after it was measured, without having moved, is as it was; a listener that counts on a move before every `settle` is wrong about that.
+
 ## Modules
 
 | File | Does |
@@ -490,10 +502,9 @@ Each phase ends with something that runs and with tests.
 - **Effects that lay out are cut** at the edge of the slider: the canvas is as large as the slider. A canvas that is larger than its slider by what an effect asks for would lift this.
 - **Drawing in a worker** (`OffscreenCanvas`): the next step for pages with many sliders. It changes how textures get to the canvas. One device for all sliders of a page is there with WebGPU (decision 16).
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
-- **Canvas tests in WebKit that fail now and then.** "At rest the slides are as the page draws them" failed for two effects in one run of all browsers with `dist/` (the picture was compared before the canvas showed), and in no other run, nor in 276 runs of WebKit alone. It did so again on 2026-09-29 after decision 20, with `dist/`: for one effect in a run of all browsers, and for another in 1 of 42 runs of WebKit alone. Whether a visitor can see a frame without a picture there is not known. The test of the slider that goes down failed the same way more often, and waits for the picture now. It still fails in WebKit when other tests run beside it, with the same difference every time (8.89): on 2026-09-29 in 10 of 16 runs at `8851367` (before `canvas()` and the parameters that can be written into), in 4 of 16 after, in none of 8 when it runs alone; sixteen runs do not say that it got better. A slide that came into view while the slider is held stays without its picture then. With WebGPU it did not fail.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
-- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.5 of 6.5 KB).
+- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.6 of 6.75 KB).
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.

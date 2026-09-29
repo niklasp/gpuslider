@@ -2,8 +2,18 @@ import { test } from '@playwright/test';
 import { open, settled, painted, drag, leftOf, index, draws, difference, expect } from './helpers.js';
 
 /** Records every event of the slider from now on. */
+// From when the slider has rested for a frame. It is measured once more
+// when the browser tells the sizes for the first time, which is later in
+// the frame than a test can ask whether it rests, and it says `settle`
+// after that too.
 const record = ( page ) =>
-	page.evaluate( () => {
+	page.evaluate( async () => {
+		const frame = () =>
+			new Promise( ( done ) => window.requestAnimationFrame( done ) );
+		do {
+			await frame();
+			await frame();
+		} while ( ! window.slider.resting );
 		window.heard = [];
 		window.slider.on( '*', ( name, detail ) => {
 			if ( name !== 'frame' ) {

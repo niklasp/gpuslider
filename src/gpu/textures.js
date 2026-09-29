@@ -11,6 +11,7 @@
  * and its lightbox, is there once. A texture is freed when the last slider
  * that used it lets go.
  */
+import { empty } from '../gl/fit.js';
 
 const SMALLER = `
 struct Point {
@@ -160,7 +161,15 @@ export function createTextures( device, sampler ) {
 				} )
 			)
 			.then( ( bitmap ) => {
-				if ( record.users.size ) {
+				// Nothing in it: the page goes on drawing the image, and
+				// it is asked for again, ten times at most.
+				record.tries = ( record.tries || 0 ) + 1;
+				if ( record.tries < 10 && empty( bitmap ) ) {
+					setTimeout( () => {
+						record.asked = 0;
+						changed( record );
+					}, 200 );
+				} else if ( record.users.size ) {
 					upload(
 						record,
 						bitmap.width > width * 1.5

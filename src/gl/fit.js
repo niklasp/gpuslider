@@ -92,3 +92,17 @@ export function fit( iw, ih, box, qw, qh, style, out ) {
 	out[ 12 ] = dh;
 	return dw;
 }
+
+/**
+ * Whether a bitmap has nothing in it. WebKit gives such a bitmap now and
+ * then for an image that is loaded and decoded: seen for slides out of
+ * view, on a machine that is busy. Four by four of it say so.
+ *
+ * @param {ImageBitmap} bitmap Bitmap.
+ * @return {boolean} Nothing in it.
+ */
+export function empty( bitmap ) {
+	const context = new OffscreenCanvas( 4, 4 ).getContext( '2d' );
+	context.drawImage( bitmap, 0, 0, 4, 4 );
+	return ! context.getImageData( 0, 0, 4, 4 ).data.some( Boolean );
+}

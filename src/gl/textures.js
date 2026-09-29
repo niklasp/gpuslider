@@ -9,6 +9,8 @@
  * asks for them.
  */
 
+import { empty } from './fit.js';
+
 /**
  * @param {WebGL2RenderingContext} gl              Context.
  * @param {Object}                 options         Options.
@@ -86,7 +88,17 @@ export function createTextures( gl, { maxSize, changed } ) {
 				} )
 			)
 			.then( ( bitmap ) => {
-				if ( ! destroyed ) {
+				// Nothing in it: the page goes on drawing the image, and
+				// it is asked for again, ten times at most.
+				record.tries = ( record.tries || 0 ) + 1;
+				if ( record.tries < 10 && empty( bitmap ) ) {
+					setTimeout( () => {
+						record.asked = 0;
+						if ( ! destroyed ) {
+							changed();
+						}
+					}, 200 );
+				} else if ( ! destroyed ) {
 					upload(
 						record,
 						bitmap.width > width * 1.5
