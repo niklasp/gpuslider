@@ -30,6 +30,8 @@ export function createDom( root, track, slides ) {
 	};
 	attribute( root, 'role', 'region' );
 	attribute( root, 'aria-roledescription', 'carousel' );
+	// Says which slide is there when it changes; autoplay turns it off.
+	attribute( track, 'aria-live', 'polite' );
 	slides.forEach( ( slide, i ) => {
 		attribute( slide, 'role', 'group' );
 		attribute( slide, 'aria-roledescription', 'slide' );

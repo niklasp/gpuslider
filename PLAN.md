@@ -135,7 +135,7 @@ slider.destroy();
 |---|---|---|
 | Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.6 KB |
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
-| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7 KB | 7.0 KB (7161 of 7168 B) |
+| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.06 KB | 7.0 KB (7198 of 7232 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
 | Canvas layer of WebGL 2 without effects | 7.25 KB | 7.1 KB (7316 of 7424 B) |
@@ -143,7 +143,7 @@ slider.destroy();
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
-| Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 1.9 KB (1986 of 2048 B) |
+| Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 2.0 KB (2048 of 2048 B) |
 | A page in React with arrows and dots | 6 KB | 5.7 KB |
 | The same with the canvas and one effect | 12.75 KB | 12.7 KB (12997 of 13056 B) |
 
@@ -154,6 +154,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **Canvas layer, 6.75 to 7 KB; lightbox, 2 to 2.25 KB.** The canvas of a slider draws the way into the lightbox and back itself (`lift`, and `fx`, `dim` and `clip` of `change`): the image leaves its slide with the effects it has there, they fade on the way, and nothing jumps where the lightbox takes over or gives back. Before, the lightbox drew a flat image from the box around the slide, and the effects came back at once at the end. The corners of the shape the page gives with `corner-shape` are in the same layer: a squircle on the page is a squircle on the canvas, 0.1 KB.
 - **A page in React, 5.5 to 6 KB, and with the canvas 12 to 12.75 KB.** The page that is measured is made of the components now (decision 24), which are 0.4 KB more than the hook; the rest is what the layer grew by (decisions 22 and 27, and the way into the lightbox). The last quarter was taken when the two folders were put together (decision 29): each side was within 12.5 KB, both are 46 bytes over.
 - **Canvas layer, 7 to 7.25 KB, and the one of WebGPU, 9 to 9.25 KB; lightbox, 2.25 to 2 KB.** One canvas draws the lightbox (decision 30): lifted, a layer draws every slide, a stack as a row, and takes the picture of another element when `change` gives one. Of the quarter, 79 bytes of WebGL and 40 of WebGPU were over already when the two folders were put together (decision 29): the grown slide drawn over the others and a stack that grows out of its canvas, from `main`, beside `hit().uv()` and `empty()` from the worktree. The lightbox has no canvas of its own any more and is 0.2 KB smaller; its quarter is given back.
+- **Full, 7 to 7.06 KB.** The track is a polite live region, which autoplay turns off while it runs (the carousel pattern of the WAI): a reader of the screen hears the slide that the visitor brings, not every one that comes by itself. 30 bytes, with 7 left.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).

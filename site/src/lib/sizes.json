@@ -1,8 +1,8 @@
 {
 	"parts": {
-		"core": 4729,
+		"core": 4744,
 		"plugin: auto-height": 387,
-		"plugin: autoplay": 923,
+		"plugin: autoplay": 950,
 		"plugin: controls": 809,
 		"plugin: keyboard": 380,
 		"plugin: loading": 974,
@@ -12,9 +12,9 @@
 		"plugin: thumbs": 481,
 		"plugin: videos": 472,
 		"plugin: wheel": 347,
-		"react: what useSlider adds": 153,
-		"react: what <Slider> and <Slide> add": 597,
-		"full: the slider with all its options": 7161,
+		"react: what useSlider adds": 155,
+		"react: what <Slider> and <Slide> add": 596,
+		"full: the slider with all its options": 7198,
 		"canvas layer, no effects": 7316,
 		"canvas: what chooses the layer": 301,
 		"canvas: which slide is seen at a point": 1065,
@@ -62,23 +62,23 @@
 		"transition: warp": 615,
 		"transition: wind": 586,
 		"transition: zoom": 346,
-		"a page in React: arrows and dots": 5849,
-		"the same with the canvas and stretch": 12997,
-		"lightbox": 1985
+		"a page in React: arrows and dots": 5863,
+		"the same with the canvas and stretch": 13009,
+		"lightbox": 2045
 	},
 	"dist": {
-		"auto.js": 8358,
+		"auto.js": 8407,
 		"canvas.js": 321,
 		"effects.js": 6104,
-		"full.js": 9714,
+		"full.js": 9780,
 		"gl.js": 14669,
 		"gpu.js": 16545,
 		"hit.js": 1134,
-		"index.js": 4802,
-		"lightbox.css": 726,
-		"lightbox.js": 9010,
+		"index.js": 4817,
+		"lightbox.css": 790,
+		"lightbox.js": 9091,
 		"loading.css": 393,
-		"plugins.js": 4790,
+		"plugins.js": 4843,
 		"style.css": 690
 	}
 }

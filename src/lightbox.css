@@ -45,8 +45,12 @@ html:has(.gs-lightbox[open]) {
 	margin: 0;
 	border: 0;
 	border-radius: 0;
-	outline: 0;
 	cursor: grab;
+}
+
+/* The ring of the focus of the keys, inside the screen. */
+.gs-lightbox > .gs-box:focus-visible {
+	outline-offset: -4px;
 }
 
 .gs-box > .gs-track,
@@ -97,6 +101,18 @@ html:has(.gs-lightbox[open]) {
 
 .gs-button:hover {
 	background: rgb(0 0 0 / 0.65);
+}
+
+.gs-button:focus-visible {
+	outline: 2px solid Highlight;
+	outline-offset: 2px;
+}
+
+/* Colours that the system forces: the buttons keep an edge. */
+@media (forced-colors: active) {
+	.gs-button {
+		border: 1px solid;
+	}
 }
 
 .gs-button:disabled {

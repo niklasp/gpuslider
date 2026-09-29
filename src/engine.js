@@ -225,7 +225,8 @@ export function createEngine( win, { frame, settle, busy } ) {
 
 		destroy() {
 			win.cancelAnimationFrame( request );
-			request = 0;
+			// A frame asked for after this does not come.
+			request = -1;
 		},
 	};
 }

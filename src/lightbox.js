@@ -62,11 +62,15 @@ export function lightbox( {
 		const still = win.matchMedia( '(prefers-reduced-motion: reduce)' );
 		// The slides that have something to show.
 		let items = [];
+		// Which item a slide is, by its index.
+		let of = [];
 		const read = () => {
+			of = [];
 			items = slides.flatMap( ( slide, i ) => {
 				const media = slide.querySelector( '.gs-media' );
 				return media ? [ { i, media } ] : [];
 			} );
+			items.forEach( ( item, k ) => ( of[ item.i ] = k ) );
 		};
 		read();
 
@@ -145,8 +149,10 @@ export function lightbox( {
 		// items that the lightbox shows are drawn where it has them, and
 		// nothing else.
 		const grow = ( i, quad ) => {
-			const k = items.findIndex( ( item ) => item.i === i );
-			const it = k < 0 ? null : target( k );
+			const k = of[ i ] ?? -1;
+			// Measured only where it is used: the item that grows, and open
+			// the ones in view.
+			const it = k >= 0 && ( k === active || t === 1 ) ? target( k ) : null;
 			// Whether the page has the picture of the slide yet.
 			const had = !! quad.a;
 			if ( it && k === active ) {
@@ -315,12 +321,13 @@ export function lightbox( {
 			}
 			const track = box.firstChild;
 			track.replaceChildren(
-				...items.map( ( { media } ) => {
+				...items.map( ( { media }, k ) => {
 					const slide = doc.createElement( 'div' );
 					slide.className = 'gs-slide';
 					const copy = media.cloneNode();
 					copy.className = 'gs-media';
-					copy.removeAttribute( 'loading' );
+					// The image that opens first; the others as they come near.
+					copy.loading = k - item ? 'lazy' : 'eager';
 					copy.removeAttribute( 'style' );
 					if ( media.dataset.gsFull ) {
 						copy.removeAttribute( 'srcset' );
@@ -422,13 +429,22 @@ export function lightbox( {
 				( zoom || ! event.target.closest( NOT_A_CLICK ) )
 			) {
 				show(
-					items.findIndex( ( { i } ) => i === index ),
+					of[ index ],
 					// A click of the keys has no count of clicks.
 					event.detail > 0
 				);
 			}
 		} );
 		root.classList.add( 'gs-zooms' );
+		// Enter on the slider opens its slide, as a click does.
+		root.addEventListener(
+			'keydown',
+			( event ) =>
+				event.key === 'Enter' &&
+				event.target === root &&
+				show( of[ slider.index ] ),
+			{ signal: slider.signal }
+		);
 
 		return {
 			name: 'lightbox',
@@ -437,8 +453,7 @@ export function lightbox( {
 			/**
 			 * @param {number} index Slide to open the lightbox with.
 			 */
-			open: ( index ) =>
-				show( items.findIndex( ( { i } ) => i === index ) ),
+			open: ( index ) => show( of[ index ] ),
 			/** Lets the image go back to its slide. */
 			close: hide,
 			/** The slider in the lightbox, while it is open. */

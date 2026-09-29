@@ -37,7 +37,7 @@ export function autoplay( options = {} ) {
 
 	// The plugin, for the `plugins` of a slider.
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
-		const { root, win, signal } = slider;
+		const { root, win, signal, track } = slider;
 		const doc = root.ownerDocument;
 		const { all } = elements( slider, { pause } );
 		let timer = 0;
@@ -68,6 +68,8 @@ export function autoplay( options = {} ) {
 				}, time );
 				slider.emit( 'autoplay:run', { delay, left: time } );
 			}
+			// Slides that change by themselves are not read out.
+			track.ariaLive = timer ? 'off' : 'polite';
 		};
 
 		const show = () =>

@@ -687,8 +687,8 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | Canvas layer of WebGL 2 | 7.1 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
-| Lightbox | 1.9 KB |
-| `style.css`, `lightbox.css` | 0.7 KB each |
+| Lightbox | 2.0 KB |
+| `style.css`, `lightbox.css` | 0.7 KB, 0.8 KB |
 | `loading.css` | 0.4 KB |
 
 A visitor loads one of the two layers. `dist/` has the same for pages without a bundler, as modules that share what they have in common, with the shaders made small. `npm run test:dist` runs the tests with them.
