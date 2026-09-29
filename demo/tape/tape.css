@@ -1,0 +1,79 @@
+/*
+ * Tape: rows that run, on a page that scrolls.
+ */
+
+:root {
+	--ground: #ece7dd;
+	--ink: #14110f;
+}
+
+body {
+	margin: 0;
+	padding-bottom: 30vh;
+	background: var(--ground);
+	color: var(--ink);
+	font: 13px/1.5 ui-monospace, Menlo, monospace;
+	overflow-x: hidden;
+}
+
+header {
+	position: fixed;
+	inset: 0 0 auto;
+	z-index: 4;
+	display: flex;
+	justify-content: space-between;
+	padding: 18px clamp(16px, 4vw, 56px);
+	letter-spacing: 0.14em;
+	text-transform: uppercase;
+	mix-blend-mode: difference;
+	color: #fff;
+}
+
+header a {
+	color: inherit;
+}
+
+h1,
+.word {
+	margin: 0;
+	padding-inline: clamp(16px, 4vw, 56px);
+	font: 600 clamp(64px, 17vw, 300px) / 0.86 "Helvetica Neue", Helvetica, Arial, sans-serif;
+	letter-spacing: -0.055em;
+}
+
+h1 {
+	padding-block: 22vh 12vh;
+}
+
+.word {
+	padding-block: 10vh 2vh;
+	font-size: clamp(48px, 11vw, 190px);
+}
+
+.word:nth-of-type(even) {
+	text-align: end;
+}
+
+.tape {
+	--ss-gap: clamp(10px, 1.4vw, 22px);
+	--ss-loading-back: var(--ink);
+	--ss-loading-color: var(--ground);
+
+	/* Room for what gives way. */
+	padding-block: 28px;
+}
+
+.tape .ss-slide {
+	flex: 0 0 clamp(220px, 30vw, 520px);
+	aspect-ratio: 3 / 2;
+}
+
+.tape .ss-media {
+	border-radius: 6px;
+}
+
+.end {
+	max-width: 44ch;
+	margin: 16vh clamp(16px, 4vw, 56px) 0;
+	font-size: 15px;
+}

@@ -137,7 +137,7 @@ slider.destroy();
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
 | Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.7 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
-| Canvas layer of WebGL 2 without effects | 6.5 KB | 6.5 KB |
+| Canvas layer of WebGL 2 without effects | 6.5 KB | 6.5 KB (6654 of 6656 B) |
 | Canvas layer of WebGPU without effects | 9 KB | 8.4 KB |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
@@ -298,6 +298,19 @@ Asked for by the user on 2026-09-29: media take time to load, the visitor can be
 - **Not in `shaderslide/full`**: it has no option for it, and its budget no room. A plugin as the others.
 - **Not waited for: the canvas.** Until it is there the page draws the slides, which look the same.
 
+### 18. Demos that are made of the library
+
+Asked for by the user on 2026-09-29: "crazy demos", similar to a wall of glass cards without an end that can be dragged (infinite-jelly-glass.shader.se), not a copy of it; with loading screens.
+
+- **What a demo needs goes into the library**, as something everybody can use, or it stays in the demo as a page of script. In the library: the effects `dome`, `jelly`, `slab`, and parameters that can be written into. In the demo: the pointer that moves two ways, the springs that let the glass swing on.
+- **Parameters of effects are live.** An array that is given as a parameter is not copied; both layers read it on every frame. It cost the WebGL layer 10 bytes (6654 of 6656). Rejected: a method of the layer to set them, which is more to learn and more bytes for the same.
+- **The wall is sliders in a slider.** One axis is what a slider has; two are a slider of sliders, both `loop` and `free`, with `drag: false`, moved by the page with `grab()`, `drag()` and `release()`. The slider did not have to learn anything for it. Every row has its own canvas, so with WebGL there are as many rows as there are contexts to have (12), with WebGPU as many as one likes.
+- **The dome is drawn in the plane**: a vertex moves towards the middle, nothing goes back in space. So what is drawn stays in its canvas, and rows that are canvases of their own make one dome when each is told where the middle of the wall is. The rows are higher than their place in the wall (`--room`) for what leaves its place.
+- **The titles are in the pictures** (`bin/make-wall.mjs` renders them with Chromium, as `make-media.mjs` does). The glass bends what it shows, and text of the page would not bend with it. The `alt` of a picture says what is written on it.
+- **The glass swings on** by `layer.change`, which tells every slide a speed of its own: two springs follow the speed of the wall, and every card is somewhere between them.
+- **Three loading screens**: a mark that is drawn as the pictures come (wall: an element of the page with `--ss-loaded`), a number that runs and a curtain (reel: `screen: false`, the events), the one of the library (tape).
+- **Not done**: a click on a card of the wall (a lightbox would have to know the dome); videos in the wall (their titles cannot be in the picture); phones were not tried.
+
 ## Modules
 
 | File | Does |
@@ -325,6 +338,8 @@ Asked for by the user on 2026-09-29: media take time to load, the visitor can be
 | `src/gl/program.js` | Builds one shader from the chosen effects |
 | `src/gl/textures.js` | Image and video textures |
 | `bench/`, `bin/bench.mjs` | The two layers, measured against each other |
+| `demo/wall/`, `demo/reel/`, `demo/tape/` | Pages that are made of the library |
+| `bin/make-wall.mjs` | The pictures of the wall, and the rows of its page |
 | `src/gl/fit.js` | Where `object-fit` and `object-position` put the pixels |
 | `src/gl/effects/*.js` | One effect per file |
 
@@ -347,6 +362,7 @@ Each phase ends with something that runs and with tests.
 | 10 | Layouts and the pointer | Downwards, rows, pile, fan, ticker, thumbnails, seven pointer effects | Done: 16 effects, 20 transitions |
 | 11 | WebGPU | A second layer that draws what the first draws, `canvas()` to choose, the comparison | Done on 2026-09-29 |
 | 12 | Loading | `loading()`: a screen, events, several sliders together | Done on 2026-09-29 |
+| 13 | Demos | A wall of glass, a reel, tape; `dome`, `jelly`, `slab`; live parameters | Done on 2026-09-29: 19 effects, 20 transitions |
 
 ## Open
 
@@ -389,6 +405,8 @@ Each phase ends with something that runs and with tests.
 - All of it again with `dist/` (`npm run test:dist`).
 - All of it again drawn by WebGPU (`npm run test:gpu`), and every effect and transition drawn by both layers and compared.
 - `canvas()` takes the layer the browser can draw, or the one it is told.
+- The demos: their loading screens, the wall moved both ways by a drag, the wheel and the keys, and without the script (`tests/demos.spec.js`).
+- A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).
 
 ## Risks

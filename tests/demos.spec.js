@@ -119,3 +119,92 @@ test.describe( 'the wall', () => {
 		await context.close();
 	} );
 } );
+
+test.describe( 'the reel', () => {
+	test.slow();
+
+	test( 'a screen that is made of the events, then the first words', async ( { page } ) => {
+		let come;
+		const held = new Promise( ( resolve ) => {
+			come = resolve;
+		} );
+		await page.route( /media\/(2|6)-1600/, async ( route ) => {
+			await held;
+			await route.continue();
+		} );
+		await page.goto( '/demo/reel/', { waitUntil: 'domcontentloaded' } );
+		const intro = page.locator( '#intro' );
+		await expect( intro ).toBeVisible();
+		await expect( page.locator( '#what' ) ).toHaveText( '6 pictures and films' );
+		// Four of six are there, and the number runs to them.
+		await expect( page.locator( '#count' ) ).toHaveText( '67', { timeout: 15000 } );
+		await expect( page.locator( '.shown' ) ).toHaveCount( 0 );
+		expect(
+			await page.evaluate( () => window.reel.plugins.autoplay.paused )
+		).toBe( true );
+		come();
+		await expect( page.locator( '#count' ) ).toHaveText( '100', { timeout: 15000 } );
+		await expect( intro ).toBeHidden( { timeout: 15000 } );
+		await expect( page.locator( '.shown h2' ) ).toHaveText( 'Quiet Engine' );
+		expect(
+			await page.evaluate( () => window.reel.plugins.autoplay.paused )
+		).toBe( false );
+	} );
+
+	test( 'the next picture brings its words', async ( { page } ) => {
+		await page.goto( '/demo/reel/' );
+		await expect( page.locator( '#intro' ) ).toBeHidden( { timeout: 30000 } );
+		await page.getByRole( 'button', { name: 'Next' } ).click();
+		await expect( page.locator( '.shown h2' ) ).toHaveText( 'Salt Hour' );
+		await expect( page.locator( '.shown' ) ).toHaveCount( 1 );
+	} );
+} );
+
+test.describe( 'the tape', () => {
+	test.slow();
+
+	test( 'every row has the screen of the library, and they count together', async ( { page } ) => {
+		let come;
+		const held = new Promise( ( resolve ) => {
+			come = resolve;
+		} );
+		await page.route( /wall\/media\/0/, async ( route ) => {
+			await held;
+			await route.continue();
+		} );
+		await page.goto( '/demo/tape/', { waitUntil: 'domcontentloaded' } );
+		const screens = page.locator( '.ss-loading' );
+		await expect( screens ).toHaveCount( 4 );
+		await expect
+			.poll( () =>
+				page.evaluate( () => window.tapes?.[ 0 ].plugins.loading.state.loaded )
+			)
+			.toBeGreaterThan( 0 );
+		const numbers = await screens.allTextContents();
+		expect( new Set( numbers ).size ).toBe( 1 );
+		expect( numbers[ 0 ] ).not.toBe( '100 %' );
+		come();
+		await expect( screens.first() ).toBeHidden( { timeout: 30000 } );
+		await expect( screens.last() ).toBeHidden();
+	} );
+
+	test( 'the rows run against each other', async ( { page } ) => {
+		await page.goto( '/demo/tape/' );
+		await expect( page.locator( '.ss-loading' ).first() ).toBeHidden( {
+			timeout: 30000,
+		} );
+		// A row runs while it is seen.
+		const run = async ( i ) => {
+			await page.locator( '.tape' ).nth( i ).scrollIntoViewIfNeeded();
+			// What the scrolling pushed has come to rest.
+			await page.waitForTimeout( 1200 );
+			const place = () =>
+				page.evaluate( ( n ) => window.tapes[ n ].motion.pos, i );
+			const before = await place();
+			await page.waitForTimeout( 600 );
+			return ( await place() ) - before;
+		};
+		expect( await run( 0 ) ).toBeGreaterThan( 5 );
+		expect( await run( 1 ) ).toBeLessThan( -5 );
+	} );
+} );

@@ -9,7 +9,7 @@ Working name. The plan, with every decision and its reason, is in [PLAN.md](PLAN
 
 ```sh
 npm install
-npm start          # http://localhost:4173/demo/
+npm start          # http://localhost:4173/demo/, and the demos below it
 npm test           # Chromium, Firefox and WebKit
 npm run test:gpu   # the same, drawn by WebGPU: Chromium and WebKit
 npm run bench      # WebGPU and WebGL, measured against each other
@@ -19,6 +19,18 @@ npm run test:dist  # the tests, with what is built
 npm run types      # type declarations from the JSDoc, and a file that uses them
 npm run media      # generates the demo images and videos again
 ```
+
+## Demos
+
+Pages without a build, in `demo/`. Each is the library and a page of script. `?layer=gl` and `?layer=gpu` say who draws.
+
+| | |
+|---|---|
+| `demo/wall/` | A wall of glass without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, the page takes the pointer and moves both. `dome`, `jelly`, `slab`, and a screen with a mark that is drawn while the pictures load |
+| `demo/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
+| `demo/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
+| `demo/` | The slider in a plain page |
+| `bench/` | The two canvas layers, measured in the browser that opens it |
 
 ## Use it
 
@@ -506,6 +518,8 @@ Any number, in the order given.
 | `waves( { size, amount, speed } )` | Rings run away from the pointer, while it is over the slider | Pointer and time |
 | `smear( { size, amount } )` | The pointer drags the image along | Speed of the pointer |
 | `shift( { size, amount } )` | The colours come apart along the way of the pointer | Speed of the pointer |
+| `jelly( { amount, across } )` | The slides are soft: what moves them pulls them out of shape; bends the mesh | Speed |
+| `slab( { edge, bend, spread, shine } )` | The slides are thick glass: the edge bends the image and takes its colours apart, one side has the light on it | Speed, a little |
 
 Effects that lay out: the slider moves as ever, the effect says where a slide is drawn. For one slide per view or `align: 'center'`; give the slider padding for what leaves its place.
 
@@ -514,6 +528,7 @@ Effects that lay out: the slider moves as ever, the effect says where a slide is
 | `coverflow( { angle, depth, range } )` | The slides beside the active one turn away |
 | `pile( { offset, turn } )` | A pile of cards; the one on top leaves to the side |
 | `fan( { angle, radius } )` | A hand of cards, or a wheel |
+| `dome( { amount, centre, size } )` | The slides as on a dome: what is far from the middle is smaller and nearer to it |
 
 Transitions, for `stack()`, one at a time:
 `liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`. Without one the stack fades.
@@ -545,6 +560,19 @@ const wobble = ( { amount = 0.02 } = {} ) => ( {
 | `color` | `vec4 ( vec4 color, vec2 uv )` | Changes the result; may call `media( uv )` |
 | `transition` | GLSL with `vec4 transition( vec2 uv )` | Stack only. `getFromColor`, `getToColor`, `progress`: what is written for gl-transitions runs as it is |
 
+A parameter is a number, or an array of 1 to 4. An array stays the array it was given: what the page writes into it is drawn in the next frame, which `slider.wake()` asks for. That is how a page tells an effect what only the page knows: where it is scrolled to, how loud the music is, where the middle of a wall of sliders is.
+
+```js
+const level = [ 0 ];
+const loud = () => ( {
+	params: { level },
+	uv: `return ( uv - 0.5 ) * ( 1.0 - 0.1 * level ) + 0.5;`,
+} );
+// Later, as often as it changes.
+level[ 0 ] = 0.8;
+slider.wake();
+```
+
 `head` is GLSL the bodies need, `animated: true` says that it moves without the slider moving, `animated: 'pointer'` that it does while the pointer is over the slider.
 
 Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`. See `src/gl/program.js`.
@@ -570,7 +598,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`:
 | `canvas()`, which chooses the layer | 0.3 KB |
 | Canvas layer of WebGPU | 8.4 KB |
 | Canvas layer of WebGL 2 | 6.5 KB |
-| An effect | 0.2 to 0.4 KB |
+| An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 1.6 KB |
 | `style.css`, `lightbox.css` | 0.7 KB each |

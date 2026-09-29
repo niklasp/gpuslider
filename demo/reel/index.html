@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A reel · shaderslide</title>
+<meta name="description" content="Pictures and films that turn into each other, behind a screen that counts while they load.">
+<link rel="stylesheet" href="../../src/style.css">
+<link rel="stylesheet" href="reel.css">
+<noscript><style>.intro { display: none; }</style></noscript>
+</head>
+<body>
+
+<div class="intro" id="intro" role="progressbar" aria-label="The reel is loading" aria-valuemin="0" aria-valuemax="100">
+	<p class="count" id="count">0</p>
+	<p class="what" id="what">Six pictures and films</p>
+</div>
+
+<main class="ss reel" id="reel" aria-label="A reel">
+	<div class="ss-track">
+		<div class="ss-slide">
+			<img class="ss-media" src="../media/4-1600.avif" alt="A pink colour field">
+			<div class="ss-content"><p>01 · Film</p><h2>Quiet Engine</h2></div>
+		</div>
+		<div class="ss-slide">
+			<video class="ss-media" src="../media/a.mp4" poster="../media/a-poster.avif" muted playsinline loop autoplay aria-label="A colour field that moves"></video>
+			<div class="ss-content"><p>02 · Field</p><h2>Salt Hour</h2></div>
+		</div>
+		<div class="ss-slide">
+			<img class="ss-media" src="../media/2-1600.avif" alt="A blue colour field">
+			<div class="ss-content"><p>03 · Sound</p><h2>Paper Weather</h2></div>
+		</div>
+		<div class="ss-slide">
+			<img class="ss-media" src="../media/6-1600.avif" alt="A violet colour field">
+			<div class="ss-content"><p>04 · Print</p><h2>Low Orbit</h2></div>
+		</div>
+		<div class="ss-slide">
+			<video class="ss-media" src="../media/b.mp4" poster="../media/b-poster.avif" muted playsinline loop autoplay aria-label="Another colour field that moves"></video>
+			<div class="ss-content"><p>05 · Light</p><h2>Second Light</h2></div>
+		</div>
+		<div class="ss-slide">
+			<img class="ss-media" src="../media/1-1600.avif" alt="A warm colour field">
+			<div class="ss-content"><p>06 · Space</p><h2>Glass Season</h2></div>
+		</div>
+	</div>
+	<button data-ss-prev aria-label="Previous">←</button>
+	<button data-ss-next aria-label="Next">→</button>
+	<button data-ss-pause aria-label="Pause">Ⅱ</button>
+	<div data-ss-dots></div>
+</main>
+
+<footer>
+	<a href="../">shaderslide</a>
+	<span id="said">Arrows, keys, a drag</span>
+</footer>
+
+<script type="module" src="reel.js"></script>
+</body>
+</html>

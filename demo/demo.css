@@ -43,6 +43,10 @@ header p {
 	color: var(--dim);
 }
 
+header a {
+	color: var(--text);
+}
+
 .ss {
 	border-radius: 14px;
 }

@@ -38,6 +38,10 @@ const chance = ( n ) => {
 	return x - Math.floor( x );
 };
 
+// The glass is as thick as its pictures are large.
+const edge =
+	wall.slides[ 0 ].querySelector( '.ss-slide' ).offsetWidth * 0.055;
+
 const rows = wall.slides.map( ( slide, i ) => {
 	// What the effects of this row are told on every frame.
 	const centre = [ 0, 0 ];
@@ -53,11 +57,12 @@ const rows = wall.slides.map( ( slide, i ) => {
 				effects: [
 					dome( { amount: 0.6, centre, size } ),
 					jelly( { across } ),
-					slab( { edge: 22, bend: 0.8 } ),
+					slab( { edge, bend: 0.8 } ),
 				],
 				eager: true,
-				// The rows are larger than what is seen of them.
-				density: 1.5,
+				// The rows are larger than what is seen of them: on a
+				// large screen that is many pixels.
+				density: innerWidth < 800 ? 2 : 1.5,
 				layer,
 			} ),
 		],
