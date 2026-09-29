@@ -1,6 +1,6 @@
 # shaderslide
 
-A slider that draws its media on a WebGL canvas and owns its own motion.
+A slider that draws its media on a canvas and owns its own motion: with WebGPU where the browser has it, with WebGL 2 where not.
 No dependencies.
 
 Working name. The plan, with every decision and its reason, is in [PLAN.md](PLAN.md).
@@ -11,6 +11,8 @@ Working name. The plan, with every decision and its reason, is in [PLAN.md](PLAN
 npm install
 npm start          # http://localhost:4173/demo/
 npm test           # Chromium, Firefox and WebKit
+npm run test:gpu   # the same, drawn by WebGPU: Chromium and WebKit
+npm run bench      # WebGPU and WebGL, measured against each other
 npm run site       # the site with controls, http://localhost:5183/
 npm run size       # gzipped sizes, fails over budget; builds dist/
 npm run test:dist  # the tests, with what is built
@@ -30,7 +32,7 @@ Three ways, from the least to write to the least to load.
 
 <div class="ss" aria-label="Photos"
 	data-ss='{ "loop": true, "autoplay": 4000 }'
-	data-ss-gl="stretch waves">
+	data-ss-canvas="stretch waves">
 	<div class="ss-track">
 		<div class="ss-slide">
 			<img class="ss-media" src="one.jpg" alt="…">
@@ -50,7 +52,8 @@ Three ways, from the least to write to the least to load.
 | Attribute | |
 |---|---|
 | `data-ss` | Makes the element a slider. Its value: the options of `shaderslide/full` as JSON, or nothing |
-| `data-ss-gl` | The canvas, with the effects that are named: `"stretch waves"`, or with their options `'{ "stretch": { "amount": 2 } }'` |
+| `data-ss-canvas` | The canvas, with the effects that are named: `"stretch waves"`, or with their options `'{ "stretch": { "amount": 2 } }'`. Drawn by WebGPU where the browser has it, by WebGL 2 where not |
+| `data-ss-gpu`, `data-ss-gl` | The same, by the one that is named or by the page |
 | `data-ss-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
 
 `auto.js` is one file of 7.1 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
@@ -61,13 +64,14 @@ The element tells when its slider is made: `ss:ready`, with the slider as `detai
 
 ```js
 import { createSlider } from 'shaderslide/full';
-import { gl, stretch, split } from 'shaderslide/gl';
+import { canvas } from 'shaderslide/canvas';
+import { stretch, split } from 'shaderslide/effects';
 import 'shaderslide/style.css';
 
 const slider = createSlider( document.querySelector( '.ss' ), {
 	loop: true,
 	autoplay: 4000,
-	plugins: [ gl( { effects: [ stretch(), split() ] } ) ],
+	plugins: [ canvas( { effects: [ stretch(), split() ] } ) ],
 } );
 ```
 
@@ -89,11 +93,12 @@ The core moves slides: it measures, drags, snaps, loops, and says what happens. 
 ```jsx
 import { useSlider } from 'shaderslide/react';
 import { controls } from 'shaderslide/plugins';
-import { gl, stretch } from 'shaderslide/gl';
+import { canvas } from 'shaderslide/canvas';
+import { stretch } from 'shaderslide/effects';
 
 function Photos( { photos, loop } ) {
 	const [ ref, slider ] = useSlider(
-		{ loop, plugins: [ controls(), gl( { effects: [ stretch() ] } ) ] },
+		{ loop, plugins: [ controls(), canvas( { effects: [ stretch() ] } ) ] },
 		[ loop ]
 	);
 	return (
@@ -116,7 +121,7 @@ The second argument is what the slider is made again for, as the dependencies of
 ### Three tiers
 
 Without the script the slider is a native scroller with scroll-snap.
-Without the `gl()` plugin, or without WebGL 2, the page draws the slides and everything else works the same.
+Without the canvas, or in a browser that has neither WebGPU nor WebGL 2, the page draws the slides and everything else works the same.
 With it the canvas draws the media, and the text stays HTML on top of it.
 
 ## Layout is CSS
@@ -206,7 +211,7 @@ From `shaderslide/plugins`. Each is 0.3 to 0.9 KB.
 | `stack()` | The slides on top of each other, for transitions |
 | `progress()` | Tells the slides where they are, for animations in CSS |
 
-And `gl()` from `shaderslide/gl`, `lightbox()` from `shaderslide/lightbox`.
+And `canvas()` from `shaderslide/canvas`, `lightbox()` from `shaderslide/lightbox`.
 
 ```js
 import { marquee, thumbs } from 'shaderslide/plugins';
@@ -215,7 +220,7 @@ import { marquee, thumbs } from 'shaderslide/plugins';
 createSlider( one, {
 	loop: true,
 	free: true,
-	plugins: [ marquee( { speed: 50, hover: 0.2, scroll: 0.4 } ), gl( { effects: [ stretch() ] } ) ],
+	plugins: [ marquee( { speed: 50, hover: 0.2, scroll: 0.4 } ), canvas( { effects: [ stretch() ] } ) ],
 } );
 
 // Photos with thumbnails.
@@ -272,7 +277,8 @@ slider.on( '*', ( name, detail, slider ) => {} );
 | `destroy` | The slider |
 | `autoplay:play`, `autoplay:pause` | |
 | `marquee:play`, `marquee:pause` | |
-| `gl:on`, `gl:off` | The canvas took over, or gave the slides back to the page |
+| `canvas:ready` | `canvas()` has chosen its layer: `'gpu'` or `'gl'` |
+| `gpu:on`, `gpu:off`, `gl:on`, `gl:off` | The canvas took over, or gave the slides back to the page |
 | `lightbox:open`, `lightbox:close` | Index of the slide |
 
 Whether the slider is at an end: `canNext` and `canPrev`, at `change`.
@@ -362,7 +368,7 @@ Transform what is in the slide, not the slide: that one the slider moves and mea
 import { lightbox } from 'shaderslide/lightbox';
 import 'shaderslide/lightbox.css';
 
-createSlider( element, { plugins: [ gl(), lightbox( { effects: [ stretch() ] } ) ] } );
+createSlider( element, { plugins: [ canvas(), lightbox( { effects: [ stretch() ] } ) ] } );
 ```
 
 A click on a slide lets its image grow to the screen, Escape lets it go back. `data-ss-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
@@ -378,12 +384,44 @@ What `object-position` is for an image: the point that stays in view when the im
 ## The canvas
 
 ```js
-gl( { effects: [ stretch() ], eager: false, density: 2, maxSize: 2048, perspective: 1200 } )
+import { canvas } from 'shaderslide/canvas';
+import { stretch } from 'shaderslide/effects';
+
+canvas( { effects: [ stretch() ], eager: false, density: 2, maxSize: 2048, perspective: 1200 } )
+```
+
+`canvas()` draws with WebGPU where the browser has it and with WebGL 2 where not. It is 0.3 KB, and loads the layer it takes when the page has time: no page loads the layer it does not draw with. Both layers draw the same picture from the same effects; the tests hold them against each other, effect by effect. `canvas:ready` says which one it is, and the layer is `slider.plugins.gpu` or `slider.plugins.gl`.
+
+`canvas( { layer: 'gl' } )` and `layer: 'gpu'` say which. Who wants the layer in the bundle, and no request for it later, names it:
+
+```js
+import { gpu, stretch } from 'shaderslide/gpu';   // WebGPU, or the page draws
+import { gl, stretch } from 'shaderslide/gl';     // WebGL 2, or the page draws
 ```
 
 The canvas is made at the first sign of use: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same, and the page has loaded without a context and without a shader. A slider that moves by itself (autoplay, a ticker), or whose effects show at rest, gets its canvas when the page has time. `eager: true` makes it with the slider.
 
 Shaders are compiled on another thread where the browser can, and no frame is drawn while nothing moves.
+
+### WebGPU and WebGL, measured
+
+`npm run bench` makes the same sliders with each layer, in the same browser with the same GPU, and measures. On a Mac with an Apple M5, 2 device pixels per pixel, 2026-09-29, in Chromium 153 (Metal) and WebKit 26.6, both without a window:
+
+| | WebGL 2 | WebGPU |
+|---|---|---|
+| The first slider of a page: drawn after | 77 ms in Chromium, 63 ms in WebKit | 60 ms, 75 ms |
+| A slider after it | 66 ms, 49 ms | 33 ms, 32 ms |
+| Four more, made together | 163 ms, 84 ms | 33 ms, 33 ms |
+| Sliders of one page that the canvas draws | 12 | all: 20 of 20 |
+| Script in a frame, for each slider that moves | 0.02 to 0.03 ms | 0.03 to 0.06 ms |
+| Frames that came late while 20 sliders moved for 4 s | 0 of 241 | 0 of 241 |
+| Work of the page and of the GPU process, 6 sliders with effects (Chromium) | 11 % and 20 % of a core | 12 % and 20 % |
+| The layer in the bundle | 6.5 KB | 8.4 KB |
+| Browsers | all | Chrome, Edge, Safari from 26, Firefox on some systems: about 87 % of visitors |
+
+What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which is 0.05 ms of the 16.7 that a frame has.
+
+What it does not say: what the GPU does with a frame, which no page can measure; and how it is on a phone. `npm run bench -- --headed` measures with windows, `bench/` in a browser of your own shows the same numbers for that browser.
 
 ## Effects
 
@@ -418,13 +456,13 @@ Transitions, for `stack()`, one at a time:
 
 ```js
 createSlider( element, {
-	plugins: [ stack(), gl( { effects: [ split(), burn() ] } ) ],
+	plugins: [ stack(), canvas( { effects: [ split(), burn() ] } ) ],
 } );
 ```
 
 ### Your own
 
-An effect is an object of GLSL function bodies.
+An effect is an object of GLSL function bodies. It is written once and runs on both layers: for WebGPU it is translated to WGSL when the shader is made.
 
 ```js
 const wobble = ( { amount = 0.02 } = {} ) => ( {
@@ -447,6 +485,14 @@ const wobble = ( { amount = 0.02 } = {} ) => ( {
 
 Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`. See `src/gl/program.js`.
 
+What the translation knows is the GLSL that all effects here are written in. For an effect that is to run on WebGPU too:
+
+- Functions, `if`, `for`, `a ? b : c`, and the functions GLSL comes with. No `out` and `inout` parameters, no structs, no arrays, no `#define`.
+- Both sides of `max`, `min`, `clamp`, `smoothstep` and `mix` are of one kind: `max( v, vec2( 0.0 ) )`, not `max( v, 0.0 )`.
+- One component is assigned at a time, or the whole vector: `p = vec3( q, p.z )`, not `p.xy = q`.
+
+A shader that WebGPU does not take is said in the console, as `shaderslide: …`, and the page draws that slider.
+
 ## Size
 
 Gzipped, in the bundle of who imports it, from `npm run size`:
@@ -457,13 +503,15 @@ Gzipped, in the bundle of who imports it, from `npm run size`:
 | A plugin | 0.3 to 0.9 KB |
 | `shaderslide/full`: the core with all its options | 6.7 KB |
 | `useSlider` for React | 0.1 KB |
-| Canvas layer | 6.5 KB |
+| `canvas()`, which chooses the layer | 0.3 KB |
+| Canvas layer of WebGPU | 8.4 KB |
+| Canvas layer of WebGL 2 | 6.5 KB |
 | An effect | 0.2 to 0.4 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 1.6 KB |
 | `style.css`, `lightbox.css` | 0.7 KB each |
 
-`dist/` has the same for pages without a bundler, as modules that share what they have in common, with the shaders made small. `npm run test:dist` runs the tests with them.
+A visitor loads one of the two layers. `dist/` has the same for pages without a bundler, as modules that share what they have in common, with the shaders made small. `npm run test:dist` runs the tests with them.
 
 ## Not yet
 
@@ -476,3 +524,5 @@ Gzipped, in the bundle of who imports it, from `npm run size`:
 - Cross-origin media needs CORS headers and `crossorigin` on the element; without them the page draws that slide.
 - Pointer effects are not switched off by `prefers-reduced-motion`; moves and speed effects are.
 - Tried on real phones: not yet. The tests run desktop engines.
+- WebGPU in Firefox is not tested: the Firefox of the tests has no GPU to give. There `canvas()` takes WebGL.
+- Videos on WebGPU are copied into a texture on every frame, as on WebGL. WebGPU can draw them without a copy, which is not used yet.

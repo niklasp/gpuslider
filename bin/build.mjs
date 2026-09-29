@@ -90,6 +90,15 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 		),
 	} );
 	parts.push( {
+		name: 'canvas: what chooses the layer',
+		budget: 512,
+		size:
+			( await measure(
+				`export * from './src/canvas.js';`,
+				[ './src/gpu/layer.js', './src/gl/layer.js' ]
+			) ),
+	} );
+	parts.push( {
 		name: 'canvas layer of WebGPU, no effects',
 		budget: 9216,
 		size: await measure(
@@ -174,6 +183,8 @@ const built = await Promise.all( [
 			plugins: 'src/plugins/index.js',
 			gl: 'src/gl/index.js',
 			gpu: 'src/gpu/index.js',
+			canvas: 'src/canvas.js',
+			effects: 'src/effects.js',
 			lightbox: 'src/lightbox.js',
 		},
 		splitting: true,

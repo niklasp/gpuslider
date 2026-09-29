@@ -8,11 +8,12 @@
  * is inert, the focus stays inside and comes back, Escape closes.
  *
  * The growing is drawn by the canvas: one quad that goes from the image in
- * the slide, cut as it is there, to the whole image. Without WebGL 2 the
- * lightbox fades in.
+ * the slide, cut as it is there, to the whole image. The canvas of the
+ * lightbox is of the kind the slider has: WebGPU, or WebGL. Without a
+ * canvas the lightbox fades in.
  *
  *     createSlider( element, {
- *         plugins: [ gl(), lightbox( { effects: [ stretch() ] } ) ],
+ *         plugins: [ gpu(), lightbox( { effects: [ stretch() ] } ) ],
  *     } );
  *
  * Events of the slider: `lightbox:open` and `lightbox:close`, both with the
@@ -25,8 +26,10 @@
 import { createSlider } from './index.js';
 import { controls } from './plugins/controls.js';
 import { keyboard } from './plugins/keyboard.js';
-import { gl } from './gl/layer.js';
 import { fit, styleOf } from './gl/fit.js';
+
+// The canvas layer of a slider, if it has one.
+const layerOf = ( { plugins } ) => plugins.gpu || plugins.gl;
 
 // The spring has arrived after about 9 / omega seconds (see engine.js).
 const SETTLE = 9;
@@ -47,8 +50,9 @@ const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-ss-no-zoom
  * @param {import('./index.js').Options} [options.slider] Options for the
  *                                      slider in the lightbox.
  * @param {Object}   [options.canvas]   Options for its canvas layer.
- * @param {Function} [options.layer]    The canvas layer: `gl`, or `gpu` of
- *                                      `shaderslide/gpu`.
+ * @param {Function} [options.layer]    The canvas layer, `gpu` or `gl`,
+ *                                      when it is not to be the one of the
+ *                                      slider.
  * @param {Record<string, string>} [options.labels] `close`, `prev`,
  *                                      `next`, `dialog`.
  */
@@ -58,7 +62,7 @@ export function lightbox( {
 	punch = 0.4,
 	slider: inner = {},
 	canvas = {},
-	layer: draws = gl,
+	layer: given,
 	labels = {},
 } = {} ) {
 	// The plugin, for the `plugins` of a slider.
@@ -170,7 +174,7 @@ export function lightbox( {
 					// in half way.
 					started =
 						now - since > PATIENCE ||
-						( layer.canvas ? layer.shows( media ) : now - since > 50 );
+						( layer?.canvas ? layer.shows( media ) : now - since > 50 );
 				} else if ( still.matches ) {
 					t = to;
 					speed = 0;
@@ -285,6 +289,7 @@ export function lightbox( {
 			from = place( item );
 			dialog.style.setProperty( '--ss-open', 0 );
 			layer = null;
+			const draws = given || layerOf( slider )?.again;
 			shown = createSlider( box, {
 				loop: slider.layout().loop && items.length > 2,
 				...inner,
@@ -295,11 +300,13 @@ export function lightbox( {
 					driver,
 					controls(),
 					keyboard(),
-					draws( { effects, ...canvas, eager: true } ),
+					draws?.( { effects, ...canvas, eager: true } ),
 				],
 			} );
-			layer = shown.plugins.gl || shown.plugins.gpu;
-			layer.change = change;
+			layer = layerOf( shown );
+			if ( layer ) {
+				layer.change = change;
+			}
 			box.focus( { preventScroll: true } );
 			slider.emit( 'lightbox:open', items[ item ].i );
 		}

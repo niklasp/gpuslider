@@ -2,12 +2,16 @@
  * The slider in a plain page: no build, no framework.
  */
 import { createSlider } from '../src/full.js';
-import { gl, stretch, split, waves, liquid } from '../src/gl/index.js';
+import { canvas } from '../src/canvas.js';
+import { stretch, split, waves, liquid } from '../src/effects.js';
 import { lightbox } from '../src/lightbox.js';
 
 const $ = ( id ) => document.getElementById( id );
+// WebGPU where the browser has it, WebGL where not. `?layer=gl` and
+// `?layer=gpu` say which, to see the one beside the other.
+const layer = new URLSearchParams( location.search ).get( 'layer' );
 const plugins = () => [
-	gl( { effects: [ stretch(), split(), waves() ] } ),
+	canvas( { effects: [ stretch(), split(), waves() ], layer } ),
 	lightbox( { effects: [ stretch() ] } ),
 ];
 
@@ -30,7 +34,7 @@ window.sliders = {
 		loop: true,
 		duration: 1100,
 		autoplay: 3500,
-		plugins: [ gl( { effects: [ split(), liquid() ] } ) ],
+		plugins: [ canvas( { effects: [ split(), liquid() ], layer } ) ],
 	} ),
 };
 
@@ -44,20 +48,29 @@ function tell( slider ) {
 	const line = document.createElement( 'p' );
 	line.className = 'state';
 	slider.root.after( line );
-	const can = !! document.createElement( 'canvas' ).getContext( 'webgl2' );
+	const can =
+		!! navigator.gpu ||
+		!! document.createElement( 'canvas' ).getContext( 'webgl2' );
 	let lost = 0;
 	const say = () => {
-		const by = slider.plugins.gl?.canvas ? 'canvas' : 'page';
+		const { gpu, gl } = slider.plugins;
+		const by = ! ( gpu || gl )?.canvas
+			? 'the page'
+			: gpu
+			? 'WebGPU'
+			: 'WebGL';
 		line.textContent =
-			`Drawn by the ${ by }` +
-			( can ? '' : ' · this browser has no WebGL 2' ) +
+			`Drawn by ${ by }` +
+			( can ? '' : ' · this browser has neither WebGPU nor WebGL 2' ) +
 			( lost ? ` · the browser took the canvas away ${ lost } times` : '' ) +
 			` · ${ Math.abs( slider.view.velocity ).toFixed( 1 ) } views per second`;
 	};
-	slider.on( 'gl:on', say );
-	slider.on( 'gl:off', ( gone ) => {
-		lost += gone ? 1 : 0;
-		say();
+	[ 'gpu', 'gl' ].forEach( ( name ) => {
+		slider.on( `${ name }:on`, say );
+		slider.on( `${ name }:off`, ( gone ) => {
+			lost += gone ? 1 : 0;
+			say();
+		} );
 	} );
 	slider.on( 'frame', say );
 	say();

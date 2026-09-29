@@ -75,6 +75,8 @@ Uniforms every effect gets: `uProgress` (slide offset from its snap, in slides),
 
 ### 7. WebGL 2, written by hand
 
+Superseded on 2026-09-29 by decision 16: WebGPU is the first layer, and this one is what draws where WebGPU is not. What is said here about three.js stands.
+
 Why: mipmaps for textures of any size (no shimmer when a large photo is drawn small), `#version 300 es`. Support is universal in current browsers. Without it, tier 2.
 
 Rejected: WebGPU as the first backend (checked 2026-09-28).
@@ -135,7 +137,9 @@ slider.destroy();
 | A plugin | 1 KB | 0.3 to 0.9 KB |
 | Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.7 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
-| Canvas layer without effects | 6.5 KB | 6.5 KB |
+| Canvas layer of WebGL 2 without effects | 6.5 KB | 6.5 KB |
+| Canvas layer of WebGPU without effects | 9 KB | 8.4 KB |
+| `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 1.6 KB |
 | A page in React with arrows and dots | 5.5 KB | 5.2 KB |
@@ -248,6 +252,37 @@ Asked for by the user on 2026-09-28, with the galleries of Codrops as the measur
 - **Seven effects for the pointer**: `smear`, `shift` (both by the speed of the pointer, the new uniform `uPointerSpeed`), `tilt`, `waves`, `reveal`, `glass`, `pixels`. `animated: 'pointer'` is for effects that move while the pointer is over the slider and only then: `waves` costs frames while it is looked at, none after.
 - **Not done:** effects that cross the borders of slides (a trail over the whole slider). They need the post pass (Open).
 
+### 16. WebGPU first, WebGL beside it
+
+Decided by the user on 2026-09-29: WebGPU is what the slider is built with, and the old layer stays, for a direct comparison of their speed. It stays for the visitors without WebGPU too.
+
+- **Two layers of the same shape**: `gpu()` in `src/gpu/`, `gl()` in `src/gl/`. Same options, same hooks, same events (`gpu:on`, `gl:on`), and `layer.again` makes another of its kind, which is how the lightbox draws with what its slider draws with. The lightbox imports no layer any more; without a canvas it fades.
+- **`canvas()` chooses** (`shaderslide/canvas`, 0.3 KB): it asks the browser for an adapter, not for `navigator.gpu`, because a browser may know WebGPU and have nothing to run it on (Firefox without a window, a machine whose GPU is on a blocklist). It loads one layer. `shaderslide/effects` has the effects without a layer. In `auto.js`: `data-ss-canvas`; `data-ss-gpu` and `data-ss-gl` name one.
+- **Effects are written once**, in GLSL, and translated to WGSL when the shader is made (`src/gpu/wgsl.js`). Rejected: every effect twice (36 shaders to keep the same by hand, and twice the bytes for who bundles both); a compiler like Naga or Tint in the page (megabytes). The translation is 1.1 KB and knows the subset that the effects are written in, which the README names. Four effects were rewritten for it (`pile`, `tilt`, `shift`, `smear`). Every name gets a `_` at its end, because WGSL keeps words for itself that GLSL does not (`from`, `filter`).
+- **One device for a window**, shared pipelines, meshes and textures. A texture is counted by who uses it and freed with the last of them.
+- **The same picture.** `tests/gpu.spec.js` draws every effect and every transition with both and compares. For that both layers changed: the noise is a hash without a sine, which GPUs compute differently, and the size of an image that is looked up is chosen once per pixel from how large the image is drawn, not from how far apart the lookups of neighbours are. The second is a gain for both: at the cuts of `wind`, `signal` and `datamosh` the smallest size of the image showed as a line. Transitions with noise look a little different than before.
+- **Tests**: all tests run with both layers (`npm run test:gpu`: Chromium with Metal, and WebKit), and with both of `dist/`. The Firefox of the tests gives no adapter: WebGPU in Firefox is not tested.
+
+The comparison (`npm run bench`, `bench/`; the numbers are in the README). Same browser, same GPU, the layers in turns, each run in a browser that has drawn nothing before.
+
+| | WebGL 2 | WebGPU | Why |
+|---|---|---|---|
+| First slider of a page | 63 to 80 ms | 60 to 75 ms | A context and a shader, or a device and a pipeline: the same work |
+| A slider after it | 49 to 66 ms | 32 to 33 ms | The device is there, the pipeline too |
+| Sliders on the canvas | 12 of a page | all | A page has about 16 contexts of WebGL, the layer takes 12 |
+| Script in a frame, for a slider | 0.02 to 0.03 ms | 0.03 to 0.06 ms | WebGPU is told more for a frame: an encoder, a pass, its views, its groups |
+| Late frames, 20 sliders moving | none | none | |
+| Size | 6.5 KB | 8.4 KB | The translation, and mipmaps that WebGPU does not make by itself |
+| Reach | all | about 87 % | |
+
+Not measured: the time of the GPU; phones; a browser with a window (`--headed` does, and was not run here). Without a window Chromium draws every frame and shows it to nobody.
+
+One thing was made faster by the measuring: the views of the textures that a bent slide is drawn into were made on every frame, and are kept now.
+
+Budgets that I set, the user's to take back: the WebGPU layer 9 KB (8.4 measured), `canvas()` 0.5 KB (0.3).
+
+Open, for WebGPU: videos without a copy (`importExternalTexture`, which needs a shader of its own kind); one encoder for all sliders of a frame, which would save script in a frame (how much is not measured); drawing in a worker.
+
 ## Modules
 
 | File | Does |
@@ -264,9 +299,16 @@ Asked for by the user on 2026-09-28, with the galleries of Codrops as the measur
 | `src/lightbox.js`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
 | `src/style.css` | Layout for all three tiers |
 | `bin/build.mjs`, `bin/glsl.mjs` | Sizes against budgets; `dist/`, with the shaders made small |
-| `src/gl/layer.js` | The canvas layer: context pool, visibility, the draw |
+| `src/canvas.js` | `canvas()`: the layer that the browser can draw |
+| `src/effects.js` | The effects and transitions, without a layer |
+| `src/gpu/layer.js` | The canvas layer of WebGPU: one device for a window, visibility, the draw |
+| `src/gpu/program.js` | Builds one shader in WGSL from the chosen effects |
+| `src/gpu/wgsl.js` | GLSL of the effects to WGSL |
+| `src/gpu/textures.js` | Image and video textures, shared and counted; mipmaps |
+| `src/gl/layer.js` | The canvas layer of WebGL 2: context pool, visibility, the draw |
 | `src/gl/program.js` | Builds one shader from the chosen effects |
 | `src/gl/textures.js` | Image and video textures |
+| `bench/`, `bin/bench.mjs` | The two layers, measured against each other |
 | `src/gl/fit.js` | Where `object-fit` and `object-position` put the pixels |
 | `src/gl/effects/*.js` | One effect per file |
 
@@ -287,13 +329,14 @@ Each phase ends with something that runs and with tests.
 | 8 | The split | A core that moves slides, ten plugins, `shaderslide/full` | Done |
 | 9 | Fast | The late canvas, the site at 96 to 100 in Lighthouse, `dist/` and `auto.js`, `useSlider` | Done |
 | 10 | Layouts and the pointer | Downwards, rows, pile, fan, ticker, thumbnails, seven pointer effects | Done: 16 effects, 20 transitions |
+| 11 | WebGPU | A second layer that draws what the first draws, `canvas()` to choose, the comparison | Done on 2026-09-29 |
 
 ## Open
 
 - **Before 1.0:** the name and the licence (MIT is in `package.json` as a placeholder). The user on 2026-09-28: later. After 1.0 these cost a major version.
 - **A ticker with dots.** `marquee()` moves the slider past its slides without being at one. Telling `change` while it runs would make dots and thumbnails follow.
 - **Effects that lay out are cut** at the edge of the slider: the canvas is as large as the slider. A canvas that is larger than its slider by what an effect asks for would lift this.
-- **One context for all sliders of a page**, or drawing in a worker (`OffscreenCanvas`): the next steps for pages with many sliders. Both change how textures get to the canvas.
+- **Drawing in a worker** (`OffscreenCanvas`): the next step for pages with many sliders. It changes how textures get to the canvas. One device for all sliders of a page is there with WebGPU (decision 16).
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
 - **Canvas tests in WebKit that fail now and then.** "At rest the slides are as the page draws them" failed for two effects in one run of all browsers with `dist/` (the picture was compared before the canvas showed), and in no other run, nor in 276 runs of WebKit alone. Whether a visitor can see a frame without a picture there is not known. The test of the slider that goes down failed the same way more often, and waits for the picture now.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
@@ -327,6 +370,8 @@ Each phase ends with something that runs and with tests.
 - The ticker runs, stands still when it has to, and asks for no frame then.
 - `auto.js` makes the sliders of a page, and loads the canvas for those that ask.
 - All of it again with `dist/` (`npm run test:dist`).
+- All of it again drawn by WebGPU (`npm run test:gpu`), and every effect and transition drawn by both layers and compared.
+- `canvas()` takes the layer the browser can draw, or the one it is told.
 
 ## Risks
 
@@ -335,5 +380,6 @@ Each phase ends with something that runs and with tests.
 | Canvas and DOM content drift apart by a frame | Both are written in the same frame from the same `pos`; the canvas never reads layout while moving |
 | Texture memory on phones | Upload at drawn size, cap the size, free textures of slides far from view |
 | Shader compile stutter on the first move | The canvas is made when the pointer comes, not when it presses, and compiles on another thread; the page draws until it is ready |
-| Many sliders on one page | Context pool with a cap; the rest run as tier 2 |
+| Many sliders on one page | WebGPU: one device for all. WebGL: context pool with a cap; the rest run as tier 2 |
+| An effect of somebody that the translation to WGSL does not know | The error is logged, the page draws that slider; the README says what it knows |
 | Headless browsers without a GPU | Tests run with software WebGL and assert pixels, not looks |

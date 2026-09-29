@@ -449,6 +449,9 @@ export function gpu( {
 		const layer = {
 			name: 'gpu',
 
+			/** Makes a layer of this kind, for another slider. */
+			again: gpu,
+
 			/** The canvas, while the layer draws. */
 			get canvas() {
 				return context?.canvas || null;
@@ -575,6 +578,9 @@ export function gpu( {
 								} )
 						  )
 						: null;
+					context.views = context.targets?.map( ( target ) =>
+						target.createView()
+					);
 				}
 
 				const follow = 1 - Math.exp( -FOLLOW * dt );
@@ -742,11 +748,11 @@ export function gpu( {
 
 				const encoder = device.createCommandEncoder();
 				const screen = surface.getCurrentTexture().createView();
-				const [ colour, depth ] = context.targets || [];
+				const [ colour, depth ] = context.views || [];
 				const pass = encoder.beginRenderPass( {
 					colorAttachments: [
 						{
-							view: colour ? colour.createView() : screen,
+							view: colour || screen,
 							resolveTarget: colour && screen,
 							clearValue: [ 0, 0, 0, 0 ],
 							loadOp: 'clear',
@@ -755,7 +761,7 @@ export function gpu( {
 					],
 					...( depth && {
 						depthStencilAttachment: {
-							view: depth.createView(),
+							view: depth,
 							depthClearValue: 1,
 							depthLoadOp: 'clear',
 							depthStoreOp: 'discard',

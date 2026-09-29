@@ -20,7 +20,14 @@ export default defineConfig( {
 				baseURL: `http://localhost:${ site }`,
 				viewport: { width: 1300, height: 800 },
 				launchOptions: {
-					args: [ '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist' ],
+					// As below.
+					args:
+						process.env.LAYER === 'gpu'
+							? [ '--enable-unsafe-webgpu', '--use-angle=metal' ]
+							: [
+									'--enable-unsafe-swiftshader',
+									'--ignore-gpu-blocklist',
+							  ],
 				},
 			},
 		},

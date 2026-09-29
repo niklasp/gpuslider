@@ -399,6 +399,9 @@ export function gl( {
 		const layer = {
 			name: 'gl',
 
+			/** Makes a layer of this kind, for another slider. */
+			again: gl,
+
 			/** The canvas, while the layer draws. */
 			get canvas() {
 				return context?.spare.canvas || null;

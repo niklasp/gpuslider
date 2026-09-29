@@ -6,19 +6,23 @@
  *     <script type="module" src="…/shaderslide/dist/auto.js"></script>
  *
  *     <div class="ss" data-ss='{ "loop": true, "autoplay": 4000 }'
- *          data-ss-gl="stretch split">
+ *          data-ss-canvas="stretch split">
  *         <div class="ss-track"> … </div>
  *     </div>
  *
  *     data-ss            the options of `shaderslide/full`, as JSON, or
  *                        nothing
- *     data-ss-gl         the canvas, with the effects that are named:
+ *     data-ss-canvas     the canvas, with the effects that are named:
  *                        "stretch split", or with their options
- *                        '{ "stretch": { "amount": 2 } }'
+ *                        '{ "stretch": { "amount": 2 } }'. Drawn by WebGPU
+ *                        where the browser has it, by WebGL 2 where not
+ *     data-ss-gpu        the same, by WebGPU or not at all
+ *     data-ss-gl         the same, by WebGL 2 or not at all
  *     data-ss-lightbox   a lightbox, with effects as above
  *
  * The canvas and the lightbox are loaded when a slider asks for them, and
- * when the page has time: a page without them never loads them.
+ * when the page has time: a page without them never loads them, and no
+ * page loads the layer it does not draw with.
  *
  * An element tells when its slider is made: the event `ss:ready` has the
  * slider as its `detail` and goes up to the document. Later the slider is
@@ -50,16 +54,26 @@ export function auto( within = document ) {
 		if ( sliders.has( root ) ) {
 			return;
 		}
-		const { ss, ssGl, ssLightbox } = /** @type {HTMLElement} */ ( root )
-			.dataset;
+		const { ss, ssCanvas, ssGpu, ssGl, ssLightbox } =
+			/** @type {HTMLElement} */ ( root ).dataset;
 		const slider = createSlider( root, ss ? JSON.parse( ss ) : {} );
 		sliders.set( root, slider );
 		slider.on( 'destroy', () => sliders.delete( root ) );
 
-		if ( ssGl !== undefined || ssLightbox !== undefined ) {
+		const drawn = ssCanvas ?? ssGpu ?? ssGl;
+		if ( drawn !== undefined || ssLightbox !== undefined ) {
 			const win = root.ownerDocument.defaultView;
 			( win.requestIdleCallback || win.setTimeout )( async () => {
-				const canvas = await import( './gl/index.js' );
+				// A browser may know WebGPU and have nothing to run it on.
+				const can =
+					ssGpu !== undefined ||
+					( ssGl === undefined &&
+						( await win.navigator.gpu
+							?.requestAdapter()
+							.catch( () => null ) ) );
+				const canvas = can
+					? await import( './gpu/index.js' )
+					: await import( './gl/index.js' );
 				const effects = ( text ) =>
 					named( text ).flatMap( ( [ name, options ] ) =>
 						canvas[ name ] ? [ canvas[ name ]( options ) ] : []
@@ -67,12 +81,15 @@ export function auto( within = document ) {
 				if ( slider.signal.aborted ) {
 					return;
 				}
-				if ( ssGl !== undefined ) {
-					slider.use( canvas.gl( { effects: effects( ssGl ) } ) );
+				const layer = canvas.gpu || canvas.gl;
+				if ( drawn !== undefined ) {
+					slider.use( layer( { effects: effects( drawn ) } ) );
 				}
 				if ( ssLightbox !== undefined ) {
 					const { lightbox } = await import( './lightbox.js' );
-					slider.use( lightbox( { effects: effects( ssLightbox ) } ) );
+					slider.use(
+						lightbox( { effects: effects( ssLightbox ), layer } )
+					);
 				}
 			} );
 		}
