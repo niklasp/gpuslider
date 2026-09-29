@@ -149,6 +149,8 @@
 
 .gs-stack .gs-slide:not(:first-child) {
 	visibility: hidden;
+	/* And its images that wait for their place go on waiting. */
+	content-visibility: hidden;
 }
 
 .gs-stack .gs-media {

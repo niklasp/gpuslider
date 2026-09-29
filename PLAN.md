@@ -135,21 +135,24 @@ slider.destroy();
 |---|---|---|
 | Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.6 KB |
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
-| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7 KB | 6.9 KB |
+| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7 KB | 7.0 KB (7161 of 7168 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
-| Canvas layer of WebGL 2 without effects | 7 KB | 6.9 KB (7075 of 7168 B) |
-| Canvas layer of WebGPU without effects | 9 KB | 8.9 KB |
+| `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
+| Canvas layer of WebGL 2 without effects | 7 KB | 7.0 KB (7159 of 7168 B) |
+| Canvas layer of WebGPU without effects | 9 KB | 9.0 KB (9174 of 9216 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
+| `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.1 KB |
-| A page in React with arrows and dots | 5.5 KB | 5.2 KB |
-| The same with the canvas and one effect | 12.5 KB | 12.1 KB |
+| A page in React with arrows and dots | 6 KB | 5.7 KB |
+| The same with the canvas and one effect | 12.75 KB | 12.5 KB |
 
-Six budgets were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
+Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
 - **Canvas layer, 6 to 6.5 KB.** It got the late start, the compile on another thread, the speed of the pointer and the turn for sliders that go down (decisions 14 and 15). What a page loads first became less by it, what it loads in all became 0.6 KB more.
-- **Canvas layer, 6.5 to 6.75 KB.** For corners of the shape the page gives them with `corner-shape`: a squircle on the page is a squircle on the canvas, 0.1 KB. Without it, a slide with `corner-shape: squircle` has round corners on the canvas and squircles where the page draws.
-- **Canvas layer, 6.75 to 7 KB; lightbox, 2 to 2.25 KB; a page in React with the canvas, 12 to 12.5 KB.** The canvas of a slider draws the way into the lightbox and back itself (`lift`, and `fx`, `dim` and `clip` of `change`): the image leaves its slide with the effects it has there, they fade on the way, and nothing jumps where the lightbox takes over or gives back. Before, the lightbox drew a flat image from the box around the slide, and the effects came back at once at the end.
+- **Canvas layer, 6.5 to 6.75 KB, and `hit()`, 1 to 1.25 KB.** For the pointer in a slide as it is drawn (decision 22): 19 bytes in the layer, which had 3 left, and 0.15 KB in `hit()`. The same step of the layer is taken by the corners of the page's shape, which is work of the same day.
+- **Canvas layer, 6.75 to 7 KB; lightbox, 2 to 2.25 KB.** The canvas of a slider draws the way into the lightbox and back itself (`lift`, and `fx`, `dim` and `clip` of `change`): the image leaves its slide with the effects it has there, they fade on the way, and nothing jumps where the lightbox takes over or gives back. Before, the lightbox drew a flat image from the box around the slide, and the effects came back at once at the end. The corners of the shape the page gives with `corner-shape` are in the same layer: a squircle on the page is a squircle on the canvas, 0.1 KB.
+- **A page in React, 5.5 to 6 KB, and with the canvas 12 to 12.75 KB.** The page that is measured is made of the components now (decision 24), which are 0.4 KB more than the hook; the rest is what the layer grew by (decisions 22 and 27, and the way into the lightbox). The last quarter was taken when the two folders were put together (decision 29): each side was within 12.5 KB, both are 46 bytes over.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -276,14 +279,14 @@ The comparison (`npm run bench`, `bench/`; the numbers are in the README). Same 
 | Sliders on the canvas | 12 of a page | all | A page has about 16 contexts of WebGL, the layer takes 12 |
 | Script in a frame, for a slider | 0.02 to 0.03 ms | 0.03 to 0.06 ms | WebGPU is told more for a frame: an encoder, a pass, its views, its groups |
 | Late frames, 20 sliders moving | none | none | |
-| Size | 6.5 KB | 8.4 KB | The translation, and mipmaps that WebGPU does not make by itself |
+| Size | 6.6 KB | 8.5 KB | The translation, and mipmaps that WebGPU does not make by itself |
 | Reach | all | about 87 % | |
 
 Not measured: the time of the GPU; phones; a browser with a window (`--headed` does, and was not run here). Without a window Chromium draws every frame and shows it to nobody.
 
 One thing was made faster by the measuring: the views of the textures that a bent slide is drawn into were made on every frame, and are kept now.
 
-Budgets that I set, the user's to take back: the WebGPU layer 9 KB (8.4 measured), `canvas()` 0.5 KB (0.3).
+Budgets that I set, the user's to take back: the WebGPU layer 9 KB (8.5 measured), `canvas()` 0.5 KB (0.3).
 
 Open, for WebGPU: videos without a copy (`importExternalTexture`, which needs a shader of its own kind); one encoder for all sliders of a frame, which would save script in a frame (how much is not measured); drawing in a worker.
 
@@ -358,6 +361,106 @@ Reported by the user on 2026-09-29, with a picture of the covers in the playgrou
 - **The image of the lightbox grows, and no more.** `punch` is 0 where it was 0.4: the speed of the growing counted as speed for the effects, so an image with `stretch()` and `split()` bowed sideways while it opened. The option stays for who wants it.
 - **The wall swings less**: `jelly` at 0.4 of what it is, and springs that swing past once and a little (hold 16 and 10, where they were 8 and 4.5).
 
+### 22. The pointer is where it is seen
+
+Noticed with decision 21, and asked for by the user on 2026-09-29: "Pointer effects on turned slides. Waves, lens and the others still follow the slide's place on the page, not where the canvas draws it."
+
+- **An effect under the pointer had the pointer in the slide's place on the page.** On the covers the rings of `waves()` and the light of `spotlight()` were on the slide in whose place the pointer was, which is drawn elsewhere, and the cover at the edge that the pointer was on had none.
+- **`hit().uv()` says where the pointer is in a quad as it is drawn**: of the mesh of 8 by 8 squares the triangle the pointer is in, and in it the point. Both layers ask it for every quad they draw, when the plugin is there; a slider without an effect that lays out has no `hit()` and the layers do what they did.
+- **Past the edge of a slide the mesh goes on**: of a pointer that is not on the slide, the triangle that is nearest says where it is, as if it went on. So the light does not jump where a slide ends, and rings go on from one slide to the next as they do in a row.
+- **Nothing of the page is read for it.** The layer says the quad, which it has from the last layout; `hit()` reads the page for a click only.
+- **The speed of the pointer is not turned**: `uPointerSpeed` is in sizes of the slide as the page has it. On a cover that is turned away `smear()` and `shift()` pull a little more than the pointer moves.
+- **A test holds it**: with `spotlight()` and each of the five effects that lay out, the middle of what is lit is within 8 px of the pointer, across and downwards, on both layers (`tests/hit.spec.js`). Without the change six of the eight fail.
+
+### 23. The image grows out of the slide as it is drawn
+
+**Replaced on 2026-09-29, when the two folders were put together (decision 29).** The other session had done the same in another way, and further: the canvas of the slider draws the way into the lightbox itself (`lift`), with the effects of the slider, which fade on the way. That is what the lightbox does now. What follows is what was: the effect of the lightbox, the corners of `hit().where()` and their test are gone.
+
+Reported by the user on 2026-09-29: "the zoom is not canvas based right? i think it should be if possible. as image lag back now into some position".
+
+- **It was drawn by the canvas, and not as the slider draws the slide.** The image grew out of a box around the slide (decision 21): for a cover that is turned away a flat picture of the width of the cover. On the way back it came to lie on top of its neighbours as that flat picture, and was the turned cover in the next frame.
+- **`hit().where()` says the four corners of the slide as it is drawn**, each with where it is on the page and by how much its distance makes it smaller. The lightbox has an effect of its own that puts the mesh of the image between these corners, as on a plane that is seen from the side, and lets it go from there to where the image is flat. So a cover turns to the front while it grows, a card of the fan turns upright, and both go back the way they came.
+- **Only for the slide that grows**: the effect is for slides that are at their place in the lightbox, not for the ones next to it.
+- **A slide that is bent is near what is drawn, not the same.** Of a slide that `dome()` has bent the four corners say a plane. With the dome at 1.5 and three slides in view 4 of 100 points of the slide are not where they were; in the wall, where the slides are small, it is less. Considered: nine points and a curve through them, which is more to tell the shader for the one effect that bends.
+- **What the slider cuts, the lightbox does not**: a slide that is half out of the slider is whole as soon as it grows.
+- **On top of its neighbours**: the lightbox is on top of the page, so a cover that is behind another in the slider is in front of it while it grows. It is the part of a cover that another hides, a few px.
+- **A test holds it** for the five effects that lay out, across and downwards, on both layers: when the lightbox has opened by nothing yet, its canvas has drawn the slide where the slider has, in its colours (`tests/hit.spec.js`).
+
+### 24. In React the slider is a component
+
+Asked for by the user on 2026-09-29: "are you sure how the component is called is the best way. look at react swiper. we would want a component. or good dx. rethink".
+
+Before, React had a hook and the page wrote the markup with its classes (decision 11: "A component would have to decide about the markup of the slides, which is the page's"). What showed that this was not enough is the site itself: its own component around the hook has props that say when the slider is to be made again and when it is to measure, one that hands the slider out, and one that hears its events.
+
+- **`<Slider>` and `<Slide>`** in `gpuslider/react`, 0.6 KB on the core. `<Slider>` is the element with the class `gs` and the track in it; its children are the slides. What is in a slide is the page's as before: the image has the class `gs-media`.
+- **Options are props, and a change of one changes the slider that exists** (`slider.set()`): nothing is made again for `loop`. Swiper has its parameters as props as well; here a prop that changes takes no canvas away.
+- **Plugins are read when the slider is made.** Written in the JSX they are new with every render, and a slider that is made again for that would be made again for ever. For other plugins there is `remake`, a list as the dependencies of an effect. Considered: plugins that say what they were made with, to be compared, as Embla's do: code in every plugin, for a case that is rare.
+- **Listeners are the ones of the last render**: `onChange`, `onSettle`, and `on` for every event by its name. They are not what a slider is made again for either.
+- **`index`** moves the slider when it changes: state of React can say where the slider is.
+- **`useSliderContext()`** gives what is in a `<Slider>` the slider, and renders it again when the slider goes to another snap or has measured: `slider.canNext` in the JSX is what it is. Swiper's `useSwiper()` gives the instance and no more. The name is as `useForm()` and `useFormContext()` of React Hook Form: the one makes, the other finds.
+- **`around`** is what is in the slider beside its slides. Swiper has four slots for it; here `controls()` makes arrows and dots by itself, and buttons can be anywhere on the page (decision 12), so one place is enough.
+- **Not props: how many slides are in view, and the gap.** They are options of the core and so they are taken, but the way is CSS (decision 3): `--gs-per-view` in a class, which a media query can change.
+- **No JSX in `src/`**: the library is used as it is written, so the components are written with `createElement`.
+- **A class that React writes takes the classes of the slider away**, so the slider is made again when `className` changes.
+- **Not done**: the site's own component is still the one around the hook. It is to be made of `<Slider>`, which is when its `made` and `measured` go; it was left because other work is in that file on this day. A `<Slide>` that knows whether it is the active one (Swiper's `useSwiperSlide()`): the slider says it with `visible` and `change`.
+- **Tests**: the types of every prop are compiled (`tests/types/use.tsx`); the docs page for React has the components with state that moves the slider, a prop that changes it and arrows by the context, and a test that the slider is the same one after the prop changed (`site/tests/pages.spec.js`).
+
+### 25. In a stack the slide that is shown loads first
+
+From the list of what is open, asked for by the user on 2026-09-29: "A stack loads all its media at once. This is why the playground scores 89 on a phone instead of 96, and it affects the reel too."
+
+- **What was**: the slides of a stack are all in the place of the first, so images that wait for their place (`loading="lazy"`) did not wait, and Lighthouse took the film under the first picture of the playground for the largest paint of the page.
+- **A slide that is kept from the page lets its images wait**: `content-visibility: hidden`. Tried in Chromium, Firefox and WebKit: an image with `loading="lazy"` in such a slide, or in one with `display: none`, is not asked for, and is asked for when the slide is given back; in a slide with `visibility: hidden`, which is what a stack had, it is asked for at once. Images without `loading="lazy"`, posters and films load wherever they are.
+- **The style sheet keeps all slides but the first**, so before the script is there the first image is the only one that is asked for. **`stack()` gives back** the slides next to the one that is shown when its images are there, and the others when they are next. In a slider that goes round the last slide is next to the first.
+- **A film loads for `autoplay`, whatever `preload` says.** `videos()` takes `autoplay` away to start the films itself; now it also takes back what the browser has begun, for a film that says `preload="none"` and has no picture yet. What the browser began before the script was there, it began: on a fast line a small film is there by then.
+- **`loading()` is stronger**: it tells every image to load now, as before. The reel waits for all its media behind its screen, which is what it is for; nothing changed there.
+- **Measured** with Lighthouse as a phone on a slow line, the playground: 94 where it was 89, the largest paint at 3.1 s where it was 3.8 s, and it is the first picture of the first slider now. The machine was busy with tests of another session at the time.
+- **Tests**: what is asked for before the script, after it, after a step, and in a slider that goes round, in three browsers (`tests/core.spec.js`).
+
+### 26. A page to take to a phone
+
+From the list of what is open, asked for by the user on 2026-09-29: "A real phone. Touch feel, texture memory and video on iOS have only been reasoned about, never measured."
+
+- **No phone was measured.** There is none at this machine; a small window in a browser on a desk has no finger, no memory of a phone and no Safari of iOS. What there is now is what it takes to measure one: a page and a command.
+- **`/phone/`** says what the browser has (WebGPU and WebGL 2 with the largest texture, the pixels of the screen, memory and cores where they are said, whether the address is secure), has three sliders for the hand (a row that stretches, a stack with a film, covers that open) with twelve things to try and to say yes or no to, and measures by itself: a slider that moves for five seconds with each layer (the time to the first picture, how far the frames are apart in the middle, for 95 of 100 and at worst, how many were late, the script in a frame), then twelve sliders at once with each layer (how many the canvas draws, how many are left to the page, how often the canvas gave up). All of it is text at the end, to copy or to share.
+- **`npm run phone`** builds the site and serves it in the network with https. WebGPU is there only where the address is secure; an address in the network is not, without. The certificate is made by `openssl` and signed by nobody.
+- **Made of `<Slider>`** (decision 24), which it is the first page of the site to use beside the docs.
+- **Open until a phone has said it**: what a finger feels like, whether the film plays in its slide on iOS and is drawn by the canvas, how many sliders a phone gives a canvas to.
+
+### 27. A picture that is empty is asked for again
+
+From the list of what is open, asked for by the user on 2026-09-29: "The flaky WebKit test. It fails now and then, and prepublishOnly runs the full suite, so a publish would fail about as often."
+
+- **What it was**: WebKit gives a bitmap with nothing in it for an image that is loaded and decoded, probably because it has let go of the pixels since; why was not found out. It was seen for slides out of view on a machine that is busy: `createImageBitmap()` resolves, the bitmap has the size that was asked for, and every pixel of it is 0. The canvas took the slide over with it, so the slide stayed without its picture (the difference of 8.89 that the test of the slider that goes down saw every time). This is not the empty bitmap of an image that is not decoded yet, which `decode()` keeps away.
+- **A visitor could see it**, on a phone that is short of memory more likely than on a desk. It was a fault of the library, not of the test.
+- **Four by four pixels say whether a bitmap is empty** (`empty()` in `src/gl/fit.js`, for both layers). If it is, the canvas does not take the slide over, the page goes on drawing it, and the image is asked for again after 200 ms, ten times at most: after that the bitmap is taken as it is, because a picture may be transparent all over.
+- **Rejected: the image itself in place of the bitmap.** At that moment WebKit has nothing to draw of it either: WebGL got a black strip, WebGPU nothing.
+- **Measured**: the test of the slider that goes down, 18 times with each layer in WebKit beside other tests. The empty bitmap came 14 times in the 36 runs, and all 36 ended with the right picture. Before, the same test failed in 10 of 16 and in 4 of 16 runs. "At rest the slides are as the page draws them", which failed now and then the same way, has not failed since; it was too rare before for that to say much.
+- **It costs** 83 bytes in the WebGL layer and 80 in the one of WebGPU.
+- **A test gives the canvas what WebKit gives**: the first picture of every image is empty (`tests/gl.spec.js`). Without the check the canvas draws nothing of the slides, a difference of 154; with it the picture is the one of the page.
+- **The other test that failed now and then** was a fault of the test. In Chromium "a drag: dragstart, dragend with its velocity, change, settle" heard a `settle` before the drag, in 8 of 120 runs: the browser tells the sizes for the first time later in a frame than a test can ask whether the slider rests, the slider measures and says `settle` a frame after. The test listens from when the slider has rested for a frame now: 200 of 200 runs. That a slider says `settle` after it was measured, without having moved, is as it was, and the README says so now. It is the user's to change: a listener that counts what was seen by `settle` counts a resize too.
+
+### 28. The film of the site is a video, cut to a loop
+
+The user on 2026-09-29: "the film however needs some good loop", and then gave a video: `13794727_1280_720_30fps.mp4`, by its name one of Pexels (15 s, 1280 by 720, 18 MB). Someone walks into a tunnel of coloured lights.
+
+- **It is the film wherever the site showed film `a`**: first page, playground, reel, the docs of the canvas, the page for phones. `video( 'a' )` of `site/src/lib/media.ts` gives it. Film `b`, which stands upright, is the colour field it was, and jumps where it begins again as before. The tests keep the films that are made (`media/a.mp4`, `media/b.mp4`): they compare pixels.
+- **The video does not loop by itself**: its last picture is not its first. The loop is between the two moments that are most alike, found by comparing five pictures of every second with each other (6.6 s and 14.2 s: a difference of 14, where half of all pairs have 52 and more), and what comes after the second fades into what comes after the first in 0.6 s. The one who walks is in the same place at both, so nobody is seen twice in the fade.
+- **`media/film.mp4`**: 7.6 s, 960 by 540, 30 pictures a second, H.264, 1.8 MB, no sound. The video is soft; at 1280 by 720 the film was 3.5 MB and looked the same. `bin/make-film.mjs` makes it and its poster of the video, which is not in the repo.
+- **It flashes.** The brightness of the whole picture turns by a tenth of all there is up to eight times in a second of the loop, which is four flashes; three is where WCAG 2.3.1 draws the line. It was measured roughly, of pictures of 64 by 36. `photosensitivity` of ffmpeg takes every flash out and the colour with it: grey and smeared, so it was not done. `videos()` plays films for visitors who ask for less motion too. **Open, the user's to decide before the site is public**: another part of the video, the filter, or no film for those who ask for less motion.
+- **The licence of Pexels** lets the video be used and changed without a name being said. It was not read again for this, and whether it is the same for a file in a public repo is the user's to check before the repo is public.
+
+### 29. Two folders, put together
+
+On 2026-09-29 two sessions worked in the repo at once: one in `~/code/shaderslide` on `main`, which named the library (gpu slider, `gpuslider`, `gs-`), made the first page anew, the photos, three more examples and the way into the lightbox; one in a worktree, `~/code/shaderslide-work` on `work`, with decisions 22 to 28. The user: "why not merge this to the other?"
+
+- **The work of `main` was not committed.** It was taken as it was into a commit of its own (`other-snapshot`), with an index of its own, so that nothing in that folder changed. What is done there after it is not in here.
+- **The names first**: the rename of the other side was made on `work` too, by its rules, before the two were put together. 38 files were in conflict then; in 20 of them only the way the name is written differed.
+- **The lightbox is the one of `main`** (see decision 23). **The first page is the one of `main`.**
+- **The film is the film, whatever the pictures are.** The site of `main` lets a visitor choose between colour fields and photos, and had a photo in the place of every film of the photos. Film `a` is the user's video in both (decision 28); `b` is the colour field that moves, and a photo where the pictures are photos, as before. The first page and the playground say "Moving colour field" of `a` in their code, which the other session is changing: the slide says what is in the film whatever they say.
+- **Sizes**: the layer of WebGL had 3 bytes too many with the work of both in it. The check for an empty picture (decision 27) uses the helper that draws a picture smaller, which both layers have, and the layer is at 7159 of 7168 bytes. One budget was raised, see decision 11.
+- **Branch `together`**, in the worktree. `main` gets it when the other session has committed what it has.
+
 ## Modules
 
 | File | Does |
@@ -369,7 +472,7 @@ Reported by the user on 2026-09-29, with a picture of the covers in the playgrou
 | `src/index.js` | `createSlider()`: options, events, plugins |
 | `src/full.js` | The core with the plugins that options switch |
 | `src/auto.js` | Sliders from `data-gs`, without a script of one's own |
-| `src/react.js` | `useSlider` |
+| `src/react.js` | `<Slider>`, `<Slide>`, `useSliderContext()`, `useSlider()` |
 | `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
 | `src/loading.css` | The screen of `loading()`, for pages that have none of their own |
 | `src/lightbox.js`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
@@ -423,11 +526,9 @@ Each phase ends with something that runs and with tests.
 - **Effects that lay out are cut** at the edge of the slider: the canvas is as large as the slider. A canvas that is larger than its slider by what an effect asks for would lift this.
 - **Drawing in a worker** (`OffscreenCanvas`): the next step for pages with many sliders. It changes how textures get to the canvas. One device for all sliders of a page is there with WebGPU (decision 16).
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
-- **Canvas tests in WebKit that fail now and then.** "At rest the slides are as the page draws them" failed for two effects in one run of all browsers with `dist/` (the picture was compared before the canvas showed), and in no other run, nor in 276 runs of WebKit alone. It did so again on 2026-09-29 after decision 20, with `dist/`: for one effect in a run of all browsers, and for another in 1 of 42 runs of WebKit alone. Whether a visitor can see a frame without a picture there is not known. The test of the slider that goes down failed the same way more often, and waits for the picture now. It still fails in WebKit when other tests run beside it, with the same difference every time (8.89): on 2026-09-29 in 10 of 16 runs at `8851367` (before `canvas()` and the parameters that can be written into), in 4 of 16 after, in none of 8 when it runs alone; sixteen runs do not say that it got better. A slide that came into view while the slider is held stays without its picture then. With WebGPU it did not fail.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
-- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.5 of 6.5 KB).
-- **A stack loads all its media at once.** Its slides are all where the first is, so images that wait for their place (`loading="lazy"`) do not wait, and a video that starts by itself starts under the slide that is shown. The playground has a stack at its top since decision 19: on a slow phone Lighthouse takes the film under the first picture for the largest paint, at 3.8 s, and says 89 where the page had 96. A visitor sees the first picture after 1.1 s. Slides of a stack that are not shown could keep their media from loading until they are next.
+- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.6 of 6.75 KB).
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
@@ -461,7 +562,7 @@ Each phase ends with something that runs and with tests.
 - The pages of the site that are made of the library: their loading screens, the wall moved both ways by a drag, the wheel and the keys; in the playground the loading section and the three effects (`site/tests/demos.spec.js`).
 - The first page: its numbers are the ones that were measured, every feature and every link leads to a page that is there, its sliders are drawn by the canvas; the examples; every page of the docs, its links, and the sliders that show what it says; five pages on a screen as wide as a phone (`site/tests/pages.spec.js`).
 - A stack that is said in the HTML is one before the script, and nothing moves when it comes.
-- What `hit()` says is what the canvas has drawn, for every effect that lays out; a click on a cover at the edge is a click on that cover (`tests/hit.spec.js`).
+- What `hit()` says is what the canvas has drawn, for every effect that lays out; a click on a cover at the edge is a click on that cover; the light of `spotlight()` is where the pointer is on slides that are turned; the lightbox starts with the slide as it is drawn (`tests/hit.spec.js`).
 - A click on a slider that moves holds it, and is a click on the slide under it.
 - A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).

@@ -104,3 +104,17 @@ export function fit( iw, ih, box, qw, qh, style, out ) {
 	out[ 12 ] = dh;
 	return dw;
 }
+
+/**
+ * Whether a picture has nothing in it. WebKit gives such a bitmap now and
+ * then for an image that is loaded and decoded: seen for slides out of
+ * view, on a machine that is busy.
+ *
+ * @param {OffscreenCanvas} canvas The picture, drawn four by four.
+ * @return {boolean} Nothing in it.
+ */
+export const empty = ( canvas ) =>
+	! canvas
+		.getContext( '2d' )
+		.getImageData( 0, 0, 4, 4 )
+		.data.some( ( n ) => n );

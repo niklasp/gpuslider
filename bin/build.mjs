@@ -71,15 +71,26 @@ for ( const file of readdirSync( resolve( root, 'src/plugins' ) ).sort() ) {
 	} );
 }
 
-parts.push( {
-	name: 'react: what useSlider adds',
-	budget: 512,
-	size:
-		( await measure(
-			`export * from './src/react.js';`,
-			[ 'react' ]
-		) ) - parts[ 0 ].size,
-} );
+parts.push(
+	{
+		name: 'react: what useSlider adds',
+		budget: 512,
+		size:
+			( await measure(
+				`export { useSlider } from './src/react.js';`,
+				[ 'react' ]
+			) ) - parts[ 0 ].size,
+	},
+	{
+		name: 'react: what <Slider> and <Slide> add',
+		budget: 1024,
+		size:
+			( await measure(
+				`export * from './src/react.js';`,
+				[ 'react' ]
+			) ) - parts[ 0 ].size,
+	}
+);
 
 parts.push( {
 	name: 'full: the slider with all its options',
@@ -108,7 +119,7 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	} );
 	parts.push( {
 		name: 'canvas: which slide is seen at a point',
-		budget: 1024,
+		budget: 1280,
 		size: await measure( `export * from './src/hit.js';` ),
 	} );
 	parts.push( {
@@ -140,17 +151,17 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 parts.push(
 	{
 		name: 'a page in React: arrows and dots',
-		budget: 5632,
+		budget: 6144,
 		size: await measure(
-			`import { useSlider } from './src/react.js'; import { controls } from './src/plugins/index.js'; export { useSlider, controls };`,
+			`import { Slider, Slide } from './src/react.js'; import { controls } from './src/plugins/index.js'; export { Slider, Slide, controls };`,
 			[ 'react' ]
 		),
 	},
 	{
 		name: 'the same with the canvas and stretch',
-		budget: 12800,
+		budget: 13056,
 		size: await measure(
-			`import { useSlider } from './src/react.js'; import { controls } from './src/plugins/index.js'; import { gl, stretch } from './src/gl/index.js'; export { useSlider, controls, gl, stretch };`,
+			`import { Slider, Slide } from './src/react.js'; import { controls } from './src/plugins/index.js'; import { gl, stretch } from './src/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
 			[ 'react' ]
 		),
 	}

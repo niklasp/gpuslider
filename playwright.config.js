@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const port = 4174;
-const site = 5184;
+// Two folders of the same repo can be tested at once: each with its own
+// ports, PORT=4274 SITE=5284.
+const port = Number( process.env.PORT ) || 4174;
+const site = Number( process.env.SITE ) || 5184;
 
 export default defineConfig( {
 	testDir: 'tests',

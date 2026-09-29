@@ -1,0 +1,21 @@
+/*
+ * The page for phones: the sliders that are measured.
+ */
+
+/* Twelve at once: small, one slide each. */
+.cards.small {
+	--gs-per-view: 1 !important;
+	--gs-gap: 0px;
+}
+
+.cards.small .card {
+	aspect-ratio: 1;
+	border-radius: 4px;
+}
+
+/* What controls() makes, where the page has made no buttons. */
+#row,
+#turning,
+#opening {
+	padding-bottom: 8px;
+}

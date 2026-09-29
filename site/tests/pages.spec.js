@@ -190,8 +190,11 @@ test.describe( 'the first page', () => {
 		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
 		await pictures.getByRole( 'button', { name: 'Photos' } ).click();
 		await expect( first ).toHaveAttribute( 'src', '/media/p3-960.avif' );
-		// The film has a photo in its place too.
-		await expect( page.locator( '#first video' ) ).toHaveCount( 0 );
+		// The film of the photos is a film of its own.
+		await expect( page.locator( '#first video' ) ).toHaveAttribute(
+			'src',
+			'/media/film.mp4'
+		);
 		// The slider is made again, with the canvas.
 		await page.waitForFunction(
 			() => window.sliders.first.slides[ 0 ].querySelector( 'img' ).src.includes( '/p3-' )
@@ -212,7 +215,7 @@ test.describe( 'the first page', () => {
 		const code = page.getByRole( 'tabpanel' );
 		await expect( code ).toContainText( `import { createSlider } from 'gpuslider';` );
 		await page.getByRole( 'tab', { name: 'React' } ).click();
-		await expect( code ).toContainText( 'useSlider(' );
+		await expect( code ).toContainText( '<Slider' );
 		await page.getByRole( 'tab', { name: 'No script of your own' } ).click();
 		await expect( code ).toContainText( 'data-gs-canvas="stretch waves"' );
 	} );
@@ -445,4 +448,97 @@ test.describe( 'on a phone', () => {
 			).toBe( 390 );
 		} );
 	}
+} );
+
+test.describe( 'the components of React', () => {
+	test( 'options are props, state moves the slider, and what is in it has it', async ( { page } ) => {
+		await page.goto( '/docs/react/' );
+		const slider = page.locator( '#react' );
+		await expect( slider ).toHaveClass( /gs-on/ );
+		await expect( slider.locator( '.gs-track > .gs-slide' ) ).toHaveCount( 6 );
+		const said = page.getByTestId( 'react' ).locator( 'output' );
+		const back = slider.getByRole( 'button', { name: 'Previous slide' } );
+		const on = slider.getByRole( 'button', { name: 'Next slide' } );
+		const first = () =>
+			slider.locator( '.gs-slide' ).first().evaluate(
+				( slide ) => slide.getBoundingClientRect().left - slide.parentElement.parentElement.getBoundingClientRect().left
+			);
+
+		// An arrow that has the slider by the context.
+		await expect( back ).toBeDisabled();
+		await on.click();
+		await expect( said ).toHaveText( '2 of 6' );
+		await expect( back ).toBeEnabled();
+		await expect.poll( first ).toBeLessThan( -100 );
+
+		// State of React moves it.
+		await page.getByRole( 'button', { name: 'To 1', exact: true } ).click();
+		await expect( said ).toHaveText( '1 of 6' );
+		await expect.poll( first ).toBeGreaterThan( -1 );
+		await expect( back ).toBeDisabled();
+
+		// A prop changes the slider that exists: it is not made again.
+		await page.evaluate( () => {
+			window.kept = window.sliders.react;
+		} );
+		await page.getByRole( 'button', { name: 'loop', exact: true } ).click();
+		await expect( back ).toBeEnabled();
+		await back.click();
+		await expect( said ).toHaveText( '6 of 6' );
+		expect(
+			await page.evaluate( () => [
+				window.kept === window.sliders.react,
+				window.kept.options.loop,
+			] )
+		).toEqual( [ true, true ] );
+		await expect( slider ).toHaveClass( /gs-on/ );
+	} );
+} );
+
+test.describe( 'the page for phones', () => {
+	test.use( { viewport: { width: 412, height: 823 } } );
+
+	test( 'says what the browser has, measures, and writes it down', async ( { page } ) => {
+		test.slow();
+		await page.goto( '/phone/' );
+		await expect( page.getByTestId( 'has' ).getByRole( 'row' ) ).toHaveCount( 12 );
+		await expect(
+			page.getByTestId( 'has' ).getByRole( 'row', { name: 'WebGL 2' } )
+		).toContainText( /^WebGL 2(yes|no)/ );
+		for ( const id of [ 'row', 'turning', 'opening' ] ) {
+			await expect( page.locator( `#${ id }` ) ).toHaveClass( /gs-on/ );
+		}
+		// As wide as the screen.
+		expect(
+			await page.evaluate(
+				() => document.documentElement.scrollWidth <= innerWidth
+			)
+		).toBe( true );
+
+		// What was tried is kept, and said.
+		const tried = page.getByRole( 'group', { name: /A flick goes on/ } );
+		await tried.getByRole( 'button', { name: 'yes' } ).click();
+		const report = page.getByTestId( 'report' );
+		await expect( report ).toHaveValue( /\[yes\] A flick goes on/ );
+		await expect( report ).toHaveValue( /not measured/ );
+
+		await page.getByRole( 'button', { name: 'Measure' } ).click();
+		await expect( report ).toHaveValue( /Twelve sliders, WebGPU asked/, {
+			timeout: 60000,
+		} );
+		const said = await report.inputValue();
+		expect( said ).toMatch( /WebGL asked, (WebGL|the page) drew/ );
+		expect( said ).toMatch( /\d+ frames, [\d.]+ ms apart in the middle/ );
+		await expect( page.getByTestId( 'runs' ).getByRole( 'row' ) ).toHaveCount( 3 );
+		await expect( page.getByRole( 'button', { name: 'Measure' } ) ).toBeEnabled();
+		// Every slider that was made for it has ended.
+		await expect( page.locator( '[data-measured].gs-on' ) ).toHaveCount( 0 );
+
+		await page.reload();
+		await expect(
+			page
+				.getByRole( 'group', { name: /A flick goes on/ } )
+				.getByRole( 'button', { name: 'yes' } )
+		).toHaveAttribute( 'aria-pressed', 'true' );
+	} );
 } );

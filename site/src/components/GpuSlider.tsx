@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 // Classes that do not contradict each other need no merger.
 const cn = ( ...classes: ( string | undefined )[] ) =>
 	classes.filter( Boolean ).join( ' ' );
-import { image, photo, useKind, video } from '@/lib/media';
+import { FILM, filmed, image, photo, useKind, video } from '@/lib/media';
 
 type Props = {
 	id: string;
@@ -314,11 +314,11 @@ export function Slide( {
 	const kind = useKind();
 	return (
 		<div className={ cn( 'gs-slide', className ) }>
-			{ name && kind === 'fields' ? (
+			{ name && filmed( name, kind ) ? (
 				<video
 					className="gs-media"
 					{ ...video( name ) }
-					aria-label={ alt }
+					aria-label={ name === 'a' ? FILM : alt }
 					preload="none"
 					muted
 					playsInline

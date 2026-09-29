@@ -5,6 +5,10 @@
  * Videos that start by themselves (`autoplay`) would do so wherever they
  * are: the plugin starts them instead. A video the visitor has stopped
  * stays stopped.
+ *
+ * And they would load wherever they are. One that says `preload="none"`
+ * is loaded when its slide comes into view, and not before: what the
+ * browser has begun for `autoplay` is taken back.
  */
 import { onScreen } from './screen.js';
 
@@ -33,6 +37,9 @@ export function videos() {
 				video.autoplay = false;
 				video.pause();
 				resume.add( video );
+				if ( video.preload === 'none' && video.readyState < 2 ) {
+					video.load();
+				}
 			} );
 		};
 		read();

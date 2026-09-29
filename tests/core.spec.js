@@ -406,6 +406,74 @@ test.describe( 'stack', () => {
 	} );
 } );
 
+test.describe( 'a stack whose images wait for their place', () => {
+	const asked = ( page ) => {
+		const all = [];
+		page.on( 'request', ( request ) => {
+			const [ , name ] = request.url().match( /(\d)\.jpg\?waits/ ) || [];
+			if ( name ) {
+				all.push( Number( name ) );
+			}
+		} );
+		return all;
+	};
+	const make = ( page, options ) =>
+		page.evaluate(
+			async ( [ from, given ] ) => {
+				const { createSlider } = await import( `/${ from }/index.js` );
+				const { stack } = await import(
+					`/${ from }/plugins${ from === 'dist' ? '' : '/index' }.js`
+				);
+				window.slider = createSlider( document.getElementById( 'waits' ), {
+					...given,
+					plugins: [ stack() ],
+				} );
+			},
+			[ process.env.FROM || 'src', options ]
+		);
+
+	test( 'before the script the first image is asked for, and no other', async ( { page } ) => {
+		const all = asked( page );
+		await page.goto( '/tests/plain.html' );
+		await page.waitForLoadState( 'load' );
+		await page.waitForTimeout( 500 );
+		expect( all ).toEqual( [ 1 ] );
+	} );
+
+	test( 'then the ones next to it, and the others when they are next', async ( { page } ) => {
+		const all = asked( page );
+		await page.goto( '/tests/plain.html' );
+		await make( page, {} );
+		await expect.poll( () => all ).toEqual( [ 1, 2 ] );
+		await page.waitForTimeout( 500 );
+		expect( all ).toEqual( [ 1, 2 ] );
+		await page.evaluate( () => window.slider.next() );
+		await settled( page );
+		await expect.poll( () => all ).toEqual( [ 1, 2, 3 ] );
+		await page.evaluate( () => window.slider.to( 4, { instant: true } ) );
+		await expect.poll( () => [ ...all ].sort() ).toEqual( [ 1, 2, 3, 4, 5 ] );
+		// What the slider has done to the slides goes with it.
+		await page.evaluate( () => window.slider.destroy() );
+		expect(
+			await page
+				.locator( '#waits .gs-slide' )
+				.evaluateAll( ( slides ) =>
+					slides.map( ( slide ) => slide.style.contentVisibility )
+				)
+		).toEqual( [ '', '', '', '', '' ] );
+	} );
+
+	test( 'in a slider that goes round, the last is next to the first', async ( { page } ) => {
+		const all = asked( page );
+		await page.goto( '/tests/plain.html' );
+		await make( page, { loop: true } );
+		await expect.poll( () => [ ...all ].sort() ).toEqual( [ 1, 2, 5 ] );
+		await page.waitForTimeout( 500 );
+		expect( [ ...all ].sort() ).toEqual( [ 1, 2, 5 ] );
+		expect( all[ 0 ] ).toBe( 1 );
+	} );
+} );
+
 test.describe( 'a stack that is said in the HTML', () => {
 	const seen = ( page ) =>
 		page.locator( '#stacked .gs-slide' ).evaluateAll( ( slides ) =>

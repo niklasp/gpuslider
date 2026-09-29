@@ -14,6 +14,7 @@ import { Footer, Nav, WIDTH } from '@/components/Frame';
 const DEMOS: Record< string, ComponentType > = {
 	'': lazy( () => import( './demos/Start' ) ),
 	html: lazy( () => import( './demos/Html' ) ),
+	react: lazy( () => import( './demos/React' ) ),
 	layout: lazy( () => import( './demos/Layout' ) ),
 	options: lazy( () => import( './demos/Events' ) ),
 	plugins: lazy( () => import( './demos/Plugins' ) ),

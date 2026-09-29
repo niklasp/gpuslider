@@ -35,6 +35,34 @@ async function compare( page, setup, act = () => {} ) {
 }
 
 test.describe( 'the canvas draws what the page would', () => {
+	test( 'a picture that comes empty is asked for again', async ( { page } ) => {
+		const setup = { n: 4 };
+		await open( page, setup );
+		const plain = await shot( page );
+		// As WebKit does now and then: the first picture of every image
+		// has the size that was asked for and nothing in it.
+		await page.addInitScript( () => {
+			const make = window.createImageBitmap;
+			const seen = new Set();
+			window.createImageBitmap = ( source, options ) => {
+				if ( ! source.src || seen.has( source.src ) ) {
+					return make( source, options );
+				}
+				seen.add( source.src );
+				return make(
+					new ImageData( options.resizeWidth, options.resizeHeight )
+				);
+			};
+			window.emptied = seen;
+		} );
+		await open( page, { ...setup, plugins: 'gl' } );
+		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
+		await painted( page );
+		expect( await page.evaluate( () => window.emptied.size ) ).toBeGreaterThan( 0 );
+		const { mean } = await difference( page, plain, await shot( page ) );
+		expect( mean ).toBeLessThan( 2 );
+	} );
+
 	test( 'one per view', async ( { page } ) => {
 		const { mean, far } = await compare( page, { n: 4 } );
 		expect( mean ).toBeLessThan( 2 );

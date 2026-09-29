@@ -128,11 +128,24 @@ export function image( n: number | 'a' | 'b', of: Kind = 'fields' ) {
 	};
 }
 
+/**
+ * What is in the film `a`: video 13794727 of Pexels, cut to a loop by
+ * `bin/make-film.mjs`. It is the film whatever the pictures are.
+ */
+export const FILM = 'Someone walking into a tunnel of coloured lights';
+
+/**
+ * Whether there is a film of that name in the pictures chosen: `b` is a
+ * colour field that moves, and a photo where the pictures are photos.
+ */
+export const filmed = ( name: 'a' | 'b', of: Kind = 'fields' ) =>
+	of === 'fields' || name === 'a';
+
 /** What a `<video>` needs. */
 export const video = ( name: 'a' | 'b' ) => ( {
-	src: `/media/${ name }.mp4`,
-	poster: `/media/${ name }-poster.avif`,
+	src: `/media/${ name === 'a' ? 'film' : name }.mp4`,
+	poster: `/media/${ name === 'a' ? 'film' : name }-poster.avif`,
 	...( name === 'a'
-		? { width: 1280, height: 720 }
+		? { width: 960, height: 540 }
 		: { width: 960, height: 1200 } ),
 } );

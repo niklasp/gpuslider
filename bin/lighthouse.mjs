@@ -16,7 +16,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium } from '@playwright/test';
 
-const port = 5190;
+// Another port when this one is taken: LIGHTHOUSE=5290.
+const port = Number( process.env.LIGHTHOUSE ) || 5190;
 const given = process.argv.slice( 2 );
 const pages = given.length
 	? given

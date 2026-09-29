@@ -40,7 +40,6 @@ import {
 	cells,
 	parallax,
 	shift,
-	fold,
 	glitch,
 	liquid,
 	mosaic,

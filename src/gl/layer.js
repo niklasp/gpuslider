@@ -586,10 +586,13 @@ export function gl( {
 						g.uniform4f( at.uQuad, x, y, w, h );
 					}
 					turn( ( u, v ) => g.uniform2f( at.uSize, u, v ), w, h );
+					// In the quad as it is drawn, where effects lay it out.
 					turn(
 						( u, v ) => g.uniform2f( at.uPointer, u, v ),
-						( pointer.x - x ) / w,
-						( pointer.y - y ) / h
+						...( slider.plugins.hit?.uv( x, y, w, h, progress, pointer ) || [
+							( pointer.x - x ) / w,
+							( pointer.y - y ) / h,
+						] )
 					);
 					turn(
 						( u, v ) => g.uniform2f( at.uPointerSpeed, u, v ),

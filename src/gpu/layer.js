@@ -665,7 +665,14 @@ export function gpu( {
 					data[ from + at.uFrame + 3 ] = down ? frame[ 2 ] : frame[ 3 ];
 					one( 'uFx', fx );
 					one( 'uDim', dim );
-					two( 'uPointer', ( pointer.x - x ) / w, ( pointer.y - y ) / h );
+					// In the quad as it is drawn, where effects lay it out.
+					two(
+						'uPointer',
+						...( slider.plugins.hit?.uv( x, y, w, h, progress, pointer ) || [
+							( pointer.x - x ) / w,
+							( pointer.y - y ) / h,
+						] )
+					);
 					two( 'uPointerSpeed', pointer.vx / w, pointer.vy / h );
 					one( 'uTime', now / 1000 );
 					one( 'uPointerIn', pointer.in );

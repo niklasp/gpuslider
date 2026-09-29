@@ -84,7 +84,7 @@ A slider is an element with a track in it, and the slides are the children of th
 	{
 		slug: 'react',
 		title: 'React',
-		lead: 'A hook. React renders the slides, the library moves them.',
+		lead: 'Two components, and a hook for markup of your own. React renders the slides, the library moves them.',
 		parts: [ { part: 'In React', bare: true } ],
 	},
 	{

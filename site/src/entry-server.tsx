@@ -13,6 +13,7 @@ import Playground from './pages/playground/Playground';
 import Wall from './pages/wall/Wall';
 import Reel from './pages/reel/Reel';
 import Tape from './pages/tape/Tape';
+import Phone from './pages/phone/Phone';
 import Loom from './pages/loom/Loom';
 import Wave from './pages/wave/Wave';
 import Depth from './pages/depth/Depth';
@@ -37,6 +38,7 @@ export const pages: Record< string, Page > = {
 	'examples/wave/index.html': { page: () => <Wave /> },
 	'examples/depth/index.html': { page: () => <Depth /> },
 	'playground/index.html': { page: () => <Playground /> },
+	'phone/index.html': { page: () => <Phone /> },
 	...Object.fromEntries(
 		docs.map( ( { slug, address, title, lead } ) => [
 			`${ address.slice( 1 ) }index.html`,
