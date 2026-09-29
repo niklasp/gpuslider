@@ -56,7 +56,9 @@ export function stack() {
 					if ( near !== shown[ i ] ) {
 						shown[ i ] = near;
 						const { style } = slides[ i ];
-						style.visibility = near ? '' : 'hidden';
+						// Said, not left to the page: until it is said, the
+						// first slide is the one that is seen.
+						style.visibility = near ? 'visible' : 'hidden';
 						style.zIndex = p > 0 ? '1' : '0';
 						style.setProperty( '--ss-near', String( near ) );
 						style.setProperty( '--ss-cover', String( p > 0 ? near : 1 ) );

@@ -550,7 +550,7 @@ createSlider( element, {
 } );
 ```
 
-A stack in the first view of a page says so in its HTML: `class="ss ss-stack"`. Then the slides are on top of each other before the script is there, and nothing of the page gives way when it comes. Without the script such a slider shows its first slide, and is no scroller.
+A stack in the first view of a page says so in its HTML: `class="ss ss-stack"`. Then the slides are on top of each other before the script is there, and nothing of the page gives way when it comes. Without the script such a slider shows its first slide, and is no scroller: the slides after the first cannot be reached then. It is for a stack that starts at its first slide.
 
 ### Your own
 

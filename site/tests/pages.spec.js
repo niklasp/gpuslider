@@ -35,15 +35,27 @@ const errors = ( page ) => {
 	return said;
 };
 
-/** Points at a slider and waits for its canvas. */
+/**
+ * Points at a slider and waits for its canvas. The pointer goes on moving,
+ * as a hand does: a slider that is made again hears it when it is there.
+ */
 async function drawn( page, id ) {
 	const slider = page.locator( `#${ id }` );
 	await slider.scrollIntoViewIfNeeded();
 	const box = await slider.boundingBox();
-	await page.mouse.move( box.x + box.width / 2, box.y + box.height / 2 );
-	await expect( slider.locator( '.ss-drawn' ).first() ).toBeAttached( {
-		timeout: 15000,
-	} );
+	let moved = 0;
+	await expect
+		.poll(
+			async () => {
+				await page.mouse.move(
+					box.x + box.width / 2 + ( moved++ % 10 ),
+					box.y + box.height / 2
+				);
+				return slider.locator( '.ss-drawn' ).count();
+			},
+			{ timeout: 15000 }
+		)
+		.toBeGreaterThan( 0 );
 }
 
 /** Where the links of a page lead that stay on the site. */

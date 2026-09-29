@@ -8,12 +8,12 @@
 		"plugin: loading": 974,
 		"plugin: marquee": 881,
 		"plugin: progress": 305,
-		"plugin: stack": 424,
+		"plugin: stack": 427,
 		"plugin: thumbs": 481,
 		"plugin: videos": 443,
 		"plugin: wheel": 347,
 		"react: what useSlider adds": 122,
-		"full: the slider with all its options": 6725,
+		"full: the slider with all its options": 6726,
 		"canvas layer, no effects": 6653,
 		"canvas: what chooses the layer": 264,
 		"canvas layer of WebGPU, no effects": 8565,
@@ -61,17 +61,17 @@
 		"lightbox": 1677
 	},
 	"dist": {
-		"auto.js": 7940,
+		"auto.js": 7943,
 		"canvas.js": 282,
 		"effects.js": 5082,
-		"full.js": 9322,
+		"full.js": 9324,
 		"gl.js": 11874,
 		"gpu.js": 13681,
 		"index.js": 4583,
 		"lightbox.css": 649,
 		"lightbox.js": 8349,
 		"loading.css": 393,
-		"plugins.js": 4617,
-		"style.css": 684
+		"plugins.js": 4619,
+		"style.css": 683
 	}
 }

@@ -423,7 +423,7 @@ test.describe( 'a stack that is said in the HTML', () => {
 			'hidden 100 380 800 300',
 			'hidden 100 380 800 300',
 		] );
-		await page.evaluate( async ( from ) => {
+		const made = await page.evaluate( async ( from ) => {
 			const { createSlider } = await import( `/${ from }/index.js` );
 			const { stack } = await import(
 				`/${ from }/plugins${ from === 'dist' ? '' : '/index' }.js`
@@ -431,7 +431,12 @@ test.describe( 'a stack that is said in the HTML', () => {
 			window.slider = createSlider( document.getElementById( 'stacked' ), {
 				plugins: [ stack() ],
 			} );
+			// At once: before the slider has drawn a frame.
+			return window.slider.slides.map(
+				( slide ) => getComputedStyle( slide ).visibility
+			);
 		}, process.env.FROM || 'src' );
+		expect( made ).toEqual( [ 'visible', 'hidden', 'hidden' ] );
 		await expect( page.locator( '#stacked' ) ).toHaveClass( /ss-on/ );
 		expect( await seen( page ) ).toEqual( before );
 		await page.evaluate( () => window.slider.next() );
