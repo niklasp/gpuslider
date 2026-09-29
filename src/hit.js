@@ -35,34 +35,44 @@ export function hit( { effects = [], perspective = 1200 } = {} ) {
 		const { root, slides } = slider;
 
 		/**
-		 * The mesh of a slide as the canvas draws it.
+		 * Where the root is on the page, and how much larger than it is
+		 * laid out: what is measured here is measured in the root, as the
+		 * canvas has it.
 		 *
-		 * @param {number} i Slide.
-		 * @return {number[] | null} For every point x and y on the page
-		 *                           and how far it is from the eye; null
-		 *                           when the canvas does not draw the slide.
+		 * @return {number[]} Left, top, scale.
 		 */
-		const mesh = ( i ) => {
-			const media = slides[ i ].querySelector( '.ss-media' );
-			const layer = slider.plugins.gpu || slider.plugins.gl;
-			if ( ! media || ! layer?.shows( media ) ) {
-				return null;
-			}
-			const { width, height, y: down, rtl } = slider.layout();
-			const { places, velocity } = slider.view;
+		const page = () => {
 			const around = root.getBoundingClientRect();
 			const scale = around.width / root.offsetWidth || 1;
-			const left = around.left + root.clientLeft * scale;
-			const top = around.top + root.clientTop * scale;
-			const box = media.getBoundingClientRect();
+			return [
+				around.left + root.clientLeft * scale,
+				around.top + root.clientTop * scale,
+				scale,
+			];
+		};
+
+		/**
+		 * The mesh of a quad as the canvas draws it. Reads nothing of the
+		 * page: it is asked in every frame.
+		 *
+		 * @param {number} x        Where the page has the quad, in the root.
+		 * @param {number} y        The same from the top.
+		 * @param {number} w        Its width.
+		 * @param {number} h        Its height.
+		 * @param {number} progress How far its slide is from its place.
+		 * @return {number[]} For every point x and y in the root and how
+		 *                    far it is from the eye.
+		 */
+		const grid = ( x, y, w, h, progress ) => {
+			const { width, height, y: down, rtl } = slider.layout();
 			// Effects have the way of the slides as their x.
-			const turn = ( x, y ) => ( down ? [ y, x ] : [ x, y ] );
-			const at = turn( ( box.left - left ) / scale, ( box.top - top ) / scale );
-			const size = turn( box.width / scale, box.height / scale );
+			const turn = ( a, b ) => ( down ? [ b, a ] : [ a, b ] );
+			const at = turn( x, y );
+			const size = turn( w, h );
 			const view = turn( width, height );
 			const about = {
-				progress: places[ i ].p,
-				velocity: ( rtl ? 1 : -1 ) * velocity,
+				progress,
+				velocity: ( rtl ? 1 : -1 ) * slider.view.velocity,
 				size,
 				view,
 				quad: [ ...at, ...size ],
@@ -79,18 +89,93 @@ export function hit( { effects = [], perspective = 1200 } = {} ) {
 					movers.forEach( ( { place } ) => {
 						p = place( p, about, uv ) || p;
 					} );
-					const w = 1 - p[ 2 ] / perspective;
-					const [ x, y ] = turn(
-						...[ 0, 1 ].map(
-							( k ) =>
-								( at[ k ] + size[ k ] / 2 + p[ k ] - view[ k ] / 2 ) / w +
-								view[ k ] / 2
-						)
+					const far = 1 - p[ 2 ] / perspective;
+					points.push(
+						...turn(
+							...[ 0, 1 ].map(
+								( k ) =>
+									( at[ k ] + size[ k ] / 2 + p[ k ] - view[ k ] / 2 ) /
+										far +
+									view[ k ] / 2
+							)
+						),
+						-p[ 2 ] / far
 					);
-					points.push( left + x * scale, top + y * scale, -p[ 2 ] / w );
 				}
 			}
 			return points;
+		};
+
+		/**
+		 * The mesh of a slide as the canvas draws it.
+		 *
+		 * @param {number}   i    Slide.
+		 * @param {number[]} from Where the root is, see `page()`.
+		 * @return {number[] | null} As `grid()`; null when the canvas does
+		 *                           not draw the slide.
+		 */
+		const mesh = ( i, [ left, top, scale ] ) => {
+			const media = slides[ i ].querySelector( '.ss-media' );
+			const layer = slider.plugins.gpu || slider.plugins.gl;
+			if ( ! media || ! layer?.shows( media ) ) {
+				return null;
+			}
+			const box = media.getBoundingClientRect();
+			return grid(
+				( box.left - left ) / scale,
+				( box.top - top ) / scale,
+				box.width / scale,
+				box.height / scale,
+				slider.view.places[ i ].p
+			);
+		};
+
+		/**
+		 * The point of a mesh that is at a point of the root, or the one
+		 * that would be there if the mesh went on past its edge.
+		 *
+		 * @param {number[]} points As `grid()`.
+		 * @param {number}   x      In the root.
+		 * @param {number}   y      The same from the top.
+		 * @return {number[]} How far the point is out of the mesh, 0 when
+		 *                    it is in it; how far from the eye; where in
+		 *                    the quad, 0 to 1 across and down.
+		 */
+		const find = ( points, x, y ) => {
+			let found = [ Infinity ];
+			for ( let k = 0; k < GRID * GRID * 2; k++ ) {
+				const row = Math.floor( k / 2 / GRID );
+				const column = ( k >> 1 ) % GRID;
+				// The two halves of a square: its corners are three
+				// numbers each, row after row.
+				const half = k % 2;
+				const first = 3 * ( row * ( GRID + 1 ) + column );
+				const a = first + 3 * half;
+				const b = first + 3 * ( GRID + 1 );
+				const c = half ? b + 3 : first + 3;
+				const bx = points[ b ] - points[ a ];
+				const by = points[ b + 1 ] - points[ a + 1 ];
+				const cx = points[ c ] - points[ a ];
+				const cy = points[ c + 1 ] - points[ a + 1 ];
+				const area = bx * cy - cx * by;
+				const u = ( ( x - points[ a ] ) * cy - cx * ( y - points[ a + 1 ] ) ) / area;
+				const v = ( bx * ( y - points[ a + 1 ] ) - ( x - points[ a ] ) * by ) / area;
+				const out = Math.max( -u, -v, u + v - 1, 0 );
+				const far =
+					points[ a + 2 ] +
+					u * ( points[ b + 2 ] - points[ a + 2 ] ) +
+					v * ( points[ c + 2 ] - points[ a + 2 ] );
+				// Of what is there the nearest, as the canvas has it.
+				if ( out < found[ 0 ] || ( ! out && far < found[ 1 ] ) ) {
+					found = [
+						out,
+						far,
+						( column + ( half ? 1 - u : v ) ) / GRID,
+						( row + u + half * v ) / GRID,
+					];
+				}
+			}
+			return found;
 		};
 
 		return {
@@ -106,44 +191,48 @@ export function hit( { effects = [], perspective = 1200 } = {} ) {
 			at( x, y ) {
 				let found;
 				let nearest = Infinity;
+				const from = page();
 				slides.forEach( ( _, i ) => {
-					const points = mesh( i );
+					const points = mesh( i, from );
 					if ( ! points ) {
 						return;
 					}
 					found ??= -1;
-					const corner = ( row, column ) =>
-						3 * ( row * ( GRID + 1 ) + column );
-					for ( let k = 0; k < GRID * GRID * 2; k++ ) {
-						const row = Math.floor( k / 2 / GRID );
-						const column = ( k >> 1 ) % GRID;
-						// The two halves of a square.
-						const [ a, b, c ] =
-							k % 2
-								? [ corner( row, column + 1 ), corner( row + 1, column ), corner( row + 1, column + 1 ) ]
-								: [ corner( row, column ), corner( row + 1, column ), corner( row, column + 1 ) ];
-						const bx = points[ b ] - points[ a ];
-						const by = points[ b + 1 ] - points[ a + 1 ];
-						const cx = points[ c ] - points[ a ];
-						const cy = points[ c + 1 ] - points[ a + 1 ];
-						const area = bx * cy - cx * by;
-						const u = ( ( x - points[ a ] ) * cy - cx * ( y - points[ a + 1 ] ) ) / area;
-						const v = ( bx * ( y - points[ a + 1 ] ) - ( x - points[ a ] ) * by ) / area;
-						if ( u >= 0 && v >= 0 && u + v <= 1 ) {
-							const far =
-								points[ a + 2 ] +
-								u * ( points[ b + 2 ] - points[ a + 2 ] ) +
-								v * ( points[ c + 2 ] - points[ a + 2 ] );
-							// As the canvas: what is drawn later is on top
-							// of what is as far.
-							if ( far <= nearest + 0.001 ) {
-								nearest = far;
-								found = i;
-							}
-						}
+					const [ out, far ] = find(
+						points,
+						( x - from[ 0 ] ) / from[ 2 ],
+						( y - from[ 1 ] ) / from[ 2 ]
+					);
+					// As the canvas: what is drawn later is on top of what
+					// is as far.
+					if ( ! out && far <= nearest + 0.001 ) {
+						nearest = far;
+						found = i;
 					}
 				} );
 				return found;
+			},
+
+			/**
+			 * Where the pointer is in a quad as it is drawn: the layers ask
+			 * for their effects that follow the pointer.
+			 *
+			 * @param {number} x        Where the page has the quad, in the
+			 *                          root.
+			 * @param {number} y        The same from the top.
+			 * @param {number} w        Its width.
+			 * @param {number} h        Its height.
+			 * @param {number} progress How far its slide is from its place.
+			 * @param {{ x: number, y: number, in: number }} pointer The
+			 *                          pointer in the root.
+			 * @return {number[] | undefined} Across and down, 0 to 1 in the
+			 *                          quad and past that out of it; nothing
+			 *                          while no pointer is there.
+			 */
+			uv( x, y, w, h, progress, pointer ) {
+				return pointer.in
+					? find( grid( x, y, w, h, progress ), pointer.x, pointer.y ).slice( 2 )
+					: undefined;
 			},
 
 			/**
@@ -153,19 +242,18 @@ export function hit( { effects = [], perspective = 1200 } = {} ) {
 			 *         null when the canvas does not draw it.
 			 */
 			where( i ) {
-				const points = mesh( i );
+				const from = page();
+				const points = mesh( i, from );
 				if ( ! points ) {
 					return null;
 				}
-				const of = ( k ) => points.filter( ( _, n ) => n % 3 === k );
-				const left = Math.min( ...of( 0 ) );
-				const top = Math.min( ...of( 1 ) );
-				return {
-					left,
-					top,
-					width: Math.max( ...of( 0 ) ) - left,
-					height: Math.max( ...of( 1 ) ) - top,
-				};
+				const [ left, right, top, bottom ] = [ 0, 1 ].flatMap( ( k ) => {
+					const all = points.filter( ( _, n ) => n % 3 === k );
+					return [ Math.min( ...all ), Math.max( ...all ) ].map(
+						( at ) => from[ k ] + at * from[ 2 ]
+					);
+				} );
+				return { left, top, width: right - left, height: bottom - top };
 			},
 		};
 	};

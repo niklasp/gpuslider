@@ -634,7 +634,14 @@ export function gpu( {
 					data[ from + at.uQuad + 2 ] = down ? h : w;
 					data[ from + at.uQuad + 3 ] = down ? w : h;
 					two( 'uView', width, height );
-					two( 'uPointer', ( pointer.x - x ) / w, ( pointer.y - y ) / h );
+					// In the quad as it is drawn, where effects lay it out.
+					two(
+						'uPointer',
+						...( slider.plugins.hit?.uv( x, y, w, h, progress, pointer ) || [
+							( pointer.x - x ) / w,
+							( pointer.y - y ) / h,
+						] )
+					);
 					two( 'uPointerSpeed', pointer.vx / w, pointer.vy / h );
 					one( 'uTime', now / 1000 );
 					one( 'uPointerIn', pointer.in );

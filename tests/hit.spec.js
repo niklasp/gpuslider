@@ -149,3 +149,129 @@ test.describe( 'what is seen at a point', () => {
 		await settled( page );
 	} );
 } );
+
+/**
+ * Where the light of `spotlight` is on the canvas while the pointer is at
+ * a point: the middle of what is lit, and how much that is.
+ */
+const lit = async ( page, [ x, y ] ) => {
+	await page.mouse.move( 2, 698 );
+	await page.waitForFunction( () => window.slider.resting );
+	await page.evaluate( () => {
+		window.was = window.pixels( window.slider.plugins.gl );
+	} );
+	// A pointer that moves, not one that comes.
+	await page.mouse.move( x - 3, y );
+	await page.mouse.move( x, y );
+	let found;
+	await expect
+		.poll( async () => {
+			const last = found;
+			found = await page.evaluate( () => {
+				const { was } = window;
+				const { canvas } = window.slider.plugins.gl;
+				const pixels = window.pixels( window.slider.plugins.gl );
+				const box = canvas.getBoundingClientRect();
+				const ratio = canvas.width / box.width;
+				let sum = [ 0, 0 ];
+				let count = 0;
+				for ( let i = 0; i < pixels.length; i += 4 ) {
+					const dark = was[ i ] + was[ i + 1 ] + was[ i + 2 ];
+					const now = pixels[ i ] + pixels[ i + 1 ] + pixels[ i + 2 ];
+					// What was bright enough to say, and is as bright as it
+					// was.
+					if ( was[ i + 3 ] > 250 && dark > 150 && now > dark * 0.9 ) {
+						const at = i / 4;
+						sum = [
+							sum[ 0 ] + ( at % canvas.width ),
+							sum[ 1 ] + Math.floor( at / canvas.width ),
+						];
+						count++;
+					}
+				}
+				return {
+					x: Math.round( box.left + sum[ 0 ] / count / ratio ),
+					y: Math.round( box.top + sum[ 1 ] / count / ratio ),
+					count: Math.round( count / ratio / ratio ),
+				};
+			} );
+			return JSON.stringify( found ) === JSON.stringify( last );
+		} )
+		.toBe( true );
+	return found;
+};
+
+const LIGHT = 'spotlight:{"size":0.1,"dim":0.9}';
+
+/**
+ * Points in the middle of slides as they are drawn, with the same slide
+ * seen all around them.
+ */
+const middles = ( page ) =>
+	page.evaluate( () => {
+		const { hit } = window.slider.plugins;
+		return window.slider.slides
+			.map( ( _, i ) => {
+				const where = hit.where( i );
+				if ( ! where ) {
+					return null;
+				}
+				const x = Math.round( where.left + where.width / 2 );
+				const y = Math.round( where.top + where.height / 2 );
+				const around = [ -1, 0, 1 ].flatMap( ( dx ) =>
+					[ -1, 0, 1 ].map( ( dy ) => hit.at( x + dx * 30, y + dy * 30 ) )
+				);
+				const box = window.slider.root.getBoundingClientRect();
+				return around.every( ( seen ) => seen === i ) &&
+					x > box.left + 30 &&
+					x < box.right - 30 &&
+					y > box.top + 30 &&
+					y < box.bottom - 30
+					? [ x, y ]
+					: null;
+			} )
+			.filter( Boolean );
+	} );
+
+test.describe( 'effects that follow the pointer', () => {
+	test( 'the light is on the cover that is seen under the pointer, not on the one whose place it is', async ( { page } ) => {
+		await open( page, setup( `coverflow;${ LIGHT }` ) );
+		await painted( page );
+		// As the click above: the page has slide 6 here, seen is slide 5.
+		const { x, y, count } = await lit( page, [ 105, 240 ] );
+		expect( Math.abs( x - 105 ) ).toBeLessThan( 6 );
+		expect( Math.abs( y - 240 ) ).toBeLessThan( 6 );
+		expect( count ).toBeGreaterThan( 100 );
+		expect( count ).toBeLessThan( 2000 );
+	} );
+
+	for ( const effects of [ ...LAID, 'coverflow downwards' ] ) {
+		test( `${ effects }: the light is where the pointer is`, async ( { page } ) => {
+			const [ name, down ] = effects.split( ' ' );
+			await open(
+				page,
+				setup( `${ name };${ LIGHT }`, down ? { axis: 'y' } : {} )
+			);
+			await painted( page );
+			const points = await middles( page );
+			expect( points.length ).toBeGreaterThan( 0 );
+			for ( const point of points ) {
+				const { x, y, count } = await lit( page, point );
+				const about = JSON.stringify( { point, x, y, count } );
+				expect( Math.abs( x - point[ 0 ] ), about ).toBeLessThan( 8 );
+				expect( Math.abs( y - point[ 1 ] ), about ).toBeLessThan( 8 );
+				expect( count, about ).toBeGreaterThan( 100 );
+				// As large as the slide is high.
+				expect( count, about ).toBeLessThan( 6000 );
+			}
+		} );
+	}
+
+	test( 'without effects that lay out, nothing is asked', async ( { page } ) => {
+		await open( page, { ...setup( LIGHT ), plugins: 'gl' } );
+		await painted( page );
+		const { x, y } = await lit( page, [ 500, 240 ] );
+		expect( Math.abs( x - 500 ) ).toBeLessThan( 6 );
+		expect( Math.abs( y - 240 ) ).toBeLessThan( 6 );
+	} );
+} );

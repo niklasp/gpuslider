@@ -92,7 +92,7 @@ parts.push( {
 if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 6656,
+		budget: 6912,
 		size: await measure(
 			`import { gl } from './src/gl/index.js'; export { gl };`
 		),
@@ -108,7 +108,7 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	} );
 	parts.push( {
 		name: 'canvas: which slide is seen at a point',
-		budget: 1024,
+		budget: 1280,
 		size: await measure( `export * from './src/hit.js';` ),
 	} );
 	parts.push( {

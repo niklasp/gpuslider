@@ -552,6 +552,8 @@ const effects = [ coverflow() ];
 createSlider( element, { align: 'center', plugins: [ gl( { effects } ), hit( { effects } ) ] } );
 ```
 
+Effects under the pointer (`waves()`, `spotlight()`, `magnify()` and the others) have the pointer where it is on the slide as it is drawn.
+
 `slider.plugins.hit.at( x, y )` is the slide that is seen at a point of the page, `.where( index )` is what is around a slide as it is drawn. What is there to be used in a slide (links, buttons) is where the page has it.
 
 Transitions, for `stack()`, one at a time:
@@ -624,7 +626,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `shaderslide/full`: the core with all its options | 6.7 KB |
 | `useSlider` for React | 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
-| `hit()`, which says what slide is seen at a point | 0.9 KB |
+| `hit()`, which says what slide is seen at a point | 1.0 KB |
 | Canvas layer of WebGPU | 8.4 KB |
 | Canvas layer of WebGL 2 | 6.5 KB |
 | An effect | 0.2 to 0.7 KB |

@@ -137,17 +137,19 @@ slider.destroy();
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
 | Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.7 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
-| Canvas layer of WebGL 2 without effects | 6.5 KB | 6.5 KB (6654 of 6656 B) |
+| Canvas layer of WebGL 2 without effects | 6.75 KB | 6.5 KB (6672 of 6912 B) |
 | Canvas layer of WebGPU without effects | 9 KB | 8.4 KB |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
+| `hit()`, which says what is seen at a point | 1.25 KB | 1 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 1.6 KB |
 | A page in React with arrows and dots | 5.5 KB | 5.2 KB |
 | The same with the canvas and one effect | 12 KB | 11.6 KB |
 
-Two budgets were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
+Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
 - **Canvas layer, 6 to 6.5 KB.** It got the late start, the compile on another thread, the speed of the pointer and the turn for sliders that go down (decisions 14 and 15). What a page loads first became less by it, what it loads in all became 0.6 KB more.
+- **Canvas layer, 6.5 to 6.75 KB, and `hit()`, 1 to 1.25 KB.** For the pointer in a slide as it is drawn (decision 22): 19 bytes in the layer, which had 3 left, and 0.15 KB in `hit()`. The same step of the layer is taken by the corners of the page's shape, which is work of the same day.
 - **Full means what `createSlider` of `shaderslide/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -356,6 +358,17 @@ Reported by the user on 2026-09-29, with a picture of the covers in the playgrou
 - **The image of the lightbox grows, and no more.** `punch` is 0 where it was 0.4: the speed of the growing counted as speed for the effects, so an image with `stretch()` and `split()` bowed sideways while it opened. The option stays for who wants it.
 - **The wall swings less**: `jelly` at 0.4 of what it is, and springs that swing past once and a little (hold 16 and 10, where they were 8 and 4.5).
 
+### 22. The pointer is where it is seen
+
+Noticed with decision 21, and asked for by the user on 2026-09-29: "Pointer effects on turned slides. Waves, lens and the others still follow the slide's place on the page, not where the canvas draws it."
+
+- **An effect under the pointer had the pointer in the slide's place on the page.** On the covers the rings of `waves()` and the light of `spotlight()` were on the slide in whose place the pointer was, which is drawn elsewhere, and the cover at the edge that the pointer was on had none.
+- **`hit().uv()` says where the pointer is in a quad as it is drawn**: of the mesh of 8 by 8 squares the triangle the pointer is in, and in it the point. Both layers ask it for every quad they draw, when the plugin is there; a slider without an effect that lays out has no `hit()` and the layers do what they did.
+- **Past the edge of a slide the mesh goes on**: of a pointer that is not on the slide, the triangle that is nearest says where it is, as if it went on. So the light does not jump where a slide ends, and rings go on from one slide to the next as they do in a row.
+- **Nothing of the page is read for it.** The layer says the quad, which it has from the last layout; `hit()` reads the page for a click only.
+- **The speed of the pointer is not turned**: `uPointerSpeed` is in sizes of the slide as the page has it. On a cover that is turned away `smear()` and `shift()` pull a little more than the pointer moves.
+- **A test holds it**: with `spotlight()` and each of the five effects that lay out, the middle of what is lit is within 8 px of the pointer, across and downwards, on both layers (`tests/hit.spec.js`). Without the change six of the eight fail.
+
 ## Modules
 
 | File | Does |
@@ -459,7 +472,7 @@ Each phase ends with something that runs and with tests.
 - The pages of the site that are made of the library: their loading screens, the wall moved both ways by a drag, the wheel and the keys; in the playground the loading section and the three effects (`site/tests/demos.spec.js`).
 - The first page: its numbers are the ones that were measured, every feature and every link leads to a page that is there, its sliders are drawn by the canvas; the examples; every page of the docs, its links, and the sliders that show what it says; five pages on a screen as wide as a phone (`site/tests/pages.spec.js`).
 - A stack that is said in the HTML is one before the script, and nothing moves when it comes.
-- What `hit()` says is what the canvas has drawn, for every effect that lays out; a click on a cover at the edge is a click on that cover (`tests/hit.spec.js`).
+- What `hit()` says is what the canvas has drawn, for every effect that lays out; a click on a cover at the edge is a click on that cover; the light of `spotlight()` is where the pointer is on slides that are turned (`tests/hit.spec.js`).
 - A click on a slider that moves holds it, and is a click on the slide under it.
 - A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).
