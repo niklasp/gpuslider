@@ -163,42 +163,42 @@ const lit = async ( page, [ x, y ] ) => {
 	// A pointer that moves, not one that comes.
 	await page.mouse.move( x - 3, y );
 	await page.mouse.move( x, y );
-	let found;
-	await expect
-		.poll( async () => {
-			const last = found;
-			found = await page.evaluate( () => {
-				const { was } = window;
-				const { canvas } = window.slider.plugins.gl;
-				const pixels = window.pixels( window.slider.plugins.gl );
-				const box = canvas.getBoundingClientRect();
-				const ratio = canvas.width / box.width;
-				let sum = [ 0, 0 ];
-				let count = 0;
-				for ( let i = 0; i < pixels.length; i += 4 ) {
-					const dark = was[ i ] + was[ i + 1 ] + was[ i + 2 ];
-					const now = pixels[ i ] + pixels[ i + 1 ] + pixels[ i + 2 ];
-					// What was bright enough to say, and is as bright as it
-					// was.
-					if ( was[ i + 3 ] > 250 && dark > 150 && now > dark * 0.9 ) {
-						const at = i / 4;
-						sum = [
-							sum[ 0 ] + ( at % canvas.width ),
-							sum[ 1 ] + Math.floor( at / canvas.width ),
-						];
-						count++;
-					}
-				}
-				return {
-					x: Math.round( box.left + sum[ 0 ] / count / ratio ),
-					y: Math.round( box.top + sum[ 1 ] / count / ratio ),
-					count: Math.round( count / ratio / ratio ),
-				};
-			} );
-			return JSON.stringify( found ) === JSON.stringify( last );
-		} )
-		.toBe( true );
-	return found;
+	// The pointer of the canvas follows softly: until it is there, and a
+	// frame more for the picture of it.
+	await page.waitForFunction( () => ! window.slider.plugins.gl.busy() );
+	await page.evaluate(
+		() =>
+			new Promise( ( done ) =>
+				requestAnimationFrame( () => requestAnimationFrame( done ) )
+			)
+	);
+	return page.evaluate( () => {
+		const { was } = window;
+		const { canvas } = window.slider.plugins.gl;
+		const pixels = window.pixels( window.slider.plugins.gl );
+		const box = canvas.getBoundingClientRect();
+		const ratio = canvas.width / box.width;
+		let sum = [ 0, 0 ];
+		let count = 0;
+		for ( let i = 0; i < pixels.length; i += 4 ) {
+			const dark = was[ i ] + was[ i + 1 ] + was[ i + 2 ];
+			const now = pixels[ i ] + pixels[ i + 1 ] + pixels[ i + 2 ];
+			// What was bright enough to say, and is as bright as it was.
+			if ( was[ i + 3 ] > 250 && dark > 150 && now > dark * 0.9 ) {
+				const at = i / 4;
+				sum = [
+					sum[ 0 ] + ( at % canvas.width ),
+					sum[ 1 ] + Math.floor( at / canvas.width ),
+				];
+				count++;
+			}
+		}
+		return {
+			x: Math.round( box.left + sum[ 0 ] / count / ratio ),
+			y: Math.round( box.top + sum[ 1 ] / count / ratio ),
+			count: Math.round( count / ratio / ratio ),
+		};
+	} );
 };
 
 const LIGHT = 'spotlight:{"size":0.1,"dim":0.9}';
