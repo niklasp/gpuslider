@@ -11,9 +11,9 @@
  * the time: the image goes from where it is, cut as it is there and with
  * the effects of the slider, to the whole image, and the effects fade on
  * the way. There the canvas of the lightbox takes over, of the kind the
- * slider has: WebGPU, or WebGL. A slider without a canvas, or a stack,
- * has its image grow in the canvas of the lightbox, from the place it has
- * on the page; without any canvas the lightbox fades in.
+ * slider has: WebGPU, or WebGL. A slider without a canvas has its image
+ * grow in the canvas of the lightbox, from the place it has on the page;
+ * without any canvas the lightbox fades in.
  *
  *     createSlider( element, {
  *         plugins: [ gpu(), lightbox( { effects: [ stretch() ] } ) ],
@@ -208,8 +208,9 @@ export function lightbox( {
 			quad.w = mix( seen.w, iw * k );
 			quad.h = mix( seen.h, ih * k );
 			quad.radius = mix( quad.radius, 0 );
-			quad.fx = 1 - t;
+			quad.fx = Math.max( 0, 1 - t / TAKEOVER );
 			quad.clip = false;
+			quad.top = true;
 			quad.a = mixed;
 		};
 
@@ -249,14 +250,18 @@ export function lightbox( {
 					}
 				}
 				dialog.style.setProperty( '--gs-open', t.toFixed( 3 ) );
+				const over = outer
+					? Math.max( 0, t - TAKEOVER ) / ( 1 - TAKEOVER )
+					: 0;
 				dialog.style.setProperty(
 					'--gs-canvas',
-					Math.min(
-						1,
-						outer
-							? Math.max( 0, t - TAKEOVER ) / ( 1 - TAKEOVER )
-							: t / HANDOVER
-					).toFixed( 3 )
+					Math.min( 1, outer ? over : t / HANDOVER ).toFixed( 3 )
+				);
+				// What the lightbox does not draw: while the slider draws
+				// the way, not before the takeover, or it is there twice.
+				dialog.style.setProperty(
+					'--gs-shown',
+					( outer ? over : t ).toFixed( 3 )
 				);
 				if ( outer ) {
 					if ( t === 1 && to === 1 ) {
@@ -368,7 +373,7 @@ export function lightbox( {
 			since = 0;
 			active = item;
 			outer = layerOf( slider );
-			outer = outer?.canvas && ! slider.layout().stack ? outer : null;
+			outer = outer?.canvas ? outer : null;
 			if ( outer ) {
 				const r = root.getBoundingClientRect();
 				screen = {
@@ -383,6 +388,7 @@ export function lightbox( {
 			}
 			dialog.style.setProperty( '--gs-open', 0 );
 			dialog.style.setProperty( '--gs-canvas', 0 );
+			dialog.style.setProperty( '--gs-shown', 0 );
 			layer = null;
 			const draws = given || layerOf( slider )?.again;
 			shown = createSlider( box, {

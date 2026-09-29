@@ -262,7 +262,7 @@ test.describe( 'the playground', () => {
 			}
 		} );
 		await page.goto( '/playground/' );
-		await page.getByTestId( 'controls' ).getByRole( 'switch' ).waitFor();
+		await page.getByRole( 'switch', { name: 'Canvas' } ).waitFor();
 		for ( const name of [ 'Glass', 'Jelly', 'Dome' ] ) {
 			await page.getByRole( 'button', { name, exact: true } ).click();
 		}

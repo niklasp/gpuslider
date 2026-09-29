@@ -3,11 +3,14 @@
  * foot, and how a section and a button look.
  */
 import type { ReactNode } from 'react';
-import { ImageSquare, Swatches } from '@phosphor-icons/react/ssr';
+import { GithubLogo, ImageSquare, Swatches } from '@phosphor-icons/react/ssr';
 import { choose, useKind, type Kind } from '@/lib/media';
 
 /** The name: it is said here, and nowhere else on the site. */
 export const NAME = 'gpu slider';
+
+/** Where the code is. */
+export const REPO = 'https://github.com/niklasp/gpuslider';
 
 /** A button of the site, as the controls have them. */
 export const BUTTON =
@@ -118,6 +121,14 @@ export function Nav( { at }: { at: At } ) {
 				</nav>
 				<Photos />
 			</div>
+			<a
+				href={ REPO }
+				aria-label="The code on GitHub"
+				title="The code on GitHub"
+				className="sq-pill pointer-events-auto absolute start-4 top-3 hidden size-12 place-items-center bg-black/45 text-white/70 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150 transition hover:text-white sm:grid md:start-5"
+			>
+				<GithubLogo size={ 20 } weight="fill" />
+			</a>
 			<div className="absolute end-4 top-3 md:end-5">
 				<Pictures />
 			</div>
@@ -148,6 +159,9 @@ export function Footer() {
 					</a>
 					<a className="hover:text-foreground" href="/llms.txt">
 						llms.txt
+					</a>
+					<a className="hover:text-foreground" href={ REPO }>
+						GitHub
 					</a>
 				</nav>
 			</div>

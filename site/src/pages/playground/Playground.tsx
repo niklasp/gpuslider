@@ -59,6 +59,26 @@ export default function Playground() {
 		duration: config.duration,
 	};
 	const shared = { made, measured, plugins: () => pluginsOf( config ) };
+
+	// With a random transition the sliders that take it are made again
+	// once a slide has arrived, for another, and go on from that slide.
+	const [ rolls, setRolls ] = useState< Record< string, number > >( {} );
+	const at = useRef< Record< string, number > >( {} );
+	// A slider that is made settles at once: another only after a move.
+	const moved = useRef< Record< string, boolean > >( {} );
+	const rolling = config.transition === 'random';
+	const rolled = ( id: string ) => ( {
+		made: rolling ? `${ made } ${ rolls[ id ] || 0 }` : made,
+		heard: ( name: string, detail: unknown ) => {
+			if ( name === 'change' ) {
+				at.current[ id ] = detail as number;
+				moved.current[ id ] = true;
+			} else if ( name === 'settle' && rolling && moved.current[ id ] ) {
+				moved.current[ id ] = false;
+				setRolls( ( now ) => ( { ...now, [ id ]: ( now[ id ] || 0 ) + 1 } ) );
+			}
+		},
+	} );
 	// The sliders that show one slide at a time take the transition.
 	// That they are stacks is in the HTML: nothing gives way when the
 	// script comes.
@@ -88,23 +108,24 @@ export default function Playground() {
 	return (
 		<>
 			<Nav at="playground" />
+			<div className="flex items-start">
 			<Suspense
-				fallback={ <div className="sticky top-[4.5rem] z-30 h-[4.5rem]" /> }
+				fallback={ <div className="w-[4.25rem] shrink-0 md:w-[4.75rem] lg:w-[324px]" /> }
 			>
 				<Controls config={ config } onChange={ change } />
 			</Suspense>
 			<main
 				id="top"
-				className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-24 px-4 pb-32 md:px-8"
+				className="mx-auto grid max-w-[1400px] min-w-0 flex-1 grid-cols-[minmax(0,1fr)] gap-24 px-4 pb-32 md:px-8"
 			>
 				<div className="grid justify-items-start gap-5 pt-16 md:pt-24">
 					<h1 className="font-display text-5xl leading-[0.95] font-semibold tracking-[-0.045em] md:text-7xl">
 						Playground
 					</h1>
 					<p className="max-w-2xl text-lg text-balance text-muted-foreground">
-						Every slider the library can be, and the controls for all of
-						it above. Drag, swipe, scroll sideways, use the arrow keys.
-						Click a slide for the lightbox.
+						Every slider the library can be, and the settings for all of
+						it beside them. Drag, swipe, scroll sideways, use the arrow
+						keys. Click a slide for the lightbox.
 					</p>
 					<nav
 						aria-label="Pages that are made of it"
@@ -131,6 +152,8 @@ export default function Playground() {
 						style={ look }
 						pause={ config.autoplay }
 						{ ...one }
+						{ ...rolled( 'one' ) }
+						options={ { ...one.options, start: at.current.one } }
 					>
 						<Slide image={ 1 } alt="Warm colour field" className="hero" sizes={ WIDE } first>
 							<h3 className="text-2xl font-semibold md:text-4xl">Own motion</h3>
@@ -241,13 +264,13 @@ export default function Playground() {
 						<GpuSlider
 							id="down"
 							label="Downwards"
-							options={ { ...options, axis: 'y' } }
+							options={ { ...options, axis: 'y', align: 'center', loop: true } }
 							className="down"
 							style={ { ...look, '--gs-gap': `${ config.gap }px` } as CSSProperties }
 							made={ made }
 							measured={ measured }
 							plugins={ () => pluginsOf( config, 'down' ) }
-							bare
+							pause
 						>
 							{ [ 6, 1, 4, 7, 2 ].map( ( n ) => (
 								<Slide
@@ -381,10 +404,11 @@ export default function Playground() {
 						options={ {
 							...options,
 							duration: Math.max( 900, config.duration * 1.8 ),
+							start: at.current.stack,
 						} }
 						style={ look }
 						pause={ config.autoplay }
-						made={ made }
+						{ ...rolled( 'stack' ) }
 						measured={ measured }
 						plugins={ () => pluginsOf( config, 'stack' ) }
 					>
@@ -518,6 +542,7 @@ export default function Playground() {
 					</div>
 				</Section>
 			</main>
+			</div>
 			<Footer />
 		</>
 	);

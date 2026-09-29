@@ -21,3 +21,4 @@ export { kaleido } from './kaleido.js';
 export { displace } from './displace.js';
 export { datamosh } from './datamosh.js';
 export { wind } from './wind.js';
+export { distance } from './distance.js';

@@ -90,7 +90,13 @@ export type Kind =
 	| 'down';
 
 /** The transitions, and none: the slides move. */
-export const TRANSITIONS = [ 'none', ...Object.keys( transitions ) ];
+export const TRANSITIONS = [ 'none', ...Object.keys( transitions ), 'random' ];
+
+/** One of the transitions, by chance. */
+const chance = () => {
+	const all = Object.keys( transitions );
+	return all[ Math.floor( Math.random() * all.length ) ];
+};
 
 export type Config = {
 	/** Draw on the canvas; off, the page draws. */
@@ -122,7 +128,7 @@ export const DEFAULTS: Config = {
 	intensity: 1,
 	transition: 'liquid',
 	loop: true,
-	autoplay: false,
+	autoplay: true,
 	lightbox: true,
 	free: false,
 	duration: 600,
@@ -189,7 +195,8 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 	if ( kind === 'ticker' ) {
 		// Slower under the pointer, faster while the page is scrolled.
 		plugins.push( marquee( { speed: 50, hover: 0.2, scroll: 0.4 } ) );
-	} else if ( config.autoplay ) {
+	} else if ( config.autoplay || kind === 'down' ) {
+		// The slider that goes down runs by itself all the time.
 		plugins.push( autoplay( 3500 ) );
 	}
 	if ( kind === 'tall' ) {
@@ -202,9 +209,10 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 		const more: Effect[] = [];
 		// Without a transition a stack fades.
 		if ( kind === 'stack' && config.transition !== 'none' ) {
+			// Random: another each time the slider is made.
 			more.push(
 				( transitions as Record< string, () => Effect > )[
-					config.transition
+					config.transition === 'random' ? chance() : config.transition
 				]()
 			);
 		}

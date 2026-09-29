@@ -73,7 +73,10 @@ html:has(.gs-lightbox[open]) {
 }
 
 /* What the canvas does not draw fades in. */
-.gs-box .gs-media:not(.gs-drawn),
+.gs-box .gs-media:not(.gs-drawn) {
+	opacity: var(--gs-shown, var(--gs-open));
+}
+
 .gs-button {
 	opacity: var(--gs-open);
 }

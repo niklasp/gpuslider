@@ -614,17 +614,17 @@ export function gl( {
 					// The slide the position has passed, and the one it
 					// moves to.
 					let from = -1;
-					let next = -1;
+					let upcoming = -1;
 					let mix = 0;
 					places.forEach( ( { p }, i ) => {
 						if ( p <= 0 && p > -1 ) {
 							from = i;
 							mix = -p;
 						} else if ( p > 0 && p < 1 ) {
-							next = i;
+							upcoming = i;
 						}
 					} );
-					const [ a, b ] = [ from, next ].map( ( i, unit ) =>
+					const [ a, b ] = [ from, upcoming ].map( ( i, unit ) =>
 						turn(
 							( x, y ) => bind( i, unit, x, y, width, height ),
 							boxes[ i ]?.dx || 0,
@@ -632,12 +632,17 @@ export function gl( {
 						)
 					);
 					if ( a || b ) {
-						quad( 0, 0, width, height, a || EMPTY, b || EMPTY, mix, mix, 0, 0 );
+						// As the other slides: one that the lightbox lets
+						// grow out of the stack is drawn once, where it is.
+						Object.assign( next, { x: 0, y: 0, w: width, h: height, a: a || EMPTY, radius: 0, shape: 2, speed: 0, fx: 1, dim: 1, clip: true } );
+						layer.change?.( from, next );
+						quad( next.x, next.y, next.w, next.h, next.a, b || EMPTY, mix, mix, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip );
 					}
 					return;
 				}
 
 				const { span, size, rtl } = layout;
+				let top = null;
 				places.forEach( ( place, i ) => {
 					const box = boxes[ i ];
 					// A view further on each side: what bends may reach in.
@@ -668,25 +673,23 @@ export function gl( {
 						next.fx = 1;
 						next.dim = 1;
 						next.clip = true;
+						next.top = false;
 						layer.change?.( i, next );
-						quad(
-							next.x,
-							next.y,
-							next.w,
-							next.h,
-							next.a,
-							null,
-							place.p,
-							0,
-							next.radius,
-							next.speed,
-							next.shape,
-							next.fx,
-							next.dim,
-							next.clip
-						);
+						const args = [ next.x, next.y, next.w, next.h, next.a, null, place.p, 0, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip ];
+						// What grows out of the slider is drawn over the rest.
+						// Its texture is bound again when it is drawn.
+						const draw = () => {
+							bind( i, 0, 0, 0, box.at.w, box.at.h );
+							quad( ...args );
+						};
+						if ( next.top ) {
+							top = draw;
+						} else {
+							quad( ...args );
+						}
 					}
 				} );
+				top?.();
 			},
 
 			busy: () =>

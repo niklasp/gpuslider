@@ -37,25 +37,32 @@ export function choose( to: Kind ) {
 }
 
 /**
- * The photo in the place of an image or a film: four for eight, round
+ * The photo in the place of an image or a film: seven for eight, round
  * again. What each shows, what it is lit by, and the point of it that
- * stays in view when it is cut. From Pexels, 1600 px wide, as p1 to p4:
- * photos 8107912, 8112576, 6835833 and 5767690 of pexels.com/photo/.
+ * stays in view when it is cut. From Pexels, 1600 px wide, as p1 to p7:
+ * photos 18671362, 8112576, 6835833, 5767690, 11584969, 11439378 and
+ * 39688121 of pexels.com/photo/.
  */
-const PHOTOS = [
-	{ alt: 'A woman in a leather jacket, sitting under a pink neon tube', light: '#d63bd6', focus: '30% 50%' },
-	{ alt: 'A man kneeling by a boombox in front of neon signs', light: '#3f6df2', focus: '55% 45%' },
-	{ alt: 'A woman in sunglasses between neon letters', light: '#16c8c0', focus: '45% 35%' },
-	{ alt: 'A couple in an arcade, looking at the camera', light: '#c4e23c', focus: '72% 40%' },
-];
+const PHOTOS: Record<
+	number,
+	{ alt: string; light: string; focus: string; tall?: boolean }
+> = {
+	1: { alt: 'The silhouette of a man with a guitar in front of laser rays', light: '#5a4df0', focus: '45% 45%' },
+	2: { alt: 'A man kneeling by a boombox in front of neon signs', light: '#3f6df2', focus: '55% 45%' },
+	3: { alt: 'A woman in sunglasses between neon letters', light: '#16c8c0', focus: '45% 35%' },
+	4: { alt: 'A couple in an arcade, looking at the camera', light: '#c4e23c', focus: '72% 40%' },
+	5: { alt: 'A woman in a white top, lightning projected on her', light: '#3d5cff', focus: '50% 35%' },
+	6: { alt: 'A man with words projected in red on his face', light: '#f0304f', focus: '55% 40%', tall: true },
+	7: { alt: 'A woman laughing in blue light, a stripe of warm light over her face', light: '#2a3cf0', focus: '50% 30%', tall: true },
+};
 
 // Which photo is in the place of which: chosen so that the sliders of
 // the first page have no two alike side by side.
 const PLACE: Record< number | 'a' | 'b', number > = {
-	1: 1, 2: 2, 3: 3, 4: 4, 5: 2, 6: 3, 7: 1, 8: 4, a: 3, b: 2,
+	1: 3, 2: 1, 3: 6, 4: 4, 5: 5, 6: 2, 7: 1, 8: 7, a: 5, b: 6,
 };
 
-export const photo = ( n: number | 'a' | 'b' ) => PHOTOS[ PLACE[ n ] - 1 ];
+export const photo = ( n: number | 'a' | 'b' ) => PHOTOS[ PLACE[ n ] ];
 
 /** Width and height of every image as it was made. */
 const SIZES: Record< number, [ number, number ] > = {
@@ -104,8 +111,9 @@ export function image( n: number | 'a' | 'b', of: Kind = 'fields' ) {
 			srcSet: WIDTHS.map(
 				( to ) => `/media/${ name }-${ to }.avif ${ to }w`
 			).join( ', ' ),
+			// Most are wide, 3 : 2; two are tall, 2 : 3.
 			width: 1600,
-			height: 1067,
+			height: photo( n ).tall ? 2400 : 1067,
 			style: { '--gs-focus': photo( n ).focus } as CSSProperties,
 		};
 	}

@@ -46,12 +46,8 @@ async function drawn( page, id ) {
 	const slider = page.locator( `#${ id }` );
 	await slider.scrollIntoViewIfNeeded();
 	const box = await slider.boundingBox();
-	const bar = await page.getByTestId( 'controls' ).boundingBox();
-	// Where the controls are not.
-	await page.mouse.move(
-		box.x + box.width / 2,
-		Math.max( box.y + box.height / 2, bar.y + bar.height + 10 )
-	);
+	// The settings are beside it.
+	await page.mouse.move( box.x + box.width / 2, box.y + box.height / 2 );
 	return page
 		.waitForFunction(
 			( name ) =>
@@ -73,10 +69,12 @@ test.beforeEach( async ( { page } ) => {
 		IDS
 	);
 	// The controls come with a script of their own.
-	await page.getByTestId( 'controls' ).getByRole( 'switch' ).waitFor();
+	await page.getByRole( 'switch', { name: 'Canvas' } ).waitFor();
 } );
 
 test( 'a slider that nobody uses has no canvas', async ( { page } ) => {
+	// What goes on by itself has its canvas before it moves.
+	await page.getByRole( 'switch', { name: 'Autoplay' } ).click();
 	await page.waitForTimeout( 500 );
 	await expect( page.locator( '.gs-canvas' ) ).toHaveCount( 0 );
 	expect( await drawn( page, 'several' ) ).toBe( true );
@@ -89,16 +87,19 @@ test( 'a slider that nobody uses has no canvas', async ( { page } ) => {
 	await expect( page.locator( '#ticker .gs-canvas' ) ).toHaveCount( 1 );
 } );
 
-test( 'the controls stay at the top, under the bar of the site', async ( { page } ) => {
+test( 'the settings stay beside the page, and fold away', async ( { page } ) => {
 	const bar = page.getByTestId( 'controls' );
 	await page.locator( '#stack' ).scrollIntoViewIfNeeded();
 	expect( await page.evaluate( () => window.scrollY ) ).toBeGreaterThan( 500 );
-	expect( ( await bar.boundingBox() ).y ).toBe( 72 );
-	// And nothing of the page begins under them.
+	expect( ( await bar.boundingBox() ).y ).toBe( 76 );
+	// The page begins beside them, and takes their room when they fold.
 	await page.evaluate( () => window.scrollTo( 0, 0 ) );
-	const title = await page.locator( 'h1' ).boundingBox();
-	const { y, height } = await bar.boundingBox();
-	expect( title.y ).toBeGreaterThan( y + height );
+	const title = page.locator( 'h1' );
+	const { x, width } = await bar.boundingBox();
+	const beside = ( await title.boundingBox() ).x;
+	expect( beside ).toBeGreaterThan( x + width );
+	await page.getByRole( 'button', { name: 'Fold the settings away' } ).click();
+	await expect.poll( async () => ( await title.boundingBox() ).x ).toBeLessThan( beside - 200 );
 } );
 
 test( 'every slider is drawn by the canvas', async ( { page } ) => {
@@ -191,7 +192,6 @@ test( 'slides per view change without making the slider again', async ( { page }
 					.getBoundingClientRect().width
 		);
 	const three = await width();
-	await page.getByRole( 'button', { name: 'Slider' } ).click();
 	const thumb = page.getByTestId( 'per-view' ).getByRole( 'slider' );
 	await thumb.focus();
 	await page.keyboard.press( 'ArrowLeft' );
@@ -217,8 +217,8 @@ test( 'the focus point moves what the slides show', async ( { page } ) => {
 	await page.mouse.move( 2, 300 );
 	await page.waitForFunction( () => window.sliders.several.resting );
 	const middle = await shot();
-	await page.getByRole( 'button', { name: 'Focus point' } ).click();
 	const pad = page.getByTestId( 'focus-pad' );
+	await pad.scrollIntoViewIfNeeded();
 	const box = await pad.boundingBox();
 	await page.mouse.click( box.x + 4, box.y + box.height - 4 );
 	await expect
@@ -429,11 +429,8 @@ test( 'a click on the cover at the edge opens that cover, not the one whose plac
 		.waitForFunction( () => {
 			const { plugins, root, slides } = window.sliders.covers;
 			const box = root.getBoundingClientRect();
-			const bar = document
-				.querySelector( '[data-testid="controls"]' )
-				.getBoundingClientRect();
 			const x = box.left + 12;
-			const y = Math.max( box.top + box.height * 0.75, bar.bottom + 10 );
+			const y = box.top + box.height * 0.75;
 			const seen = plugins.hit?.at( x, y );
 			const under = slides.indexOf(
 				document.elementFromPoint( x, y ).closest( '.gs-slide' )
@@ -456,7 +453,6 @@ test( 'a click on a slider that moves opens the lightbox', async ( { page } ) =>
 	const slider = page.locator( '#several' );
 	await slider.scrollIntoViewIfNeeded();
 	const box = await slider.boundingBox();
-	const bar = await page.getByTestId( 'controls' ).boundingBox();
 	await page.evaluate( () => {
 		window.opened = [];
 		window.sliders.several.on( 'lightbox:open', ( index ) =>
@@ -467,10 +463,7 @@ test( 'a click on a slider that moves opens the lightbox', async ( { page } ) =>
 	} );
 	await page.waitForTimeout( 150 );
 	expect( await page.evaluate( () => window.sliders.several.resting ) ).toBe( false );
-	await page.mouse.click(
-		box.x + box.width / 2,
-		Math.max( box.y + box.height / 2, bar.y + bar.height + 10 )
-	);
+	await page.mouse.click( box.x + box.width / 2, box.y + box.height / 2 );
 	await expect( page.locator( '.gs-lightbox' ) ).toBeVisible();
 	expect( await page.evaluate( () => window.opened.length ) ).toBe( 1 );
 } );

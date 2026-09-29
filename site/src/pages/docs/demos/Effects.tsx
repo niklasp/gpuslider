@@ -149,7 +149,7 @@ export default function Effects() {
 
 			<Choice
 				label="Transitions: one at a time"
-				names={ TRANSITIONS.filter( ( name ) => name !== 'none' ) }
+				names={ TRANSITIONS.filter( ( name ) => name !== 'none' && name !== 'random' ) }
 				chosen={ [ transition ] }
 				onChoose={ setTransition }
 			/>

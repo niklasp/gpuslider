@@ -189,16 +189,16 @@ test.describe( 'the first page', () => {
 		const first = page.locator( '#first .gs-slide:first-child .gs-media' );
 		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
 		await pictures.getByRole( 'button', { name: 'Photos' } ).click();
-		await expect( first ).toHaveAttribute( 'src', '/media/p1-960.avif' );
+		await expect( first ).toHaveAttribute( 'src', '/media/p3-960.avif' );
 		// The film has a photo in its place too.
 		await expect( page.locator( '#first video' ) ).toHaveCount( 0 );
 		// The slider is made again, with the canvas.
 		await page.waitForFunction(
-			() => window.sliders.first.slides[ 0 ].querySelector( 'img' ).src.includes( '/p1-' )
+			() => window.sliders.first.slides[ 0 ].querySelector( 'img' ).src.includes( '/p3-' )
 		);
 		await drawn( page, 'first' );
 		await page.reload();
-		await expect( first ).toHaveAttribute( 'src', '/media/p1-960.avif' );
+		await expect( first ).toHaveAttribute( 'src', '/media/p3-960.avif' );
 		await expect( pictures.getByRole( 'button', { name: 'Photos' } ) ).toHaveAttribute(
 			'aria-pressed',
 			'true'

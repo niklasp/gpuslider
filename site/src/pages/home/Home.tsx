@@ -1,5 +1,6 @@
 import {
 	useCallback,
+	useLayoutEffect,
 	useRef,
 	useState,
 	type CSSProperties,
@@ -49,6 +50,7 @@ import {
 	swirl,
 	warp,
 	wind,
+	distance,
 	zoom,
 } from 'gpuslider/effects';
 import {
@@ -69,7 +71,6 @@ import {
 	Atom,
 	BracketsAngle,
 	Cpu,
-	Gauge,
 	MagicWand,
 	PuzzlePiece,
 	Shuffle,
@@ -178,7 +179,7 @@ const FEATURES: {
 ];
 
 /** The transitions that can be chosen here. The docs have all of them. */
-const TRANSITIONS = { liquid, push, warp, zoom, burn, glitch, swirl, mosaic, wind };
+const TRANSITIONS = { liquid, push, warp, zoom, burn, glitch, swirl, mosaic, wind, distance };
 
 /**
  * How a transition goes: quick away, slowing down, and done in its time,
@@ -399,6 +400,24 @@ const FIRST_SLIDES = [ 1, 'a', 2, 4 ] as const;
  */
 function Stage() {
 	const [ name, setName ] = useState< Name >( 'liquid' );
+	// Until one is clicked, the next of them once a slide has arrived.
+	const pinned = useRef( false );
+	const moved = useRef( false );
+	const drawn = name;
+	// The white pill under the one that is chosen, moved to it.
+	const pills = useRef< HTMLDivElement >( null );
+	const [ mark, setMark ] = useState< { left: number; width: number } | null >( null );
+	useLayoutEffect( () => {
+		const on = pills.current?.querySelector< HTMLElement >( '[aria-current]' );
+		if ( on ) {
+			setMark( { left: on.offsetLeft, width: on.offsetWidth } );
+			// Into view in the row, and the page left where it is.
+			const row = pills.current!;
+			if ( on.offsetLeft < row.scrollLeft || on.offsetLeft + on.offsetWidth > row.scrollLeft + row.clientWidth ) {
+				row.scrollTo( { left: on.offsetLeft - 48, behavior: 'smooth' } );
+			}
+		}
+	}, [ name ] );
 	const [ index, setIndex ] = useState( 0 );
 	// Where it is and when the time of its slide ends: a slider made
 	// again for another transition goes on from there.
@@ -409,6 +428,16 @@ function Stage() {
 	const kind = useKind();
 	const heard = useCallback( ( event: string, detail: unknown ) => {
 		const root = document.getElementById( 'first' );
+		// A slider that is made settles at once: only after a move.
+		if ( event === 'change' ) {
+			moved.current = true;
+		} else if ( event === 'settle' && moved.current && ! pinned.current ) {
+			moved.current = false;
+			setName( ( now ) => {
+				const all = Object.keys( TRANSITIONS ) as Name[];
+				return all[ ( all.indexOf( now ) + 1 ) % all.length ];
+			} );
+		}
 		if ( event === 'change' ) {
 			at.current.index = detail as number;
 			setIndex( detail as number );
@@ -442,7 +471,7 @@ function Stage() {
 				className="stage gs-stack"
 				options={ { loop: true, duration: time, ease: SNAP, start: at.current.index } }
 				onSlider={ ( made ) => ( slider.current = made ) }
-				made={ name }
+				made={ drawn }
 				measured=""
 				pause
 				dock
@@ -455,7 +484,7 @@ function Stage() {
 					// The pointer is always over it: it goes on all the same.
 					autoplay( { delay: 4000, hover: false, left: left() } ),
 					canvas( {
-						effects: [ TRANSITIONS[ name ]() ],
+						effects: [ TRANSITIONS[ drawn ]() ],
 						layer: layer(),
 					} ),
 				] }
@@ -471,29 +500,42 @@ function Stage() {
 						</p>
 						<div className="flex max-w-full flex-wrap items-center gap-2">
 						<div
+							ref={ pills }
 							role="group"
 							aria-labelledby="effect"
-							className="sq-pill flex max-w-full min-w-0 gap-1 overflow-x-auto bg-black/30 p-1 ring-1 ring-white/12 backdrop-blur-xl [scrollbar-width:none]"
+							className="sq-pill relative flex max-w-full min-w-0 gap-1 overflow-x-auto bg-black/30 p-1 ring-1 ring-white/12 backdrop-blur-xl [scrollbar-width:none]"
 						>
 							<span
 								id="effect"
 								className="flex shrink-0 cursor-default items-center gap-1.5 ps-3 pe-3 text-[0.8125rem] text-white/50 select-none"
 							>
-								<MagicWand size={ 15 } weight="duotone" aria-hidden />
 								Effect
 							</span>
-							<span aria-hidden className="my-2 me-1 w-px shrink-0 bg-white/15" />
+							<span aria-hidden className="my-2 mx-1 w-px shrink-0 bg-white/15" />
+							{ mark && (
+								<span
+									aria-hidden
+									className="sq-pill pointer-events-none absolute top-1 h-9 bg-white transition-[left,width] duration-500 ease-[cubic-bezier(0.3,1.4,0.5,1)] motion-reduce:transition-none"
+									style={ { left: mark.left, width: mark.width } }
+								/>
+							) }
 							{ ( Object.keys( TRANSITIONS ) as Name[] ).map( ( one ) => (
 								<button
 									key={ one }
 									type="button"
-									className="sq-pill h-9 shrink-0 cursor-pointer px-3.5 text-sm font-medium text-white/70 transition hover:text-white aria-[current]:bg-white aria-[current]:text-black"
+									className={ `sq-pill relative h-9 shrink-0 cursor-pointer px-3.5 text-sm font-medium transition-colors duration-300 aria-[current]:text-black not-aria-[current]:text-white/70 not-aria-[current]:hover:text-white ${
+										mark ? '' : 'aria-[current]:bg-white'
+									}` }
 									aria-current={ one === name ? 'true' : undefined }
-									onClick={ () => setName( one ) }
+									onClick={ () => {
+										pinned.current = true;
+										setName( one );
+									} }
 								>
 									{ one }
 								</button>
 							) ) }
+							<span aria-hidden className="my-2 mx-1 w-px shrink-0 bg-white/15" />
 							<a
 								className="sq-pill inline-flex h-9 shrink-0 items-center px-3.5 text-sm text-white/50 transition hover:text-white"
 								href="/playground/"
@@ -502,7 +544,6 @@ function Stage() {
 							</a>
 						</div>
 						<label className="sq-pill flex h-11 shrink-0 items-center gap-3 bg-black/30 ps-4 pe-5 text-[0.8125rem] text-white/50 ring-1 ring-white/12 backdrop-blur-xl">
-							<Gauge size={ 15 } weight="duotone" aria-hidden />
 							Speed
 							<input
 								type="range"
