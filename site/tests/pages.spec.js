@@ -190,7 +190,7 @@ test.describe( 'the first page', () => {
 		const code = page.getByRole( 'tabpanel' );
 		await expect( code ).toContainText( `import { createSlider } from 'shaderslide';` );
 		await page.getByRole( 'tab', { name: 'React' } ).click();
-		await expect( code ).toContainText( 'useSlider(' );
+		await expect( code ).toContainText( '<Slider' );
 		await page.getByRole( 'tab', { name: 'No script of your own' } ).click();
 		await expect( code ).toContainText( 'data-ss-canvas="stretch waves"' );
 	} );
@@ -420,4 +420,49 @@ test.describe( 'on a phone', () => {
 			).toBe( 390 );
 		} );
 	}
+} );
+
+test.describe( 'the components of React', () => {
+	test( 'options are props, state moves the slider, and what is in it has it', async ( { page } ) => {
+		await page.goto( '/docs/react/' );
+		const slider = page.locator( '#react' );
+		await expect( slider ).toHaveClass( /ss-on/ );
+		await expect( slider.locator( '.ss-track > .ss-slide' ) ).toHaveCount( 6 );
+		const said = page.getByTestId( 'react' ).locator( 'output' );
+		const back = slider.getByRole( 'button', { name: 'Previous slide' } );
+		const on = slider.getByRole( 'button', { name: 'Next slide' } );
+		const first = () =>
+			slider.locator( '.ss-slide' ).first().evaluate(
+				( slide ) => slide.getBoundingClientRect().left - slide.parentElement.parentElement.getBoundingClientRect().left
+			);
+
+		// An arrow that has the slider by the context.
+		await expect( back ).toBeDisabled();
+		await on.click();
+		await expect( said ).toHaveText( '2 of 6' );
+		await expect( back ).toBeEnabled();
+		await expect.poll( first ).toBeLessThan( -100 );
+
+		// State of React moves it.
+		await page.getByRole( 'button', { name: 'To 1', exact: true } ).click();
+		await expect( said ).toHaveText( '1 of 6' );
+		await expect.poll( first ).toBeGreaterThan( -1 );
+		await expect( back ).toBeDisabled();
+
+		// A prop changes the slider that exists: it is not made again.
+		await page.evaluate( () => {
+			window.kept = window.sliders.react;
+		} );
+		await page.getByRole( 'button', { name: 'loop', exact: true } ).click();
+		await expect( back ).toBeEnabled();
+		await back.click();
+		await expect( said ).toHaveText( '6 of 6' );
+		expect(
+			await page.evaluate( () => [
+				window.kept === window.sliders.react,
+				window.kept.options.loop,
+			] )
+		).toEqual( [ true, true ] );
+		await expect( slider ).toHaveClass( /ss-on/ );
+	} );
 } );

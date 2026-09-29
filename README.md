@@ -115,32 +115,79 @@ The core moves slides: it measures, drags, snaps, loops, and says what happens. 
 ### In React
 
 ```jsx
-import { useSlider } from 'shaderslide/react';
+import { Slider, Slide } from 'shaderslide/react';
 import { controls } from 'shaderslide/plugins';
 import { canvas } from 'shaderslide/canvas';
 import { stretch } from 'shaderslide/effects';
+import 'shaderslide/style.css';
 
 function Photos( { photos, loop } ) {
-	const [ ref, slider ] = useSlider(
-		{ loop, plugins: [ controls(), canvas( { effects: [ stretch() ] } ) ] },
-		[ loop ]
-	);
 	return (
-		<div className="ss" ref={ ref } aria-label="Photos">
-			<div className="ss-track">
-				{ photos.map( ( photo ) => (
-					<div className="ss-slide" key={ photo.src }>
-						<img className="ss-media" { ...photo } />
-					</div>
-				) ) }
-			</div>
-			<button onClick={ () => slider?.next() }>Next</button>
-		</div>
+		<Slider
+			loop={ loop }
+			plugins={ [ controls(), canvas( { effects: [ stretch() ] } ) ] }
+			onChange={ ( index ) => console.log( index ) }
+			aria-label="Photos"
+		>
+			{ photos.map( ( photo ) => (
+				<Slide key={ photo.src }>
+					<img className="ss-media" { ...photo } />
+				</Slide>
+			) ) }
+		</Slider>
 	);
 }
 ```
 
-The second argument is what the slider is made again for, as the dependencies of an effect; it stays at its slide. Slides that React adds or removes are seen by the slider. The hook adds 0.1 KB to the core. This page with arrows and dots is 5.2 KB in the bundle; with the canvas and `stretch` it is 11.5 KB.
+`<Slider>` is the element of the slider with its track, `<Slide>` a slide. Slides that React adds or removes are seen by the slider.
+
+| Prop of `<Slider>` | |
+|---|---|
+| `loop`, `align`, `axis`, `free`, `duration` and the other [options](#options) of the core | A change of one changes the slider that exists |
+| `plugins` | Read when the slider is made. Written in the JSX they cost nothing: they are not what it is made again for |
+| `remake` | A list, as the dependencies of an effect: the slider is made again when one of them changes, and stays at its slide. For other plugins or effects |
+| `index` | The snap to be at. The slider goes there when it changes |
+| `onChange`, `onSettle` | `( index, slider )` |
+| `on` | Listeners for every other [event](#events), by its name: `{ 'lightbox:open': … }` |
+| `onSlider` | Is given the slider when it is made, and `null` when it ends |
+| `around` | What is in the slider beside its slides: arrows of your own, a caption |
+| `as` | Its element, `div` when nothing is said. `<Slide>` has it too |
+| `className`, `style`, `id`, `aria-label` and every other attribute | Of its element. `className="ss-stack"` for a [stack](#plugins-that-come-with-it) |
+
+How many slides are in view and how far they are apart is CSS here as everywhere, see [Layout is CSS](#layout-is-css): `--ss-per-view` and `--ss-gap` in a class or in `style`.
+
+A component in a `<Slider>` has the slider by `useSliderContext()`, and is rendered again when the slider goes to another snap:
+
+```jsx
+import { useSliderContext } from 'shaderslide/react';
+
+function Next() {
+	const slider = useSliderContext();
+	return (
+		<button disabled={ ! slider?.canNext } onClick={ () => slider.next() }>
+			On
+		</button>
+	);
+}
+
+<Slider around={ <Next /> }>…</Slider>
+```
+
+With markup of your own there is the hook the components are made of:
+
+```jsx
+import { useSlider } from 'shaderslide/react';
+
+const [ ref, slider ] = useSlider( { loop, plugins: [ controls() ] }, [ loop ] );
+
+<div className="ss" ref={ ref }>
+	<div className="ss-track">…</div>
+</div>
+```
+
+Its second argument is what the slider is made again for.
+
+The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.6 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 11.9 KB.
 
 ### Three tiers
 
@@ -624,7 +671,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | Core | 4.5 KB |
 | A plugin | 0.3 to 1 KB |
 | `shaderslide/full`: the core with all its options | 6.7 KB |
-| `useSlider` for React | 0.1 KB |
+| `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.1 KB |
 | Canvas layer of WebGPU | 8.4 KB |

@@ -6,7 +6,8 @@
 		"module": "esnext",
 		"moduleResolution": "bundler",
 		"lib": [ "es2022", "dom", "dom.iterable" ],
-		"skipLibCheck": false
+		"skipLibCheck": false,
+		"jsx": "react-jsx"
 	},
-	"include": [ "use.ts" ]
+	"include": [ "use.ts", "use.tsx" ]
 }

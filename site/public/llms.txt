@@ -6,7 +6,7 @@
 
 - [Get started](/docs/): the markup, what to import, and the three tiers
 - [Without a script](/docs/html/): `auto.js` and attributes in the HTML, buttons anywhere
-- [React](/docs/react/): the hook `useSlider`
+- [React](/docs/react/): the components `<Slider>` and `<Slide>`, `useSliderContext()` for what is in a slider, and the hook `useSlider` for markup of your own
 - [Layout](/docs/layout/): slides per view and gap as CSS, downwards, rows, the focus point
 - [Options, API and events](/docs/options/)
 - [Plugins](/docs/plugins/): the ones that come with it, and how to write one
@@ -31,5 +31,5 @@
 - `import { stretch, split, waves, liquid } from 'shaderslide/effects'`: effects and transitions
 - `import { gpu } from 'shaderslide/gpu'`, `import { gl } from 'shaderslide/gl'`: a layer by name
 - `import { lightbox } from 'shaderslide/lightbox'`
-- `import { useSlider } from 'shaderslide/react'`
+- `import { Slider, Slide, useSliderContext, useSlider } from 'shaderslide/react'`
 - `import { createSlider } from 'shaderslide/full'`: the core with all plugins, by options

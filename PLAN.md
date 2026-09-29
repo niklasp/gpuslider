@@ -137,20 +137,22 @@ slider.destroy();
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
 | Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.7 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
+| `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
 | Canvas layer of WebGL 2 without effects | 6.75 KB | 6.5 KB (6672 of 6912 B) |
 | Canvas layer of WebGPU without effects | 9 KB | 8.4 KB |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.1 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.1 KB |
-| A page in React with arrows and dots | 5.5 KB | 5.2 KB |
-| The same with the canvas and one effect | 12 KB | 11.6 KB |
+| A page in React with arrows and dots | 6 KB | 5.6 KB |
+| The same with the canvas and one effect | 12.5 KB | 11.9 KB |
 
 Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
 - **Canvas layer, 6 to 6.5 KB.** It got the late start, the compile on another thread, the speed of the pointer and the turn for sliders that go down (decisions 14 and 15). What a page loads first became less by it, what it loads in all became 0.6 KB more.
 - **Canvas layer, 6.5 to 6.75 KB, and `hit()`, 1 to 1.25 KB.** For the pointer in a slide as it is drawn (decision 22): 19 bytes in the layer, which had 3 left, and 0.15 KB in `hit()`. The same step of the layer is taken by the corners of the page's shape, which is work of the same day.
 - **Lightbox, 2 to 2.25 KB.** For the image that grows out of a slide as it is drawn (decision 23), 0.4 KB.
+- **A page in React, 5.5 to 6 KB, and with the canvas 12 to 12.5 KB.** The page that is measured is made of the components now (decision 24), which are 0.4 KB more than the hook; the rest is what the layer grew by (decision 22).
 - **Full means what `createSlider` of `shaderslide/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -382,6 +384,25 @@ Reported by the user on 2026-09-29: "the zoom is not canvas based right? i think
 - **On top of its neighbours**: the lightbox is on top of the page, so a cover that is behind another in the slider is in front of it while it grows. It is the part of a cover that another hides, a few px.
 - **A test holds it** for the five effects that lay out, across and downwards, on both layers: when the lightbox has opened by nothing yet, its canvas has drawn the slide where the slider has, in its colours (`tests/hit.spec.js`).
 
+### 24. In React the slider is a component
+
+Asked for by the user on 2026-09-29: "are you sure how the component is called is the best way. look at react swiper. we would want a component. or good dx. rethink".
+
+Before, React had a hook and the page wrote the markup with its classes (decision 11: "A component would have to decide about the markup of the slides, which is the page's"). What showed that this was not enough is the site itself: its own component around the hook has props that say when the slider is to be made again and when it is to measure, one that hands the slider out, and one that hears its events.
+
+- **`<Slider>` and `<Slide>`** in `shaderslide/react`, 0.6 KB on the core. `<Slider>` is the element with the class `ss` and the track in it; its children are the slides. What is in a slide is the page's as before: the image has the class `ss-media`.
+- **Options are props, and a change of one changes the slider that exists** (`slider.set()`): nothing is made again for `loop`. Swiper has its parameters as props as well; here a prop that changes takes no canvas away.
+- **Plugins are read when the slider is made.** Written in the JSX they are new with every render, and a slider that is made again for that would be made again for ever. For other plugins there is `remake`, a list as the dependencies of an effect. Considered: plugins that say what they were made with, to be compared, as Embla's do: code in every plugin, for a case that is rare.
+- **Listeners are the ones of the last render**: `onChange`, `onSettle`, and `on` for every event by its name. They are not what a slider is made again for either.
+- **`index`** moves the slider when it changes: state of React can say where the slider is.
+- **`useSliderContext()`** gives what is in a `<Slider>` the slider, and renders it again when the slider goes to another snap or has measured: `slider.canNext` in the JSX is what it is. Swiper's `useSwiper()` gives the instance and no more. The name is as `useForm()` and `useFormContext()` of React Hook Form: the one makes, the other finds.
+- **`around`** is what is in the slider beside its slides. Swiper has four slots for it; here `controls()` makes arrows and dots by itself, and buttons can be anywhere on the page (decision 12), so one place is enough.
+- **Not props: how many slides are in view, and the gap.** They are options of the core and so they are taken, but the way is CSS (decision 3): `--ss-per-view` in a class, which a media query can change.
+- **No JSX in `src/`**: the library is used as it is written, so the components are written with `createElement`.
+- **A class that React writes takes the classes of the slider away**, so the slider is made again when `className` changes.
+- **Not done**: the site's own component is still the one around the hook. It is to be made of `<Slider>`, which is when its `made` and `measured` go; it was left because other work is in that file on this day. A `<Slide>` that knows whether it is the active one (Swiper's `useSwiperSlide()`): the slider says it with `visible` and `change`.
+- **Tests**: the types of every prop are compiled (`tests/types/use.tsx`); the docs page for React has the components with state that moves the slider, a prop that changes it and arrows by the context, and a test that the slider is the same one after the prop changed (`site/tests/pages.spec.js`).
+
 ## Modules
 
 | File | Does |
@@ -393,7 +414,7 @@ Reported by the user on 2026-09-29: "the zoom is not canvas based right? i think
 | `src/index.js` | `createSlider()`: options, events, plugins |
 | `src/full.js` | The core with the plugins that options switch |
 | `src/auto.js` | Sliders from `data-ss`, without a script of one's own |
-| `src/react.js` | `useSlider` |
+| `src/react.js` | `<Slider>`, `<Slide>`, `useSliderContext()`, `useSlider()` |
 | `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
 | `src/loading.css` | The screen of `loading()`, for pages that have none of their own |
 | `src/lightbox.js`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
