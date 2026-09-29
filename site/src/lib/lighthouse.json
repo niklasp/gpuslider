@@ -3,15 +3,15 @@
 	"pages": {
 		"/": {
 			"mobile": {
-				"performance": 97,
-				"accessibility": 100,
+				"performance": 95,
+				"accessibility": 97,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100
 			},
 			"desktop": {
 				"performance": 100,
-				"accessibility": 100,
+				"accessibility": 97,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100
@@ -20,14 +20,14 @@
 		"/docs/": {
 			"mobile": {
 				"performance": 97,
-				"accessibility": 100,
+				"accessibility": 96,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100
 			},
 			"desktop": {
 				"performance": 100,
-				"accessibility": 100,
+				"accessibility": 96,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100
@@ -35,15 +35,15 @@
 		},
 		"/docs/effects/": {
 			"mobile": {
-				"performance": 97,
-				"accessibility": 100,
+				"performance": 96,
+				"accessibility": 96,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100
 			},
 			"desktop": {
 				"performance": 100,
-				"accessibility": 100,
+				"accessibility": 96,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100
@@ -51,7 +51,7 @@
 		},
 		"/examples/": {
 			"mobile": {
-				"performance": 99,
+				"performance": 96,
 				"accessibility": 100,
 				"best-practices": 100,
 				"seo": 100,
@@ -67,15 +67,15 @@
 		},
 		"/playground/": {
 			"mobile": {
-				"performance": 89,
-				"accessibility": 100,
+				"performance": 94,
+				"accessibility": 96,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100
 			},
 			"desktop": {
 				"performance": 100,
-				"accessibility": 100,
+				"accessibility": 96,
 				"best-practices": 100,
 				"seo": 100,
 				"agentic-browsing": 100

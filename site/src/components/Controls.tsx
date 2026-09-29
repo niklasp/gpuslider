@@ -117,7 +117,7 @@ function Toggle( {
 function Part( { title, children }: { title: string; children: ReactNode } ) {
 	return (
 		<section className="grid gap-3 border-t border-white/8 px-5 py-5">
-			<h2 className="text-xs font-medium text-white/45">{ title }</h2>
+			<h2 className="text-xs font-medium text-white/55">{ title }</h2>
 			{ children }
 		</section>
 	);
@@ -129,18 +129,25 @@ function Part( { title, children }: { title: string; children: ReactNode } ) {
  * there is room for it, folded on a phone.
  */
 export default function Controls( { config, onChange }: Props ) {
-	const [ open, setOpen ] = useState( true );
+	// Before the script knows the screen, the CSS does: the page is
+	// written as a phone and as a desktop need it, and nothing moves.
+	const [ open, setOpen ] = useState< boolean | null >( null );
 	useEffect( () => {
-		if ( ! matchMedia( '(min-width: 1024px)' ).matches ) {
-			setOpen( false );
-		}
+		setOpen( matchMedia( '(min-width: 1024px)' ).matches );
 	}, [] );
+	// The classes for open, for folded, and for as the screen says.
+	const as = ( opened: string, folded: string, screen: string ) =>
+		open === null ? screen : open ? opened : folded;
 	const off = ! config.canvas;
 
 	return (
 		<div
 			className={ `sticky top-[4.5rem] z-30 h-[calc(100svh-4.5rem)] shrink-0 pt-1 pb-3 ps-3 md:pb-5 transition-[width] duration-300 ease-out md:ps-5 ${
-				open ? 'w-[min(324px,100vw)]' : 'w-[4.25rem] md:w-[4.75rem]'
+				as(
+					'w-[min(324px,100vw)]',
+					'w-[4.25rem] md:w-[4.75rem]',
+					'w-[4.25rem] md:w-[4.75rem] lg:w-[min(324px,100vw)]'
+				)
 			}` }
 		>
 			<aside
@@ -151,19 +158,25 @@ export default function Controls( { config, onChange }: Props ) {
 			>
 				<div
 					className={ `sticky top-0 z-10 flex items-center bg-black/50 py-3 backdrop-blur-xl ${
-						open ? 'justify-between ps-5 pe-3' : 'justify-center'
+						as(
+							'justify-between ps-5 pe-3',
+							'justify-center',
+							'justify-center lg:justify-between lg:ps-5 lg:pe-3'
+						)
 					}` }
 				>
-					{ open && (
-						<span className="font-display text-base font-semibold tracking-[-0.02em]">
+					{ open !== false && (
+						<span
+							className={ `font-display text-base font-semibold tracking-[-0.02em] ${ as( '', '', 'max-lg:hidden' ) }` }
+						>
 							Settings
 						</span>
 					) }
 					<div className="flex gap-1">
-						{ open && (
+						{ open !== false && (
 							<button
 								type="button"
-								className="sq-knob grid size-8 cursor-pointer place-items-center text-white/60 transition hover:bg-white/10 hover:text-white"
+								className={ `sq-knob size-8 cursor-pointer place-items-center text-white/60 transition hover:bg-white/10 hover:text-white ${ as( 'grid', '', 'hidden lg:grid' ) }` }
 								aria-label="Back to how it was"
 								title="Back to how it was"
 								onClick={ () => onChange( DEFAULTS ) }
@@ -175,21 +188,26 @@ export default function Controls( { config, onChange }: Props ) {
 							type="button"
 							className="sq-knob grid size-8 cursor-pointer place-items-center text-white/60 transition hover:bg-white/10 hover:text-white"
 							aria-label={ open ? 'Fold the settings away' : 'Open the settings' }
-							aria-expanded={ open }
+							aria-expanded={ open ?? undefined }
 							aria-controls="settings-parts"
 							title={ open ? 'Fold away' : 'Settings' }
 							onClick={ () => setOpen( ! open ) }
 						>
-							{ open ? (
-								<PanelLeftClose className="size-4" />
-							) : (
-								<PanelLeftOpen className="size-4" />
+							{ open !== false && (
+								<PanelLeftClose className={ `size-4 ${ as( '', '', 'max-lg:hidden' ) }` } />
+							) }
+							{ open !== true && (
+								<PanelLeftOpen className={ `size-4 ${ as( '', '', 'lg:hidden' ) }` } />
 							) }
 						</button>
 					</div>
 				</div>
 
-				<div id="settings-parts" hidden={ ! open } className="w-[calc(324px-2rem)]">
+				<div
+					id="settings-parts"
+					hidden={ open === false }
+					className={ `w-[calc(324px-2rem)] ${ as( '', '', 'max-lg:hidden' ) }` }
+				>
 				<Part title="Drawing">
 					<Toggle
 						id="canvas"

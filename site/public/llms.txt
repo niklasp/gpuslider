@@ -4,6 +4,7 @@
 
 ## Docs
 
+- [All of the docs in one file](/llms-full.txt): the README, in Markdown
 - [Get started](/docs/): the markup, what to import, and the three tiers
 - [Without a script](/docs/html/): `auto.js` and attributes in the HTML, buttons anywhere
 - [React](/docs/react/): the components `<Slider>` and `<Slide>`, `useSliderContext()` for what is in a slider, and the hook `useSlider` for markup of your own

@@ -5,6 +5,12 @@
  * - The styles in the document: no request for them before the first
  *   paint.
  * - The script after what the first paint needs.
+ * - What search engines and the pages that show a link read: the address
+ *   that is the page's own, a picture and a description for a shared
+ *   link, the facts as JSON-LD; and `sitemap.xml`, `robots.txt` and
+ *   `llms-full.txt` for all of them.
+ *
+ * The address of the site is `SITE_URL`, or the one below.
  *
  * `npm run build` does this.
  */
@@ -19,6 +25,86 @@ const { render, pages } = await import(
 
 const escape = ( text ) =>
 	text.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /</g, '&lt;' );
+const unescape = ( text ) =>
+	text
+		.replace( /&quot;/g, '"' )
+		.replace( /&lt;/g, '<' )
+		.replace( /&#x27;|&#39;/g, "'" )
+		.replace( /&amp;/g, '&' );
+
+const ORIGIN = ( process.env.SITE_URL || 'https://gpuslider.dev' ).replace( /\/$/, '' );
+const NAME = 'gpu slider';
+const REPO = 'https://github.com/niklasp/gpuslider';
+
+// The picture of a shared link: the page, taken by `og.mjs`.
+const picture = ( path ) =>
+	path.startsWith( '/docs/' )
+		? 'docs'
+		: path.match( /^\/(?:examples\/)?([a-z]+)\/$/ )?.[ 1 ] || 'home';
+
+/** What is in the head for search engines and shared links. */
+function head( path, title, description ) {
+	const url = ORIGIN + path;
+	const doc = path.startsWith( '/docs/' );
+	const site = { '@type': 'WebSite', '@id': `${ ORIGIN }/#site`, name: NAME, url: `${ ORIGIN }/` };
+	const facts = path === '/'
+		? [
+				site,
+				{
+					'@type': 'SoftwareSourceCode',
+					name: NAME,
+					description,
+					url,
+					codeRepository: REPO,
+					programmingLanguage: [ 'JavaScript', 'GLSL', 'WGSL' ],
+					runtimePlatform: 'Web browser (WebGPU, WebGL 2)',
+					license: 'https://opensource.org/licenses/MIT',
+				},
+		  ]
+		: [
+				{
+					'@type': doc ? 'TechArticle' : 'WebPage',
+					...( doc ? { headline: title.split( ' · ' )[ 0 ] } : { name: title } ),
+					description,
+					url,
+					isPartOf: { '@id': site[ '@id' ] },
+				},
+				{
+					'@type': 'BreadcrumbList',
+					itemListElement: path
+						.split( '/' )
+						.filter( Boolean )
+						.map( ( part, i, parts ) => ( {
+							'@type': 'ListItem',
+							position: i + 1,
+							name: i === parts.length - 1 ? title.split( ' · ' )[ 0 ] : part[ 0 ].toUpperCase() + part.slice( 1 ),
+							item: `${ ORIGIN }/${ parts.slice( 0, i + 1 ).join( '/' ) }/`,
+						} ) ),
+				},
+		  ];
+	const image = `${ ORIGIN }/og/${ picture( path ) }.jpg`;
+	const attr = ( text ) => escape( text );
+	return [
+		`<link rel="canonical" href="${ url }" />`,
+		`<meta property="og:type" content="${ doc ? 'article' : 'website' }" />`,
+		`<meta property="og:site_name" content="${ NAME }" />`,
+		`<meta property="og:title" content="${ attr( title ) }" />`,
+		`<meta property="og:description" content="${ attr( description ) }" />`,
+		`<meta property="og:url" content="${ url }" />`,
+		`<meta property="og:image" content="${ image }" />`,
+		'<meta property="og:image:width" content="1200" />',
+		'<meta property="og:image:height" content="630" />',
+		`<meta property="og:image:alt" content="${ attr( title ) }" />`,
+		'<meta name="twitter:card" content="summary_large_image" />',
+		'<link rel="alternate" type="text/plain" href="/llms.txt" title="For language models" />',
+		`<script type="application/ld+json">${ JSON.stringify( {
+			'@context': 'https://schema.org',
+			'@graph': facts,
+		} ).replace( /</g, '\\u003c' ) }</script>`,
+	].join( '\n\t\t' );
+}
+// The pages that are to be found: in the sitemap.
+const found = [];
 
 // What Vite has built, before anything is written into it: some files
 // are what several pages are made of.
@@ -39,6 +125,18 @@ for ( const [ page, { from = page, title, description } ] of Object.entries(
 				`$1${ escape( description ) }"`
 			);
 	}
+	// The address of the page, and what it says of itself.
+	const path = `/${ page.replace( /index\.html$/, '' ) }`;
+	const hidden = html.includes( 'content="noindex"' );
+	if ( ! hidden ) {
+		const said = unescape( html.match( /<title>([^<]*)<\/title>/ )[ 1 ] );
+		const about = unescape(
+			html.match( /<meta\s+name="description"\s+content="([^"]*)"/ )[ 1 ]
+		);
+		html = html.replace( '</head>', () => `\t${ head( path, said, about ) }\n\t</head>` );
+		found.push( path );
+	}
+
 	const markup = await render( page );
 	// As a function: what is in the markup is not a pattern.
 	html = html.replace(
@@ -81,3 +179,27 @@ for ( const [ page, { from = page, title, description } ] of Object.entries(
 	console.log( `dist/${ page }: ${ Math.round( html.length / 1024 ) } KB with the page in it` );
 }
 rmSync( resolve( dist, 'server' ), { recursive: true } );
+
+// For search engines: the pages, and where the list of them is.
+const day = new Date().toISOString().slice( 0, 10 );
+writeFileSync(
+	resolve( dist, 'sitemap.xml' ),
+	`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${ found
+	.map( ( path ) => `\t<url><loc>${ ORIGIN }${ path }</loc><lastmod>${ day }</lastmod></url>` )
+	.join( '\n' ) }
+</urlset>
+`
+);
+writeFileSync(
+	resolve( dist, 'robots.txt' ),
+	`${ readFileSync( resolve( dist, 'robots.txt' ), 'utf8' ).trim() }\n\nSitemap: ${ ORIGIN }/sitemap.xml\n`
+);
+// For language models: all the docs in one file, as the README has them.
+writeFileSync(
+	resolve( dist, 'llms-full.txt' ),
+	readFileSync( resolve( import.meta.dirname, '../README.md' ), 'utf8' )
+);
+// eslint-disable-next-line no-console
+console.log( `dist/sitemap.xml: ${ found.length } pages, for ${ ORIGIN }` );

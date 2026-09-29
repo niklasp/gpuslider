@@ -6,6 +6,11 @@ import tailwindcss from '@tailwindcss/vite';
 import { docs } from './docs.ts';
 
 // The site uses the library as it is in the repo, not a build of it.
+const library = path.resolve( import.meta.dirname, '../src' ) + path.sep;
+// Where a module is in the library; nothing for another.
+const lib = ( id: string ) =>
+	id.startsWith( library ) ? id.slice( library.length ).split( path.sep ).join( '/' ) : '';
+
 export default defineConfig( {
 	plugins: [ react(), tailwindcss(), docs() ],
 	// The generated media of the repo: /media/1.jpg
@@ -34,7 +39,37 @@ export default defineConfig( {
 	// first page.
 	appType: 'mpa',
 	build: {
-		rollupOptions: {
+		rolldownOptions: {
+			// The library in four files instead of forty of a few hundred
+			// bytes each: the core, the plugins, the canvas and the
+			// effects. Its layers stay apart, a page loads one of them.
+			output: {
+				codeSplitting: {
+					// What a module of the library imports, React for one,
+					// stays where it would be.
+					includeDependenciesRecursively: false,
+					groups: [
+						{
+							name: 'slider',
+							test: ( id: string ) =>
+								/^(index|engine|layout|input|dom|react)\.js/.test( lib( id ) ),
+						},
+						{
+							name: 'plugins',
+							test: ( id: string ) => lib( id ).startsWith( 'plugins/' ),
+						},
+						{
+							name: 'canvas',
+							test: ( id: string ) =>
+								/^(canvas|hit|lightbox)\.js|^gl\/(fit|glsl)/.test( lib( id ) ),
+						},
+						{
+							name: 'effects',
+							test: ( id: string ) => /^gl\/(effects|transitions)\//.test( lib( id ) ),
+						},
+					],
+				},
+			},
 			// The pages of the docs are made of `docs/index.html`, by
 			// `prerender.mjs`.
 			input: Object.fromEntries(
