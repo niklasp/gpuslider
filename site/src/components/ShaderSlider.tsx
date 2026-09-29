@@ -84,16 +84,53 @@ export function ShaderSlider( {
 		const names = ( window as unknown as { sliders: Record< string, unknown > } );
 		names.sliders = { ...names.sliders, [ id ]: slider };
 
+		// What a frame costs the page: the time the layer takes to say
+		// what is to be drawn, and the time from one frame to the next.
+		let cost = 0;
+		let apart = 0;
+		let before = 0;
+		const timed = ( name: unknown ) => {
+			const layer = slider.plugins[ name as string ];
+			const { frame } = layer;
+			layer.frame = ( ...all: unknown[] ) => {
+				const from = performance.now();
+				frame( ...all );
+				const now = performance.now();
+				cost += ( now - from - cost ) * 0.1;
+				if ( before && from - before < 100 ) {
+					apart += ( from - before - apart ) * 0.1;
+				}
+				before = from;
+			};
+		};
+		const off = slider.on( 'canvas:ready', timed );
+
 		const tell = () => {
 			if ( state.current ) {
-				const drawing = slider.plugins.gl?.canvas ? 'canvas' : 'page';
-				state.current.textContent = `${ slider.index + 1 } of ${ slider.count() } · drawn by the ${ drawing } · ${ Math.abs(
-					slider.view.velocity
-				).toFixed( 1 ) } views per second`;
+				const { gpu, gl } = slider.plugins;
+				const drawing = gpu?.canvas
+					? 'WebGPU'
+					: gl?.canvas
+					? 'WebGL'
+					: 'the page';
+				state.current.dataset.by = drawing;
+				state.current.textContent =
+					`${ slider.index + 1 } of ${ slider.count() } · drawn by ${ drawing } · ${ Math.abs(
+						slider.view.velocity
+					).toFixed( 1 ) } views per second` +
+					( gpu?.canvas || gl?.canvas
+						? ` · ${ cost.toFixed( 2 ) } ms of script and ${ apart.toFixed(
+								1
+						  ) } ms from frame to frame`
+						: '' );
 			}
 		};
 		tell();
-		return slider.on( 'frame', tell );
+		const quiet = slider.on( 'frame', tell );
+		return () => {
+			off();
+			quiet();
+		};
 	}, [ slider, id ] );
 
 	useEffect( () => {

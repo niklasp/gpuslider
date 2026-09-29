@@ -1,8 +1,8 @@
 /**
  * What the controls of the site set, and what the sliders make of it.
  */
+import { canvas } from 'shaderslide/canvas';
 import {
-	gl,
 	stretch,
 	split,
 	magnify,
@@ -20,7 +20,7 @@ import {
 	pile,
 	fan,
 	type Effect,
-} from 'shaderslide/gl';
+} from 'shaderslide/effects';
 import * as transitions from '../../../src/gl/transitions/index.js';
 import { lightbox } from 'shaderslide/lightbox';
 import {
@@ -61,6 +61,15 @@ export const POINTERS = {
 
 export type PointerName = keyof typeof POINTERS;
 
+/** What draws the canvas. */
+export const LAYERS = {
+	best: 'The best there is',
+	gpu: 'WebGPU',
+	gl: 'WebGL',
+} as const;
+
+export type LayerName = keyof typeof LAYERS;
+
 /** The sliders of the page. */
 export type Kind =
 	| 'row'
@@ -77,6 +86,8 @@ export const TRANSITIONS = Object.keys( transitions );
 export type Config = {
 	/** Draw on the canvas; off, the page draws. */
 	canvas: boolean;
+	/** What draws the canvas. */
+	layer: LayerName;
 	effects: EffectName[];
 	pointer: PointerName;
 	/** Strength of the effects, 1 is as they come. */
@@ -96,6 +107,7 @@ export type Config = {
 
 export const DEFAULTS: Config = {
 	canvas: true,
+	layer: 'best',
 	effects: [ 'stretch', 'split' ],
 	pointer: 'waves',
 	intensity: 1,
@@ -189,7 +201,14 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 		if ( kind === 'fan' ) {
 			more.push( fan() );
 		}
-		plugins.push( gl( { effects: [ ...effects(), ...more ] } ) );
+		// The layer is loaded when it is known which one: the page has
+		// the script of the one it draws with, and not of the other.
+		plugins.push(
+			canvas( {
+				effects: [ ...effects(), ...more ],
+				layer: config.layer === 'best' ? undefined : config.layer,
+			} )
+		);
 	} else if ( kind === 'covers' ) {
 		plugins.push( progress() );
 	}
@@ -213,6 +232,7 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 export const keyOf = ( config: Config ) =>
 	JSON.stringify( [
 		config.canvas,
+		config.layer,
 		config.effects,
 		config.pointer,
 		config.intensity,

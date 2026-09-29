@@ -27,10 +27,12 @@ import {
 import {
 	DEFAULTS,
 	EFFECTS,
+	LAYERS,
 	POINTERS,
 	TRANSITIONS,
 	type Config,
 	type EffectName,
+	type LayerName,
 	type PointerName,
 } from '@/lib/config';
 import { FocusPad } from '@/components/FocusPad';
@@ -137,6 +139,28 @@ export default function Controls( { config, onChange }: Props ) {
 					checked={ config.canvas }
 					onChange={ ( canvas ) => onChange( { canvas } ) }
 				/>
+
+				<div className="grid gap-1.5">
+					<Label htmlFor="layer" className="text-xs text-muted-foreground">
+						Drawn with
+					</Label>
+					<Select
+						value={ config.layer }
+						disabled={ ! config.canvas }
+						onValueChange={ ( layer: LayerName ) => onChange( { layer } ) }
+					>
+						<SelectTrigger id="layer" size="sm" className="w-40">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{ ( Object.keys( LAYERS ) as LayerName[] ).map( ( name ) => (
+								<SelectItem key={ name } value={ name }>
+									{ LAYERS[ name ] }
+								</SelectItem>
+							) ) }
+						</SelectContent>
+					</Select>
+				</div>
 
 				<Separator orientation="vertical" className="h-6!" />
 

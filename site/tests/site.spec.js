@@ -55,7 +55,7 @@ async function drawn( page, id ) {
 	return page
 		.waitForFunction(
 			( name ) =>
-				!! window.sliders[ name ].plugins.gl?.canvas &&
+				!! ( window.sliders[ name ].plugins.gpu || window.sliders[ name ].plugins.gl )?.canvas &&
 				!! document.querySelector( `#${ name } .ss-drawn` ),
 			id,
 			{ timeout: 4000 }
@@ -101,12 +101,33 @@ test( 'the controls stay at the top', async ( { page } ) => {
 } );
 
 test( 'every slider is drawn by the canvas', async ( { page } ) => {
+	// Thirteen sliders, drawn without a GPU, beside the other tests.
+	test.slow();
 	for ( const id of IDS ) {
 		expect( await drawn( page, id ), id ).toBe( true );
+	}
+	// By the best the browser has.
+	expect(
+		await page.evaluate( () => Object.keys( window.sliders.one.plugins ) )
+	).toContain( process.env.LAYER === 'gpu' ? 'gpu' : 'gl' );
+} );
+
+test( 'the canvas is drawn by what is chosen', async ( { page } ) => {
+	for ( const [ name, layer ] of [
+		[ 'WebGL', 'gl' ],
+		[ 'The best there is', process.env.LAYER === 'gpu' ? 'gpu' : 'gl' ],
+	] ) {
+		await page.getByRole( 'combobox', { name: 'Drawn with' } ).click();
+		await page.getByRole( 'option', { name } ).click();
+		expect( await drawn( page, 'one' ), name ).toBe( true );
+		expect(
+			await page.evaluate( () => Object.keys( window.sliders.one.plugins ) )
+		).toContain( layer );
 	}
 } );
 
 test( 'an effect switched on reaches every slider', async ( { page } ) => {
+	test.slow();
 	const before = await sliders( page );
 	await page.getByRole( 'button', { name: 'Bend' } ).click();
 	await expect
@@ -119,17 +140,20 @@ test( 'an effect switched on reaches every slider', async ( { page } ) => {
 	for ( const id of IDS ) {
 		expect( after[ id ], id ).toMatchObject( { on: true, same: true } );
 		expect( after[ id ].names, id ).toEqual(
-			expect.arrayContaining( [ 'controls', 'gl', 'lightbox' ] )
+			expect.arrayContaining( [ 'controls', 'canvas', 'lightbox' ] )
 		);
 		expect( await drawn( page, id ), id ).toBe( true );
 	}
 	// A bent row has a mesh, and that is another canvas than before.
 	expect( await drawn( page, 'several' ) ).toBe( true );
 	expect(
-		await page.evaluate( () =>
-			window.sliders.several.plugins.gl.canvas
-				.getContext( 'webgl2' )
-				.getContextAttributes().depth
+		await page.evaluate(
+			() =>
+				// WebGPU keeps to itself what it draws on.
+				! window.sliders.several.plugins.gl ||
+				window.sliders.several.plugins.gl.canvas
+					.getContext( 'webgl2' )
+					.getContextAttributes().depth
 		)
 	).toBe( true );
 } );
@@ -269,10 +293,10 @@ test( 'covers: turned by the canvas, or by CSS without it', async ( { page } ) =
 	const mine = () =>
 		page.evaluate( () =>
 			Object.keys( window.sliders.covers.plugins ).filter( ( name ) =>
-				[ 'gl', 'progress', 'lightbox' ].includes( name )
+				[ 'canvas', 'progress', 'lightbox' ].includes( name )
 			)
 		);
-	expect( await mine() ).toEqual( [ 'gl', 'lightbox' ] );
+	expect( await mine() ).toEqual( [ 'canvas', 'lightbox' ] );
 	await page.getByRole( 'switch', { name: 'Canvas' } ).click();
 	await expect.poll( mine ).toEqual( [ 'progress', 'lightbox' ] );
 	await page.locator( '#covers' ).scrollIntoViewIfNeeded();

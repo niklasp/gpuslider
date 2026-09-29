@@ -13,6 +13,9 @@ export default defineConfig( {
 		dedupe: [ 'react', 'react-dom' ],
 		alias: {
 			'@': path.resolve( import.meta.dirname, './src' ),
+			'shaderslide/canvas': path.resolve( import.meta.dirname, '../src/canvas.js' ),
+			'shaderslide/effects': path.resolve( import.meta.dirname, '../src/effects.js' ),
+			'shaderslide/gpu': path.resolve( import.meta.dirname, '../src/gpu/index.js' ),
 			'shaderslide/gl': path.resolve( import.meta.dirname, '../src/gl/index.js' ),
 			'shaderslide/lightbox': path.resolve( import.meta.dirname, '../src/lightbox.js' ),
 			'shaderslide/react': path.resolve( import.meta.dirname, '../src/react.js' ),
