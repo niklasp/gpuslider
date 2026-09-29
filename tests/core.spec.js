@@ -406,6 +406,58 @@ test.describe( 'stack', () => {
 	} );
 } );
 
+test.describe( 'a stack that is said in the HTML', () => {
+	const seen = ( page ) =>
+		page.locator( '#stacked .ss-slide' ).evaluateAll( ( slides ) =>
+			slides.map( ( slide ) => {
+				const { x, y, width, height } = slide.getBoundingClientRect();
+				return [ getComputedStyle( slide ).visibility, x, y, width, height ].join( ' ' );
+			} )
+		);
+
+	test( 'is one before the script, and nothing gives way when it comes', async ( { page } ) => {
+		await page.goto( '/tests/plain.html' );
+		const before = await seen( page );
+		expect( before ).toEqual( [
+			'visible 100 380 800 300',
+			'hidden 100 380 800 300',
+			'hidden 100 380 800 300',
+		] );
+		await page.evaluate( async ( from ) => {
+			const { createSlider } = await import( `/${ from }/index.js` );
+			const { stack } = await import(
+				`/${ from }/plugins${ from === 'dist' ? '' : '/index' }.js`
+			);
+			window.slider = createSlider( document.getElementById( 'stacked' ), {
+				plugins: [ stack() ],
+			} );
+		}, process.env.FROM || 'src' );
+		await expect( page.locator( '#stacked' ) ).toHaveClass( /ss-on/ );
+		expect( await seen( page ) ).toEqual( before );
+		await page.evaluate( () => window.slider.next() );
+		await settled( page );
+		expect( await seen( page ) ).toEqual( [
+			'hidden 100 380 800 300',
+			'visible 100 380 800 300',
+			'hidden 100 380 800 300',
+		] );
+		// What the page has said stays when the slider ends.
+		await page.evaluate( () => window.slider.destroy() );
+		await expect( page.locator( '#stacked' ) ).toHaveClass( 'ss ss-stack' );
+		expect( await seen( page ) ).toEqual( before );
+	} );
+
+	test.describe( 'without the script', () => {
+		test.use( { javaScriptEnabled: false } );
+
+		test( 'shows its first slide', async ( { page } ) => {
+			await page.goto( '/tests/plain.html' );
+			await expect( page.locator( '#stacked img' ).first() ).toBeVisible();
+			await expect( page.locator( '#stacked img' ).nth( 1 ) ).toBeHidden();
+		} );
+	} );
+} );
+
 test.describe( 'at rest', () => {
 	test( 'no frame is requested', async ( { page } ) => {
 		await open( page, { o: { loop: true } } );

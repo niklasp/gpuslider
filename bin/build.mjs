@@ -5,11 +5,19 @@
  * `node bin/build.mjs`          build and report
  * `node bin/build.mjs --check`  also fail when a part is over its budget
  *
- * The budgets are the ones in PLAN.md.
+ * The budgets are the ones in PLAN.md. The sizes are written to
+ * `site/src/lib/sizes.json` too: the site says them, and says what is
+ * measured.
  */
 import { build } from 'esbuild';
 import { gzipSync } from 'node:zlib';
-import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
+import {
+	existsSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from 'node:fs';
 import { resolve, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { compactIn } from './glsl.mjs';
@@ -249,6 +257,7 @@ const withAll = ( file, seen = new Set() ) => {
 };
 // eslint-disable-next-line no-console
 console.log( '\ndist/, each with the files it loads with it' );
+const files = {};
 for ( const file of Object.keys( metafile.outputs ).sort() ) {
 	if ( file.includes( 'chunks/' ) ) {
 		continue;
@@ -260,11 +269,28 @@ for ( const file of Object.keys( metafile.outputs ).sort() ) {
 				.length,
 		0
 	);
+	files[ relative( dist, resolve( root, file ) ) ] = size;
 	// eslint-disable-next-line no-console
 	console.log(
 		`${ relative( dist, resolve( root, file ) ).padEnd( 38 ) } ${ String(
 			size
 		).padStart( 6 ) } B`
+	);
+}
+
+if ( existsSync( resolve( root, 'site/src/lib' ) ) ) {
+	writeFileSync(
+		resolve( root, 'site/src/lib/sizes.json' ),
+		JSON.stringify(
+			{
+				parts: Object.fromEntries(
+					parts.map( ( { name, size } ) => [ name, size ] )
+				),
+				dist: files,
+			},
+			null,
+			'\t'
+		) + '\n'
 	);
 }
 

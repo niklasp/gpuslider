@@ -1,6 +1,6 @@
 /**
  * The pages of the site that are made of the library, and of little
- * else: a wall of glass, a reel, tape. And what the first page shows of
+ * else: a wall of glass, a reel, tape. And what the playground shows of
  * what they are made of.
  */
 import { test, expect } from '@playwright/test';
@@ -27,7 +27,7 @@ test.describe( 'the wall', () => {
 			await route.continue();
 		} );
 		// The page is not loaded before its pictures are.
-		await page.goto( '/wall/', { waitUntil: 'domcontentloaded' } );
+		await page.goto( '/examples/wall/', { waitUntil: 'domcontentloaded' } );
 		const intro = page.locator( '#intro' );
 		await expect( intro ).toBeVisible();
 		await expect( page.locator( '#wall' ) ).toHaveClass( /ss-is-loading/ );
@@ -54,7 +54,7 @@ test.describe( 'the wall', () => {
 				logged.push( message.text() );
 			}
 		} );
-		await page.goto( '/wall/' );
+		await page.goto( '/examples/wall/' );
 		await expect
 			.poll(
 				() => page.evaluate( () => document.querySelectorAll( '.ss-drawn' ).length ),
@@ -69,7 +69,7 @@ test.describe( 'the wall', () => {
 	} );
 
 	test( 'a drag moves it both ways, and every row as far as the others', async ( { page } ) => {
-		await page.goto( '/wall/' );
+		await page.goto( '/examples/wall/' );
 		await expect( page.locator( '#intro' ) ).toBeHidden( gone );
 		await resting( page );
 		const before = await places( page );
@@ -93,7 +93,7 @@ test.describe( 'the wall', () => {
 	} );
 
 	test( 'the wheel and the keys move it', async ( { page } ) => {
-		await page.goto( '/wall/' );
+		await page.goto( '/examples/wall/' );
 		await expect( page.locator( '#intro' ) ).toBeHidden( gone );
 		await resting( page );
 		const before = await places( page );
@@ -124,7 +124,7 @@ test.describe( 'the reel', () => {
 			await held;
 			await route.continue();
 		} );
-		await page.goto( '/reel/', { waitUntil: 'domcontentloaded' } );
+		await page.goto( '/examples/reel/', { waitUntil: 'domcontentloaded' } );
 		const intro = page.locator( '#intro' );
 		await expect( intro ).toBeVisible();
 		await expect( page.locator( '#what' ) ).toHaveText( '6 pictures and films' );
@@ -144,7 +144,7 @@ test.describe( 'the reel', () => {
 	} );
 
 	test( 'the next picture brings its words', async ( { page } ) => {
-		await page.goto( '/reel/' );
+		await page.goto( '/examples/reel/' );
 		await expect( page.locator( '#intro' ) ).toBeHidden( { timeout: 30000 } );
 		await page.getByRole( 'button', { name: 'Next' } ).click();
 		await expect( page.locator( '[data-shown] h2' ) ).toHaveText( 'Salt Hour' );
@@ -164,7 +164,7 @@ test.describe( 'the tape', () => {
 			await held;
 			await route.continue();
 		} );
-		await page.goto( '/tape/', { waitUntil: 'domcontentloaded' } );
+		await page.goto( '/examples/tape/', { waitUntil: 'domcontentloaded' } );
 		const screens = page.locator( '.ss-loading' );
 		await expect( screens ).toHaveCount( 4 );
 		await expect
@@ -181,7 +181,7 @@ test.describe( 'the tape', () => {
 	} );
 
 	test( 'the rows run against each other', async ( { page } ) => {
-		await page.goto( '/tape/' );
+		await page.goto( '/examples/tape/' );
 		await expect( page.locator( '.ss-loading' ).first() ).toBeHidden( {
 			timeout: 30000,
 		} );
@@ -201,11 +201,11 @@ test.describe( 'the tape', () => {
 	} );
 } );
 
-test.describe( 'the first page', () => {
+test.describe( 'the playground', () => {
 	test.slow();
 
-	test( 'it leads to the pages that are made of it', async ( { page } ) => {
-		await page.goto( '/' );
+	test( 'it leads to the pages that are made of it, and to the docs', async ( { page } ) => {
+		await page.goto( '/playground/' );
 		const links = page.getByRole( 'navigation', {
 			name: 'Pages that are made of it',
 		} );
@@ -213,12 +213,17 @@ test.describe( 'the first page', () => {
 			'A wall of glass',
 			'A reel',
 			'Tape',
+			'Docs',
 		] );
 		await links.getByRole( 'link', { name: 'Tape' } ).click();
-		await expect( page ).toHaveURL( /\/tape\/$/ );
+		await expect( page ).toHaveURL( /\/examples\/tape\/$/ );
 		await expect( page.locator( '.tape' ) ).toHaveCount( 4 );
+		// An example leads back to the examples.
 		await page.getByRole( 'link', { name: 'shaderslide' } ).click();
-		await expect( page.locator( '#one' ) ).toBeVisible();
+		await expect( page ).toHaveURL( /\/examples\/$/ );
+		await expect(
+			page.getByTestId( 'examples' ).getByRole( 'listitem' ).first()
+		).toBeVisible();
 	} );
 
 	test( 'pictures that are loaded again have a screen, and say how far they are', async ( { page } ) => {
@@ -230,7 +235,7 @@ test.describe( 'the first page', () => {
 			await held;
 			await route.continue();
 		} );
-		await page.goto( '/' );
+		await page.goto( '/playground/' );
 		await page.waitForFunction( () => window.sliders?.loads );
 		const screen = page.locator( '#loads .ss-loading' );
 		// Not with the page.
@@ -253,7 +258,7 @@ test.describe( 'the first page', () => {
 				logged.push( message.text() );
 			}
 		} );
-		await page.goto( '/' );
+		await page.goto( '/playground/' );
 		await page.getByTestId( 'controls' ).getByRole( 'switch' ).waitFor();
 		for ( const name of [ 'Glass', 'Jelly', 'Dome' ] ) {
 			await page.getByRole( 'button', { name, exact: true } ).click();

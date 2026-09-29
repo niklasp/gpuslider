@@ -91,7 +91,7 @@ export default function Wall() {
 			</main>
 
 			<footer>
-				<a href="/">shaderslide</a>
+				<a href="/examples/">shaderslide</a>
 				<span ref={ said } id="said">
 					Drag the wall
 				</span>

@@ -215,7 +215,7 @@ export default function Reel() {
 			</main>
 
 			<footer>
-				<a href="/">shaderslide</a>
+				<a href="/examples/">shaderslide</a>
 				<span id="said">
 					Arrows, keys, a drag{ by && ` · drawn by ${ by }` }
 				</span>

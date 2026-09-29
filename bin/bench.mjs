@@ -2,18 +2,24 @@
  * Measures the two canvas layers against each other, with the same GPU,
  * in the browsers that have both.
  *
- * `node bin/bench.mjs [--headed] [--dist] [--runs=5]`
+ * `node bin/bench.mjs [--headed] [--dist] [--runs=5] [--write]`
+ *
+ * `--write` writes what was found to `site/src/lib/bench.json`: the site
+ * says the numbers, with the machine and the day they are of.
  *
  * What is measured, and what is not: see `bench/bench.js`. A browser
  * without a window draws, but shows nothing to a screen: `--headed` is
  * nearer to what a visitor has.
  */
 import { spawn } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
+import { cpus } from 'node:os';
 import { chromium, webkit } from '@playwright/test';
 
 const args = process.argv.slice( 2 );
 const headed = args.includes( '--headed' );
 const dist = args.includes( '--dist' );
+const write = args.includes( '--write' );
 const runs = Number( args.find( ( arg ) => arg.startsWith( '--runs=' ) )?.slice( 7 ) ) || 5;
 const port = 4176;
 
@@ -101,6 +107,15 @@ async function run( launch, setup, measure ) {
 }
 
 const out = [];
+// The same as numbers, for the site.
+const written = {
+	date: new Date().toISOString().slice( 0, 10 ),
+	machine: cpus()[ 0 ].model,
+	density: 2,
+	window: headed,
+	runs,
+	browsers: [],
+};
 const say = ( line = '' ) => {
 	out.push( line );
 	// eslint-disable-next-line no-console
@@ -112,6 +127,13 @@ process.on( 'exit', () => server.kill() );
 for ( const [ browser, launch ] of Object.entries( BROWSERS ) ) {
 	const one = await launch();
 	say( `### ${ browser } ${ one.version() }${ headed ? '' : ', without a window' }` );
+	const numbers = {
+		name: browser,
+		version: one.version(),
+		until: [],
+		moving: [],
+	};
+	written.browsers.push( numbers );
 	await one.close();
 	say();
 	say( `Until a slider is drawn, ms (the middle of ${ runs } runs, each in a browser that has drawn nothing before)` );
@@ -128,6 +150,14 @@ for ( const [ browser, launch ] of Object.entries( BROWSERS ) ) {
 		}
 		for ( const layer in LAYERS ) {
 			const errors = found[ layer ].flatMap( ( result ) => result.said );
+			numbers.until.push( {
+				effects,
+				layer,
+				first: middle( found[ layer ].map( ( result ) => result.first.shown ) ),
+				second: middle(
+					found[ layer ].map( ( result ) => result.second.shown )
+				),
+			} );
 			say(
 				`| ${ effects || 'none' } | ${ LAYERS[ layer ] } | ${ ms(
 					middle( found[ layer ].map( ( result ) => result.first.shown ) )
@@ -151,6 +181,14 @@ for ( const [ browser, launch ] of Object.entries( BROWSERS ) ) {
 			);
 			const share = ( value ) =>
 				value === undefined ? 'not told' : `${ value.toFixed( 0 ) } %`;
+			numbers.moving.push( {
+				sliders: n,
+				effects,
+				layer,
+				canvases,
+				rest: n > 2 ? rest : undefined,
+				...found,
+			} );
 			say(
 				`| ${ n } | ${ effects || 'none' } | ${ LAYERS[ layer ] } | ${ canvases } | ${
 					n > 2 ? ms( rest ) : ''
@@ -165,6 +203,15 @@ for ( const [ browser, launch ] of Object.entries( BROWSERS ) ) {
 		}
 	}
 	say();
+}
+
+if ( write ) {
+	const round = ( key, value ) =>
+		typeof value === 'number' ? Math.round( value * 100 ) / 100 : value;
+	writeFileSync(
+		'site/src/lib/bench.json',
+		JSON.stringify( written, round, '\t' ) + '\n'
+	);
 }
 
 process.exit();

@@ -326,6 +326,22 @@ Decided by the user on 2026-09-29, after the demos had been built as plain pages
 - **The first sign of use is a pointer that moves**, not one that comes (both layers). A pointer that is over the slider when it is made never comes, and a visitor who moved it there got no canvas until they left and came back. Found by a test of the site that chose a transition with the pointer where the slider was.
 - **`bench/` stays a page without a build**: it measures the library, and what a build does to it is not what is to be measured.
 
+### 20. The site is the landing page of the package
+
+Asked for by the user on 2026-09-29: "thik of the localhost:5183 like a package landing page. it should display most important features and metrics. keep the stile. then we would have examples that show the wall of glass reel tape. but also other docs pages listing some great features of the app and more".
+
+- **Four kinds of pages.** `/` says what the library is: a slider to drag, six numbers, twelve features that each lead to a page of the docs, the transitions to choose, a ticker, the ways to use it, what the parts weigh, the two layers measured, the examples. `/docs/` has eleven pages. `/examples/` has the wall, the reel and the tape, which moved to `/examples/wall/` and so on. `/playground/` is what the first page was: every slider, with controls.
+- **The style stays**: dark, Geist, the components of shadcn, the sections with their small headings. What the pages share is `site/src/components/Frame.tsx`.
+- **The docs are the README, cut into pages.** A plugin of Vite (`site/docs.ts`) reads `README.md` when the site is built or served, takes the parts that a page names by their headings, and makes HTML of them (`marked`, at build time: nothing of it is in a bundle). What is said about the library is said in one place, and a heading that the docs ask for and the README has not stops the build. Links in the README to its own headings lead to the page of the docs that has the heading. Code has four colours, from a rule of one line for each language. Considered: the docs written again as pages. They would say the same twice, and one of the two would be wrong before long.
+- **A page of the docs shows what it says.** Nine of the eleven have sliders to try it on: the effects and transitions all to be switched on, the layer to be chosen, pictures that load again, a slider that `auto.js` has made of attributes. They are loaded after the text.
+- **Every page of the docs is made of one HTML file**, `site/docs/index.html`. The server of `npm run dev` gives it for every address of the docs, the build writes it once for every page with the title and the description of the page.
+- **No number of the site is written by hand.** `npm run size` writes `site/src/lib/sizes.json`, `npm run bench -- --write` writes `bench.json` with the machine and the day, `npm run lighthouse` writes `lighthouse.json`. The README had sizes in units of 1000 and of 1024 side by side (the core was 4.5 KB and the WebGL layer 6.5); now a KB is 1024 bytes everywhere, as in the budgets, and a test holds the README to what was measured.
+- **The name is said in one place** of the site (`NAME` in `Frame.tsx`), and the site says that it is a working name and that the library is not on npm. No command to install it is shown.
+- **A stack may be said in the HTML**: `class="ss ss-stack"`. Lighthouse found that the playground shifted when the script came (0.166): the first slider is a stack since decision 19, and until `stack()` ran its slides were in a row. With the class in the HTML the slides are on top of each other from the first paint, and the slides after the first are hidden until the script is there. `stack()` leaves the class when the slider ends if the page has said it. Without the script such a slider shows its first slide and is no scroller: that is why the page says it, and the plugin does not ask for it.
+- **The font before the font is as wide as the font.** Lighthouse found the first page shifting on a phone (0.159): with Geist the three buttons under the heading no longer fit in a line. Measured with the text of a page of the docs: Geist is 1.022 (400) to 1.045 (500) times as wide as Arial, and 0.995 times at 600. So the fallback is Arial at 103.5 %, and Arial Bold at 99.5 % from 600 (`site/src/index.css`), and the buttons are narrower. Both shifts are under 0.002 now.
+- **Tailwind has a class `table`**, which makes a block a table: the block around a table that scrolls is `.scrolls`.
+- **The pictures of the examples** are taken by `npm run shots` from the site that runs, drawn by WebGPU.
+
 ## Modules
 
 | File | Does |
@@ -353,7 +369,10 @@ Decided by the user on 2026-09-29, after the demos had been built as plain pages
 | `src/gl/program.js` | Builds one shader from the chosen effects |
 | `src/gl/textures.js` | Image and video textures |
 | `bench/`, `bin/bench.mjs` | The two layers, measured against each other |
-| `site/` | The site: everything that is to be seen. `site/src/pages/` has the wall, the reel and the tape |
+| `site/` | The site: everything that is to be seen. `site/src/pages/` has the first page, the docs, the examples and the playground |
+| `site/docs.ts` | The README as pages of the docs, when the site is built |
+| `site/src/lib/sizes.json`, `bench.json`, `lighthouse.json` | The numbers of the site, as they were measured |
+| `bin/lighthouse.mjs`, `bin/make-shots.mjs` | What Lighthouse says of the pages; the pictures of the examples |
 | `media/` | Generated pictures and films, for the site and the tests |
 | `bin/make-wall.mjs` | The pictures of the wall |
 | `src/gl/fit.js` | Where `object-fit` and `object-position` put the pixels |
@@ -391,6 +410,7 @@ Each phase ends with something that runs and with tests.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
 - **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.5 of 6.5 KB).
+- **A stack loads all its media at once.** Its slides are all where the first is, so images that wait for their place (`loading="lazy"`) do not wait, and a video that starts by itself starts under the slide that is shown. The playground has a stack at its top since decision 19: on a slow phone Lighthouse takes the film under the first picture for the largest paint, at 3.8 s, and says 89 where the page had 96. A visitor sees the first picture after 1.1 s. Slides of a stack that are not shown could keep their media from loading until they are next.
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
@@ -421,7 +441,9 @@ Each phase ends with something that runs and with tests.
 - All of it again with `dist/` (`npm run test:dist`).
 - All of it again drawn by WebGPU (`npm run test:gpu`), and every effect and transition drawn by both layers and compared.
 - `canvas()` takes the layer the browser can draw, or the one it is told.
-- The pages of the site that are made of the library: their loading screens, the wall moved both ways by a drag, the wheel and the keys; on the first page the loading section and the three effects (`site/tests/demos.spec.js`).
+- The pages of the site that are made of the library: their loading screens, the wall moved both ways by a drag, the wheel and the keys; in the playground the loading section and the three effects (`site/tests/demos.spec.js`).
+- The first page: its numbers are the ones that were measured, every feature and every link leads to a page that is there, its sliders are drawn by the canvas; the examples; every page of the docs, its links, and the sliders that show what it says; five pages on a screen as wide as a phone (`site/tests/pages.spec.js`).
+- A stack that is said in the HTML is one before the script, and nothing moves when it comes.
 - A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).
 

@@ -194,7 +194,8 @@ export function ShaderSlider( {
 			</div>
 			<p
 				ref={ state }
-				className="mt-2 font-mono text-xs text-muted-foreground"
+				// As high as what it will say: nothing below it gives way.
+				className="mt-2 min-h-12 font-mono text-xs text-muted-foreground sm:min-h-8 xl:min-h-4"
 			/>
 		</div>
 	);

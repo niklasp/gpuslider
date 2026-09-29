@@ -17,6 +17,10 @@ export function mount( page: ReactNode ) {
 
 /** `?layer=gl` and `?layer=gpu` say who draws. */
 export function layer(): 'gl' | 'gpu' | undefined {
+	// The build renders the pages too, and has no address.
+	if ( typeof location === 'undefined' ) {
+		return undefined;
+	}
 	const name = new URLSearchParams( location.search ).get( 'layer' );
 	return name === 'gl' || name === 'gpu' ? name : undefined;
 }

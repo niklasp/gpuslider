@@ -55,7 +55,7 @@ export default function Tape() {
 	return (
 		<div ref={ page }>
 			<header>
-				<a href="/">shaderslide</a>
+				<a href="/examples/">shaderslide</a>
 				<span id="said">Scroll{ by && ` · drawn by ${ by }` }</span>
 			</header>
 

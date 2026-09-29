@@ -67,7 +67,7 @@ async function drawn( page, id ) {
 }
 
 test.beforeEach( async ( { page } ) => {
-	await page.goto( '/' );
+	await page.goto( '/playground/' );
 	await page.waitForFunction(
 		( ids ) => ids.every( ( id ) => window.sliders?.[ id ] ),
 		IDS

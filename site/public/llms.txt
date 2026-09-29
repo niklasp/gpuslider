@@ -1,18 +1,35 @@
 # shaderslide
 
-> A slider for the web that draws its media on a WebGL 2 canvas and owns its motion. The core is 4 KB; arrows, keys, autoplay, the canvas, every effect and the lightbox are plugins that a page imports when it uses them. No dependencies.
-
-This page shows the slider with controls for everything it can do.
+> A slider for the web that draws its media on a canvas and owns its motion: with WebGPU where the browser has it, with WebGL 2 where not. The core is a few kilobytes; arrows, keys, autoplay, the canvas, every effect, the lightbox and the loading screen are plugins that a page imports when it uses them. No dependencies. A working name; not on npm yet.
 
 ## Docs
 
-- [README](https://github.com/wispworks/shaderslide#readme): how to use it, options, events, plugins, effects
-- [PLAN](https://github.com/wispworks/shaderslide/blob/main/PLAN.md): every decision and its reason
+- [Get started](/docs/): the markup, what to import, and the three tiers
+- [Without a script](/docs/html/): `auto.js` and attributes in the HTML, buttons anywhere
+- [React](/docs/react/): the hook `useSlider`
+- [Layout](/docs/layout/): slides per view and gap as CSS, downwards, rows, the focus point
+- [Options, API and events](/docs/options/)
+- [Plugins](/docs/plugins/): the ones that come with it, and how to write one
+- [The canvas](/docs/canvas/): WebGPU and WebGL 2, and what they were measured at
+- [Effects and transitions](/docs/effects/): all of them, and how to write one in GLSL
+- [Lightbox](/docs/lightbox/)
+- [Loading](/docs/loading/): a screen while the media load, and its events
+- [Size, and what is not there yet](/docs/size/)
+
+## Examples
+
+- [A wall of glass](/examples/wall/)
+- [A reel](/examples/reel/)
+- [Tape](/examples/tape/)
+- [Playground](/playground/): every slider the library can be, with controls
 
 ## Use
 
 - `import { createSlider } from 'shaderslide'`: the core
-- `import { controls, keyboard, wheel, autoplay, videos, autoHeight, stack, progress } from 'shaderslide/plugins'`
-- `import { gl, stretch, split, magnify } from 'shaderslide/gl'`: the canvas and its effects
+- `import { controls, keyboard, wheel, autoplay, marquee, thumbs, videos, autoHeight, stack, progress, loading } from 'shaderslide/plugins'`
+- `import { canvas } from 'shaderslide/canvas'`: the canvas, which chooses its layer
+- `import { stretch, split, waves, liquid } from 'shaderslide/effects'`: effects and transitions
+- `import { gpu } from 'shaderslide/gpu'`, `import { gl } from 'shaderslide/gl'`: a layer by name
 - `import { lightbox } from 'shaderslide/lightbox'`
+- `import { useSlider } from 'shaderslide/react'`
 - `import { createSlider } from 'shaderslide/full'`: the core with all plugins, by options

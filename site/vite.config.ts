@@ -2,10 +2,11 @@ import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { docs } from './docs.ts';
 
 // The site uses the library as it is in the repo, not a build of it.
 export default defineConfig( {
-	plugins: [ react(), tailwindcss() ],
+	plugins: [ react(), tailwindcss(), docs() ],
 	// The generated media of the repo: /media/1.jpg
 	publicDir: path.resolve( import.meta.dirname, 'public' ),
 	resolve: {
@@ -19,6 +20,7 @@ export default defineConfig( {
 			'shaderslide/gl': path.resolve( import.meta.dirname, '../src/gl/index.js' ),
 			'shaderslide/lightbox': path.resolve( import.meta.dirname, '../src/lightbox.js' ),
 			'shaderslide/react': path.resolve( import.meta.dirname, '../src/react.js' ),
+			'shaderslide/auto': path.resolve( import.meta.dirname, '../src/auto.js' ),
 			'shaderslide/full': path.resolve( import.meta.dirname, '../src/full.js' ),
 			'shaderslide/plugins': path.resolve( import.meta.dirname, '../src/plugins/index.js' ),
 			'shaderslide/style.css': path.resolve( import.meta.dirname, '../src/style.css' ),
@@ -32,13 +34,21 @@ export default defineConfig( {
 	appType: 'mpa',
 	build: {
 		rollupOptions: {
+			// The pages of the docs are made of `docs/index.html`, by
+			// `prerender.mjs`.
 			input: Object.fromEntries(
-				[ 'index', 'wall/index', 'reel/index', 'tape/index' ].map(
-					( page ) => [
-						page.split( '/' )[ 0 ],
-						path.resolve( import.meta.dirname, `${ page }.html` ),
-					]
-				)
+				[
+					'index',
+					'docs/index',
+					'examples/index',
+					'examples/wall/index',
+					'examples/reel/index',
+					'examples/tape/index',
+					'playground/index',
+				].map( ( page ) => [
+					page.replaceAll( '/', '-' ),
+					path.resolve( import.meta.dirname, `${ page }.html` ),
+				] )
 			),
 		},
 	},

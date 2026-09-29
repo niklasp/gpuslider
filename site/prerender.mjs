@@ -8,8 +8,8 @@
  *
  * `npm run build` does this.
  */
-import { readFileSync, writeFileSync, rmSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const dist = resolve( import.meta.dirname, 'dist' );
@@ -17,10 +17,34 @@ const { render, pages } = await import(
 	pathToFileURL( resolve( dist, 'server/entry-server.js' ) ).href
 );
 
-for ( const page of Object.keys( pages ) ) {
-	let html = readFileSync( resolve( dist, page ), 'utf8' );
+const escape = ( text ) =>
+	text.replace( /&/g, '&amp;' ).replace( /"/g, '&quot;' ).replace( /</g, '&lt;' );
+
+// What Vite has built, before anything is written into it: some files
+// are what several pages are made of.
+const built = {};
+for ( const [ page, { from = page } ] of Object.entries( pages ) ) {
+	built[ from ] ||= readFileSync( resolve( dist, from ), 'utf8' );
+}
+
+for ( const [ page, { from = page, title, description } ] of Object.entries(
+	pages
+) ) {
+	let html = built[ from ];
+	if ( title ) {
+		html = html
+			.replace( /<title>[^<]*<\/title>/, `<title>${ escape( title ) }</title>` )
+			.replace(
+				/(<meta name="description" content=")[^"]*"/,
+				`$1${ escape( description ) }"`
+			);
+	}
 	const markup = await render( page );
-	html = html.replace( '<div id="root"></div>', `<div id="root">${ markup }</div>` );
+	// As a function: what is in the markup is not a pattern.
+	html = html.replace(
+		'<div id="root"></div>',
+		() => `<div id="root">${ markup }</div>`
+	);
 
 	// Styles into the document.
 	html = html.replace(
@@ -51,6 +75,7 @@ for ( const page of Object.keys( pages ) ) {
 			'<link rel="modulepreload" fetchpriority="low"'
 		);
 
+	mkdirSync( dirname( resolve( dist, page ) ), { recursive: true } );
 	writeFileSync( resolve( dist, page ), html );
 	// eslint-disable-next-line no-console
 	console.log( `dist/${ page }: ${ Math.round( html.length / 1024 ) } KB with the page in it` );

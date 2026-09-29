@@ -11,6 +11,13 @@ html {
 	max-height: 72vh;
 }
 
+/* On a phone: room for the text under the arrows. */
+@media (max-width: 640px) {
+	.hero {
+		aspect-ratio: 4 / 5;
+	}
+}
+
 .cards .card {
 	aspect-ratio: 4 / 5;
 	overflow: hidden;
@@ -171,4 +178,36 @@ html {
 .covers:not(:has(.ss-canvas)) .cover .ss-media {
 	rotate: y calc(var(--ss-p, 0) * -45deg);
 	translate: 0 0 calc(var(--ss-away, 0) * -120px);
+}
+
+/* Arrows of a slider that is written as HTML. */
+.ss > .arrow {
+	position: absolute;
+	top: 50%;
+	z-index: 10;
+	display: grid;
+	place-items: center;
+	width: 2.5rem;
+	height: 2.5rem;
+	border: 0;
+	border-radius: 999px;
+	background: rgb(0 0 0 / 0.5);
+	color: #fff;
+	font-size: 1.25rem;
+	line-height: 1;
+	translate: 0 -50%;
+	cursor: pointer;
+}
+
+.ss > .arrow[data-ss-prev] {
+	inset-inline-start: 0.75rem;
+}
+
+.ss > .arrow[data-ss-next] {
+	inset-inline-end: 0.75rem;
+}
+
+.ss > .arrow:disabled {
+	opacity: 0.2;
+	cursor: default;
 }

@@ -2,20 +2,20 @@ import {
 	lazy,
 	Suspense,
 	useCallback,
-	useEffect,
 	useRef,
 	useState,
 	type CSSProperties,
-	type RefObject,
 } from 'react';
+import '@/index.css';
 import 'shaderslide/style.css';
 import 'shaderslide/lightbox.css';
 import 'shaderslide/loading.css';
-import './site.css';
+import '@/site.css';
 // The controls are most of the script of the page, and no slider waits
 // for them.
 const Controls = lazy( () => import( '@/components/Controls' ) );
-import { ShaderSlider, Slide, Thumbs } from '@/components/ShaderSlider';
+import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { Events, Loads, Photos, type Tell } from '@/components/Pieces';
 import {
 	DEFAULTS,
 	keyOf,
@@ -23,198 +23,16 @@ import {
 	single,
 	type Config,
 } from '@/lib/config';
-import { image } from '@/lib/media';
-import type { Slider } from 'shaderslide';
-import { loading } from 'shaderslide/plugins';
+import { BUTTON, Section } from '@/components/Frame';
+import { kb, parts } from '@/lib/metrics';
 
 /** How wide a slide that fills the page is. */
 const WIDE = '(min-width: 1400px) 1400px, 100vw';
 
-/** A button of the page, as the controls have them. */
-const BUTTON =
-	'inline-flex h-8 cursor-pointer items-center rounded-md border bg-background px-3 text-sm font-medium shadow-xs transition hover:bg-accent disabled:cursor-default disabled:opacity-40 aria-[current]:bg-foreground aria-[current]:text-background dark:border-input dark:bg-input/30';
-
-function Section( {
-	title,
-	note,
-	children,
-}: {
-	title: string;
-	note: string;
-	children: React.ReactNode;
-} ) {
-	return (
-		<section className="grid grid-cols-[minmax(0,1fr)] gap-4">
-			<div>
-				<h2 className="text-sm font-semibold tracking-wide uppercase">
-					{ title }
-				</h2>
-				<p className="text-sm text-muted-foreground">{ note }</p>
-			</div>
-			{ children }
-		</section>
-	);
-}
-
-type Tell = RefObject< ( ( line: string ) => void ) | null >;
-
 /**
- * What a slider said last. It keeps its lines to itself: the page around
- * it is not rendered again for every event of a slider.
+ * Every slider the library can be, with controls for all of it.
  */
-function Events( { tell }: { tell: Tell } ) {
-	const [ log, setLog ] = useState< string[] >( [] );
-	useEffect( () => {
-		tell.current = ( line ) =>
-			setLog( ( now ) => [ line, ...now ].slice( 0, 8 ) );
-		return () => {
-			tell.current = null;
-		};
-	}, [ tell ] );
-	return (
-		<ol
-			data-testid="events"
-			aria-label="Events"
-			className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
-		>
-			{ log.map( ( line, i ) => (
-				<li key={ log.length - i } className="first:text-foreground">
-					{ line }
-				</li>
-			) ) }
-		</ol>
-	);
-}
-
-type PhotosProps = Pick<
-	Parameters< typeof ShaderSlider >[ 0 ],
-	'options' | 'style' | 'made' | 'measured' | 'plugins'
->;
-
-/**
- * A slider and its thumbnails. It keeps the slider to itself: the page
- * around it is not rendered again when the slider is made.
- */
-function Photos( props: PhotosProps ) {
-	const [ photos, setPhotos ] = useState< Slider | null >( null );
-	const images = [ 3, 5, 7, 1, 8, 2, 6, 4 ];
-	return (
-		<div className="grid max-w-4xl gap-3">
-			<ShaderSlider
-				id="photos"
-				label="Photos"
-				onSlider={ setPhotos }
-				{ ...props }
-			>
-				{ images.map( ( n ) => (
-					<Slide
-						key={ n }
-						image={ n }
-						alt={ `Colour field ${ n }` }
-						className="photo"
-						sizes="(min-width: 900px) 896px, 100vw"
-					/>
-				) ) }
-			</ShaderSlider>
-			<Thumbs id="thumbs" label="Thumbnails of the photos" of={ photos }>
-				{ images.map( ( n ) => (
-					<Slide
-						key={ n }
-						image={ n }
-						alt={ `Colour field ${ n }` }
-						className="thumb"
-						sizes="150px"
-					/>
-				) ) }
-			</Thumbs>
-		</div>
-	);
-}
-
-/**
- * A slider that shows a screen while its pictures load, and says what
- * `loading()` tells. The pictures of the page are there already: they are
- * asked for again, under another address.
- */
-function Loads( props: PhotosProps ) {
-	const [ again, setAgain ] = useState( 0 );
-	const [ said, setSaid ] = useState< string[] >( [] );
-	const heard = useCallback( ( name: string, detail: unknown ) => {
-		if ( name.startsWith( 'loading:' ) ) {
-			const { loaded, failed, total, time } = detail as Record<
-				string,
-				number
-			>;
-			setSaid( ( now ) =>
-				[
-					`${ name } · ${ loaded + failed } of ${ total }` +
-						( time === undefined ? '' : ` · ${ time } ms` ),
-					...now,
-				].slice( 0, 8 )
-			);
-		}
-	}, [] );
-	return (
-		<div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-			<ShaderSlider
-				id="loads"
-				label="Pictures that load"
-				className="cards"
-				{ ...props }
-				made={ `${ props.made } ${ again }` }
-				heard={ heard }
-				plugins={ () => [
-					...props.plugins(),
-					// Not with the page: its first view is not to wait.
-					...( again ? [ loading( { min: 700 } ) ] : [] ),
-				] }
-			>
-				{ [ 7, 2, 5, 4, 1, 6 ].map( ( n ) => (
-					<div className="ss-slide card wide" key={ n }>
-						<img
-							className="ss-media"
-							{ ...image( n ) }
-							srcSet={ undefined }
-							src={ `/media/${ n }-960.avif${
-								again ? `?again=${ again }` : ''
-							}` }
-							alt={ `Colour field ${ n }` }
-							draggable={ false }
-							loading="lazy"
-						/>
-					</div>
-				) ) }
-			</ShaderSlider>
-			<div className="grid content-start gap-4">
-				<div>
-					<button
-						type="button"
-						className={ BUTTON }
-						onClick={ () => {
-							setSaid( [] );
-							setAgain( again + 1 );
-						} }
-					>
-						Load them again
-					</button>
-				</div>
-				<ol
-					data-testid="loaded"
-					aria-label="What the loading said"
-					className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
-				>
-					{ said.map( ( line, i ) => (
-						<li key={ said.length - i } className="first:text-foreground">
-							{ line }
-						</li>
-					) ) }
-				</ol>
-			</div>
-		</div>
-	);
-}
-
-export default function App() {
+export default function Playground() {
 	const [ config, setConfig ] = useState< Config >( DEFAULTS );
 	const change = useCallback(
 		( part: Partial< Config > ) =>
@@ -237,7 +55,10 @@ export default function App() {
 	};
 	const shared = { made, measured, plugins: () => pluginsOf( config ) };
 	// The sliders that show one slide at a time take the transition.
+	// That they are stacks is in the HTML: nothing gives way when the
+	// script comes.
 	const one = {
+		className: single( config ) === 'stack' ? 'ss-stack' : undefined,
 		made,
 		measured,
 		plugins: () => pluginsOf( config, single( config ) ),
@@ -272,12 +93,12 @@ export default function App() {
 			>
 				<div className="pt-12">
 					<h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
-						A slider drawn by shaders.
+						Playground
 					</h1>
 					<p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-						Its own motion, no dependency, a few kilobytes. Drag, swipe,
-						scroll sideways, use the arrow keys. Click a slide for the
-						lightbox.
+						Every slider the library can be, and controls for all of it
+						above. Drag, swipe, scroll sideways, use the arrow keys. Click
+						a slide for the lightbox.
 					</p>
 					<nav
 						aria-label="Pages that are made of it"
@@ -286,14 +107,20 @@ export default function App() {
 						<span className="text-sm text-muted-foreground">
 							Made of it:
 						</span>
-						<a className={ BUTTON } href="/wall/">
+						<a className={ BUTTON } href="/examples/wall/">
 							A wall of glass
 						</a>
-						<a className={ BUTTON } href="/reel/">
+						<a className={ BUTTON } href="/examples/reel/">
 							A reel
 						</a>
-						<a className={ BUTTON } href="/tape/">
+						<a className={ BUTTON } href="/examples/tape/">
 							Tape
+						</a>
+						<span className="ml-2 text-sm text-muted-foreground">
+							How to:
+						</span>
+						<a className={ BUTTON } href="/docs/">
+							Docs
 						</a>
 					</nav>
 				</div>
@@ -326,7 +153,8 @@ export default function App() {
 								No dependency
 							</h3>
 							<p className="text-white/80">
-								The core is 4.5 KB. All else is asked for.
+								The core is { kb( parts.core ) } KB. All else is asked
+								for.
 							</p>
 						</Slide>
 						<Slide image={ 4 } alt="Pink colour field" className="hero" sizes={ WIDE }>
@@ -553,6 +381,7 @@ export default function App() {
 					<ShaderSlider
 						id="stack"
 						label="Stack"
+						className="ss-stack"
 						options={ {
 							...options,
 							duration: Math.max( 900, config.duration * 1.8 ),

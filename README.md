@@ -19,18 +19,27 @@ npm run test:dist  # the tests, with what is built
 npm run types      # type declarations from the JSDoc, and a file that uses them
 npm run media      # generates the images and videos in media/ again
 npm run media:wall # generates the pictures of the wall again
+npm run shots      # takes the pictures of the examples again; the site has to run
+npm run lighthouse # builds the site and asks Lighthouse about its pages
 ```
 
 ## The site
 
-`npm run site`, http://localhost:5183/: a site of Vite and React that shows everything, with controls for all of it. What is to be seen of the library is there, and nowhere else. `?layer=gl` and `?layer=gpu` on the three pages below say who draws.
+`npm run site`, http://localhost:5183/: a site of Vite and React. What is to be seen of the library is there, and nowhere else.
 
 | | |
 |---|---|
-| `/` | Every layout, every effect and transition, the lightbox, the loading screen, buttons anywhere and the events. Under every slider: who draws it, and what a frame costs |
-| `/wall/` | A wall of glass without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, the page takes the pointer and moves both. `dome`, `jelly`, `slab`, and a screen with a mark that is drawn while the pictures load |
-| `/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
-| `/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
+| `/` | What the library is: what it does, what it weighs, how fast it is, and where to go from there |
+| `/docs/` | The docs, in eleven pages. What they say is this README, cut into pages when the site is built (`site/docs.ts`): it is said in one place. Most pages show what they say, with sliders to try it on |
+| `/examples/` | The three pages below, with a picture each |
+| `/examples/wall/` | A wall of glass without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, the page takes the pointer and moves both. `dome`, `jelly`, `slab`, and a screen with a mark that is drawn while the pictures load |
+| `/examples/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
+| `/examples/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
+| `/playground/` | Every layout, every effect and transition, the lightbox, the loading screen, buttons anywhere and the events, with controls for all of it. Under every slider: who draws it, and what a frame costs |
+
+`?layer=gl` and `?layer=gpu` on the examples say who draws.
+
+No number of the site is written by hand. The sizes are written by `npm run size`, the times by `npm run bench -- --write`, what Lighthouse says by `npm run lighthouse`, all into `site/src/lib/`.
 
 `bench/` is a page without a build, for `npm run bench` and for the browser that opens it: `npm start`, http://localhost:4173/bench/.
 
@@ -71,7 +80,7 @@ Three ways, from the least to write to the least to load.
 | `data-ss-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
 | `data-ss-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
-`auto.js` is one file of 7.9 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
+`auto.js` is one file of 7.8 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
 
 The element tells when its slider is made: `ss:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
 
@@ -90,7 +99,7 @@ const slider = createSlider( document.querySelector( '.ss' ), {
 } );
 ```
 
-`shaderslide/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.7 KB.
+`shaderslide/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.6 KB.
 
 ### With what you name, and no more
 
@@ -101,7 +110,7 @@ import { controls, keyboard } from 'shaderslide/plugins';
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.5 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.4 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
@@ -131,7 +140,7 @@ function Photos( { photos, loop } ) {
 }
 ```
 
-The second argument is what the slider is made again for, as the dependencies of an effect; it stays at its slide. Slides that React adds or removes are seen by the slider. The hook adds 0.1 KB to the core. This page with arrows and dots is 5.2 KB in the bundle; with the canvas and `stretch` it is 11.6 KB.
+The second argument is what the slider is made again for, as the dependencies of an effect; it stays at its slide. Slides that React adds or removes are seen by the slider. The hook adds 0.1 KB to the core. This page with arrows and dots is 5.1 KB in the bundle; with the canvas and `stretch` it is 11.4 KB.
 
 ### Three tiers
 
@@ -197,7 +206,7 @@ Of the core:
 | `start` | `0` | First slide |
 | `drag` | `true` | |
 | `on` | | Listeners by the name of their event: `{ change: ( index ) => … }` |
-| `plugins` | `[]` | See below |
+| `plugins` | `[]` | See [Plugins that come with it](#plugins-that-come-with-it) |
 
 Of `shaderslide/full`, and of `data-ss`, also:
 
@@ -302,7 +311,7 @@ Whether the slider is at an end: `canNext` and `canPrev`, at `change`.
 
 ## Buttons anywhere
 
-In the slider, attributes are all it takes (see above). Anywhere else, name the slider:
+In the slider, attributes are all it takes (see [Without a script of your own](#without-a-script-of-your-own)). Anywhere else, name the slider:
 
 ```html
 <div class="ss" id="photos">…</div>
@@ -359,7 +368,7 @@ slider.on( 'counter:count', ( changes ) => {} );
 
 ### Animations
 
-On the canvas an animation is an effect (below): `coverflow()` turns the slides beside the active one.
+On the canvas an animation is an [effect](#effects): `coverflow()` turns the slides beside the active one.
 
 On the page it is CSS. The `progress` plugin writes `--ss-p` (-1 is one slide before the active one), `--ss-away` (the same without the sign) and `--ss-share` on every slide, on every frame of a move:
 
@@ -483,23 +492,23 @@ Shaders are compiled on another thread where the browser can, and no frame is dr
 
 ### WebGPU and WebGL, measured
 
-`npm run bench` makes the same sliders with each layer, in the same browser with the same GPU, and measures. On a Mac with an Apple M5, 2 device pixels per pixel, 2026-09-29, in Chromium 153 (Metal) and WebKit 26.6, both without a window. The first two lines are the middle of five runs, the others are one run each:
+`npm run bench` makes the same sliders with each layer, in the same browser with the same GPU, and measures. On a Mac with an Apple M5, 2 device pixels per pixel, 2026-09-29, in Chromium 153 (Metal) and WebKit 26.6, both without a window, sliders with `stretch` and `waves`. The first two lines are the middle of five runs, the others are one run each:
 
 | | WebGL 2 | WebGPU |
 |---|---|---|
-| The first slider of a page: drawn after | 77 ms in Chromium, 63 ms in WebKit | 60 ms, 75 ms |
-| A slider after it | 66 ms, 49 ms | 33 ms, 32 ms |
-| Four more, made together | 163 ms, 84 ms | 33 ms, 33 ms |
+| The first slider of a page: drawn after | 82 ms in Chromium, 84 ms in WebKit | 64 ms, 80 ms |
+| A slider after it | 50 ms, 51 ms | 33 ms, 33 ms |
+| Four more, made together | 169 ms, 100 ms | 33 ms, 33 ms |
 | Sliders of one page that the canvas draws | 12 | all: 20 of 20 |
-| Script in a frame, for each slider that moves | 0.02 to 0.03 ms | 0.03 to 0.06 ms |
+| Script in a frame while 6 sliders move | 0.15 ms, 0.17 ms | 0.33 ms, 0.27 ms |
 | Frames that came late while 20 sliders moved for 4 s | 0 of 241 | 0 of 241 |
-| Work of the page and of the GPU process, 6 sliders with effects (Chromium) | 11 % and 20 % of a core | 12 % and 20 % |
+| Work of the page and of the GPU process, 6 sliders (Chromium) | 10 % and 18 % of a core | 11 % and 18 % |
 | The layer in the bundle | 6.5 KB | 8.4 KB |
 | Browsers | all | Chrome, Edge, Safari from 26, Firefox on some systems: about 87 % of visitors |
 
-What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which is 0.05 ms of the 16.7 that a frame has.
+What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which for six sliders is 0.3 ms of the 16.7 that a frame has.
 
-What it does not say: what the GPU does with a frame, which no page can measure; and how it is on a phone. `npm run bench -- --headed` measures with windows, `bench/` in a browser of your own shows the same numbers for that browser.
+What it does not say: what the GPU does with a frame, which no page can measure; and how it is on a phone. `npm run bench -- --headed` measures with windows, `--write` writes the numbers for the site, `bench/` in a browser of your own shows the same numbers for that browser.
 
 ## Effects
 
@@ -540,6 +549,8 @@ createSlider( element, {
 	plugins: [ stack(), canvas( { effects: [ split(), burn() ] } ) ],
 } );
 ```
+
+A stack in the first view of a page says so in its HTML: `class="ss ss-stack"`. Then the slides are on top of each other before the script is there, and nothing of the page gives way when it comes. Without the script such a slider shows its first slide, and is no scroller.
 
 ### Your own
 
@@ -589,13 +600,13 @@ A shader that WebGPU does not take is said in the console, as `shaderslide: …`
 
 ## Size
 
-Gzipped, in the bundle of who imports it, from `npm run size`:
+Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 bytes, as in the budgets that the build holds every part to:
 
 | Part | Size |
 |---|---|
-| Core | 4.5 KB |
+| Core | 4.4 KB |
 | A plugin | 0.3 to 1 KB |
-| `shaderslide/full`: the core with all its options | 6.7 KB |
+| `shaderslide/full`: the core with all its options | 6.6 KB |
 | `useSlider` for React | 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | Canvas layer of WebGPU | 8.4 KB |
@@ -603,14 +614,14 @@ Gzipped, in the bundle of who imports it, from `npm run size`:
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 1.6 KB |
-| `style.css`, `lightbox.css` | 0.7 KB each |
+| `style.css`, `lightbox.css` | 0.7 and 0.6 KB |
 | `loading.css` | 0.4 KB |
 
 A visitor loads one of the two layers. `dist/` has the same for pages without a bundler, as modules that share what they have in common, with the shaders made small. `npm run test:dist` runs the tests with them.
 
 ## Not yet
 
-- Published on npm, so no CDN has it yet: `…/shaderslide/dist/` above is wherever you put `dist/`.
+- Published on npm, so no CDN has it yet: `…/shaderslide/dist/` in the examples is wherever you put `dist/`.
 - A file for `<script>` without `type="module"`.
 - A ticker has no slide it is at: no `change`, no dots.
 - Effects that lay out are cut at the edge of the slider.

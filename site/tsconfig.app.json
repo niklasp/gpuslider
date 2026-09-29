@@ -27,6 +27,7 @@
 			"shaderslide/effects": [ "../src/effects.js" ],
 			"shaderslide/lightbox": [ "../src/lightbox.js" ],
 			"shaderslide/plugins": [ "../src/plugins/index.js" ],
+			"shaderslide/auto": [ "../src/auto.js" ],
 			"shaderslide/full": [ "../src/full.js" ],
 			"shaderslide/react": [ "../src/react.js" ]
 		}

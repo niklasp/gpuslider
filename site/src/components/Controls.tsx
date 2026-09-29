@@ -129,7 +129,7 @@ export default function Controls( { config, onChange }: Props ) {
 			className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl"
 		>
 			<div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3 md:px-8">
-				<a href="#top" className="mr-1 text-base font-semibold tracking-tight">
+				<a href="/" className="mr-1 text-base font-semibold tracking-tight">
 					shaderslide
 				</a>
 

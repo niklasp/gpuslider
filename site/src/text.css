@@ -1,0 +1,86 @@
+/*
+ * Code and tables, on the first page and in the docs.
+ */
+
+.code,
+.prose pre {
+	overflow-x: auto;
+	margin: 0;
+	padding: 1rem 1.25rem;
+	border: 1px solid var(--border);
+	border-radius: 0.75rem;
+	background: color-mix(in oklch, var(--muted) 40%, transparent);
+	font: 0.8125rem/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+	tab-size: 4;
+}
+
+.code code,
+.prose pre code {
+	font: inherit;
+}
+
+/* A comment, a string, a word of the language, a number. */
+.code .c,
+.prose pre .c {
+	color: var(--muted-foreground);
+	font-style: italic;
+}
+
+.code .s,
+.prose pre .s {
+	color: oklch(0.85 0.1 150);
+}
+
+.code .k,
+.prose pre .k {
+	color: oklch(0.8 0.11 300);
+}
+
+.code .n,
+.prose pre .n {
+	color: oklch(0.84 0.1 70);
+}
+
+/* A table is as wide as it is: what is around it scrolls. */
+.scrolls {
+	overflow-x: auto;
+	border: 1px solid var(--border);
+	border-radius: 0.75rem;
+}
+
+.scrolls table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+	line-height: 1.5;
+}
+
+.scrolls th,
+.scrolls td {
+	padding: 0.625rem 1rem;
+	border-bottom: 1px solid var(--border);
+	text-align: start;
+	vertical-align: top;
+}
+
+.scrolls tr:last-child > * {
+	border-bottom: 0;
+}
+
+.scrolls thead th {
+	background: color-mix(in oklch, var(--muted) 40%, transparent);
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.scrolls tbody th {
+	font-weight: 400;
+}
+
+.scrolls td {
+	font-variant-numeric: tabular-nums;
+}
+
+.scrolls code {
+	white-space: nowrap;
+}

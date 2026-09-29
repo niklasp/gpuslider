@@ -10,6 +10,11 @@
  *                  below, so that nothing behind the two shines through
  *
  * The canvas draws a transition instead (see `gl/transitions/`).
+ *
+ * A page may say `class="ss ss-stack"` in its HTML. Then the slides are on
+ * top of each other before the script is there, and nothing of the page
+ * gives way when it comes; without the script the first slide is what is
+ * seen.
  */
 
 export function stack() {
@@ -17,6 +22,8 @@ export function stack() {
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
 		const { root, slides } = slider;
 		let shown = [];
+		// What the page has said stays when the slider ends.
+		const said = root.classList.contains( 'ss-stack' );
 		root.classList.add( 'ss-stack' );
 
 		const clear = () => {
@@ -59,7 +66,9 @@ export function stack() {
 
 			destroy() {
 				clear();
-				root.classList.remove( 'ss-stack' );
+				if ( ! said ) {
+					root.classList.remove( 'ss-stack' );
+				}
 			},
 		};
 	};

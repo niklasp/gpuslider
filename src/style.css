@@ -140,6 +140,16 @@
 	min-height: 0;
 }
 
+/* A stack that the page has said in its HTML, before the script is
+   there and without it: the first slide is what is seen. */
+.ss-stack:not(.ss-on) > .ss-track {
+	overflow: hidden;
+}
+
+.ss-stack:not(.ss-on) .ss-slide:not(:first-child) {
+	visibility: hidden;
+}
+
 .ss-stack .ss-media {
 	opacity: var(--ss-cover, 1);
 }
