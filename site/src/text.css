@@ -6,10 +6,11 @@
 .prose pre {
 	overflow-x: auto;
 	margin: 0;
-	padding: 1rem 1.25rem;
-	border: 1px solid var(--border);
-	border-radius: 0.75rem;
-	background: color-mix(in oklch, var(--muted) 40%, transparent);
+	padding: 1.25rem 1.5rem;
+	border: 0;
+	border-radius: var(--tile);
+	corner-shape: squircle;
+	background: var(--card);
 	font: 0.8125rem/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 	tab-size: 4;
 }
@@ -44,8 +45,9 @@
 /* A table is as wide as it is: what is around it scrolls. */
 .scrolls {
 	overflow-x: auto;
-	border: 1px solid var(--border);
-	border-radius: 0.75rem;
+	border-radius: var(--tile);
+	corner-shape: squircle;
+	background: var(--card);
 }
 
 .scrolls table {
@@ -68,7 +70,7 @@
 }
 
 .scrolls thead th {
-	background: color-mix(in oklch, var(--muted) 40%, transparent);
+	background: var(--secondary);
 	font-weight: 600;
 	white-space: nowrap;
 }

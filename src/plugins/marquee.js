@@ -15,7 +15,7 @@
  *
  * It stands still while the slider is not on the screen, for visitors who
  * ask for less motion, and when it is told to: by `pause()`, or by a
- * `<button data-ss-pause>` (see `autoplay`).
+ * `<button data-gs-pause>` (see `autoplay`).
  *
  * Events of the slider: `marquee:play`, `marquee:pause`.
  */

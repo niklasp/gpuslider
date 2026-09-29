@@ -10,7 +10,7 @@
  * `canvas()` brings this plugin when one of its effects moves the mesh and
  * says so in JS (`place`, see `gl/program.js`). With a layer by its name:
  *
- *     import { gl, hit, coverflow } from 'shaderslide/gl';
+ *     import { gl, hit, coverflow } from 'gpuslider/gl';
  *
  *     const effects = [ coverflow() ];
  *     createSlider( element, { plugins: [ gl( { effects } ), hit( { effects } ) ] } );
@@ -43,7 +43,7 @@ export function hit( { effects = [], perspective = 1200 } = {} ) {
 		 *                           when the canvas does not draw the slide.
 		 */
 		const mesh = ( i ) => {
-			const media = slides[ i ].querySelector( '.ss-media' );
+			const media = slides[ i ].querySelector( '.gs-media' );
 			const layer = slider.plugins.gpu || slider.plugins.gl;
 			if ( ! media || ! layer?.shows( media ) ) {
 				return null;

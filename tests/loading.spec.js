@@ -44,12 +44,12 @@ const names = async ( page ) =>
 test( 'the screen is there while the media load, and says how far they are', async ( { page } ) => {
 	const let_ = await open( page );
 	await page.evaluate( () => window.make( 'one', window.loading() ) );
-	const screen = page.locator( '#one .ss-loading' );
+	const screen = page.locator( '#one .gs-loading' );
 	await expect( screen ).toBeVisible();
 	await expect( screen ).toHaveAttribute( 'role', 'progressbar' );
 	await expect( screen ).toHaveAttribute( 'aria-valuenow', '0' );
 	await expect( screen ).toHaveText( '0 %' );
-	await expect( page.locator( '#one' ) ).toHaveClass( /ss-is-loading/ );
+	await expect( page.locator( '#one' ) ).toHaveClass( /gs-is-loading/ );
 	// It covers the slider.
 	const [ box, all ] = [
 		await screen.boundingBox(),
@@ -62,7 +62,7 @@ test( 'the screen is there while the media load, and says how far they are', asy
 	await expect( screen ).toHaveText( '33 %' );
 	expect(
 		await screen.evaluate( ( element ) =>
-			Number( element.style.getPropertyValue( '--ss-loaded' ) ).toFixed( 2 )
+			Number( element.style.getPropertyValue( '--gs-loaded' ) ).toFixed( 2 )
 		)
 	).toBe( '0.33' );
 	await let_( '2' );
@@ -70,9 +70,9 @@ test( 'the screen is there while the media load, and says how far they are', asy
 	// The third waits for its place to come near: it is told to load.
 	await let_( '3' );
 	await expect( screen ).toHaveText( '100 %' );
-	await expect( screen ).toHaveClass( /ss-loaded/ );
+	await expect( screen ).toHaveClass( /gs-loaded/ );
 	await expect( screen ).toBeHidden();
-	await expect( page.locator( '#one' ) ).not.toHaveClass( /ss-is-loading/ );
+	await expect( page.locator( '#one' ) ).not.toHaveClass( /gs-is-loading/ );
 	expect(
 		await page.evaluate( () => {
 			const { state, done } = window.sliders.one.plugins.loading;
@@ -91,7 +91,7 @@ test( 'it says what happens, in its order', async ( { page } ) => {
 				window.kept = true;
 			} );
 	} );
-	await expect( page.locator( '.ss-loading' ) ).toHaveCount( 0 );
+	await expect( page.locator( '.gs-loading' ) ).toHaveCount( 0 );
 	await expect.poll( () => names( page ) ).toEqual( [ 'loading:start' ] );
 	expect( ( await heard( page ) )[ 0 ][ 2 ] ).toEqual( {
 		loaded: 0,
@@ -131,7 +131,7 @@ test( 'it says what happens, in its order', async ( { page } ) => {
 test( 'a video counts when its first picture is there', async ( { page } ) => {
 	const let_ = await open( page );
 	await page.evaluate( () => window.make( 'two', window.loading() ) );
-	const screen = page.locator( '#two .ss-loading' );
+	const screen = page.locator( '#two .gs-loading' );
 	await let_( '4' );
 	await expect( screen ).toHaveText( '50 %' );
 	await let_( 'a' );
@@ -149,7 +149,7 @@ test( 'after its time it is done with what is there', async ( { page } ) => {
 		window.make( 'one', window.loading( { timeout: 300 } ) )
 	);
 	await let_( '1' );
-	await expect( page.locator( '#one .ss-loading' ) ).toBeHidden();
+	await expect( page.locator( '#one .gs-loading' ) ).toBeHidden();
 	const last = ( await heard( page ) ).at( -1 );
 	expect( last[ 1 ] ).toBe( 'loading:done' );
 	expect( last[ 2 ] ).toMatchObject( { loaded: 1, total: 3, late: true } );
@@ -166,10 +166,10 @@ test( 'the screen stays for the least time it is given', async ( { page } ) => {
 	await page.evaluate( () =>
 		window.make( 'one', window.loading( { min: 700 } ) )
 	);
-	const screen = page.locator( '#one .ss-loading' );
+	const screen = page.locator( '#one .gs-loading' );
 	await expect( screen ).toHaveText( '100 %' );
-	await expect( screen ).not.toHaveClass( /ss-loaded/ );
-	await expect( screen ).toHaveClass( /ss-loaded/ );
+	await expect( screen ).not.toHaveClass( /gs-loaded/ );
+	await expect( screen ).toHaveClass( /gs-loaded/ );
 	expect( Date.now() - began ).toBeGreaterThan( 650 );
 } );
 
@@ -188,7 +188,7 @@ test( 'a screen of the page, for two sliders that count together', async ( { pag
 		window.make( 'two', together );
 	} );
 	const own = page.locator( '#own' );
-	await expect( page.locator( '.ss-loading' ) ).toHaveCount( 0 );
+	await expect( page.locator( '.gs-loading' ) ).toHaveCount( 0 );
 	await expect( own ).toHaveText( '0' );
 	await expect
 		.poll( async () => ( await heard( page ) ).map( ( [ id, , { total } ] ) => [ id, total ] ) )
@@ -198,11 +198,11 @@ test( 'a screen of the page, for two sliders that count together', async ( { pag
 		] );
 	await let_();
 	await expect( own ).toHaveText( '83' );
-	await expect( own ).not.toHaveClass( /ss-loaded/ );
+	await expect( own ).not.toHaveClass( /gs-loaded/ );
 	await page.evaluate( () => window.more() );
 	await expect( own ).toHaveText( '100' );
-	await expect( own ).toHaveClass( /ss-loaded/ );
-	await expect( page.locator( '#two' ) ).not.toHaveClass( /ss-is-loading/ );
+	await expect( own ).toHaveClass( /gs-loaded/ );
+	await expect( page.locator( '#two' ) ).not.toHaveClass( /gs-is-loading/ );
 } );
 
 test( 'a screen that is in the page is taken, and stays when the slider ends', async ( { page } ) => {
@@ -212,29 +212,29 @@ test( 'a screen that is in the page is taken, and stays when the slider ends', a
 			.getElementById( 'one' )
 			.insertAdjacentHTML(
 				'beforeend',
-				'<div class="ss-loading" aria-label="Photos are coming"><b data-ss-loaded></b></div>'
+				'<div class="gs-loading" aria-label="Photos are coming"><b data-gs-loaded></b></div>'
 			);
 		window.make( 'one', window.loading() );
 	} );
-	const screen = page.locator( '#one .ss-loading' );
+	const screen = page.locator( '#one .gs-loading' );
 	await expect( screen ).toHaveCount( 1 );
 	await expect( screen ).toHaveAttribute( 'aria-label', 'Photos are coming' );
 	await let_( '1' );
 	await expect( screen.locator( 'b' ) ).toHaveText( '33' );
 	await page.evaluate( () => window.sliders.one.destroy() );
 	await expect( screen ).toHaveCount( 1 );
-	await expect( page.locator( '#one' ) ).not.toHaveClass( /ss-is-loading/ );
+	await expect( page.locator( '#one' ) ).not.toHaveClass( /gs-is-loading/ );
 } );
 
 test( 'a slider without media is done at once', async ( { page } ) => {
 	await open( page );
 	await page.evaluate( () => {
-		document.querySelector( '#one .ss-track' ).innerHTML =
-			'<div class="ss-slide">Text</div>';
+		document.querySelector( '#one .gs-track' ).innerHTML =
+			'<div class="gs-slide">Text</div>';
 		window.make( 'one', window.loading() );
 	} );
 	await expect
 		.poll( () => names( page ) )
 		.toEqual( [ 'loading:start', 'loading:done' ] );
-	await expect( page.locator( '#one .ss-loading' ) ).toBeHidden();
+	await expect( page.locator( '#one .gs-loading' ) ).toBeHidden();
 } );

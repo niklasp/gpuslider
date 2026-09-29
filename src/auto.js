@@ -1,32 +1,32 @@
 /**
  * Sliders without a line of script of one's own: this file makes a slider
- * of every element with `data-ss` on the page.
+ * of every element with `data-gs` on the page.
  *
- *     <link rel="stylesheet" href="…/shaderslide/dist/style.css">
- *     <script type="module" src="…/shaderslide/dist/auto.js"></script>
+ *     <link rel="stylesheet" href="…/gpuslider/dist/style.css">
+ *     <script type="module" src="…/gpuslider/dist/auto.js"></script>
  *
- *     <div class="ss" data-ss='{ "loop": true, "autoplay": 4000 }'
- *          data-ss-canvas="stretch split">
- *         <div class="ss-track"> … </div>
+ *     <div class="gs" data-gs='{ "loop": true, "autoplay": 4000 }'
+ *          data-gs-canvas="stretch split">
+ *         <div class="gs-track"> … </div>
  *     </div>
  *
- *     data-ss            the options of `shaderslide/full`, as JSON, or
+ *     data-gs            the options of `gpuslider/full`, as JSON, or
  *                        nothing
- *     data-ss-canvas     the canvas, with the effects that are named:
+ *     data-gs-canvas     the canvas, with the effects that are named:
  *                        "stretch split", or with their options
  *                        '{ "stretch": { "amount": 2 } }'. Drawn by WebGPU
  *                        where the browser has it, by WebGL 2 where not
- *     data-ss-gpu        the same, by WebGPU or not at all
- *     data-ss-gl         the same, by WebGL 2 or not at all
- *     data-ss-lightbox   a lightbox, with effects as above
- *     data-ss-loading    a screen while the media load; its options as
+ *     data-gs-gpu        the same, by WebGPU or not at all
+ *     data-gs-gl         the same, by WebGL 2 or not at all
+ *     data-gs-lightbox   a lightbox, with effects as above
+ *     data-gs-loading    a screen while the media load; its options as
  *                        JSON, or nothing. Needs `loading.css`
  *
  * The canvas and the lightbox are loaded when a slider asks for them, and
  * when the page has time: a page without them never loads them, and no
  * page loads the layer it does not draw with.
  *
- * An element tells when its slider is made: the event `ss:ready` has the
+ * An element tells when its slider is made: the event `gs:ready` has the
  * slider as its `detail` and goes up to the document. Later the slider is
  * `sliders.get( element )`.
  */
@@ -47,36 +47,36 @@ const named = ( text ) =>
 		: text.split( /[\s,]+/ ).filter( Boolean ).map( ( name ) => [ name ] );
 
 /**
- * Makes sliders of the elements with `data-ss` that are not sliders yet.
+ * Makes sliders of the elements with `data-gs` that are not sliders yet.
  * Runs by itself when the page is read; for what comes later, call it.
  *
  * @param {Document | Element} [within] Where to look.
  */
 export function auto( within = document ) {
-	within.querySelectorAll( '[data-ss]' ).forEach( ( root ) => {
+	within.querySelectorAll( '[data-gs]' ).forEach( ( root ) => {
 		if ( sliders.has( root ) ) {
 			return;
 		}
-		const { ss, ssCanvas, ssGpu, ssGl, ssLightbox, ssLoading } =
+		const { gs, gsCanvas, gsGpu, gsGl, gsLightbox, gsLoading } =
 			/** @type {HTMLElement} */ ( root ).dataset;
 		const slider = createSlider( root, {
-			...( ss ? JSON.parse( ss ) : {} ),
+			...( gs ? JSON.parse( gs ) : {} ),
 			plugins:
-				ssLoading !== undefined
-					? [ loading( ssLoading ? JSON.parse( ssLoading ) : {} ) ]
+				gsLoading !== undefined
+					? [ loading( gsLoading ? JSON.parse( gsLoading ) : {} ) ]
 					: [],
 		} );
 		sliders.set( root, slider );
 		slider.on( 'destroy', () => sliders.delete( root ) );
 
-		const drawn = ssCanvas ?? ssGpu ?? ssGl;
-		if ( drawn !== undefined || ssLightbox !== undefined ) {
+		const drawn = gsCanvas ?? gsGpu ?? gsGl;
+		if ( drawn !== undefined || gsLightbox !== undefined ) {
 			const win = root.ownerDocument.defaultView;
 			( win.requestIdleCallback || win.setTimeout )( async () => {
 				// A browser may know WebGPU and have nothing to run it on.
 				const can =
-					ssGpu !== undefined ||
-					( ssGl === undefined &&
+					gsGpu !== undefined ||
+					( gsGl === undefined &&
 						( await win.navigator.gpu
 							?.requestAdapter()
 							.catch( () => null ) ) );
@@ -94,16 +94,16 @@ export function auto( within = document ) {
 				if ( drawn !== undefined ) {
 					slider.use( layer( { effects: effects( drawn ) } ) );
 				}
-				if ( ssLightbox !== undefined ) {
+				if ( gsLightbox !== undefined ) {
 					const { lightbox } = await import( './lightbox.js' );
 					slider.use(
-						lightbox( { effects: effects( ssLightbox ), layer } )
+						lightbox( { effects: effects( gsLightbox ), layer } )
 					);
 				}
 			} );
 		}
 		root.dispatchEvent(
-			new CustomEvent( 'ss:ready', { detail: slider, bubbles: true } )
+			new CustomEvent( 'gs:ready', { detail: slider, bubbles: true } )
 		);
 	} );
 }

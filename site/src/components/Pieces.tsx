@@ -9,11 +9,11 @@ import {
 	useState,
 	type RefObject,
 } from 'react';
-import { ShaderSlider, Slide, Thumbs } from '@/components/ShaderSlider';
+import { GpuSlider, Slide, Thumbs } from '@/components/GpuSlider';
 import { BUTTON } from '@/components/Frame';
-import { image } from '@/lib/media';
-import type { Slider } from 'shaderslide';
-import { loading } from 'shaderslide/plugins';
+import { image, photo, useKind } from '@/lib/media';
+import type { Slider } from 'gpuslider';
+import { loading } from 'gpuslider/plugins';
 
 export type Tell = RefObject< ( ( line: string ) => void ) | null >;
 
@@ -34,7 +34,7 @@ export function Events( { tell }: { tell: Tell } ) {
 		<ol
 			data-testid="events"
 			aria-label="Events"
-			className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
+			className="sq-tile min-h-44 bg-card p-4 font-mono text-xs leading-5 text-muted-foreground"
 		>
 			{ log.map( ( line, i ) => (
 				<li key={ log.length - i } className="first:text-foreground">
@@ -46,7 +46,7 @@ export function Events( { tell }: { tell: Tell } ) {
 }
 
 export type PhotosProps = Pick<
-	Parameters< typeof ShaderSlider >[ 0 ],
+	Parameters< typeof GpuSlider >[ 0 ],
 	'options' | 'style' | 'made' | 'measured' | 'plugins' | 'className'
 >;
 
@@ -59,7 +59,7 @@ export function Photos( props: PhotosProps ) {
 	const images = [ 3, 5, 7, 1, 8, 2, 6, 4 ];
 	return (
 		<div className="grid max-w-4xl gap-3">
-			<ShaderSlider
+			<GpuSlider
 				id="photos"
 				label="Photos"
 				onSlider={ setPhotos }
@@ -74,7 +74,7 @@ export function Photos( props: PhotosProps ) {
 						sizes="(min-width: 900px) 896px, 100vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<Thumbs id="thumbs" label="Thumbnails of the photos" of={ photos }>
 				{ images.map( ( n ) => (
 					<Slide
@@ -97,6 +97,7 @@ export function Photos( props: PhotosProps ) {
  */
 export function Loads( props: PhotosProps ) {
 	const [ again, setAgain ] = useState( 0 );
+	const kind = useKind();
 	const [ said, setSaid ] = useState< string[] >( [] );
 	const heard = useCallback( ( name: string, detail: unknown ) => {
 		if ( name.startsWith( 'loading:' ) ) {
@@ -115,7 +116,7 @@ export function Loads( props: PhotosProps ) {
 	}, [] );
 	return (
 		<div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-			<ShaderSlider
+			<GpuSlider
 				id="loads"
 				label="Pictures that load"
 				className="cards"
@@ -129,21 +130,21 @@ export function Loads( props: PhotosProps ) {
 				] }
 			>
 				{ [ 7, 2, 5, 4, 1, 6 ].map( ( n ) => (
-					<div className="ss-slide card wide" key={ n }>
+					<div className="gs-slide card wide" key={ n }>
 						<img
-							className="ss-media"
-							{ ...image( n ) }
+							className="gs-media"
+							{ ...image( n, kind ) }
 							srcSet={ undefined }
-							src={ `/media/${ n }-960.avif${
+							src={ `${ image( n, kind ).src }${
 								again ? `?again=${ again }` : ''
 							}` }
-							alt={ `Colour field ${ n }` }
+							alt={ kind === 'photos' ? photo( n ).alt : `Colour field ${ n }` }
 							draggable={ false }
 							loading="lazy"
 						/>
 					</div>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<div className="grid content-start gap-4">
 				<div>
 					<button
@@ -160,7 +161,7 @@ export function Loads( props: PhotosProps ) {
 				<ol
 					data-testid="loaded"
 					aria-label="What the loading said"
-					className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
+					className="sq-tile min-h-44 bg-card p-4 font-mono text-xs leading-5 text-muted-foreground"
 				>
 					{ said.map( ( line, i ) => (
 						<li key={ said.length - i } className="first:text-foreground">

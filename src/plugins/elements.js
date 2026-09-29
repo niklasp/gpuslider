@@ -2,7 +2,7 @@
  * The elements of the page that speak to a slider: buttons in it, buttons
  * anywhere with the id of the slider on them or around them
  *
- *     <nav data-ss-for="photos"><button data-ss-next>…</button></nav>
+ *     <nav data-gs-for="photos"><button data-gs-next>…</button></nav>
  *
  * and those that were handed over: an element, several, or a selector.
  */
@@ -23,11 +23,11 @@ export function elements( slider, given ) {
 
 	// Whether an element of the page speaks to this slider.
 	const mine = ( el ) => {
-		const to = el.closest( '[data-ss-for]' );
+		const to = el.closest( '[data-gs-for]' );
 		return to
-			? !! root.id && to.dataset.ssFor === root.id
+			? !! root.id && to.dataset.gsFor === root.id
 			: // Not what belongs to a slider inside of this one.
-			  root.contains( el ) && el.closest( '.ss' ) === root;
+			  root.contains( el ) && el.closest( '.gs' ) === root;
 	};
 
 	return {
@@ -38,7 +38,7 @@ export function elements( slider, given ) {
 		 */
 		all: ( kind ) => [
 			...new Set( [
-				...[ ...doc.querySelectorAll( `[data-ss-${ kind }]` ) ].filter( mine ),
+				...[ ...doc.querySelectorAll( `[data-gs-${ kind }]` ) ].filter( mine ),
 				...( typeof given[ kind ] === 'string'
 					? doc.querySelectorAll( given[ kind ] )
 					: [ given[ kind ] ].flat().filter( Boolean ) ),

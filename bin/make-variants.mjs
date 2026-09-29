@@ -8,7 +8,7 @@
  *
  * The JPEGs stay: the tests compare pixels with them.
  *
- * `node bin/make-variants.mjs`
+ * `node bin/make-variants.mjs`, or only some: `node bin/make-variants.mjs p1 p2`
  */
 import sharp from 'sharp';
 import { execFileSync } from 'node:child_process';
@@ -22,8 +22,13 @@ export const WIDTHS = [ 480, 720, 960, 1600 ];
 
 const kb = ( file ) => `${ Math.round( statSync( file ).size / 1024 ) } KB`;
 
+const only = process.argv.slice( 2 );
+
 for ( const file of readdirSync( out ).sort() ) {
 	const [ , name, kind ] = file.match( /^([a-z0-9]+)\.(jpg|mp4)$/ ) || [];
+	if ( only.length && ! only.includes( name ) ) {
+		continue;
+	}
 	if ( kind === 'jpg' ) {
 		const image = sharp( resolve( out, file ) );
 		const { width } = await image.metadata();

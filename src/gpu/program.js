@@ -10,7 +10,7 @@ import { wgsl, rename } from './wgsl.js';
 // What every quad is told, by size: that way nothing has to be left empty
 // between them.
 const TOLD = [
-	[ 'uQuad', 'uBoxA', 'uBoxB', 'uRectA', 'uRectB' ],
+	[ 'uQuad', 'uBoxA', 'uBoxB', 'uRectA', 'uRectB', 'uFrame' ],
 	[],
 	[ 'uPointer', 'uPointerSpeed', 'uSize', 'uView', 'uCut' ],
 	[
@@ -20,7 +20,10 @@ const TOLD = [
 		'uTime',
 		'uMix',
 		'uRadius',
+		'uShape',
 		'uDepth',
+		'uFx',
+		'uDim',
 	],
 ];
 const KINDS = [ 'vec4f', 'vec3f', 'vec2f', 'f32' ];
@@ -126,7 +129,7 @@ export function compose( effects, transition, y ) {
 	const said = rename(
 		wgsl(
 			written +
-				`vec4 media( vec2 uv ) {\n${ calls.uv }return base( uv${ turned } );\n}\n`
+				`vec4 media( vec2 uv ) {\nvec2 was = uv;\n${ calls.uv }return base( mix( was, uv, uFx )${ turned } );\n}\n`
 		),
 		Object.fromEntries( Object.keys( at ).map( ( name ) => [ name, `u.${ name }` ] ) )
 	);
@@ -150,23 +153,31 @@ ${ said }
 @vertex fn vertex( @location( 0 ) aPos: vec2f ) -> Point {
 	let a = aPos${ turned };
 	var p = vec3f( ( a - 0.5 ) * u.uQuad.zw, 0.0 );
+	let was = p;
 	${ calls.vertex }
-	let at = ( ( u.uQuad.xy + u.uQuad.zw * 0.5 + p.xy ) / u.uView * 2.0 - 1.0 )${ turned };
+	p = mix( was, p, u.uFx );
+	let at = ( ( u.uFrame.xy + u.uQuad.xy + u.uQuad.zw * 0.5 + p.xy ) / u.uFrame.zw * 2.0 - 1.0 )${ turned };
 	// The depth runs from 0 here, where it runs from -1 in WebGL.
 	let w = 1.0 - p.z / u.uDepth;
 	return Point( vec4f( at.x, -at.y, ( w - p.z / u.uDepth * 0.5 ) * 0.5, w ), aPos );
 }
-// Rounded corners, and edges that are soft by a pixel.
+// Rounded corners, and edges that are soft by a pixel. A corner is a
+// superellipse of the exponent uShape: round at 2, a squircle at 4.
 @fragment fn fragment( point: Point ) -> @location( 0 ) vec4f {
 	vUv = point.uv;
 	lods = vec2f( sizeOf( uA, u.uBoxA ), sizeOf( uB, u.uBoxB ) );
 	var uv = vUv${ turned };
 	var color = media( uv );
+	let was = color;
 	${ calls.color }
+	color = mix( was, color, u.uFx );
 	let half_ = u.uSize * 0.5;
-	let d = abs( uv * u.uSize - half_ ) - half_ + u.uRadius;
-	let away = length( max( d, vec2f( 0.0 ) ) ) + min( max( d.x, d.y ), 0.0 ) - u.uRadius;
-	return color * clamp( 0.5 - away, 0.0, 1.0 );
+	let r = max( u.uRadius, 1e-3 );
+	let d = abs( uv * u.uSize - half_ ) - half_ + r;
+	let e = pow( max( d, vec2f( 0.0 ) ) / r, vec2f( u.uShape ) );
+	let away = pow( e.x + e.y, 1.0 / u.uShape ) * r + min( max( d.x, d.y ), 0.0 ) - r;
+	let out = color * clamp( 0.5 - away, 0.0, 1.0 );
+	return vec4f( out.rgb * u.uDim, out.a );
 }`;
 
 	return {

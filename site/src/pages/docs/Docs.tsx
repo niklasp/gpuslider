@@ -1,6 +1,6 @@
 import { lazy, Suspense, type ComponentType } from 'react';
 import '@/index.css';
-import 'shaderslide/style.css';
+import 'gpuslider/style.css';
 import '@/site.css';
 import '@/text.css';
 import './docs.css';

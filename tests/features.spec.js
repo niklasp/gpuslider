@@ -38,7 +38,7 @@ test.describe( 'auto height', () => {
 		await open( page, {
 			...setup,
 			n: 4,
-			css: '.ss { --ss-per-view: 2; }',
+			css: '.gs { --gs-per-view: 2; }',
 		} );
 		// 400 px wide: 225, 300, 533, 225.
 		expect( await height( page ) ).toBe( 300 );
@@ -110,10 +110,78 @@ test.describe( 'autoplay', () => {
 		await expect.poll( () => index( page ) ).not.toBe( at );
 	} );
 
+	test( 'with hover: false it goes on under the pointer, and says how long a slide has', async ( { page } ) => {
+		await open( page, { n: 3 } );
+		await page.evaluate( () => {
+			window.slider.destroy();
+			window.said = [];
+			const { createSlider, autoplay } = window.lib;
+			window.slider = createSlider( document.getElementById( 'slider' ), {
+				duration: 200,
+				plugins: [ autoplay( { delay: 700, hover: false } ) ],
+				on: {
+					'autoplay:run': ( detail ) => window.said.push( [ 'run', detail ] ),
+					'autoplay:wait': () => window.said.push( [ 'wait' ] ),
+				},
+			} );
+		} );
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 400, box.y + 150 );
+		await expect.poll( () => index( page ) ).toBe( 2 );
+		expect( ( await page.evaluate( () => window.said ) )[ 0 ] ).toEqual( [
+			'run',
+			{ delay: 700, left: 700 },
+		] );
+		// A press leaves the focus in the slider, and that does not hold
+		// it: only the focus of the keys does.
+		await page.mouse.down();
+		await page.mouse.up();
+		const at = await index( page );
+		await expect.poll( () => index( page ) ).not.toBe( at );
+		// Stopped while a slide has its time, it says so.
+		await page.evaluate(
+			() =>
+				new Promise( ( done ) => {
+					const off = window.slider.on( 'autoplay:run', () => {
+						off();
+						window.slider.plugins.autoplay.pause();
+						done();
+					} );
+				} )
+		);
+		expect( ( await page.evaluate( () => window.said ) ).at( -1 ) ).toEqual( [ 'wait' ] );
+	} );
+
+	test( 'left: the first slide has what is left of its time, the next all of it', async ( { page } ) => {
+		await open( page, { n: 3 } );
+		await page.evaluate( () => {
+			window.slider.destroy();
+			window.said = [];
+			const { createSlider, autoplay } = window.lib;
+			window.slider = createSlider( document.getElementById( 'slider' ), {
+				start: 1,
+				duration: 100,
+				plugins: [ autoplay( { delay: 1500, left: 200, hover: false } ) ],
+				on: {
+					'autoplay:run': ( detail ) => window.said.push( detail ),
+					change: ( index ) => window.said.push( index ),
+				},
+			} );
+		} );
+		await expect.poll( () => index( page ) ).toBe( 2 );
+		// The time after the change is the whole time.
+		await page.waitForFunction( () => window.said.at( -1 )?.delay );
+		const said = await page.evaluate( () => window.said );
+		expect( said[ 0 ] ).toEqual( { delay: 1500, left: 200 } );
+		expect( said.slice( said.indexOf( 2 ) + 1 ) ).toEqual( [
+			{ delay: 1500, left: 1500 },
+		] );
+	} );
+
 	test( 'the pause button stops it', async ( { page } ) => {
 		await open( page, { n: 3, o: { autoplay: 300, duration: 200 } } );
 		await page.mouse.move( 5, 650 );
-		const button = page.locator( '[data-ss-pause]' );
+		const button = page.locator( '[data-gs-pause]' );
 		await expect( button ).toHaveAttribute( 'aria-pressed', 'false' );
 		await button.click();
 		await expect( button ).toHaveAttribute( 'aria-pressed', 'true' );
@@ -167,7 +235,7 @@ test.describe( 'free', () => {
 		await open( page, {
 			n: 8,
 			o: { free: true },
-			css: '.ss { --ss-per-view: 3; }',
+			css: '.gs { --gs-per-view: 3; }',
 		} );
 		await drag( page, -300, { pause: 150 } );
 		await settled( page );
@@ -181,7 +249,7 @@ test.describe( 'free', () => {
 		await open( page, {
 			n: 4,
 			o: { free: true },
-			css: '.ss { --ss-per-view: 3; }',
+			css: '.gs { --gs-per-view: 3; }',
 		} );
 		await drag( page, -200, { steps: 4 } );
 		await settled( page );
@@ -226,7 +294,7 @@ test.describe( 'video', () => {
 		await expect
 			.poll( () =>
 				page.evaluate( () =>
-					document.querySelector( 'video' ).classList.contains( 'ss-drawn' )
+					document.querySelector( 'video' ).classList.contains( 'gs-drawn' )
 				)
 			)
 			.toBe( true );

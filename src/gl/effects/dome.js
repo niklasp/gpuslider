@@ -1,6 +1,6 @@
 /**
  * The slides are seen as on a dome: what is far from its middle is
- * smaller and nearer to it.
+ * smaller and nearer to it, and what is beyond its edge is not seen.
  *
  * Moves the mesh, in the plane: nothing of it leaves the canvas.
  *
@@ -23,12 +23,16 @@ export const dome = ( {
 	size = [ 0 ],
 } = {} ) => ( {
 	params: { amount, centre, size },
+	// A point is drawn at away / ( 1 + k ) from the middle. That is
+	// furthest where k is 1, and nearer again beyond: there it would come
+	// back over the slides before it. So it stays at that edge, where
+	// what is further on is gone, as behind a horizon.
 	vertex: `
 	vec2 away = uQuad.xy + uQuad.zw * 0.5 + p.xy - uView * 0.5 - centre;
 	float wide = size > 0.0 ? size : uView.x;
-	float far = dot( away, away ) / ( wide * wide );
-	vec2 to = p.xy - away * ( 1.0 - 1.0 / ( 1.0 + amount * far ) );
-	return vec3( to, p.z );`,
+	float k = amount * dot( away, away ) / ( wide * wide );
+	vec2 held = away / sqrt( max( k, 1.0 ) );
+	return vec3( p.xy - away + held / ( 1.0 + min( k, 1.0 ) ), p.z );`,
 	place( p, { view, quad } ) {
 		// Numbers, or what the page writes into.
 		const of = ( value, k = 0 ) => ( value.map ? value[ k ] : value );
@@ -41,9 +45,9 @@ export const dome = ( {
 				view[ k ] / 2 -
 				of( centre, k )
 		);
-		const far = ( away[ 0 ] ** 2 + away[ 1 ] ** 2 ) / wide ** 2;
-		const by = 1 - 1 / ( 1 + of( amount ) * far );
-		p[ 0 ] -= away[ 0 ] * by;
-		p[ 1 ] -= away[ 1 ] * by;
+		const k = ( of( amount ) * ( away[ 0 ] ** 2 + away[ 1 ] ** 2 ) ) / wide ** 2;
+		const held = 1 / Math.sqrt( Math.max( k, 1 ) ) / ( 1 + Math.min( k, 1 ) );
+		p[ 0 ] += away[ 0 ] * ( held - 1 );
+		p[ 1 ] += away[ 1 ] * ( held - 1 );
 	},
 } );

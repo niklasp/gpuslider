@@ -3,8 +3,8 @@
  * WebGL 2 where not. The page loads the one it uses, and that one only,
  * when it has time.
  *
- *     import { canvas } from 'shaderslide/canvas';
- *     import { stretch } from 'shaderslide/effects';
+ *     import { canvas } from 'gpuslider/canvas';
+ *     import { stretch } from 'gpuslider/effects';
  *
  *     createSlider( element, { plugins: [ canvas( { effects: [ stretch() ] } ) ] } );
  *

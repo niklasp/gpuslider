@@ -11,3 +11,354 @@
 			calc(var(--share) * 100%) 100%,
 		var(--muted);
 }
+
+/*
+ * The light of the slide that is seen, on the page around the slider at
+ * the top. --light is a colour, so that it can go from one to the next.
+ */
+@property --light {
+	syntax: "<color>";
+	inherits: true;
+	initial-value: #f35c6d;
+}
+
+.lit {
+	position: relative;
+	isolation: isolate;
+	transition: --light 1.4s ease;
+}
+
+/* Below the stage, as if its light fell on the floor. */
+.lit::before {
+	content: "";
+	position: absolute;
+	z-index: -1;
+	inset: 55% 0 -28rem;
+	background: radial-gradient(
+		48% 42% at 50% 40%,
+		color-mix(in oklch, var(--light) 34%, transparent),
+		transparent
+	);
+	pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.lit {
+		transition: none;
+	}
+}
+
+/* From one side of the window to the other. */
+.bleed {
+	width: 100vw;
+	margin-inline: calc(50% - 50vw);
+	border-radius: 0;
+}
+
+/*
+ * The stage: the slider at the top, as large as the window. What the page
+ * says lies over it (see `over` of GpuSlider), bottom left; the
+ * controls are bottom right.
+ */
+.stage {
+	/* The window, less the bar of the page above it and the margin below. */
+	height: max(34rem, calc(100svh - 4.5rem - 0.75rem));
+}
+
+@media (min-width: 768px) {
+	.stage {
+		height: max(34rem, calc(100svh - 4.5rem - 1.25rem));
+	}
+}
+
+.stage > .gs-track,
+.stage .full {
+	height: 100%;
+}
+
+/* What each slide says: small, top right, under the bar of the page. */
+.stage .gs-content {
+	justify-content: flex-start;
+	align-items: flex-end;
+	gap: 0.25rem;
+	padding: 6rem 1.5rem 0;
+	background: linear-gradient(to bottom, rgb(0 0 0 / 0.35), transparent 30%);
+	text-align: end;
+}
+
+@media (min-width: 768px) {
+	.stage .gs-content {
+		padding: 6.5rem 3.5rem 0;
+	}
+
+}
+
+/*
+ * The dots of the dock: close together, and the one of the slide that is
+ * seen is a bar that fills while its time runs. `.running` and --run are
+ * given by the events of autoplay (see Stage in Home.tsx).
+ */
+.dock .dots .gs-dot {
+	width: 14px;
+	height: 36px;
+}
+
+.dock .dots .gs-dot::before {
+	width: 6px;
+	height: 6px;
+	background: rgb(255 255 255 / 0.4);
+	transition:
+		width 0.3s,
+		background-color 0.2s;
+}
+
+.dock .dots .gs-dot:hover::before {
+	background: rgb(255 255 255 / 0.7);
+}
+
+.dock .dots .gs-dot[aria-current] {
+	width: 38px;
+}
+
+.dock .dots .gs-dot[aria-current]::before {
+	width: 28px;
+	background: linear-gradient(#fff, #fff) no-repeat 0 0 / var(--filled, 100%) 100%,
+		rgb(255 255 255 / 0.3);
+}
+
+/* While the time runs, the bar fills from nothing. */
+.running .dock .dots .gs-dot[aria-current]::before {
+	animation: run var(--run, 5s) linear calc(-1 * var(--ran, 0ms)) forwards;
+}
+
+@property --filled {
+	syntax: "<percentage>";
+	inherits: false;
+	initial-value: 100%;
+}
+
+@keyframes run {
+	from {
+		--filled: 0%;
+	}
+
+	to {
+		--filled: 100%;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.dock .dots .gs-dot::before {
+		transition: none;
+	}
+}
+
+/* The icon of a card, in a colour of the pictures. */
+.tint {
+	background: color-mix(in oklch, var(--tint) 16%, transparent);
+	color: var(--tint);
+}
+
+/* A row that reaches across the window moves by the arrows, the pointer
+   and the wheel: dots on it would lie over a picture. */
+.bleed > .dots {
+	display: none;
+}
+
+/*
+ * What lies on light: the sections from the cards to the numbers, with
+ * fields of colour behind them that drift, each on its own slow way.
+ */
+.field {
+	position: relative;
+	isolation: isolate;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: inherit;
+}
+
+.blobs {
+	position: absolute;
+	z-index: -1;
+	inset: -12rem calc(50% - 50vw);
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.blobs > span {
+	position: absolute;
+	width: 58vw;
+	aspect-ratio: 1;
+	border-radius: 50%;
+	background: radial-gradient(closest-side, var(--tint), transparent);
+	opacity: 0.5;
+	filter: blur(60px);
+	animation: drift 38s ease-in-out infinite alternate;
+}
+
+.blobs > span:nth-child(1) {
+	top: 2%;
+	left: -8%;
+}
+
+.blobs > span:nth-child(2) {
+	top: 14%;
+	right: -10%;
+	animation-duration: 46s;
+	animation-delay: -12s;
+}
+
+.blobs > span:nth-child(3) {
+	top: 42%;
+	left: 20%;
+	animation-duration: 52s;
+	animation-delay: -30s;
+}
+
+.blobs > span:nth-child(4) {
+	top: 64%;
+	right: 4%;
+	animation-duration: 41s;
+	animation-delay: -8s;
+}
+
+.blobs > span:nth-child(5) {
+	bottom: -6%;
+	left: -4%;
+	animation-duration: 57s;
+	animation-delay: -21s;
+}
+
+@keyframes drift {
+	33% {
+		translate: 12vw 6vh;
+		scale: 1.15;
+	}
+
+	66% {
+		translate: -6vw 14vh;
+		scale: 0.9;
+	}
+
+	to {
+		translate: 8vw -8vh;
+		scale: 1.05;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.blobs > span {
+		animation: none;
+	}
+}
+
+/* Glass that lets the light through, blurred. */
+.frost {
+	background: rgb(255 255 255 / 0.045);
+	box-shadow:
+		inset 0 0 0 1px rgb(255 255 255 / 0.09),
+		inset 0 1px 0 rgb(255 255 255 / 0.08);
+	backdrop-filter: blur(24px) saturate(150%);
+	transition: background-color 0.2s;
+}
+
+.frost:hover {
+	background: rgb(255 255 255 / 0.08);
+}
+
+/*
+ * Whole slides only: four in view, three on a smaller screen, two on a
+ * phone. And from the window as far as from each other.
+ */
+.whole {
+	--gs-per-view: 4;
+	--gs-gap: 20px;
+}
+
+@media (max-width: 1024px) {
+	.whole {
+		--gs-per-view: 3;
+	}
+}
+
+@media (max-width: 640px) {
+	.cards.whole {
+		--gs-per-view: 2 !important;
+		--gs-gap: 12px;
+	}
+}
+
+.bleed.inset {
+	width: calc(100vw - 2 * var(--gs-gap));
+	margin-inline: calc(50% - 50vw + var(--gs-gap));
+}
+
+/* What the stage says of itself stays in the page, not in the margin
+   under it: as far from the bottom of the window as from its sides. */
+.lit #first + p {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* The title of the stage: lifted off the picture, and lit in the colour
+   of the slide under it. */
+.glow {
+	text-shadow:
+		0 1px 1px rgb(0 0 0 / 0.25),
+		0 6px 18px rgb(0 0 0 / 0.35),
+		0 0 48px color-mix(in oklab, var(--light) 70%, transparent),
+		0 0 110px color-mix(in oklab, var(--light) 45%, transparent);
+}
+
+/* The speed of the stage: a thin line of glass, a white knob. */
+.speed {
+	appearance: none;
+	height: 1.25rem;
+	background: none;
+	cursor: pointer;
+}
+
+.speed::-webkit-slider-runnable-track {
+	height: 4px;
+	border-radius: 2px;
+	background: rgb(255 255 255 / 0.2);
+}
+
+.speed::-moz-range-track {
+	height: 4px;
+	border-radius: 2px;
+	background: rgb(255 255 255 / 0.2);
+}
+
+.speed::-webkit-slider-thumb {
+	appearance: none;
+	width: 16px;
+	height: 16px;
+	margin-top: -6px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+}
+
+.speed::-moz-range-thumb {
+	width: 16px;
+	height: 16px;
+	border: 0;
+	border-radius: 50%;
+	background: #fff;
+}
+
+.speed:focus-visible {
+	outline: 2px solid #fff;
+	outline-offset: 4px;
+	border-radius: 4px;
+}
+
+/* What a slider across the page says of itself: under its middle. */
+.bleed + p {
+	text-align: center;
+}

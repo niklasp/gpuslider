@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import 'shaderslide/style.css';
-import 'shaderslide/loading.css';
+import 'gpuslider/style.css';
+import 'gpuslider/loading.css';
 import './tape.css';
-import { createSlider, type Slider } from 'shaderslide';
-import { loading, marquee } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { stretch, split, jelly } from 'shaderslide/effects';
+import { createSlider, type Slider } from 'gpuslider';
+import { loading, marquee } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { stretch, split, jelly } from 'gpuslider/effects';
 import pictures from '@/lib/wall.json';
 import { drawnBy, layer } from '../mount';
 
@@ -55,7 +55,7 @@ export default function Tape() {
 	return (
 		<div ref={ page }>
 			<header>
-				<a href="/examples/">shaderslide</a>
+				<a href="/examples/">gpu slider</a>
 				<span id="said">Scroll{ by && ` · drawn by ${ by }` }</span>
 			</header>
 
@@ -72,14 +72,14 @@ export default function Tape() {
 					<p className="word" aria-hidden="true">
 						{ word }
 					</p>
-					<div className="ss tape" aria-label={ `${ word }: a row of pictures` }>
-						<div className="ss-track">
+					<div className="gs tape" aria-label={ `${ word }: a row of pictures` }>
+						<div className="gs-track">
 							{ Array.from( { length: IN_A_ROW }, ( _, i ) => {
 								const n = ( row * 6 + i * 5 ) % pictures.length;
 								return (
-									<div className="ss-slide" key={ n }>
+									<div className="gs-slide" key={ n }>
 										<img
-											className="ss-media"
+											className="gs-media"
 											src={ `/media/wall/${ String( n + 1 ).padStart(
 												2,
 												'0'

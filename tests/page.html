@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>shaderslide test page</title>
+<title>gpu slider test page</title>
 <script>
 	// ?from=dist tests what is built for the pages of others.
 	window.from = new URLSearchParams( location.search ).get( 'from' ) || 'src';
@@ -15,25 +15,25 @@
 </script>
 <style>
 	body { margin: 0; }
-	.ss { width: 800px; margin: 40px 100px; }
-	.ss-slide { height: 300px; }
-	.ss-content { padding: 20px; color: #fff; }
+	.gs { width: 800px; margin: 40px 100px; }
+	.gs-slide { height: 300px; }
+	.gs-content { padding: 20px; color: #fff; }
 	.tall { height: 2000px; }
 </style>
 <style id="extra"></style>
 </head>
 <body>
-<div class="ss" id="slider" aria-label="Test">
-	<div class="ss-track"></div>
-	<button data-ss-prev>Previous</button>
-	<button data-ss-next>Next</button>
-	<button data-ss-pause>Pause</button>
-	<div data-ss-dots></div>
+<div class="gs" id="slider" aria-label="Test">
+	<div class="gs-track"></div>
+	<button data-gs-prev>Previous</button>
+	<button data-gs-next>Next</button>
+	<button data-gs-pause>Pause</button>
+	<div data-gs-dots></div>
 </div>
-<nav id="outside" data-ss-for="slider">
-	<button data-ss-prev>Back</button>
-	<button data-ss-next>On</button>
-	<button data-ss-to="3">To the fourth</button>
+<nav id="outside" data-gs-for="slider">
+	<button data-gs-prev>Back</button>
+	<button data-gs-next>On</button>
+	<button data-gs-to="3">To the fourth</button>
 </nav>
 <button id="lonely">On, by option</button>
 <div class="tall"></div>
@@ -60,21 +60,21 @@
 	if ( query.get( 'dir' ) ) {
 		document.documentElement.dir = query.get( 'dir' );
 	}
-	const track = document.querySelector( '.ss-track' );
+	const track = document.querySelector( '.gs-track' );
 	const videos = ( query.get( 'video' ) || '' ).split( ',' );
 	if ( query.get( 'heights' ) ) {
 		document.getElementById( 'extra' ).textContent +=
-			'.ss-slide { height: auto; }';
+			'.gs-slide { height: auto; }';
 	}
 	for ( let i = 0; i < n; i++ ) {
 		const media = videos.includes( String( i ) )
-			? `<video class="ss-media" src="../media/${ i % 2 ? 'a' : 'b' }.mp4" muted playsinline loop autoplay></video>`
-			: `<img class="ss-media" src="../media/${ ( i % 8 ) + 1 }.jpg" alt="Slide ${ i + 1 }">`;
+			? `<video class="gs-media" src="../media/${ i % 2 ? 'a' : 'b' }.mp4" muted playsinline loop autoplay></video>`
+			: `<img class="gs-media" src="../media/${ ( i % 8 ) + 1 }.jpg" alt="Slide ${ i + 1 }">`;
 		track.insertAdjacentHTML(
 			'beforeend',
-			`<div class="ss-slide" data-i="${ i }">
+			`<div class="gs-slide" data-i="${ i }">
 				${ media }
-				<div class="ss-content"><a href="#followed">Link ${ i + 1 }</a></div>
+				<div class="gs-content"><a href="#followed">Link ${ i + 1 }</a></div>
 			</div>`
 		);
 	}

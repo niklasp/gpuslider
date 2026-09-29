@@ -27,37 +27,37 @@ body {
 .wall {
 	height: 100vh;
 	height: 100dvh;
-	--ss-gap: var(--gap);
+	--gs-gap: var(--gap);
 }
 
-.wall.ss-on {
+.wall.gs-on {
 	touch-action: none;
 }
 
-.wall > .ss-track > .ss-slide {
+.wall > .gs-track > .gs-slide {
 	flex: 0 0 calc(var(--card) * 2 / 3);
 }
 
 /* A row is higher than its place in the wall: its glass has room. */
 .row {
-	--ss-gap: var(--gap);
+	--gs-gap: var(--gap);
 
 	padding-block: var(--room);
 	margin-block: calc(var(--room) * -1);
 }
 
-.row .ss-slide {
+.row .gs-slide {
 	flex: 0 0 var(--card);
 	aspect-ratio: 3 / 2;
 }
 
-.row .ss-media {
+.row .gs-media {
 	border-radius: clamp(18px, 2.4vw, 38px);
 }
 
 /* The rows of the wall lie over each other, and none of them is in the
    way of a pointer that is for the wall. */
-.wall.ss-on .row {
+.wall.gs-on .row {
 	pointer-events: none;
 	overflow: visible;
 }
@@ -114,11 +114,11 @@ footer a {
 	stroke-width: 2;
 	/* As much of the line as is loaded. */
 	stroke-dasharray: 130;
-	stroke-dashoffset: calc(130 * (1 - var(--ss-loaded, 0)));
+	stroke-dashoffset: calc(130 * (1 - var(--gs-loaded, 0)));
 	transition: stroke-dashoffset 0.4s;
 }
 
-.intro.ss-loaded {
+.intro.gs-loaded {
 	opacity: 0;
 	visibility: hidden;
 }
@@ -128,7 +128,7 @@ footer a {
 	transition: opacity 1.2s 0.2s, scale 1.4s 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.wall.ss-is-loading {
+.wall.gs-is-loading {
 	opacity: 0;
 	scale: 1.12;
 }

@@ -1,17 +1,17 @@
 import { type CSSProperties } from 'react';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
-import { controls, keyboard } from 'shaderslide/plugins';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
+import { controls, keyboard } from 'gpuslider/plugins';
 
 /** The core, arrows and keys: the first piece of code of the page. */
 export default function Start() {
 	return (
 		<>
-			<ShaderSlider
+			<GpuSlider
 				id="start"
 				label="Photos"
 				options={ { loop: true } }
 				className="cards"
-				style={ { '--ss-per-view': 3, '--ss-gap': '16px' } as CSSProperties }
+				style={ { '--gs-per-view': 3, '--gs-gap': '16px' } as CSSProperties }
 				made=""
 				measured=""
 				plugins={ () => [ controls(), keyboard() ] }
@@ -25,7 +25,7 @@ export default function Start() {
 						sizes="(max-width: 640px) 77vw, 30vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<p className="note">
 				The core, <code>controls()</code> and <code>keyboard()</code>, and
 				nothing else: the page draws it. Drag it, or use the arrows and the

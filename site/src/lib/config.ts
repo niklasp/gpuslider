@@ -1,7 +1,7 @@
 /**
  * What the controls of the site set, and what the sliders make of it.
  */
-import { canvas } from 'shaderslide/canvas';
+import { canvas } from 'gpuslider/canvas';
 import {
 	stretch,
 	split,
@@ -17,15 +17,16 @@ import {
 	reveal,
 	glass,
 	pixels,
+	cells,
 	pile,
 	fan,
 	dome,
 	jelly,
 	slab,
 	type Effect,
-} from 'shaderslide/effects';
+} from 'gpuslider/effects';
 import * as transitions from '../../../src/gl/transitions/index.js';
-import { lightbox } from 'shaderslide/lightbox';
+import { lightbox } from 'gpuslider/lightbox';
 import {
 	controls,
 	keyboard,
@@ -36,8 +37,8 @@ import {
 	stack,
 	progress,
 	marquee,
-} from 'shaderslide/plugins';
-import type { Create } from 'shaderslide';
+} from 'gpuslider/plugins';
+import type { Create } from 'gpuslider';
 
 export const EFFECTS = {
 	stretch: { label: 'Stretch', hint: 'The image gives way to the speed' },
@@ -63,6 +64,7 @@ export const POINTERS = {
 	reveal: 'Reveal',
 	glass: 'Fluted glass',
 	pixels: 'Pixels',
+	cells: 'Cells',
 } as const;
 
 export type PointerName = keyof typeof POINTERS;
@@ -152,6 +154,7 @@ const point = ( name: PointerName, k: number ): Effect[] =>
 		reveal: () => [ reveal() ],
 		glass: () => [ glass( { amount: k } ) ],
 		pixels: () => [ pixels() ],
+		cells: () => [ cells( { zoom: 0.8 * k } ) ],
 	} )[ name ]();
 
 /**

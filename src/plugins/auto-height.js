@@ -12,7 +12,7 @@ export function autoHeight() {
 		let tall = [];
 		let most = 0;
 		let height = -1;
-		root.classList.add( 'ss-tall' );
+		root.classList.add( 'gs-tall' );
 
 		return {
 			name: 'autoHeight',
@@ -58,7 +58,7 @@ export function autoHeight() {
 			},
 
 			destroy() {
-				root.classList.remove( 'ss-tall' );
+				root.classList.remove( 'gs-tall' );
 				track.style.height = '';
 			},
 		};

@@ -53,7 +53,7 @@ function deviceOf( win ) {
 				device.lost.then( () => devices.delete( win ) );
 				device.addEventListener( 'uncapturederror', ( { error } ) =>
 					// eslint-disable-next-line no-console
-					console.error( 'shaderslide:', error.message )
+					console.error( 'gpuslider:', error.message )
 				);
 				const sampler = device.createSampler( {
 					magFilter: 'linear',
@@ -186,7 +186,7 @@ export function gpu( {
 		const numbers = [];
 		const read = () => {
 			slides.forEach( ( slide, i ) => {
-				media[ i ] = slide.querySelector( '.ss-media' );
+				media[ i ] = slide.querySelector( '.gs-media' );
 				boxes[ i ] = null;
 				numbers[ i ] ||= new Float32Array( 13 );
 			} );
@@ -196,6 +196,10 @@ export function gpu( {
 		read();
 		// The quad about to be drawn, for whoever changes it (see `change`).
 		const next = { x: 0, y: 0, w: 0, h: 0, a: null, radius: 0, speed: 0 };
+		// Where the canvas is, when it is lifted out of the slider (see
+		// `lift`): the view in it, and its size.
+		let lifted = null;
+		const frame = [ 0, 0, 0, 0 ];
 
 		let context = null;
 		// Whether the device, or the compiler, is asked for.
@@ -222,7 +226,7 @@ export function gpu( {
 
 		const show = ( element, on ) => {
 			if ( on !== drawn.has( element ) ) {
-				element.classList.toggle( 'ss-drawn', on );
+				element.classList.toggle( 'gs-drawn', on );
 				drawn[ on ? 'add' : 'delete' ]( element );
 			}
 		};
@@ -299,7 +303,7 @@ export function gpu( {
 				}
 				pipeline = await pipelines.get( key ).catch( ( error ) => {
 					// eslint-disable-next-line no-console
-					console.error( 'shaderslide:', error.message );
+					console.error( 'gpuslider:', error.message );
 					destroyed = true;
 				} );
 			}
@@ -310,7 +314,7 @@ export function gpu( {
 			}
 			const { device, format } = shared;
 			const canvas = doc.createElement( 'canvas' );
-			canvas.className = 'ss-canvas';
+			canvas.className = 'gs-canvas';
 			canvas.setAttribute( 'aria-hidden', 'true' );
 			const surface = canvas.getContext( 'webgpu' );
 			surface.configure( { device, format, alphaMode: 'premultiplied' } );
@@ -334,7 +338,7 @@ export function gpu( {
 			} );
 			width = 0;
 			root.prepend( canvas );
-			root.classList.add( 'ss-gl' );
+			root.classList.add( 'gs-gl' );
 			slider.wake();
 			slider.emit( 'gpu:on', canvas );
 		}
@@ -346,7 +350,7 @@ export function gpu( {
 			const { shared, canvas, surface, buffer, targets } = context;
 			context = null;
 			drawn.forEach( ( element ) => show( element, false ) );
-			root.classList.remove( 'ss-gl' );
+			root.classList.remove( 'gs-gl' );
 			slider.emit( 'gpu:off', !! lost );
 			canvas.remove();
 			shared.textures.free( slider.wake );
@@ -465,11 +469,20 @@ export function gpu( {
 
 			/**
 			 * Called with every slide of a row before it is drawn, with its
-			 * index and its quad: `x`, `y`, `w`, `h` in px of the canvas,
-			 * `a` (numbers of `fit()`), `radius` and `speed`, which is
-			 * added to the speed of the slider. What it changes is drawn.
+			 * index and its quad: `x`, `y`, `w`, `h` in px of the view,
+			 * `a` (numbers of `fit()`), `radius`, `shape` and `speed`, which is
+			 * added to the speed of the slider; `fx`, how much the effects
+			 * do, 0 to 1; `dim`, what its colour is multiplied by; and
+			 * `clip`, whether it stays in the view. What it changes is drawn.
 			 */
 			change: null,
+
+			/**
+			 * An element the canvas goes into, over the whole of it, and
+			 * draws the view where the view is: so that a slide can leave
+			 * it. Null, back in the slider.
+			 */
+			lift: null,
 
 			/**
 			 * @param {HTMLElement} element Media element.
@@ -551,19 +564,32 @@ export function gpu( {
 				// As high as the view gets: with auto height the view
 				// changes on every frame, the canvas does not.
 				const high = slider.plugins.autoHeight?.most || layout.height;
+				if ( layer.lift !== lifted ) {
+					lifted = layer.lift;
+					( lifted || root ).prepend( canvas );
+					width = 0;
+				}
 				if ( layout.width !== width || high !== height || to !== ratio ) {
 					width = layout.width;
 					height = high;
 					ratio = to;
-					canvas.style.height = `${ height }px`;
+					// Measured here, and drawn at once: a canvas of another
+					// size is empty.
+					const view = root.getBoundingClientRect();
+					const over = lifted?.getBoundingClientRect();
+					frame[ 0 ] = over ? view.left + root.clientLeft - over.left : 0;
+					frame[ 1 ] = over ? view.top + root.clientTop - over.top : 0;
+					frame[ 2 ] = over ? lifted.clientWidth : width;
+					frame[ 3 ] = over ? lifted.clientHeight : height;
+					canvas.style.height = `${ frame[ 3 ] }px`;
 					const most = device.limits.maxTextureDimension2D;
 					canvas.width = Math.min(
 						most,
-						Math.max( 1, Math.round( width * ratio ) )
+						Math.max( 1, Math.round( frame[ 2 ] * ratio ) )
 					);
 					canvas.height = Math.min(
 						most,
-						Math.max( 1, Math.round( height * ratio ) )
+						Math.max( 1, Math.round( frame[ 3 ] * ratio ) )
 					);
 					context.targets?.forEach( ( target ) => target.destroy() );
 					// What bends is drawn with a depth, and with several
@@ -611,7 +637,7 @@ export function gpu( {
 				const step = Math.ceil( ( each * 4 ) / STEP ) * ( STEP / 4 );
 				const quads = [];
 
-				const quad = ( x, y, w, h, a, b, progress, mix, radius, speed ) => {
+				const quad = ( x, y, w, h, a, b, progress, mix, radius, speed, shape = 2, fx = 1, dim = 1, clip = true ) => {
 					const from = quads.length * step;
 					if ( quads.length >= context.room ) {
 						context.room = 2 * context.room || 8;
@@ -634,6 +660,11 @@ export function gpu( {
 					data[ from + at.uQuad + 2 ] = down ? h : w;
 					data[ from + at.uQuad + 3 ] = down ? w : h;
 					two( 'uView', width, height );
+					two( 'uFrame', frame[ 0 ], frame[ 1 ] );
+					data[ from + at.uFrame + 2 ] = down ? frame[ 3 ] : frame[ 2 ];
+					data[ from + at.uFrame + 3 ] = down ? frame[ 2 ] : frame[ 3 ];
+					one( 'uFx', fx );
+					one( 'uDim', dim );
 					two( 'uPointer', ( pointer.x - x ) / w, ( pointer.y - y ) / h );
 					two( 'uPointerSpeed', pointer.vx / w, pointer.vy / h );
 					one( 'uTime', now / 1000 );
@@ -643,6 +674,7 @@ export function gpu( {
 					one( 'uProgress', progress );
 					one( 'uMix', mix );
 					one( 'uRadius', radius );
+					one( 'uShape', shape );
 					data.set( a.numbers.subarray( 0, 4 ), from + at.uBoxA );
 					data.set( a.numbers.subarray( 4, 8 ), from + at.uRectA );
 					data.set( b.numbers.subarray( 0, 4 ), from + at.uBoxB );
@@ -652,7 +684,7 @@ export function gpu( {
 					for ( const name in shader.params ) {
 						data.set( shader.params[ name ], from + at[ name ] );
 					}
-					quads.push( [ a.record, b.record ] );
+					quads.push( [ a.record, b.record, lifted && clip ] );
 				};
 
 				if ( stack ) {
@@ -702,7 +734,11 @@ export function gpu( {
 							next.w = box.at.w;
 							next.h = box.at.h;
 							next.radius = box.style.radius;
+							next.shape = box.style.shape;
 							next.speed = 0;
+							next.fx = 1;
+							next.dim = 1;
+							next.clip = true;
 							layer.change?.( i, next );
 							quad(
 								next.x,
@@ -714,7 +750,11 @@ export function gpu( {
 								place.p,
 								0,
 								next.radius,
-								next.speed
+								next.speed,
+								next.shape,
+								next.fx,
+								next.dim,
+								next.clip
 							);
 						}
 					} );
@@ -777,7 +817,24 @@ export function gpu( {
 				if ( groups.size > 64 ) {
 					groups.clear();
 				}
-				quads.forEach( ( [ a, b ], i ) => {
+				// What leaves the view is cut where the slider cuts it: in
+				// device pixels, in the canvas.
+				const [ x0, y0, x1, y1 ] = [
+					frame[ 0 ],
+					frame[ 1 ],
+					frame[ 0 ] + width,
+					frame[ 1 ] + height,
+				].map( ( n, k ) =>
+					Math.max(
+						0,
+						Math.min( Math.round( n * ratio ), k % 2 ? canvas.height : canvas.width )
+					)
+				);
+				const cut = [ x0, y0, x1 - x0, y1 - y0 ];
+				quads.forEach( ( [ a, b, clip ], i ) => {
+					pass.setScissorRect(
+						...( clip ? cut : [ 0, 0, canvas.width, canvas.height ] )
+					);
 					const pair = [ a || nothing, b || nothing ];
 					const key = pair.map( ( { version } ) => version ).join();
 					if ( ! groups.has( key ) ) {
@@ -810,6 +867,7 @@ export function gpu( {
 
 			busy: () =>
 				making ||
+				!! layer.lift ||
 				( !! context &&
 					( pointer.moving ||
 						shader.animated ||

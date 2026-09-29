@@ -37,6 +37,10 @@ import {
 } from '@/lib/config';
 import { FocusPad } from '@/components/FocusPad';
 
+// Glass, as the bars of the first page are.
+const GLASS = 'sq-pill border-white/10 bg-white/5 hover:bg-white/10';
+const CAPTION = 'text-xs text-white/45';
+
 type Props = {
 	config: Config;
 	onChange: ( change: Partial< Config > ) => void;
@@ -72,7 +76,7 @@ function Range( {
 	return (
 		<div className="grid w-32 gap-1.5">
 			<Label htmlFor={ id } className="justify-between text-xs">
-				<span className="text-muted-foreground">{ label }</span>
+				<span className="text-white/45">{ label }</span>
 				<span className="font-mono tabular-nums">
 					{ shown }
 					{ unit }
@@ -111,7 +115,7 @@ function Toggle( {
 	onChange: ( checked: boolean ) => void;
 } ) {
 	return (
-		<div className="flex items-center gap-2">
+		<div className="flex h-8 items-center gap-2">
 			<Switch id={ id } checked={ checked } onCheckedChange={ onChange } />
 			<Label htmlFor={ id } className="text-xs">
 				{ label }
@@ -120,18 +124,20 @@ function Toggle( {
 	);
 }
 
-/** The settings of all sliders of the page, which stay at its top. */
+/**
+ * The settings of all sliders of the page: a panel of glass that stays
+ * under the bar at the top.
+ */
 export default function Controls( { config, onChange }: Props ) {
 	return (
 		<TooltipProvider>
-		<header
+		<div
 			data-testid="controls"
-			className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl"
+			role="group"
+			aria-label="Settings"
+			className="relative z-30 px-3 md:sticky md:top-[4.5rem] md:px-5"
 		>
-			<div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3 md:px-8">
-				<a href="/" className="mr-1 text-base font-semibold tracking-tight">
-					shaderslide
-				</a>
+			<div className="sq-tile mx-auto flex max-w-[1400px] flex-wrap items-end gap-x-5 gap-y-3 bg-black/55 px-4 py-3 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150 md:px-6">
 
 				<Toggle
 					id="canvas"
@@ -141,7 +147,7 @@ export default function Controls( { config, onChange }: Props ) {
 				/>
 
 				<div className="grid gap-1.5">
-					<Label htmlFor="layer" className="text-xs text-muted-foreground">
+					<Label htmlFor="layer" className={ CAPTION }>
 						Drawn with
 					</Label>
 					<Select
@@ -149,7 +155,7 @@ export default function Controls( { config, onChange }: Props ) {
 						disabled={ ! config.canvas }
 						onValueChange={ ( layer: LayerName ) => onChange( { layer } ) }
 					>
-						<SelectTrigger id="layer" size="sm" className="w-40">
+						<SelectTrigger id="layer" size="sm" className={ `${ GLASS } w-40` }>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -162,14 +168,14 @@ export default function Controls( { config, onChange }: Props ) {
 					</Select>
 				</div>
 
-				<Separator orientation="vertical" className="h-6!" />
+				<Separator orientation="vertical" className="hidden h-8! self-center bg-white/10 md:block" />
 
 				<ToggleGroup
 					type="multiple"
-					variant="outline"
 					size="sm"
-					spacing={ 0 }
+					spacing={ 1 }
 					aria-label="Effects"
+					className="sq-pill max-w-full overflow-x-auto bg-white/5 p-1 ring-1 ring-white/10 [scrollbar-width:none]"
 					disabled={ ! config.canvas }
 					value={ config.effects }
 					onValueChange={ ( effects: EffectName[] ) =>
@@ -179,7 +185,10 @@ export default function Controls( { config, onChange }: Props ) {
 					{ ( Object.keys( EFFECTS ) as EffectName[] ).map( ( name ) => (
 						<Tooltip key={ name }>
 							<TooltipTrigger asChild>
-								<ToggleGroupItem value={ name } className="px-3 text-xs">
+								<ToggleGroupItem
+									value={ name }
+									className="sq-pill! h-7 px-3 text-xs text-white/70 hover:bg-white/10 hover:text-white aria-pressed:bg-white! aria-pressed:text-black!"
+								>
 									{ EFFECTS[ name ].label }
 								</ToggleGroupItem>
 							</TooltipTrigger>
@@ -189,7 +198,7 @@ export default function Controls( { config, onChange }: Props ) {
 				</ToggleGroup>
 
 				<div className="grid gap-1.5">
-					<Label htmlFor="pointer" className="text-xs text-muted-foreground">
+					<Label htmlFor="pointer" className={ CAPTION }>
 						Under the pointer
 					</Label>
 					<Select
@@ -199,7 +208,7 @@ export default function Controls( { config, onChange }: Props ) {
 							onChange( { pointer } )
 						}
 					>
-						<SelectTrigger id="pointer" size="sm" className="w-32">
+						<SelectTrigger id="pointer" size="sm" className={ `${ GLASS } w-32` }>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -225,7 +234,7 @@ export default function Controls( { config, onChange }: Props ) {
 				/>
 
 				<div className="grid gap-1.5">
-					<Label htmlFor="transition" className="text-xs text-muted-foreground">
+					<Label htmlFor="transition" className={ CAPTION }>
 						Transition
 					</Label>
 					<Select
@@ -236,7 +245,7 @@ export default function Controls( { config, onChange }: Props ) {
 						<SelectTrigger
 							id="transition"
 							size="sm"
-							className="w-36"
+							className={ `${ GLASS } w-36` }
 							title="For the sliders that show one slide at a time. With none, their slides move."
 						>
 							<SelectValue />
@@ -251,16 +260,16 @@ export default function Controls( { config, onChange }: Props ) {
 					</Select>
 				</div>
 
-				<Separator orientation="vertical" className="h-6!" />
+				<Separator orientation="vertical" className="hidden h-8! self-center bg-white/10 md:block" />
 
 				<Popover>
 					<PopoverTrigger asChild>
-						<Button variant="outline" size="sm">
+						<Button variant="outline" size="sm" className={ GLASS }>
 							<SlidersHorizontal />
 							Slider
 						</Button>
 					</PopoverTrigger>
-					<PopoverContent align="start" className="grid w-auto grid-cols-2 gap-5">
+					<PopoverContent align="start" className="sq-tile grid w-auto grid-cols-2 gap-5 border-white/10 bg-black/70 backdrop-blur-2xl">
 						<Range
 							id="per-view"
 							label="Per view"
@@ -321,12 +330,12 @@ export default function Controls( { config, onChange }: Props ) {
 
 				<Popover>
 					<PopoverTrigger asChild>
-						<Button variant="outline" size="sm">
+						<Button variant="outline" size="sm" className={ GLASS }>
 							<Crosshair />
 							Focus point
 						</Button>
 					</PopoverTrigger>
-					<PopoverContent align="start" className="w-auto">
+					<PopoverContent align="start" className="sq-tile w-auto border-white/10 bg-black/70 backdrop-blur-2xl">
 						<FocusPad
 							image="/media/3-480.avif"
 							value={ config.focus }
@@ -341,7 +350,7 @@ export default function Controls( { config, onChange }: Props ) {
 							variant="ghost"
 							size="icon-sm"
 							aria-label="Back to how it was"
-							className="ml-auto"
+							className="sq-pill ml-auto self-center"
 							onClick={ () => onChange( DEFAULTS ) }
 						>
 							<RotateCcw />
@@ -350,7 +359,7 @@ export default function Controls( { config, onChange }: Props ) {
 					<TooltipContent>Back to how it was</TooltipContent>
 				</Tooltip>
 			</div>
-		</header>
+		</div>
 		</TooltipProvider>
 	);
 }

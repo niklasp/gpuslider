@@ -1,8 +1,8 @@
 /**
  * The slider in React: React renders the slides, the slider moves them.
  *
- *     import { useSlider } from 'shaderslide/react';
- *     import { controls } from 'shaderslide/plugins';
+ *     import { useSlider } from 'gpuslider/react';
+ *     import { controls } from 'gpuslider/plugins';
  *
  *     function Photos( { photos, loop } ) {
  *         const [ ref, slider ] = useSlider(
@@ -10,11 +10,11 @@
  *             [ loop ]
  *         );
  *         return (
- *             <div className="ss" ref={ ref } aria-label="Photos">
- *                 <div className="ss-track">
+ *             <div className="gs" ref={ ref } aria-label="Photos">
+ *                 <div className="gs-track">
  *                     { photos.map( ( photo ) => (
- *                         <div className="ss-slide" key={ photo.src }>
- *                             <img className="ss-media" { ...photo } />
+ *                         <div className="gs-slide" key={ photo.src }>
+ *                             <img className="gs-media" { ...photo } />
  *                         </div>
  *                     ) ) }
  *                 </div>

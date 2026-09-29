@@ -14,7 +14,7 @@ const RECENT = 100;
 
 // A drag does not begin on what is there to be used.
 const NO_DRAG =
-	'input, textarea, select, button, [contenteditable], [data-ss-no-drag]';
+	'input, textarea, select, button, [contenteditable], [data-gs-no-drag]';
 
 /**
  * @param {HTMLElement} root   The slider.
@@ -81,7 +81,7 @@ export function createInput( root, slider, signal ) {
 		pointer.at = along( event );
 		pointer.from = motion.pos;
 		slider.grab();
-		root.classList.add( 'ss-dragging' );
+		root.classList.add( 'gs-dragging' );
 		try {
 			root.setPointerCapture( pointer.id );
 		} catch {
@@ -127,7 +127,7 @@ export function createInput( root, slider, signal ) {
 			}
 			return;
 		}
-		root.classList.remove( 'ss-dragging' );
+		root.classList.remove( 'gs-dragging' );
 		let velocity = 0;
 		const n = samples.length;
 		// A pointer that rested before it let go has no speed left.

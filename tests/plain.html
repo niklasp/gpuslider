@@ -3,32 +3,32 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>shaderslide without the script</title>
+<title>gpu slider without the script</title>
 <link rel="stylesheet" href="../src/style.css">
 <style>
 	body { margin: 0; }
-	.ss { width: 800px; margin: 40px 100px; --ss-per-view: 2.5; --ss-gap: 12px; }
-	.ss-slide { height: 300px; }
+	.gs { width: 800px; margin: 40px 100px; --gs-per-view: 2.5; --gs-gap: 12px; }
+	.gs-slide { height: 300px; }
 </style>
 </head>
 <body>
 <!-- A slider as a page has it, and no script: the first of the three tiers. -->
-<div class="ss" id="several" aria-label="Several per view">
-	<div class="ss-track">
-		<div class="ss-slide"><img class="ss-media" src="../media/1.jpg" alt="One"></div>
-		<div class="ss-slide"><img class="ss-media" src="../media/2.jpg" alt="Two"></div>
-		<div class="ss-slide"><img class="ss-media" src="../media/3.jpg" alt="Three"></div>
-		<div class="ss-slide"><img class="ss-media" src="../media/4.jpg" alt="Four"></div>
-		<div class="ss-slide"><img class="ss-media" src="../media/5.jpg" alt="Five"></div>
-		<div class="ss-slide"><img class="ss-media" src="../media/6.jpg" alt="Six"></div>
+<div class="gs" id="several" aria-label="Several per view">
+	<div class="gs-track">
+		<div class="gs-slide"><img class="gs-media" src="../media/1.jpg" alt="One"></div>
+		<div class="gs-slide"><img class="gs-media" src="../media/2.jpg" alt="Two"></div>
+		<div class="gs-slide"><img class="gs-media" src="../media/3.jpg" alt="Three"></div>
+		<div class="gs-slide"><img class="gs-media" src="../media/4.jpg" alt="Four"></div>
+		<div class="gs-slide"><img class="gs-media" src="../media/5.jpg" alt="Five"></div>
+		<div class="gs-slide"><img class="gs-media" src="../media/6.jpg" alt="Six"></div>
 	</div>
 </div>
 <!-- A stack that is said in the HTML: it is one before the script is. -->
-<div class="ss ss-stack" id="stacked" aria-label="One at a time" style="--ss-per-view: 1">
-	<div class="ss-track">
-		<div class="ss-slide"><img class="ss-media" src="../media/1.jpg" alt="One"></div>
-		<div class="ss-slide"><img class="ss-media" src="../media/2.jpg" alt="Two"></div>
-		<div class="ss-slide"><img class="ss-media" src="../media/3.jpg" alt="Three"></div>
+<div class="gs gs-stack" id="stacked" aria-label="One at a time" style="--gs-per-view: 1">
+	<div class="gs-track">
+		<div class="gs-slide"><img class="gs-media" src="../media/1.jpg" alt="One"></div>
+		<div class="gs-slide"><img class="gs-media" src="../media/2.jpg" alt="Two"></div>
+		<div class="gs-slide"><img class="gs-media" src="../media/3.jpg" alt="Three"></div>
 	</div>
 </div>
 </body>

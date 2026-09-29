@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
 import { BUTTON } from '@/components/Frame';
 import {
 	DEFAULTS,
@@ -98,12 +98,12 @@ export default function Effects() {
 				chosen={ [ pointer ] }
 				onChoose={ setPointer }
 			/>
-			<ShaderSlider
+			<GpuSlider
 				id="row"
 				label="A row with the effects that are chosen"
 				options={ { loop: true } }
 				className="cards"
-				style={ { '--ss-per-view': 3, '--ss-gap': '16px' } as CSSProperties }
+				style={ { '--gs-per-view': 3, '--gs-gap': '16px' } as CSSProperties }
 				made={ `${ effects } ${ pointer }` }
 				measured=""
 				plugins={ () => pluginsOf( config ) }
@@ -117,7 +117,7 @@ export default function Effects() {
 						sizes="(max-width: 640px) 77vw, 30vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 
 			<Choice
 				label="Effects that lay out"
@@ -125,7 +125,7 @@ export default function Effects() {
 				chosen={ [ laid ] }
 				onChoose={ setLaid }
 			/>
-			<ShaderSlider
+			<GpuSlider
 				id="laid"
 				label="A slider that an effect lays out"
 				options={ { loop: true, align: 'center' } }
@@ -145,7 +145,7 @@ export default function Effects() {
 						sizes="(max-width: 640px) 60vw, 25vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 
 			<Choice
 				label="Transitions: one at a time"
@@ -153,7 +153,7 @@ export default function Effects() {
 				chosen={ [ transition ] }
 				onChoose={ setTransition }
 			/>
-			<ShaderSlider
+			<GpuSlider
 				id="turns"
 				label="A stack with the transition that is chosen"
 				options={ { loop: true, duration: 1100 } }
@@ -172,7 +172,7 @@ export default function Effects() {
 						sizes="70vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<p className="note">
 				Drag the sliders: what moves with the speed shows while they move.
 				Drag the stack slowly to stop a transition half way.

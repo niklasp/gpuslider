@@ -15,7 +15,7 @@ test.describe( 'downwards', () => {
 	const setup = {
 		n: 5,
 		o: { axis: 'y' },
-		css: '.ss { height: 300px; } .ss-slide { height: auto; } button, [data-ss-dots], nav { display: none; }',
+		css: '.gs { height: 300px; } .gs-slide { height: auto; } button, [data-gs-dots], nav { display: none; }',
 	};
 
 	test( 'the slides follow each other downwards, one per view', async ( { page } ) => {
@@ -35,7 +35,7 @@ test.describe( 'downwards', () => {
 	test( 'several per view, with a gap', async ( { page } ) => {
 		await open( page, {
 			...setup,
-			css: `${ setup.css } .ss { --ss-per-view: 2; --ss-gap: 20px; }`,
+			css: `${ setup.css } .gs { --gs-per-view: 2; --gs-gap: 20px; }`,
 		} );
 		expect(
 			await page.evaluate( () => {
@@ -109,7 +109,7 @@ test.describe( 'downwards', () => {
 	} );
 
 	test( 'the canvas draws what the page draws, at rest and on the way', async ( { page } ) => {
-		const css = `${ setup.css } .ss { --ss-per-view: 1.5; --ss-gap: 10px; }`;
+		const css = `${ setup.css } .gs { --gs-per-view: 1.5; --gs-gap: 10px; }`;
 		await open( page, { ...setup, css } );
 		await page.evaluate( () => {
 			window.slider.grab();
@@ -126,7 +126,7 @@ test.describe( 'downwards', () => {
 		} );
 		await page.waitForTimeout( 300 );
 		await page.waitForFunction(
-			() => document.querySelectorAll( '.ss-drawn' ).length >= 2
+			() => document.querySelectorAll( '.gs-drawn' ).length >= 2
 		);
 		// Held, the slider does not rest, and nothing says when the canvas
 		// has the pictures of the slides that came into view: it has them
@@ -210,8 +210,8 @@ test.describe( 'rows', () => {
 	// Nothing of the script: a grid that flows in columns.
 	const setup = {
 		n: 9,
-		css: `.ss-track { display: grid; grid-auto-flow: column; grid-template-rows: repeat( 2, 140px ); grid-auto-columns: calc( ( 100% - 2 * 10px ) / 3 ); gap: 10px; }
-			.ss-slide { height: auto; }`,
+		css: `.gs-track { display: grid; grid-auto-flow: column; grid-template-rows: repeat( 2, 140px ); grid-auto-columns: calc( ( 100% - 2 * 10px ) / 3 ); gap: 10px; }
+			.gs-slide { height: auto; }`,
 	};
 
 	test( 'two rows: a snap per column', async ( { page } ) => {
@@ -244,7 +244,7 @@ test.describe( 'rows', () => {
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await painted( page );
 		expect(
-			await page.locator( '.ss-drawn' ).count()
+			await page.locator( '.gs-drawn' ).count()
 		).toBeGreaterThanOrEqual( 6 );
 		// Small slides: the browsers make images small in their own ways.
 		const { mean } = await difference( page, plain, await shot( page ) );
@@ -257,7 +257,7 @@ test.describe( 'marquee', () => {
 		n: 6,
 		core: 1,
 		o: { loop: true, free: true },
-		css: '.ss { --ss-per-view: 3; --ss-gap: 10px; }',
+		css: '.gs { --gs-per-view: 3; --gs-gap: 10px; }',
 	};
 	const pos = ( page ) => page.evaluate( () => window.slider.motion.pos );
 	const run = ( page, options ) =>
@@ -393,7 +393,7 @@ test.describe( 'marquee', () => {
 		);
 		await expect( page.locator( '#slider canvas' ) ).toHaveCount( 1 );
 		await expect
-			.poll( () => page.locator( '#slider .ss-drawn' ).count() )
+			.poll( () => page.locator( '#slider .gs-drawn' ).count() )
 			.toBeGreaterThanOrEqual( 3 );
 	} );
 
@@ -410,11 +410,11 @@ test.describe( 'thumbnails', () => {
 		page.evaluate( () => {
 			const two = document.getElementById( 'slider' ).cloneNode( true );
 			two.id = 'thumbs';
-			two.querySelectorAll( 'button, [data-ss-dots], .ss-content' ).forEach(
+			two.querySelectorAll( 'button, [data-gs-dots], .gs-content' ).forEach(
 				( el ) => el.remove()
 			);
-			two.style.cssText = '--ss-per-view: 4; --ss-gap: 8px; margin-top: 8px';
-			two.querySelectorAll( '.ss-slide' ).forEach( ( slide ) => {
+			two.style.cssText = '--gs-per-view: 4; --gs-gap: 8px; margin-top: 8px';
+			two.querySelectorAll( '.gs-slide' ).forEach( ( slide ) => {
 				slide.style.height = '80px';
 				slide.removeAttribute( 'style' );
 				slide.style.height = '80px';
@@ -424,7 +424,7 @@ test.describe( 'thumbnails', () => {
 						slide.removeAttribute( name )
 				);
 			} );
-			two.querySelector( '.ss-track' ).removeAttribute( 'style' );
+			two.querySelector( '.gs-track' ).removeAttribute( 'style' );
 			document.getElementById( 'slider' ).after( two );
 			window.thumbs = window.lib.core.createSlider( two, {
 				plugins: [ window.lib.thumbs( window.slider ) ],
@@ -433,7 +433,7 @@ test.describe( 'thumbnails', () => {
 	const active = ( page ) =>
 		page.evaluate( () =>
 			window.thumbs.slides.findIndex( ( slide ) =>
-				slide.classList.contains( 'ss-active' )
+				slide.classList.contains( 'gs-active' )
 			)
 		);
 
@@ -441,19 +441,19 @@ test.describe( 'thumbnails', () => {
 		await open( page, { n: 8 } );
 		await make( page );
 		await expect.poll( () => active( page ) ).toBe( 0 );
-		await page.locator( '#thumbs .ss-slide' ).nth( 2 ).click();
+		await page.locator( '#thumbs .gs-slide' ).nth( 2 ).click();
 		await settled( page );
 		expect( await index( page ) ).toBe( 2 );
 		expect( await active( page ) ).toBe( 2 );
 		await expect(
-			page.locator( '#thumbs .ss-slide' ).nth( 2 )
+			page.locator( '#thumbs .gs-slide' ).nth( 2 )
 		).toHaveAttribute( 'aria-current', 'true' );
 		await expect( page.locator( '#thumbs [aria-current]' ) ).toHaveCount( 1 );
 		// A resize leaves them what they are.
 		await page.setViewportSize( { width: 900, height: 700 } );
 		await page.waitForTimeout( 200 );
 		await expect(
-			page.locator( '#thumbs .ss-slide' ).nth( 2 )
+			page.locator( '#thumbs .gs-slide' ).nth( 2 )
 		).toHaveAttribute( 'role', 'button' );
 	} );
 
@@ -470,7 +470,7 @@ test.describe( 'thumbnails', () => {
 	test( 'they are buttons, for keys too', async ( { page } ) => {
 		await open( page, { n: 8 } );
 		await make( page );
-		const third = page.locator( '#thumbs .ss-slide' ).nth( 3 );
+		const third = page.locator( '#thumbs .gs-slide' ).nth( 3 );
 		await expect( third ).toHaveAttribute( 'role', 'button' );
 		await third.focus();
 		await page.keyboard.press( 'Enter' );

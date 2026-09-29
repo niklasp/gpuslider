@@ -100,7 +100,7 @@ export async function painted( page ) {
 		return slides.every(
 			( slide, i ) =>
 				! view.places[ i ].visible ||
-				slide.querySelector( '.ss-media.ss-drawn' )
+				slide.querySelector( '.gs-media.gs-drawn' )
 		);
 	} );
 	await settled( page );

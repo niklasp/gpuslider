@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import 'shaderslide/style.css';
+import 'gpuslider/style.css';
 import './reel.css';
 import {
 	autoplay,
@@ -8,10 +8,10 @@ import {
 	loading,
 	stack,
 	videos,
-} from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { split, waves, warp } from 'shaderslide/effects';
-import { useSlider } from 'shaderslide/react';
+} from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { split, waves, warp } from 'gpuslider/effects';
+import { useSlider } from 'gpuslider/react';
 import { image, video } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
 
@@ -165,18 +165,18 @@ export default function Reel() {
 				} }
 			/>
 
-			<main ref={ root } id="reel" className="ss reel" aria-label="A reel">
-				<div className="ss-track">
+			<main ref={ root } id="reel" className="gs reel" aria-label="A reel">
+				<div className="gs-track">
 					{ SLIDES.map( ( slide, i ) => (
 						<div
 							key={ slide.title }
-							className="ss-slide"
+							className="gs-slide"
 							// The classes of a slide are the slider's.
 							data-shown={ i === shown ? '' : undefined }
 						>
 							{ slide.video ? (
 								<video
-									className="ss-media"
+									className="gs-media"
 									{ ...video( slide.video ) }
 									aria-label={ slide.alt }
 									muted
@@ -186,14 +186,14 @@ export default function Reel() {
 								/>
 							) : (
 								<img
-									className="ss-media"
+									className="gs-media"
 									{ ...image( slide.image! ) }
 									sizes="100vw"
 									alt={ slide.alt }
 									draggable={ false }
 								/>
 							) }
-							<div className="ss-content">
+							<div className="gs-content">
 								<p>
 									{ String( i + 1 ).padStart( 2, '0' ) } · { slide.kind }
 								</p>
@@ -202,20 +202,20 @@ export default function Reel() {
 						</div>
 					) ) }
 				</div>
-				<button type="button" data-ss-prev aria-label="Previous">
+				<button type="button" data-gs-prev aria-label="Previous">
 					←
 				</button>
-				<button type="button" data-ss-next aria-label="Next">
+				<button type="button" data-gs-next aria-label="Next">
 					→
 				</button>
-				<button type="button" data-ss-pause aria-label="Pause">
+				<button type="button" data-gs-pause aria-label="Pause">
 					Ⅱ
 				</button>
-				<div data-ss-dots />
+				<div data-gs-dots />
 			</main>
 
 			<footer>
-				<a href="/examples/">shaderslide</a>
+				<a href="/examples/">gpu slider</a>
 				<span id="said">
 					Arrows, keys, a drag{ by && ` · drawn by ${ by }` }
 				</span>

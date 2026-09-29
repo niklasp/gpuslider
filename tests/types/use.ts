@@ -2,10 +2,10 @@
  * Not run: compiled, to see that the types say what the library does.
  * `npm run types`.
  */
-import { createSlider, type Slider, type Plugin, type Create } from 'shaderslide';
-import { gl, hit, stretch, coverflow, liquid, type Effect } from 'shaderslide/gl';
-import { gpu, stretch as same } from 'shaderslide/gpu';
-import { lightbox } from 'shaderslide/lightbox';
+import { createSlider, type Slider, type Plugin, type Create } from 'gpuslider';
+import { gl, hit, stretch, coverflow, liquid, type Effect } from 'gpuslider/gl';
+import { gpu, stretch as same } from 'gpuslider/gpu';
+import { lightbox } from 'gpuslider/lightbox';
 import {
 	progress,
 	controls,
@@ -18,10 +18,10 @@ import {
 	marquee,
 	thumbs,
 	loading,
-} from 'shaderslide/plugins';
-import { createSlider as createFull } from 'shaderslide/full';
-import { useSlider } from 'shaderslide/react';
-import { auto, sliders } from 'shaderslide/auto';
+} from 'gpuslider/plugins';
+import { createSlider as createFull } from 'gpuslider/full';
+import { useSlider } from 'gpuslider/react';
+import { auto, sliders } from 'gpuslider/auto';
 
 const counter = ( { step = 1 } = {} ) => ( slider: Slider ) => {
 	let frames = 0;
@@ -58,7 +58,7 @@ const made: Create[] = [
 	counter(),
 ];
 
-const slider = createSlider( document.querySelector< HTMLElement >( '.ss' )!, {
+const slider = createSlider( document.querySelector< HTMLElement >( '.gs' )!, {
 	loop: true,
 	perView: 'auto',
 	align: 'center',

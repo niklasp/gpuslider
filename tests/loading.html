@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>shaderslide: loading</title>
+<title>gpu slider: loading</title>
 <script>
 	// ?from=dist tests what is built for the pages of others.
 	window.from = new URLSearchParams( location.search ).get( 'from' ) || 'src';
@@ -15,15 +15,15 @@
 </script>
 <style>
 	body { margin: 0; }
-	.ss { width: 600px; margin: 20px; }
-	.ss-slide { height: 200px; }
+	.gs { width: 600px; margin: 20px; }
+	.gs-slide { height: 200px; }
 	#own { position: fixed; inset: auto 0 0; height: 40px; background: #000; color: #fff; }
 </style>
 </head>
 <body>
-<div class="ss" id="one" aria-label="One"><div class="ss-track"></div></div>
-<div class="ss" id="two" aria-label="Two"><div class="ss-track"></div></div>
-<div id="own"><span data-ss-loaded></span></div>
+<div class="gs" id="one" aria-label="One"><div class="gs-track"></div></div>
+<div class="gs" id="two" aria-label="Two"><div class="gs-track"></div></div>
+<div id="own"><span data-gs-loaded></span></div>
 <script type="module">
 	/*
 	 * Two sliders that are made when the test says so. The media of `one`
@@ -36,16 +36,16 @@
 		`${ from }/plugins${ from === '../src' ? '/index' : '' }.js`
 	);
 	const fill = ( id, media ) => {
-		document.querySelector( `#${ id } .ss-track` ).innerHTML = media
-			.map( ( one ) => `<div class="ss-slide">${ one }</div>` )
+		document.querySelector( `#${ id } .gs-track` ).innerHTML = media
+			.map( ( one ) => `<div class="gs-slide">${ one }</div>` )
 			.join( '' );
 	};
 	const image = ( n, more = '' ) =>
-		`<img class="ss-media" src="../media/${ n }.jpg?held=${ n }" alt="" ${ more }>`;
+		`<img class="gs-media" src="../media/${ n }.jpg?held=${ n }" alt="" ${ more }>`;
 	fill( 'one', [ image( 1 ), image( 2 ), image( 3, 'loading="lazy"' ) ] );
 	fill( 'two', [
 		image( 4 ),
-		'<video class="ss-media" src="../media/a.mp4?held=a" muted playsinline preload="none"></video>',
+		'<video class="gs-media" src="../media/a.mp4?held=a" muted playsinline preload="none"></video>',
 	] );
 
 	window.heard = [];

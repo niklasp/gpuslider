@@ -1,7 +1,7 @@
 import { type CSSProperties } from 'react';
-import 'shaderslide/loading.css';
+import 'gpuslider/loading.css';
 import { Loads } from '@/components/Pieces';
-import { controls, keyboard, wheel } from 'shaderslide/plugins';
+import { controls, keyboard, wheel } from 'gpuslider/plugins';
 
 /** Pictures that load again, and what `loading()` says meanwhile. */
 export default function Loading() {
@@ -9,7 +9,7 @@ export default function Loading() {
 		<>
 			<Loads
 				options={ { loop: true } }
-				style={ { '--ss-per-view': 2.5, '--ss-gap': '12px' } as CSSProperties }
+				style={ { '--gs-per-view': 2.5, '--gs-gap': '12px' } as CSSProperties }
 				made=""
 				measured=""
 				plugins={ () => [ controls(), keyboard(), wheel() ] }

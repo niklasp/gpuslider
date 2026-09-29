@@ -7,7 +7,8 @@
  * What the page says about a media element, read once per layout.
  *
  * @param {HTMLElement} media Media element.
- * @return {Object} `fit`, `at` (position as fractions or px) and `radius`.
+ * @return {Object} `fit`, `at` (position as fractions or px), `radius`
+ *                  and `shape`, the exponent of the corners.
  */
 export function styleOf( media ) {
 	const style = media.ownerDocument.defaultView.getComputedStyle( media );
@@ -19,15 +20,26 @@ export function styleOf( media ) {
 				: { px: parseFloat( value ) || 0 }
 		);
 	// Corners: the element's own, or those of a slide that clips it.
+	let corners = style;
 	let radius = parseFloat( style.borderTopLeftRadius ) || 0;
 	const parent = media.parentElement;
 	if ( ! radius && parent ) {
 		const around = media.ownerDocument.defaultView.getComputedStyle( parent );
 		if ( around.overflowX !== 'visible' ) {
+			corners = around;
 			radius = parseFloat( around.borderTopLeftRadius ) || 0;
 		}
 	}
-	return { fit: style.objectFit || 'fill', at, radius };
+	// Their shape: `superellipse(k)` has the exponent 2^k, so a round
+	// corner has 2 and a squircle 4. A browser without `corner-shape`
+	// draws round ones, and so does the canvas there.
+	const shape =
+		2 **
+		( Math.min(
+			parseFloat( corners.cornerTopLeftShape?.slice( 13 ) ),
+			3
+		) || 1 );
+	return { fit: style.objectFit || 'fill', at, radius, shape };
 }
 
 /**

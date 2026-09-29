@@ -92,7 +92,7 @@ parts.push( {
 if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 6656,
+		budget: 7168,
 		size: await measure(
 			`import { gl } from './src/gl/index.js'; export { gl };`
 		),
@@ -148,7 +148,7 @@ parts.push(
 	},
 	{
 		name: 'the same with the canvas and stretch',
-		budget: 12288,
+		budget: 12800,
 		size: await measure(
 			`import { useSlider } from './src/react.js'; import { controls } from './src/plugins/index.js'; import { gl, stretch } from './src/gl/index.js'; export { useSlider, controls, gl, stretch };`,
 			[ 'react' ]
@@ -163,7 +163,7 @@ if ( existsSync( resolve( root, 'src/lightbox.js' ) ) ) {
 	const both = `import { createSlider } from './src/index.js'; import { controls, keyboard } from './src/plugins/index.js'; import { gl } from './src/gl/index.js';`;
 	parts.push( {
 		name: 'lightbox',
-		budget: 2048,
+		budget: 2304,
 		size:
 			( await measure(
 				`${ both } import { lightbox } from './src/lightbox.js'; export { createSlider, controls, keyboard, gl, lightbox };`

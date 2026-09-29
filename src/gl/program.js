@@ -49,6 +49,11 @@
  *     uQuad       the quad in the view, px: left, top, width, height
  *     uRadius     how round the corners of the quad are, px; not in
  *                 `vertex`
+ *     uShape      the exponent of the corners: 2 round, 4 a squircle;
+ *                 not in `vertex`
+ *
+ * What the effects do is weighed by uFx, 1 but for a quad whose effects
+ * fade (see `change` of the layer).
  *
  * Effects are chained in the order given.
  *
@@ -89,6 +94,7 @@ uniform float uTime;
 uniform vec2 uSize;
 uniform vec2 uView;
 uniform vec4 uQuad;
+uniform float uFx;
 `;
 
 const VERTEX = `#version 300 es
@@ -96,6 +102,7 @@ precision highp float;
 in vec2 aPos;
 out vec2 vUv;
 uniform float uDepth;
+uniform vec4 uFrame;
 `;
 
 const FRAGMENT = `#version 300 es
@@ -111,6 +118,8 @@ uniform vec4 uRectB;
 uniform vec2 uCut;
 uniform float uMix;
 uniform float uRadius;
+uniform float uShape;
+uniform float uDim;
 vec2 lods;
 `;
 
@@ -147,17 +156,23 @@ const named = ( source ) =>
 	NAMES.map( ( name ) => `\n#undef ${ name.split( ' ' )[ 0 ] }` ).join( '' ) +
 	'\nvec4 base( vec2 uv ) { return transition( uv ); }\n';
 
-// Rounded corners, and edges that are soft by a pixel.
+// Rounded corners, and edges that are soft by a pixel. A corner is a
+// superellipse of the exponent uShape: round at 2, a squircle at 4.
 const MAIN = `
 void main() {
 	lods = vec2( sizeOf( uA, uBoxA ), sizeOf( uB, uBoxB ) );
 	vec2 uv = vUvTURNED;
 	vec4 color = media( uv );
+	vec4 was = color;
 	CALLS
+	color = mix( was, color, uFx );
 	vec2 half_ = uSize * 0.5;
-	vec2 d = abs( uv * uSize - half_ ) - half_ + uRadius;
-	float away = length( max( d, 0.0 ) ) + min( max( d.x, d.y ), 0.0 ) - uRadius;
+	float r = max( uRadius, 1e-3 );
+	vec2 d = abs( uv * uSize - half_ ) - half_ + r;
+	vec2 e = pow( max( d, 0.0 ) / r, vec2( uShape ) );
+	float away = pow( e.x + e.y, 1.0 / uShape ) * r + min( max( d.x, d.y ), 0.0 ) - r;
 	outColor = color * clamp( 0.5 - away, 0.0, 1.0 );
+	outColor.rgb *= uDim;
 }`;
 
 const TYPES = [ , 'float', 'vec2', 'vec3', 'vec4' ];
@@ -225,8 +240,10 @@ export function compose( effects, transition, y ) {
 	vUv = aPos;
 	vec2 a = aPos${ turned };
 	vec3 p = vec3( ( a - 0.5 ) * uQuad.zw, 0.0 );
+	vec3 was = p;
 	${ calls.vertex }
-	vec2 at = ( ( uQuad.xy + uQuad.zw * 0.5 + p.xy ) / uView * 2.0 - 1.0 )${ turned };
+	p = mix( was, p, uFx );
+	vec2 at = ( ( uFrame.xy + uQuad.xy + uQuad.zw * 0.5 + p.xy ) / uFrame.zw * 2.0 - 1.0 )${ turned };
 	gl_Position = vec4( at.x, -at.y, -p.z / uDepth * 0.5, 1.0 - p.z / uDepth );
 }`;
 
@@ -236,7 +253,7 @@ export function compose( effects, transition, y ) {
 		PICK +
 		base +
 		hooks.uv +
-		`vec4 media( vec2 uv ) {\n${ calls.uv }return base( uv${ turned } );\n}\n` +
+		`vec4 media( vec2 uv ) {\nvec2 was = uv;\n${ calls.uv }return base( mix( was, uv, uFx )${ turned } );\n}\n` +
 		hooks.color +
 		MAIN.replace( 'CALLS', calls.color ).replace( 'TURNED', turned );
 
