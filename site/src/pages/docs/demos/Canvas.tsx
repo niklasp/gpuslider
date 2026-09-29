@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
 import { BUTTON } from '@/components/Frame';
-import { controls, keyboard, videos, wheel } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { split, stretch, waves } from 'shaderslide/effects';
+import { controls, keyboard, videos, wheel } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { split, stretch, waves } from 'gpuslider/effects';
 
 const BY = {
 	best: 'The best there is',
@@ -32,7 +32,7 @@ export default function Canvas() {
 					</button>
 				) ) }
 			</div>
-			<ShaderSlider
+			<GpuSlider
 				id="drawn"
 				label="Drawn by what is chosen"
 				options={ { loop: true } }
@@ -59,7 +59,7 @@ export default function Canvas() {
 				<Slide video="a" alt="Someone walking into a tunnel of coloured lights" className="hero" sizes="70vw" />
 				<Slide image={ 2 } alt="Blue colour field" className="hero" sizes="70vw" />
 				<Slide image={ 4 } alt="Pink colour field" className="hero" sizes="70vw" />
-			</ShaderSlider>
+			</GpuSlider>
 			<p className="note">
 				Under the slider: who draws it, what saying what is to be drawn
 				costs the script, and the time from one frame to the next while it

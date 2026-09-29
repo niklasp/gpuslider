@@ -53,7 +53,7 @@ function deviceOf( win ) {
 				device.lost.then( () => devices.delete( win ) );
 				device.addEventListener( 'uncapturederror', ( { error } ) =>
 					// eslint-disable-next-line no-console
-					console.error( 'shaderslide:', error.message )
+					console.error( 'gpuslider:', error.message )
 				);
 				const sampler = device.createSampler( {
 					magFilter: 'linear',
@@ -186,7 +186,7 @@ export function gpu( {
 		const numbers = [];
 		const read = () => {
 			slides.forEach( ( slide, i ) => {
-				media[ i ] = slide.querySelector( '.ss-media' );
+				media[ i ] = slide.querySelector( '.gs-media' );
 				boxes[ i ] = null;
 				numbers[ i ] ||= new Float32Array( 13 );
 			} );
@@ -222,7 +222,7 @@ export function gpu( {
 
 		const show = ( element, on ) => {
 			if ( on !== drawn.has( element ) ) {
-				element.classList.toggle( 'ss-drawn', on );
+				element.classList.toggle( 'gs-drawn', on );
 				drawn[ on ? 'add' : 'delete' ]( element );
 			}
 		};
@@ -299,7 +299,7 @@ export function gpu( {
 				}
 				pipeline = await pipelines.get( key ).catch( ( error ) => {
 					// eslint-disable-next-line no-console
-					console.error( 'shaderslide:', error.message );
+					console.error( 'gpuslider:', error.message );
 					destroyed = true;
 				} );
 			}
@@ -310,7 +310,7 @@ export function gpu( {
 			}
 			const { device, format } = shared;
 			const canvas = doc.createElement( 'canvas' );
-			canvas.className = 'ss-canvas';
+			canvas.className = 'gs-canvas';
 			canvas.setAttribute( 'aria-hidden', 'true' );
 			const surface = canvas.getContext( 'webgpu' );
 			surface.configure( { device, format, alphaMode: 'premultiplied' } );
@@ -334,7 +334,7 @@ export function gpu( {
 			} );
 			width = 0;
 			root.prepend( canvas );
-			root.classList.add( 'ss-gl' );
+			root.classList.add( 'gs-gl' );
 			slider.wake();
 			slider.emit( 'gpu:on', canvas );
 		}
@@ -346,7 +346,7 @@ export function gpu( {
 			const { shared, canvas, surface, buffer, targets } = context;
 			context = null;
 			drawn.forEach( ( element ) => show( element, false ) );
-			root.classList.remove( 'ss-gl' );
+			root.classList.remove( 'gs-gl' );
 			slider.emit( 'gpu:off', !! lost );
 			canvas.remove();
 			shared.textures.free( slider.wake );

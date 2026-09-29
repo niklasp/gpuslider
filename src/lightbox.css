@@ -3,14 +3,14 @@
  * slider are in style.css.
  */
 
-/* The lightbox. --ss-open runs from 0 to 1 while it opens. */
+/* The lightbox. --gs-open runs from 0 to 1 while it opens. */
 
-.ss-zooms .ss-slide {
+.gs-zooms .gs-slide {
 	cursor: zoom-in;
 }
 
-.ss-lightbox {
-	--ss-open: 0;
+.gs-lightbox {
+	--gs-open: 0;
 
 	position: fixed;
 	inset: 0;
@@ -22,23 +22,23 @@
 	padding: 0;
 	border: 0;
 	overflow: hidden;
-	background: rgb(0 0 0 / calc(var(--ss-open) * 0.92));
+	background: rgb(0 0 0 / calc(var(--gs-open) * 0.92));
 	color: #fff;
 }
 
-.ss-lightbox::backdrop {
+.gs-lightbox::backdrop {
 	background: none;
 }
 
-html:has(.ss-lightbox[open]) {
+html:has(.gs-lightbox[open]) {
 	overflow: hidden;
 }
 
 /* Whatever the page says about its sliders: this one fills the screen,
    one slide at a time. */
-.ss-lightbox > .ss-box {
-	--ss-per-view: 1;
-	--ss-gap: 0px;
+.gs-lightbox > .gs-box {
+	--gs-per-view: 1;
+	--gs-gap: 0px;
 
 	width: 100%;
 	height: 100%;
@@ -49,8 +49,8 @@ html:has(.ss-lightbox[open]) {
 	cursor: grab;
 }
 
-.ss-box > .ss-track,
-.ss-box > .ss-track > .ss-slide {
+.gs-box > .gs-track,
+.gs-box > .gs-track > .gs-slide {
 	height: 100%;
 	max-height: none;
 	aspect-ratio: auto;
@@ -59,7 +59,7 @@ html:has(.ss-lightbox[open]) {
 	border-radius: 0;
 }
 
-.ss-box > .ss-track > .ss-slide > .ss-media {
+.gs-box > .gs-track > .gs-slide > .gs-media {
 	width: 100%;
 	height: 100%;
 	object-fit: contain;
@@ -68,12 +68,12 @@ html:has(.ss-lightbox[open]) {
 }
 
 /* What the canvas does not draw fades in. */
-.ss-box .ss-media:not(.ss-drawn),
-.ss-button {
-	opacity: var(--ss-open);
+.gs-box .gs-media:not(.gs-drawn),
+.gs-button {
+	opacity: var(--gs-open);
 }
 
-.ss-button {
+.gs-button {
 	position: absolute;
 	top: 50%;
 	z-index: 2;
@@ -88,16 +88,16 @@ html:has(.ss-lightbox[open]) {
 	cursor: pointer;
 }
 
-.ss-button:hover {
+.gs-button:hover {
 	background: rgb(255 255 255 / 0.24);
 }
 
-.ss-button:disabled {
+.gs-button:disabled {
 	visibility: hidden;
 }
 
-.ss-button::before,
-.ss-button::after {
+.gs-button::before,
+.gs-button::after {
 	content: "";
 	position: absolute;
 	inset: 0;
@@ -108,41 +108,41 @@ html:has(.ss-lightbox[open]) {
 	border-inline-start: 2px solid;
 }
 
-.ss-button::after {
+.gs-button::after {
 	display: none;
 }
 
-.ss-prev {
+.gs-prev {
 	inset-inline-start: 16px;
 }
 
-.ss-prev::before {
+.gs-prev::before {
 	rotate: -45deg;
 	translate: 2px;
 }
 
-.ss-next {
+.gs-next {
 	inset-inline-end: 16px;
 }
 
-.ss-next::before {
+.gs-next::before {
 	rotate: 135deg;
 	translate: -2px;
 }
 
-:dir(rtl) > .ss-prev::before,
-:dir(rtl) > .ss-next::before {
+:dir(rtl) > .gs-prev::before,
+:dir(rtl) > .gs-next::before {
 	scale: -1;
 }
 
-.ss-close {
+.gs-close {
 	top: 16px;
 	inset-inline-end: 16px;
 	margin: 0;
 }
 
-.ss-close::before,
-.ss-close::after {
+.gs-close::before,
+.gs-close::after {
 	display: block;
 	width: 18px;
 	height: 0;
@@ -150,6 +150,6 @@ html:has(.ss-lightbox[open]) {
 	rotate: 45deg;
 }
 
-.ss-close::after {
+.gs-close::after {
 	rotate: -45deg;
 }

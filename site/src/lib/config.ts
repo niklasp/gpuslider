@@ -1,7 +1,7 @@
 /**
  * What the controls of the site set, and what the sliders make of it.
  */
-import { canvas } from 'shaderslide/canvas';
+import { canvas } from 'gpuslider/canvas';
 import {
 	stretch,
 	split,
@@ -23,9 +23,9 @@ import {
 	jelly,
 	slab,
 	type Effect,
-} from 'shaderslide/effects';
+} from 'gpuslider/effects';
 import * as transitions from '../../../src/gl/transitions/index.js';
-import { lightbox } from 'shaderslide/lightbox';
+import { lightbox } from 'gpuslider/lightbox';
 import {
 	controls,
 	keyboard,
@@ -36,8 +36,8 @@ import {
 	stack,
 	progress,
 	marquee,
-} from 'shaderslide/plugins';
-import type { Create } from 'shaderslide';
+} from 'gpuslider/plugins';
+import type { Create } from 'gpuslider';
 
 export const EFFECTS = {
 	stretch: { label: 'Stretch', hint: 'The image gives way to the speed' },

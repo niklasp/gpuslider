@@ -77,7 +77,7 @@ export function gl( {
 		const numbers = [];
 		const read = () => {
 			slides.forEach( ( slide, i ) => {
-				media[ i ] = slide.querySelector( '.ss-media' );
+				media[ i ] = slide.querySelector( '.gs-media' );
 				boxes[ i ] = null;
 				numbers[ i ] ||= new Float32Array( 13 );
 			} );
@@ -114,7 +114,7 @@ export function gl( {
 
 		const show = ( element, on ) => {
 			if ( on !== drawn.has( element ) ) {
-				element.classList.toggle( 'ss-drawn', on );
+				element.classList.toggle( 'gs-drawn', on );
 				drawn[ on ? 'add' : 'delete' ]( element );
 			}
 		};
@@ -154,7 +154,7 @@ export function gl( {
 				if ( ! made ) {
 					return;
 				}
-				canvas.className = 'ss-canvas';
+				canvas.className = 'gs-canvas';
 				canvas.setAttribute( 'aria-hidden', 'true' );
 				spare = { canvas, gl: made, kind, programs: new Map() };
 				canvas.addEventListener( 'webglcontextlost', ( event ) => {
@@ -185,7 +185,7 @@ export function gl( {
 				}
 			} catch ( error ) {
 				// eslint-disable-next-line no-console
-				console.error( 'shaderslide:', error );
+				console.error( 'gpuslider:', error );
 				making = null;
 				live--;
 				spares.get( doc ).push( spare );
@@ -274,7 +274,7 @@ export function gl( {
 			};
 			width = 0;
 			root.prepend( canvas );
-			root.classList.add( 'ss-gl' );
+			root.classList.add( 'gs-gl' );
 			slider.wake();
 			slider.emit( 'gl:on', canvas );
 		}
@@ -292,7 +292,7 @@ export function gl( {
 			context = null;
 			live--;
 			drawn.forEach( ( element ) => show( element, false ) );
-			root.classList.remove( 'ss-gl' );
+			root.classList.remove( 'gs-gl' );
 			slider.emit( 'gl:off', !! lost );
 			spare.canvas.remove();
 			spare.lost = null;

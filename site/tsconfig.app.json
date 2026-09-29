@@ -20,16 +20,16 @@
 		"checkJs": false,
 		"paths": {
 			"@/*": [ "./src/*" ],
-			"shaderslide": [ "../src/index.js" ],
-			"shaderslide/gl": [ "../src/gl/index.js" ],
-			"shaderslide/gpu": [ "../src/gpu/index.js" ],
-			"shaderslide/canvas": [ "../src/canvas.js" ],
-			"shaderslide/effects": [ "../src/effects.js" ],
-			"shaderslide/lightbox": [ "../src/lightbox.js" ],
-			"shaderslide/plugins": [ "../src/plugins/index.js" ],
-			"shaderslide/auto": [ "../src/auto.js" ],
-			"shaderslide/full": [ "../src/full.js" ],
-			"shaderslide/react": [ "../src/react.js" ]
+			"gpuslider": [ "../src/index.js" ],
+			"gpuslider/gl": [ "../src/gl/index.js" ],
+			"gpuslider/gpu": [ "../src/gpu/index.js" ],
+			"gpuslider/canvas": [ "../src/canvas.js" ],
+			"gpuslider/effects": [ "../src/effects.js" ],
+			"gpuslider/lightbox": [ "../src/lightbox.js" ],
+			"gpuslider/plugins": [ "../src/plugins/index.js" ],
+			"gpuslider/auto": [ "../src/auto.js" ],
+			"gpuslider/full": [ "../src/full.js" ],
+			"gpuslider/react": [ "../src/react.js" ]
 		}
 	},
 	"include": [ "src" ]

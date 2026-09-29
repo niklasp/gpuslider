@@ -1,7 +1,7 @@
 /**
  * The slider with everything: the core and all of `plugins/`, by options.
  *
- *     import { createSlider } from 'shaderslide/full';
+ *     import { createSlider } from 'gpuslider/full';
  *
  *     createSlider( element, { loop: true, autoplay: 3500 } );
  *

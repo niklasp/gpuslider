@@ -82,7 +82,7 @@ async function both( page, setup, pos ) {
 test.describe( 'WebGPU draws what WebGL draws', () => {
 	test.skip( ! GPU, 'With LAYER=gpu.' );
 
-	const row = { n: 6, css: '.ss { --ss-per-view: 2.5; --ss-gap: 10px; }' };
+	const row = { n: 6, css: '.gs { --gs-per-view: 2.5; --gs-gap: 10px; }' };
 
 	test( 'a row without effects', async ( { page } ) => {
 		const seen = await both( page, row, 130 );
@@ -117,7 +117,7 @@ test.describe( 'WebGPU draws what WebGL draws', () => {
 			{
 				n: 5,
 				o: { axis: 'y' },
-				css: '.ss { height: 400px; --ss-per-view: 1.5; --ss-gap: 10px; } .ss-slide { height: auto; }',
+				css: '.gs { height: 400px; --gs-per-view: 1.5; --gs-gap: 10px; } .gs-slide { height: auto; }',
 				effects: 'stretch;split;magnify;spotlight;glass;parallax',
 			},
 			90

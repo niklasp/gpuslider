@@ -7,7 +7,7 @@
  *     autoplay( 3500 )
  *     autoplay( { delay: 3500, pause: '.my-pause' } )
  *
- * Buttons that stop it: `<button data-ss-pause>` in the slider or, with the
+ * Buttons that stop it: `<button data-gs-pause>` in the slider or, with the
  * id of the slider, anywhere; or handed over as `pause`.
  *
  * Events of the slider: `autoplay:play`, `autoplay:pause`.

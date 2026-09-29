@@ -1,6 +1,6 @@
-# shaderslide — plan
+# gpuslider — plan
 
-Working name; the folder, the package name and the `ss-` prefix are easy to rename.
+Working name; the folder, the package name and the `gs-` prefix are easy to rename.
 
 A slider that draws its media on a WebGL canvas and owns its own motion, with no Swiper and no other dependency.
 The question it answers: how far can a canvas slider go and still be small, fast and usable anywhere?
@@ -45,7 +45,7 @@ Rejected: CSS transitions for the move (Swiper). They report only start and end.
 
 ### 3. The page lays out the slides; the engine measures
 
-Slides are flex items. Their size comes from CSS (`--ss-per-view`, `--ss-gap`, or `auto` width from the media).
+Slides are flex items. Their size comes from CSS (`--gs-per-view`, `--gs-gap`, or `auto` width from the media).
 The engine reads each slide's offset and size once per resize and derives the snap points.
 
 Why: responsive settings become plain CSS media queries on two custom properties, so the JS needs no breakpoint system. Slides of different widths work without extra code. The layout is identical before and after the script runs.
@@ -87,7 +87,7 @@ Its two real gains here are one device shared by all sliders of a page (no conte
 
 Rejected: three.js. It is a 3D engine of 100+ KB gzipped, and this slider draws a few textured rectangles.
 
-Kept open: the engine, layout and input know nothing about the renderer, and a layer is passed in by the caller. A WebGPU layer (`shaderslide/gpu`) can be added next to the WebGL one without touching the core.
+Kept open: the engine, layout and input know nothing about the renderer, and a layer is passed in by the caller. A WebGPU layer (`gpuslider/gpu`) can be added next to the WebGL one without touching the core.
 
 ### 8. Textures
 
@@ -113,8 +113,8 @@ Browsers allow about 16 contexts per page; sliders beyond the cap run as tier 2 
 ### 11. API and packaging
 
 ```js
-import { createSlider } from 'shaderslide';
-import { gl, stretch, magnify } from 'shaderslide/gl';
+import { createSlider } from 'gpuslider';
+import { gl, stretch, magnify } from 'gpuslider/gl';
 
 const slider = createSlider( element, {
 	perView: 3,
@@ -135,7 +135,7 @@ slider.destroy();
 |---|---|---|
 | Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.5 KB |
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
-| Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.8 KB |
+| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7 KB | 6.8 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
 | Canvas layer of WebGL 2 without effects | 6.75 KB | 6.6 KB (6755 of 6912 B) |
@@ -153,7 +153,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **Canvas layer, 6.5 to 6.75 KB, and `hit()`, 1 to 1.25 KB.** For the pointer in a slide as it is drawn (decision 22): 19 bytes in the layer, which had 3 left, and 0.15 KB in `hit()`. The same step of the layer is taken by the corners of the page's shape, which is work of the same day.
 - **Lightbox, 2 to 2.25 KB.** For the image that grows out of a slide as it is drawn (decision 23), 0.4 KB.
 - **A page in React, 5.5 to 6 KB, and with the canvas 12 to 12.5 KB.** The page that is measured is made of the components now (decision 24), which are 0.4 KB more than the hook; the rest is what the layer grew by (decision 22).
-- **Full means what `createSlider` of `shaderslide/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
+- **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
 
@@ -168,11 +168,11 @@ The library is meant for npm. What people build on cannot change every month, so
 | Extensions | `plugins`, a list of functions called with options; `plugins()` returns them by name | `modules`, functions that get `{ swiper, extendParams, on, emit }` | `plugins: [ fn ]`, each `( slider ) => object`; `slider.plugins.name` | One word that both camps know. The object is the plugin: its hooks for the slider, its methods for the page |
 | Events | `on( name, fn )`, `off`, `emit`; the listener gets the carousel and the name | `on`, `once`, `off`, `emit`, and an `on` option; the listener gets the swiper first | `on` (returns the remover), `once`, `off`, `emit`, `on` option, `*` for all | Listeners get **what the event says first, then the slider**: `( index ) => …` is what most listeners need, and the slider is there for the rest |
 | Events of extensions | `autoplay:play` … | events of modules are events of the swiper | `plugin:event`, by `slider.emit()` | One bus, names that cannot clash |
-| Buttons | not in the core: the page calls `scrollNext()` | `navigation: { nextEl, prevEl }`, selector or element | Attributes in the slider, `data-ss-for="id"` anywhere else, or `prev`/`next`/`dots`/`pause` as element or selector | Works without a line of script, and with one for those who have the element |
+| Buttons | not in the core: the page calls `scrollNext()` | `navigation: { nextEl, prevEl }`, selector or element | Attributes in the slider, `data-gs-for="id"` anywhere else, or `prev`/`next`/`dots`/`pause` as element or selector | Works without a line of script, and with one for those who have the element |
 | Go to | `scrollTo( index )`, `canScrollNext()`, `scrollProgress()`, `slidesInView()` | `slideTo()`, `isEnd`, `progress` | `to( index )`, `toSlide( index )`, `canNext`, `canPrev`, `progress`, `visible()` | The same information under short names |
 | Change of options | `reInit( options )` | `update()`, some params live | `set( options )`, `update()` | No second slider has to be made for another gap or loop. What a plugin was given stays as it is |
 | Slides that come and go | `reInit()`, or the option that watches them | `appendSlide()` … or `update()` | The slider watches its track; frameworks render, nothing to call | React, Vue and the block editor add and remove elements on their own |
-| Animations | the page reads `scrollProgress()` and styles | `effect: 'coverflow'` … and `creativeEffect` | On the canvas: effects (GLSL). On the page: the `progress` plugin writes `--ss-p`, `--ss-away`, `--ss-share` on every slide, CSS does the rest | Both are a plugin away, neither is in the core. `coverflow()` is the proof on the canvas, the covers of the site without the canvas the proof in CSS |
+| Animations | the page reads `scrollProgress()` and styles | `effect: 'coverflow'` … and `creativeEffect` | On the canvas: effects (GLSL). On the page: the `progress` plugin writes `--gs-p`, `--gs-away`, `--gs-share` on every slide, CSS does the rest | Both are a plugin away, neither is in the core. `coverflow()` is the proof on the canvas, the covers of the site without the canvas the proof in CSS |
 
 Decided with it:
 
@@ -180,8 +180,8 @@ Decided with it:
 - **What a plugin may touch is the public API.** The built-in plugins (`gl`, `lightbox`, `progress`) use nothing else. `slider.signal` ends with the slider, for listeners that need no removing; `grab()`, `drag()` and `release()` move the slider as a pointer does, for plugins that bring another input.
 - **Listeners get `( detail, slider )`.** Left to me by the user on 2026-09-28, and kept.
 - **Typed events.** `slider.on( 'change', ( index ) => … )` knows that `index` is a number. `tests/types/use.ts` is compiled by `npm run types` and fails when the declarations stop saying what the library does.
-- **For React** there is `useSlider` in `shaderslide/react` (decision 14). The site uses it.
-- **Nothing is published** until the user says so. `npm run types && npm run size && npm test && npm run test:dist` runs before every publish (`prepublishOnly`), and `dist/` and the types are built before every pack (`prepack`). The name `shaderslide` was free on npm on 2026-09-29, and is not reserved: until it is, the README names no CDN.
+- **For React** there is `useSlider` in `gpuslider/react` (decision 14). The site uses it.
+- **Nothing is published** until the user says so. `npm run types && npm run size && npm test && npm run test:dist` runs before every publish (`prepublishOnly`), and `dist/` and the types are built before every pack (`prepack`). The name `gpuslider` was free on npm on 2026-09-29, and is not reserved: until it is, the README names no CDN.
 
 ### 13. The core moves slides; everything else is a plugin
 
@@ -207,12 +207,12 @@ Decided by the user on 2026-09-28: "separate as much as possible".
 | `marquee( { speed, hover, scroll } )` | 0.9 KB | new (decision 15) |
 | `thumbs( other )` | 0.5 KB | new (decision 15) |
 
-- **`shaderslide/full`** is the core with all of them, by the options they had before. One import for a page that wants a slider and not a construction kit. Swiper has the same as `swiper/bundle`.
+- **`gpuslider/full`** is the core with all of them, by the options they had before. One import for a page that wants a slider and not a construction kit. Swiper has the same as `swiper/bundle`.
 - **A plugin can lay out.** The hook `layout( measured )` gets what the slider measured of its slides (`left`, `size`, `gap`, `width`) and may change it. The stack is this: every slide one view wide, one view from the next. The core has no mode. New layouts are plugins.
 - **The canvas makes its shader with its canvas**, not when the plugin is made: by then every plugin of the slider is there, and the order of `plugins` does not matter.
-- **Gone without a replacement:** the events `edge` (`canNext` and `canPrev` say it on every `change`) and `screen` (one `IntersectionObserver` on `slider.root` is the same), and the option `controls` (`data-ss-for` and the elements handed to `controls()` do it).
+- **Gone without a replacement:** the events `edge` (`canNext` and `canPrev` say it on every `change`) and `screen` (one `IntersectionObserver` on `slider.root` is the same), and the option `controls` (`data-gs-for` and the elements handed to `controls()` do it).
 - **A drag does not begin on a `button`.** Before, it did not begin on the arrows and dots, which the core no longer knows. Swiper does the same.
-- **Tree shaking** is what makes this pay: `package.json` says `sideEffects: [ "*.css" ]`, every export is a function without effects at import. `npm run size` bundles `import { gl } from 'shaderslide/gl'` and gets the canvas layer alone, none of the 36 effects and transitions next to it.
+- **Tree shaking** is what makes this pay: `package.json` says `sideEffects: [ "*.css" ]`, every export is a function without effects at import. `npm run size` bundles `import { gl } from 'gpuslider/gl'` and gets the canvas layer alone, none of the 36 effects and transitions next to it.
 - **Against advice:** the reviewer of the split advised to keep the stack in the core. It became a plugin, because the hook `layout()` made it 0.4 KB outside and 0.2 KB less inside.
 
 ### 14. Fast for the page it is in
@@ -222,10 +222,10 @@ Asked for by the user on 2026-09-28: as fast as possible, for everyone, with wha
 - **The canvas is made at the first sign of use**: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same. A slider that moves by itself (`autoplay`, `marquee`) or whose effects show at rest gets its canvas when the page has time (`requestIdleCallback`). `eager: true` is as before. Why: a context, its shaders and the textures of a slider cost the main thread 50 to 200 ms, and most sliders of a page are never touched.
 - **Shaders compile on another thread** where the browser has `KHR_parallel_shader_compile`. Nothing waits for them: the page draws until they are ready.
 - **The list of sliders that wait for a context is gone.** With contexts made late, a slider without one gets one when it is next used.
-- **`dist/` for pages without a bundler.** Modules that share what they have in common (`index`, `full`, `plugins`, `gl`, `lightbox`), and `auto.js`: one file of 7.1 KB (7.9 since decision 17) that makes a slider of every `[data-ss]` and loads the canvas and the lightbox only for sliders that ask for them, when the page has time. Its lightbox brings a second copy of the core (4.5 KB, loaded late, only with a lightbox): one request at the start was worth more.
+- **`dist/` for pages without a bundler.** Modules that share what they have in common (`index`, `full`, `plugins`, `gl`, `lightbox`), and `auto.js`: one file of 7.1 KB (7.9 since decision 17) that makes a slider of every `[data-gs]` and loads the canvas and the lightbox only for sliders that ask for them, when the page has time. Its lightbox brings a second copy of the core (4.5 KB, loaded late, only with a lightbox): one request at the start was worth more.
 - **The shaders of `dist/` are made small** (`bin/glsl.mjs`): comments and spaces go, 3 to 8 % of what has shaders. The first two tries broke every shader (`#version` not first; a `#define` on the line of its neighbour), and the tests found both, because `npm run test:dist` runs them with what is built.
 - **`exports` of the package point at `src/`**, not at `dist/`. A bundler makes the script small itself and leaves out what is not used, and the source has the comments a debugger shows. The price: the shaders in a bundle are not made small, about 0.3 KB of the canvas layer.
-- **React**: `useSlider( options, remake )` in `shaderslide/react`, 0.1 KB. React is an optional peer. A component would have to decide about the markup of the slides, which is the page's.
+- **React**: `useSlider( options, remake )` in `gpuslider/react`, 0.1 KB. React is an optional peer. A component would have to decide about the markup of the slides, which is the page's.
 - **The lightbox has its own style sheet**, `lightbox.css`: `style.css` is 0.7 KB for pages without one.
 - **No file for `<script>` without `type="module"`** yet. Every browser that runs the library knows modules.
 
@@ -264,7 +264,7 @@ Asked for by the user on 2026-09-28, with the galleries of Codrops as the measur
 Decided by the user on 2026-09-29: WebGPU is what the slider is built with, and the old layer stays, for a direct comparison of their speed. It stays for the visitors without WebGPU too.
 
 - **Two layers of the same shape**: `gpu()` in `src/gpu/`, `gl()` in `src/gl/`. Same options, same hooks, same events (`gpu:on`, `gl:on`), and `layer.again` makes another of its kind, which is how the lightbox draws with what its slider draws with. The lightbox imports no layer any more; without a canvas it fades.
-- **`canvas()` chooses** (`shaderslide/canvas`, 0.3 KB): it asks the browser for an adapter, not for `navigator.gpu`, because a browser may know WebGPU and have nothing to run it on (Firefox without a window, a machine whose GPU is on a blocklist). It loads one layer. `shaderslide/effects` has the effects without a layer. In `auto.js`: `data-ss-canvas`; `data-ss-gpu` and `data-ss-gl` name one.
+- **`canvas()` chooses** (`gpuslider/canvas`, 0.3 KB): it asks the browser for an adapter, not for `navigator.gpu`, because a browser may know WebGPU and have nothing to run it on (Firefox without a window, a machine whose GPU is on a blocklist). It loads one layer. `gpuslider/effects` has the effects without a layer. In `auto.js`: `data-gs-canvas`; `data-gs-gpu` and `data-gs-gl` name one.
 - **Effects are written once**, in GLSL, and translated to WGSL when the shader is made (`src/gpu/wgsl.js`). Rejected: every effect twice (36 shaders to keep the same by hand, and twice the bytes for who bundles both); a compiler like Naga or Tint in the page (megabytes). The translation is 1.1 KB and knows the subset that the effects are written in, which the README names. Four effects were rewritten for it (`pile`, `tilt`, `shift`, `smear`). Every name gets a `_` at its end, because WGSL keeps words for itself that GLSL does not (`from`, `filter`).
 - **One device for a window**, shared pipelines, meshes and textures. A texture is counted by who uses it and freed with the last of them.
 - **The same picture.** `tests/gpu.spec.js` draws every effect and every transition with both and compares. For that both layers changed: the noise is a hash without a sine, which GPUs compute differently, and the size of an image that is looked up is chosen once per pixel from how large the image is drawn, not from how far apart the lookups of neighbours are. The second is a gain for both: at the cuts of `wind`, `signal` and `datamosh` the smallest size of the image showed as a line. Transitions with noise look a little different than before.
@@ -294,15 +294,15 @@ Open, for WebGPU: videos without a copy (`importExternalTexture`, which needs a 
 
 Asked for by the user on 2026-09-29: media take time to load, the visitor can be shown a loading screen, and there are events for it that users can add their own to.
 
-- **`loading()`** in `shaderslide/plugins`, 0.9 KB. It counts the media of the slider: an image when it is decoded (`decode()`, so the first frame does not wait for it), a video when its first picture is there. What fails counts too.
+- **`loading()`** in `gpuslider/plugins`, 0.9 KB. It counts the media of the slider: an image when it is decoded (`decode()`, so the first frame does not wait for it), a video when its first picture is there. What fails counts too.
 - **Events**: `loading:start`, `loading:progress`, `loading:done`, with the numbers. `slider.plugins.loading.ready` is a promise.
-- **The screen is an element that is told a number**: `--ss-loaded`, the text of `[data-ss-loaded]`, the class `ss-loaded`. The one that is made when there is none is the smallest that says something, a number and a line, in a style sheet of its own (0.4 KB). A logo, an animation, a page that opens like a curtain: that is the page's, with the same three things.
+- **The screen is an element that is told a number**: `--gs-loaded`, the text of `[data-gs-loaded]`, the class `gs-loaded`. The one that is made when there is none is the smallest that says something, a number and a line, in a style sheet of its own (0.4 KB). A logo, an animation, a page that opens like a curtain: that is the page's, with the same three things.
 - **It never waits for ever**: after `timeout` (10 s) it is done with what is there. `min` is for the other end: a screen that would be gone before it was seen.
 - **It makes lazy images load.** That is against what the lazy loading is for, and what a loading screen means: the README says where it belongs.
 - **One plugin for several sliders** counts them together. A wall of sliders has one screen.
 - **`also`**: promises that count as media. Fonts, data, whatever the page waits for.
-- **In `auto.js`**: `data-ss-loading`. The file is 7.9 KB with it (7.2 before), for every page that has the file: the canvas and the lightbox are loaded when they are asked for, a loading screen that comes late is none.
-- **Not in `shaderslide/full`**: it has no option for it, and its budget no room. A plugin as the others.
+- **In `auto.js`**: `data-gs-loading`. The file is 7.9 KB with it (7.2 before), for every page that has the file: the canvas and the lightbox are loaded when they are asked for, a loading screen that comes late is none.
+- **Not in `gpuslider/full`**: it has no option for it, and its budget no room. A plugin as the others.
 - **Not waited for: the canvas.** Until it is there the page draws the slides, which look the same.
 
 ### 18. Demos that are made of the library
@@ -315,7 +315,7 @@ Asked for by the user on 2026-09-29: "crazy demos", similar to a wall of glass c
 - **The dome is drawn in the plane**: a vertex moves towards the middle, nothing goes back in space. So what is drawn stays in its canvas, and rows that are canvases of their own make one dome when each is told where the middle of the wall is. The rows are higher than their place in the wall (`--room`) for what leaves its place.
 - **The titles are in the pictures** (`bin/make-wall.mjs` renders them with Chromium, as `make-media.mjs` does). The glass bends what it shows, and text of the page would not bend with it. The `alt` of a picture says what is written on it.
 - **The glass swings on** by `layer.change`, which tells every slide a speed of its own: two springs follow the speed of the wall, and every card is somewhere between them.
-- **Three loading screens**: a mark that is drawn as the pictures come (wall: an element of the page with `--ss-loaded`), a number that runs and a curtain (reel: `screen: false`, the events), the one of the library (tape).
+- **Three loading screens**: a mark that is drawn as the pictures come (wall: an element of the page with `--gs-loaded`), a number that runs and a curtain (reel: `screen: false`, the events), the one of the library (tape).
 - **Not done**: the three effects in the controls of the site; a click on a card of the wall (a lightbox would have to know the dome); videos in the wall (their titles cannot be in the picture); phones were not tried.
 
 ### 19. What is to be seen is in the site
@@ -342,7 +342,7 @@ Asked for by the user on 2026-09-29: "thik of the localhost:5183 like a package 
 - **Every page of the docs is made of one HTML file**, `site/docs/index.html`. The server of `npm run dev` gives it for every address of the docs, the build writes it once for every page with the title and the description of the page.
 - **No number of the site is written by hand.** `npm run size` writes `site/src/lib/sizes.json`, `npm run bench -- --write` writes `bench.json` with the machine and the day, `npm run lighthouse` writes `lighthouse.json`. The README had sizes in units of 1000 and of 1024 side by side (the core was 4.5 KB and the WebGL layer 6.5); now a KB is 1024 bytes everywhere, as in the budgets, and a test holds the README to what was measured.
 - **The name is said in one place** of the site (`NAME` in `Frame.tsx`), and the site says that it is a working name and that the library is not on npm. No command to install it is shown.
-- **A stack may be said in the HTML**: `class="ss ss-stack"`. Lighthouse found that the playground shifted when the script came (0.166): the first slider is a stack since decision 19, and until `stack()` ran its slides were in a row. With the class in the HTML the slides are on top of each other from the first paint, and the slides after the first are hidden until the script is there. `stack()` leaves the class when the slider ends if the page has said it. Between the script and its first frame the slides were all seen, the last on top: a test found it in one run of many. Now the first slide is the one that is seen until the plugin says which are, and the plugin says `visible` where it left it to the page. Without the script such a slider shows its first slide and is no scroller: that is why the page says it, and the plugin does not ask for it.
+- **A stack may be said in the HTML**: `class="gs gs-stack"`. Lighthouse found that the playground shifted when the script came (0.166): the first slider is a stack since decision 19, and until `stack()` ran its slides were in a row. With the class in the HTML the slides are on top of each other from the first paint, and the slides after the first are hidden until the script is there. `stack()` leaves the class when the slider ends if the page has said it. Between the script and its first frame the slides were all seen, the last on top: a test found it in one run of many. Now the first slide is the one that is seen until the plugin says which are, and the plugin says `visible` where it left it to the page. Without the script such a slider shows its first slide and is no scroller: that is why the page says it, and the plugin does not ask for it.
 - **The font before the font is as wide as the font.** Lighthouse found the first page shifting on a phone (0.159): with Geist the three buttons under the heading no longer fit in a line. Measured with the text of a page of the docs: Geist is 1.022 (400) to 1.045 (500) times as wide as Arial, and 0.995 times at 600. So the fallback is Arial at 103.5 %, and Arial Bold at 99.5 % from 600 (`site/src/index.css`), and the buttons are narrower. Both shifts are under 0.002 now.
 - **Tailwind has a class `table`**, which makes a block a table: the block around a table that scrolls is `.scrolls`.
 - **The pictures of the examples** are taken by `npm run shots` from the site that runs, drawn by WebGPU.
@@ -390,14 +390,14 @@ Asked for by the user on 2026-09-29: "are you sure how the component is called i
 
 Before, React had a hook and the page wrote the markup with its classes (decision 11: "A component would have to decide about the markup of the slides, which is the page's"). What showed that this was not enough is the site itself: its own component around the hook has props that say when the slider is to be made again and when it is to measure, one that hands the slider out, and one that hears its events.
 
-- **`<Slider>` and `<Slide>`** in `shaderslide/react`, 0.6 KB on the core. `<Slider>` is the element with the class `ss` and the track in it; its children are the slides. What is in a slide is the page's as before: the image has the class `ss-media`.
+- **`<Slider>` and `<Slide>`** in `gpuslider/react`, 0.6 KB on the core. `<Slider>` is the element with the class `gs` and the track in it; its children are the slides. What is in a slide is the page's as before: the image has the class `gs-media`.
 - **Options are props, and a change of one changes the slider that exists** (`slider.set()`): nothing is made again for `loop`. Swiper has its parameters as props as well; here a prop that changes takes no canvas away.
 - **Plugins are read when the slider is made.** Written in the JSX they are new with every render, and a slider that is made again for that would be made again for ever. For other plugins there is `remake`, a list as the dependencies of an effect. Considered: plugins that say what they were made with, to be compared, as Embla's do: code in every plugin, for a case that is rare.
 - **Listeners are the ones of the last render**: `onChange`, `onSettle`, and `on` for every event by its name. They are not what a slider is made again for either.
 - **`index`** moves the slider when it changes: state of React can say where the slider is.
 - **`useSliderContext()`** gives what is in a `<Slider>` the slider, and renders it again when the slider goes to another snap or has measured: `slider.canNext` in the JSX is what it is. Swiper's `useSwiper()` gives the instance and no more. The name is as `useForm()` and `useFormContext()` of React Hook Form: the one makes, the other finds.
 - **`around`** is what is in the slider beside its slides. Swiper has four slots for it; here `controls()` makes arrows and dots by itself, and buttons can be anywhere on the page (decision 12), so one place is enough.
-- **Not props: how many slides are in view, and the gap.** They are options of the core and so they are taken, but the way is CSS (decision 3): `--ss-per-view` in a class, which a media query can change.
+- **Not props: how many slides are in view, and the gap.** They are options of the core and so they are taken, but the way is CSS (decision 3): `--gs-per-view` in a class, which a media query can change.
 - **No JSX in `src/`**: the library is used as it is written, so the components are written with `createElement`.
 - **A class that React writes takes the classes of the slider away**, so the slider is made again when `className` changes.
 - **Not done**: the site's own component is still the one around the hook. It is to be made of `<Slider>`, which is when its `made` and `measured` go; it was left because other work is in that file on this day. A `<Slide>` that knows whether it is the active one (Swiper's `useSwiperSlide()`): the slider says it with `visible` and `change`.
@@ -458,7 +458,7 @@ The user on 2026-09-29: "the film however needs some good loop", and then gave a
 | `src/dom.js` | Moves the slides; roles, `inert` |
 | `src/index.js` | `createSlider()`: options, events, plugins |
 | `src/full.js` | The core with the plugins that options switch |
-| `src/auto.js` | Sliders from `data-ss`, without a script of one's own |
+| `src/auto.js` | Sliders from `data-gs`, without a script of one's own |
 | `src/react.js` | `<Slider>`, `<Slide>`, `useSliderContext()`, `useSlider()` |
 | `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
 | `src/loading.css` | The screen of `loading()`, for pages that have none of their own |
@@ -499,7 +499,7 @@ Each phase ends with something that runs and with tests.
 | 5 | Breadth | Post pass, real phones, size audit, README | README done; the rest is open |
 | 6 | Lightbox and site | A click lets the image grow to the screen; a site with controls for everything | Done |
 | 7 | Public API | Events, plugins by name, buttons anywhere, slides that come and go, types | Done; not published |
-| 8 | The split | A core that moves slides, ten plugins, `shaderslide/full` | Done |
+| 8 | The split | A core that moves slides, ten plugins, `gpuslider/full` | Done |
 | 9 | Fast | The late canvas, the site at 96 to 100 in Lighthouse, `dist/` and `auto.js`, `useSlider` | Done |
 | 10 | Layouts and the pointer | Downwards, rows, pile, fan, ticker, thumbnails, seven pointer effects | Done: 16 effects, 20 transitions |
 | 11 | WebGPU | A second layer that draws what the first draws, `canvas()` to choose, the comparison | Done on 2026-09-29 |

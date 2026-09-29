@@ -24,14 +24,14 @@ html {
 	border-radius: 0.75rem;
 }
 
-.strip .ss-slide {
+.strip .gs-slide {
 	height: min(52vh, 440px);
 }
 
 /* On small screens the setting would make the slides too narrow. */
 @media (max-width: 640px) {
 	.cards {
-		--ss-per-view: 1.3 !important;
+		--gs-per-view: 1.3 !important;
 	}
 }
 
@@ -40,7 +40,7 @@ html {
 	gap: 0;
 }
 
-.dots .ss-dot {
+.dots .gs-dot {
 	display: grid;
 	place-items: center;
 	width: 24px;
@@ -52,7 +52,7 @@ html {
 	transition: width 0.3s;
 }
 
-.dots .ss-dot::before {
+.dots .gs-dot::before {
 	content: "";
 	width: 8px;
 	height: 8px;
@@ -63,11 +63,11 @@ html {
 		width 0.3s;
 }
 
-.dots .ss-dot[aria-current] {
+.dots .gs-dot[aria-current] {
 	width: 38px;
 }
 
-.dots .ss-dot[aria-current]::before {
+.dots .gs-dot[aria-current]::before {
 	width: 22px;
 	background: #fff;
 }
@@ -81,8 +81,8 @@ html {
 }
 
 .thumbs {
-	--ss-per-view: 6;
-	--ss-gap: 8px;
+	--gs-per-view: 6;
+	--gs-gap: 8px;
 }
 
 .thumbs .thumb {
@@ -95,7 +95,7 @@ html {
 }
 
 .thumbs .thumb:hover,
-.thumbs .thumb.ss-active {
+.thumbs .thumb.gs-active {
 	opacity: 1;
 }
 
@@ -106,7 +106,7 @@ html {
 
 /* A slider that goes down needs a height: its slides share it. */
 .down {
-	--ss-per-view: 1.4;
+	--gs-per-view: 1.4;
 
 	height: min(64vh, 520px);
 }
@@ -115,34 +115,34 @@ html {
 	height: min(64vh, 520px);
 }
 
-.rows > .ss-track {
+.rows > .gs-track {
 	display: grid;
 	grid-auto-flow: column;
 	grid-template-rows: repeat(2, minmax(0, 1fr));
-	grid-auto-columns: calc((100% - 2 * var(--ss-gap)) / 3);
-	gap: var(--ss-gap);
+	grid-auto-columns: calc((100% - 2 * var(--gs-gap)) / 3);
+	gap: var(--gs-gap);
 	height: 100%;
 }
 
-.rows .ss-slide {
+.rows .gs-slide {
 	overflow: hidden;
 	border-radius: 0.75rem;
 }
 
 @media (max-width: 640px) {
 	.thumbs {
-		--ss-per-view: 4;
+		--gs-per-view: 4;
 	}
 
-	.rows > .ss-track {
-		grid-auto-columns: calc((100% - var(--ss-gap)) / 2);
+	.rows > .gs-track {
+		grid-auto-columns: calc((100% - var(--gs-gap)) / 2);
 	}
 }
 
 /* Laid out by an effect: room around the slide for what leaves its place. */
 .laid {
-	--ss-per-view: 2.2;
-	--ss-gap: 0px;
+	--gs-per-view: 2.2;
+	--gs-gap: 0px;
 
 	padding-block: 4rem;
 	border-radius: 0;
@@ -150,14 +150,14 @@ html {
 
 @media (max-width: 640px) {
 	.laid {
-		--ss-per-view: 1.6;
+		--gs-per-view: 1.6;
 	}
 }
 
 /* Covers: three in view, the one in the middle faces the visitor. */
 .covers {
-	--ss-per-view: 3;
-	--ss-gap: 0px;
+	--gs-per-view: 3;
+	--gs-gap: 0px;
 }
 
 .covers .cover {
@@ -167,7 +167,7 @@ html {
 
 @media (max-width: 640px) {
 	.covers {
-		--ss-per-view: 1.6;
+		--gs-per-view: 1.6;
 	}
 }
 
@@ -175,13 +175,13 @@ html {
  * Without the canvas: the `progress` plugin says where each slide is. What
  * turns is the image, not the slide, which the slider moves and measures.
  */
-.covers:not(:has(.ss-canvas)) .cover .ss-media {
-	rotate: y calc(var(--ss-p, 0) * -45deg);
-	translate: 0 0 calc(var(--ss-away, 0) * -120px);
+.covers:not(:has(.gs-canvas)) .cover .gs-media {
+	rotate: y calc(var(--gs-p, 0) * -45deg);
+	translate: 0 0 calc(var(--gs-away, 0) * -120px);
 }
 
 /* Arrows of a slider that is written as HTML. */
-.ss > .arrow {
+.gs > .arrow {
 	position: absolute;
 	top: 50%;
 	z-index: 10;
@@ -199,15 +199,15 @@ html {
 	cursor: pointer;
 }
 
-.ss > .arrow[data-ss-prev] {
+.gs > .arrow[data-gs-prev] {
 	inset-inline-start: 0.75rem;
 }
 
-.ss > .arrow[data-ss-next] {
+.gs > .arrow[data-gs-next] {
 	inset-inline-end: 0.75rem;
 }
 
-.ss > .arrow:disabled {
+.gs > .arrow:disabled {
 	opacity: 0.2;
 	cursor: default;
 }

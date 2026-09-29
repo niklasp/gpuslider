@@ -30,18 +30,18 @@ test.describe( 'the wall', () => {
 		await page.goto( '/examples/wall/', { waitUntil: 'domcontentloaded' } );
 		const intro = page.locator( '#intro' );
 		await expect( intro ).toBeVisible();
-		await expect( page.locator( '#wall' ) ).toHaveClass( /ss-is-loading/ );
+		await expect( page.locator( '#wall' ) ).toHaveClass( /gs-is-loading/ );
 		// The pictures that are held back are missing.
 		await expect
 			.poll( () =>
 				page.evaluate( () => window.wall?.wall.plugins.loading.state.loaded )
 			)
 			.toBeGreaterThan( 0 );
-		expect( Number( await intro.locator( '[data-ss-loaded]' ).textContent() ) ).toBeLessThan( 100 );
+		expect( Number( await intro.locator( '[data-gs-loaded]' ).textContent() ) ).toBeLessThan( 100 );
 		come();
-		await expect( intro ).toHaveClass( /ss-loaded/, gone );
+		await expect( intro ).toHaveClass( /gs-loaded/, gone );
 		await expect( intro ).toBeHidden( gone );
-		await expect( page.locator( '#wall' ) ).not.toHaveClass( /ss-is-loading/ );
+		await expect( page.locator( '#wall' ) ).not.toHaveClass( /gs-is-loading/ );
 		expect(
 			await page.evaluate( () => window.wall.wall.plugins.loading.state )
 		).toEqual( { loaded: 56, failed: 0, total: 56, progress: 1 } );
@@ -57,7 +57,7 @@ test.describe( 'the wall', () => {
 		await page.goto( '/examples/wall/' );
 		await expect
 			.poll(
-				() => page.evaluate( () => document.querySelectorAll( '.ss-drawn' ).length ),
+				() => page.evaluate( () => document.querySelectorAll( '.gs-drawn' ).length ),
 				{ timeout: 15000 }
 			)
 			.toBeGreaterThan( 20 );
@@ -165,7 +165,7 @@ test.describe( 'the tape', () => {
 			await route.continue();
 		} );
 		await page.goto( '/examples/tape/', { waitUntil: 'domcontentloaded' } );
-		const screens = page.locator( '.ss-loading' );
+		const screens = page.locator( '.gs-loading' );
 		await expect( screens ).toHaveCount( 4 );
 		await expect
 			.poll( () =>
@@ -182,7 +182,7 @@ test.describe( 'the tape', () => {
 
 	test( 'the rows run against each other', async ( { page } ) => {
 		await page.goto( '/examples/tape/' );
-		await expect( page.locator( '.ss-loading' ).first() ).toBeHidden( {
+		await expect( page.locator( '.gs-loading' ).first() ).toBeHidden( {
 			timeout: 30000,
 		} );
 		// A row runs while it is seen.
@@ -219,7 +219,7 @@ test.describe( 'the playground', () => {
 		await expect( page ).toHaveURL( /\/examples\/tape\/$/ );
 		await expect( page.locator( '.tape' ) ).toHaveCount( 4 );
 		// An example leads back to the examples.
-		await page.getByRole( 'link', { name: 'shaderslide' } ).click();
+		await page.getByRole( 'link', { name: 'gpuslider' } ).click();
 		await expect( page ).toHaveURL( /\/examples\/$/ );
 		await expect(
 			page.getByTestId( 'examples' ).getByRole( 'listitem' ).first()
@@ -237,7 +237,7 @@ test.describe( 'the playground', () => {
 		} );
 		await page.goto( '/playground/' );
 		await page.waitForFunction( () => window.sliders?.loads );
-		const screen = page.locator( '#loads .ss-loading' );
+		const screen = page.locator( '#loads .gs-loading' );
 		// Not with the page.
 		await expect( screen ).toHaveCount( 0 );
 		await page.getByRole( 'button', { name: 'Load them again' } ).click();
@@ -267,7 +267,7 @@ test.describe( 'the playground', () => {
 		await slider.scrollIntoViewIfNeeded();
 		const box = await slider.boundingBox();
 		await page.mouse.move( box.x + box.width / 2, box.y + box.height / 2 );
-		await expect( page.locator( '#several .ss-drawn' ).first() ).toBeAttached( {
+		await expect( page.locator( '#several .gs-drawn' ).first() ).toBeAttached( {
 			timeout: 15000,
 		} );
 		expect( logged ).toEqual( [] );

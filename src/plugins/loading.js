@@ -5,14 +5,14 @@
  *     createSlider( element, { plugins: [ loading() ] } );
  *
  * The screen is the element that is given, or the one with the class
- * `ss-loading` in the slider, or one that is made: a number and a line,
+ * `gs-loading` in the slider, or one that is made: a number and a line,
  * styled by `loading.css`. It is told how far the loading is:
  *
- *     --ss-loaded         0 to 1, on the screen
- *     [data-ss-loaded]    elements in it whose text is the number, 0 to 100
- *     .ss-loaded          the class of the screen when all is there
+ *     --gs-loaded         0 to 1, on the screen
+ *     [data-gs-loaded]    elements in it whose text is the number, 0 to 100
+ *     .gs-loaded          the class of the screen when all is there
  *
- * The slider has the class `ss-is-loading` meanwhile. With `screen: false`
+ * The slider has the class `gs-is-loading` meanwhile. With `screen: false`
  * there is none, and what is shown is up to who listens:
  *
  *     loading:start       { total }
@@ -79,11 +79,11 @@ export function loading( {
 	const show = () =>
 		screens.forEach( ( element ) => {
 			const percent = Math.round( state.progress * 100 );
-			element.style.setProperty( '--ss-loaded', state.progress );
+			element.style.setProperty( '--gs-loaded', state.progress );
 			element.setAttribute( 'aria-valuenow', percent );
-			element.classList.toggle( 'ss-loaded', done );
+			element.classList.toggle( 'gs-loaded', done );
 			element
-				.querySelectorAll( '[data-ss-loaded]' )
+				.querySelectorAll( '[data-gs-loaded]' )
 				.forEach( ( number ) => {
 					number.textContent = percent;
 				} );
@@ -98,7 +98,7 @@ export function loading( {
 		( page || globalThis ).setTimeout(
 			() => {
 				sliders.forEach( ( { root } ) =>
-					root.classList.remove( 'ss-is-loading' )
+					root.classList.remove( 'gs-is-loading' )
 				);
 				show();
 				tell( 'done', { time, late } );
@@ -129,7 +129,7 @@ export function loading( {
 	};
 
 	const follow = ( { root } ) =>
-		root.querySelectorAll( '.ss-media' ).forEach( ( media ) => {
+		root.querySelectorAll( '.gs-media' ).forEach( ( media ) => {
 			if ( seen.has( media ) || done ) {
 				return;
 			}
@@ -158,7 +158,7 @@ export function loading( {
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
 		const { root, win } = slider;
 		if ( ! done ) {
-			root.classList.add( 'ss-is-loading' );
+			root.classList.add( 'gs-is-loading' );
 		}
 		if ( ! sliders.size ) {
 			page = win;
@@ -179,11 +179,11 @@ export function loading( {
 
 		let made;
 		if ( screen !== false ) {
-			let element = screen || root.querySelector( '.ss-loading' );
+			let element = screen || root.querySelector( '.gs-loading' );
 			if ( ! element ) {
 				element = made = root.ownerDocument.createElement( 'div' );
-				made.className = 'ss-loading';
-				made.innerHTML = '<span><span data-ss-loaded></span> %</span>';
+				made.className = 'gs-loading';
+				made.innerHTML = '<span><span data-gs-loaded></span> %</span>';
 				root.append( made );
 			}
 			if ( ! element.role ) {
@@ -210,7 +210,7 @@ export function loading( {
 
 			destroy() {
 				sliders.delete( slider );
-				root.classList.remove( 'ss-is-loading' );
+				root.classList.remove( 'gs-is-loading' );
 				made?.remove();
 				screens.delete( made );
 			},

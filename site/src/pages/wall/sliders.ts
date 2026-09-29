@@ -8,10 +8,10 @@
  * that moves two ways at once, and the springs that let the glass swing
  * on when the wall has stopped.
  */
-import { createSlider, type Slider } from 'shaderslide';
-import { loading, marquee } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { dome, jelly, slab } from 'shaderslide/effects';
+import { createSlider, type Slider } from 'gpuslider';
+import { loading, marquee } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { dome, jelly, slab } from 'gpuslider/effects';
 import { drawnBy, layer } from '../mount';
 
 type Quad = { speed: number };
@@ -82,7 +82,7 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 
 	// The glass is as thick as its pictures are large.
 	const edge =
-		( outer.slides[ 0 ].querySelector( '.ss-slide' ) as HTMLElement )
+		( outer.slides[ 0 ].querySelector( '.gs-slide' ) as HTMLElement )
 			.offsetWidth * 0.055;
 
 	const rows = outer.slides.map( ( slide: HTMLElement, i: number ) => {
@@ -215,7 +215,7 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 				samples: [],
 			};
 			root.setPointerCapture( event.pointerId );
-			root.classList.add( 'ss-dragging' );
+			root.classList.add( 'gs-dragging' );
 			all.forEach( ( slider ) => slider.grab() );
 		},
 		{ signal }
@@ -254,7 +254,7 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 		}
 		const { samples, from } = held;
 		held = null;
-		root.classList.remove( 'ss-dragging' );
+		root.classList.remove( 'gs-dragging' );
 		let vx = 0;
 		let vy = 0;
 		const last = samples.at( -1 );
@@ -350,6 +350,6 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 		win.clearTimeout( rolling );
 		// The rows first: they are in the slides of the wall.
 		[ ...all ].reverse().forEach( ( slider ) => slider.destroy() );
-		intro.classList.remove( 'ss-loaded' );
+		intro.classList.remove( 'gs-loaded' );
 	};
 }

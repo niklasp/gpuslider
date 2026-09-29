@@ -1,11 +1,11 @@
 import { useState, type CSSProperties, type ReactNode } from 'react';
 import '@/index.css';
-import 'shaderslide/style.css';
+import 'gpuslider/style.css';
 import '@/site.css';
 import '@/text.css';
 import './home.css';
 import { code } from 'virtual:docs';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
 import {
 	BUTTON,
 	Code,
@@ -26,8 +26,8 @@ import {
 	stack,
 	videos,
 	wheel,
-} from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
+} from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
 import {
 	burn,
 	fold,
@@ -40,7 +40,7 @@ import {
 	swirl,
 	waves,
 	wind,
-} from 'shaderslide/effects';
+} from 'gpuslider/effects';
 import {
 	asked,
 	bench,
@@ -194,11 +194,11 @@ function Transitions() {
 					All { count( 'transition' ) }
 				</a>
 			</div>
-			<ShaderSlider
+			<GpuSlider
 				id="turns"
 				label="Slides that turn into each other"
 				// Said in the HTML: a stack before the script is there.
-				className="ss-stack"
+				className="gs-stack"
 				options={ { loop: true, duration: 1100 } }
 				made={ name }
 				measured=""
@@ -239,7 +239,7 @@ function Transitions() {
 					</h3>
 					<p className="text-white/80">The page draws, and all else is the same.</p>
 				</Slide>
-			</ShaderSlider>
+			</GpuSlider>
 		</div>
 	);
 }
@@ -467,7 +467,7 @@ export default function Home() {
 						</nav>
 					</div>
 
-					<ShaderSlider
+					<GpuSlider
 						id="first"
 						label="What the slider is"
 						options={ { loop: true } }
@@ -514,7 +514,7 @@ export default function Home() {
 								It can be read, found and chosen, on top of the canvas.
 							</p>
 						</Slide>
-					</ShaderSlider>
+					</GpuSlider>
 				</div>
 
 				<Section
@@ -593,12 +593,12 @@ export default function Home() {
 					title="A ticker"
 					note="Runs by itself and without an end, slower under the pointer. Scroll the page: it runs faster, and the pictures give way to the speed."
 				>
-					<ShaderSlider
+					<GpuSlider
 						id="ticker"
 						label="Ticker"
 						options={ { loop: true, free: true } }
 						className="cards"
-						style={ { '--ss-per-view': 4.5, '--ss-gap': '16px' } as CSSProperties }
+						style={ { '--gs-per-view': 4.5, '--gs-gap': '16px' } as CSSProperties }
 						made=""
 						measured=""
 						plugins={ () => [
@@ -616,7 +616,7 @@ export default function Home() {
 								sizes="(max-width: 640px) 77vw, 22vw"
 							/>
 						) ) }
-					</ShaderSlider>
+					</GpuSlider>
 				</Section>
 
 				<Section

@@ -9,11 +9,11 @@ import {
 	useState,
 	type RefObject,
 } from 'react';
-import { ShaderSlider, Slide, Thumbs } from '@/components/ShaderSlider';
+import { GpuSlider, Slide, Thumbs } from '@/components/GpuSlider';
 import { BUTTON } from '@/components/Frame';
 import { image } from '@/lib/media';
-import type { Slider } from 'shaderslide';
-import { loading } from 'shaderslide/plugins';
+import type { Slider } from 'gpuslider';
+import { loading } from 'gpuslider/plugins';
 
 export type Tell = RefObject< ( ( line: string ) => void ) | null >;
 
@@ -46,7 +46,7 @@ export function Events( { tell }: { tell: Tell } ) {
 }
 
 export type PhotosProps = Pick<
-	Parameters< typeof ShaderSlider >[ 0 ],
+	Parameters< typeof GpuSlider >[ 0 ],
 	'options' | 'style' | 'made' | 'measured' | 'plugins' | 'className'
 >;
 
@@ -59,7 +59,7 @@ export function Photos( props: PhotosProps ) {
 	const images = [ 3, 5, 7, 1, 8, 2, 6, 4 ];
 	return (
 		<div className="grid max-w-4xl gap-3">
-			<ShaderSlider
+			<GpuSlider
 				id="photos"
 				label="Photos"
 				onSlider={ setPhotos }
@@ -74,7 +74,7 @@ export function Photos( props: PhotosProps ) {
 						sizes="(min-width: 900px) 896px, 100vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<Thumbs id="thumbs" label="Thumbnails of the photos" of={ photos }>
 				{ images.map( ( n ) => (
 					<Slide
@@ -115,7 +115,7 @@ export function Loads( props: PhotosProps ) {
 	}, [] );
 	return (
 		<div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-			<ShaderSlider
+			<GpuSlider
 				id="loads"
 				label="Pictures that load"
 				className="cards"
@@ -129,9 +129,9 @@ export function Loads( props: PhotosProps ) {
 				] }
 			>
 				{ [ 7, 2, 5, 4, 1, 6 ].map( ( n ) => (
-					<div className="ss-slide card wide" key={ n }>
+					<div className="gs-slide card wide" key={ n }>
 						<img
-							className="ss-media"
+							className="gs-media"
 							{ ...image( n ) }
 							srcSet={ undefined }
 							src={ `/media/${ n }-960.avif${
@@ -143,7 +143,7 @@ export function Loads( props: PhotosProps ) {
 						/>
 					</div>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<div className="grid content-start gap-4">
 				<div>
 					<button

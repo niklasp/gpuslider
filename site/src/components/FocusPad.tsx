@@ -69,7 +69,7 @@ export function FocusPad( { value, onChange, image }: Props ) {
 				/>
 			</div>
 			<p className="font-mono text-xs text-muted-foreground">
-				--ss-focus: { value.x }% { value.y }%
+				--gs-focus: { value.x }% { value.y }%
 			</p>
 		</div>
 	);

@@ -40,7 +40,7 @@ if ( ! existsSync( key ) ) {
 			'-out',
 			cert,
 			'-subj',
-			'/CN=shaderslide on a phone',
+			'/CN=gpuslider on a phone',
 			'-addext',
 			`subjectAltName=DNS:localhost,${ addresses
 				.map( ( address ) => `IP:${ address }` )

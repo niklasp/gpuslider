@@ -2,9 +2,9 @@
  * What the page for phones finds out by itself: what the browser has, and
  * what a frame costs while a slider moves.
  */
-import { createSlider, type Slider } from 'shaderslide';
-import { canvas } from 'shaderslide/canvas';
-import { stretch, waves } from 'shaderslide/effects';
+import { createSlider, type Slider } from 'gpuslider';
+import { canvas } from 'gpuslider/canvas';
+import { stretch, waves } from 'gpuslider/effects';
 
 export type Has = Record< string, string >;
 
@@ -127,7 +127,7 @@ export function run(
 
 		// Until the canvas has drawn the first slide, 4 s at most.
 		const wait = () => {
-			if ( element.querySelector( '.ss-drawn' ) ) {
+			if ( element.querySelector( '.gs-drawn' ) ) {
 				first = performance.now() - began;
 				move();
 			} else if ( performance.now() - began > 4000 ) {
@@ -203,7 +203,7 @@ export function many(
 		);
 		setTimeout( () => {
 			const drawn = elements.filter( ( element ) =>
-				element.querySelector( '.ss-drawn' )
+				element.querySelector( '.gs-drawn' )
 			).length;
 			const gone = lost;
 			sliders.forEach( ( slider ) => slider.destroy() );

@@ -1,8 +1,8 @@
 /**
  * The canvas layer and its effects.
  *
- *     import { createSlider } from 'shaderslide';
- *     import { gl, stretch } from 'shaderslide/gl';
+ *     import { createSlider } from 'gpuslider';
+ *     import { gl, stretch } from 'gpuslider/gl';
  *
  *     createSlider( element, { plugins: [ gl( { effects: [ stretch() ] } ) ] } );
  */

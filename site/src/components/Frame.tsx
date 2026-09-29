@@ -5,7 +5,7 @@
 import type { ReactNode } from 'react';
 
 /** A working name: it is said here, and nowhere else on the site. */
-export const NAME = 'shaderslide';
+export const NAME = 'gpuslider';
 
 /** A button of the site, as the controls have them. */
 export const BUTTON =

@@ -3,11 +3,11 @@
  * they do. `npm run types`.
  */
 import { useState } from 'react';
-import { type Slider as Made } from 'shaderslide';
-import { Slider, Slide, useSlider, useSliderContext } from 'shaderslide/react';
-import { controls, keyboard } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { stretch } from 'shaderslide/effects';
+import { type Slider as Made } from 'gpuslider';
+import { Slider, Slide, useSlider, useSliderContext } from 'gpuslider/react';
+import { controls, keyboard } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { stretch } from 'gpuslider/effects';
 
 function Next() {
 	const slider = useSliderContext();
@@ -43,7 +43,7 @@ export function Photos( { photos }: { photos: { src: string; alt: string }[] } )
 		>
 			{ photos.map( ( photo ) => (
 				<Slide key={ photo.src } as="figure" className="photo" data-made={ !! made }>
-					<img className="ss-media" { ...photo } />
+					<img className="gs-media" { ...photo } />
 				</Slide>
 			) ) }
 		</Slider>
@@ -53,8 +53,8 @@ export function Photos( { photos }: { photos: { src: string; alt: string }[] } )
 export function Own() {
 	const [ ref, slider ] = useSlider( { loop: true }, [] );
 	return (
-		<div className="ss" ref={ ref }>
-			<div className="ss-track" />
+		<div className="gs" ref={ ref }>
+			<div className="gs-track" />
 			<button onClick={ () => slider?.next() }>On</button>
 		</div>
 	);

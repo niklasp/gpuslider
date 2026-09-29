@@ -4,8 +4,8 @@
 
 /* Twelve at once: small, one slide each. */
 .cards.small {
-	--ss-per-view: 1 !important;
-	--ss-gap: 0px;
+	--gs-per-view: 1 !important;
+	--gs-gap: 0px;
 }
 
 .cards.small .card {

@@ -55,20 +55,20 @@ section:nth-of-type(even) .word {
 }
 
 .tape {
-	--ss-gap: clamp(10px, 1.4vw, 22px);
-	--ss-loading-back: var(--ink);
-	--ss-loading-color: var(--ground);
+	--gs-gap: clamp(10px, 1.4vw, 22px);
+	--gs-loading-back: var(--ink);
+	--gs-loading-color: var(--ground);
 
 	/* Room for what gives way. */
 	padding-block: 28px;
 }
 
-.tape .ss-slide {
+.tape .gs-slide {
 	flex: 0 0 clamp(220px, 30vw, 520px);
 	aspect-ratio: 3 / 2;
 }
 
-.tape .ss-media {
+.tape .gs-media {
 	border-radius: 6px;
 }
 

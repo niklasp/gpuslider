@@ -51,7 +51,7 @@ async function drawn( page, id ) {
 					box.x + box.width / 2 + ( moved++ % 10 ),
 					box.y + box.height / 2
 				);
-				return slider.locator( '.ss-drawn' ).count();
+				return slider.locator( '.gs-drawn' ).count();
 			},
 			{ timeout: 15000 }
 		)
@@ -188,11 +188,11 @@ test.describe( 'the first page', () => {
 
 	test( 'the ways to use it are the ones of the README', async ( { page } ) => {
 		const code = page.getByRole( 'tabpanel' );
-		await expect( code ).toContainText( `import { createSlider } from 'shaderslide';` );
+		await expect( code ).toContainText( `import { createSlider } from 'gpuslider';` );
 		await page.getByRole( 'tab', { name: 'React' } ).click();
 		await expect( code ).toContainText( '<Slider' );
 		await page.getByRole( 'tab', { name: 'No script of your own' } ).click();
-		await expect( code ).toContainText( 'data-ss-canvas="stretch waves"' );
+		await expect( code ).toContainText( 'data-gs-canvas="stretch waves"' );
 	} );
 } );
 
@@ -240,7 +240,7 @@ test.describe( 'the docs', () => {
 			const response = await page.goto( address );
 			expect( response.status() ).toBe( 200 );
 			await expect( page.getByRole( 'heading', { level: 1 } ) ).toHaveText( title );
-			await expect( page ).toHaveTitle( `${ title } · Docs · shaderslide` );
+			await expect( page ).toHaveTitle( `${ title } · Docs · gpuslider` );
 			await expect(
 				page
 					.getByRole( 'navigation', { name: 'Pages of the docs' } )
@@ -344,15 +344,15 @@ test.describe( 'the docs', () => {
 		await expect( state ).toContainText( 'drawn by WebGL ', { timeout: 15000 } );
 		await page.getByRole( 'button', { name: 'The page' } ).click();
 		await expect( state ).toContainText( 'drawn by the page' );
-		await expect( page.locator( '#drawn .ss-canvas' ) ).toHaveCount( 0 );
+		await expect( page.locator( '#drawn .gs-canvas' ) ).toHaveCount( 0 );
 	} );
 
 	test( 'a slider of attributes is made by auto.js', async ( { page } ) => {
 		const said = errors( page );
 		await page.goto( '/docs/html/' );
-		const slider = page.locator( '#written .ss' );
-		await expect( slider ).toHaveClass( /ss-on/ );
-		const first = slider.locator( '.ss-slide' ).first();
+		const slider = page.locator( '#written .gs' );
+		await expect( slider ).toHaveClass( /gs-on/ );
+		const first = slider.locator( '.gs-slide' ).first();
 		const { x } = await first.boundingBox();
 		await slider.getByRole( 'button', { name: 'Next slide' } ).click();
 		// The slides have moved by one.
@@ -374,10 +374,10 @@ test.describe( 'the docs', () => {
 
 		await page.goto( '/docs/lightbox/' );
 		await page.waitForFunction( () => window.sliders?.opens );
-		await page.locator( '#opens .ss-slide' ).first().click();
-		await expect( page.locator( '.ss-lightbox' ) ).toBeVisible();
+		await page.locator( '#opens .gs-slide' ).first().click();
+		await expect( page.locator( '.gs-lightbox' ) ).toBeVisible();
 		await page.keyboard.press( 'Escape' );
-		await expect( page.locator( '.ss-lightbox' ) ).toBeHidden();
+		await expect( page.locator( '.gs-lightbox' ) ).toBeHidden();
 
 		await page.goto( '/docs/options/' );
 		await page.waitForFunction( () => window.sliders?.remote );
@@ -392,7 +392,7 @@ test( 'the sizes of the README are the ones that were measured', () => {
 	for ( const [ row, bytes ] of [
 		[ 'Core', parts.core ],
 		[
-			'`shaderslide/full`: the core with all its options',
+			'`gpuslider/full`: the core with all its options',
 			parts[ 'full: the slider with all its options' ],
 		],
 		[ '`canvas()`, which chooses the layer', parts[ 'canvas: what chooses the layer' ] ],
@@ -426,13 +426,13 @@ test.describe( 'the components of React', () => {
 	test( 'options are props, state moves the slider, and what is in it has it', async ( { page } ) => {
 		await page.goto( '/docs/react/' );
 		const slider = page.locator( '#react' );
-		await expect( slider ).toHaveClass( /ss-on/ );
-		await expect( slider.locator( '.ss-track > .ss-slide' ) ).toHaveCount( 6 );
+		await expect( slider ).toHaveClass( /gs-on/ );
+		await expect( slider.locator( '.gs-track > .gs-slide' ) ).toHaveCount( 6 );
 		const said = page.getByTestId( 'react' ).locator( 'output' );
 		const back = slider.getByRole( 'button', { name: 'Previous slide' } );
 		const on = slider.getByRole( 'button', { name: 'Next slide' } );
 		const first = () =>
-			slider.locator( '.ss-slide' ).first().evaluate(
+			slider.locator( '.gs-slide' ).first().evaluate(
 				( slide ) => slide.getBoundingClientRect().left - slide.parentElement.parentElement.getBoundingClientRect().left
 			);
 
@@ -463,7 +463,7 @@ test.describe( 'the components of React', () => {
 				window.kept.options.loop,
 			] )
 		).toEqual( [ true, true ] );
-		await expect( slider ).toHaveClass( /ss-on/ );
+		await expect( slider ).toHaveClass( /gs-on/ );
 	} );
 } );
 
@@ -478,7 +478,7 @@ test.describe( 'the page for phones', () => {
 			page.getByTestId( 'has' ).getByRole( 'row', { name: 'WebGL 2' } )
 		).toContainText( /^WebGL 2(yes|no)/ );
 		for ( const id of [ 'row', 'turning', 'opening' ] ) {
-			await expect( page.locator( `#${ id }` ) ).toHaveClass( /ss-on/ );
+			await expect( page.locator( `#${ id }` ) ).toHaveClass( /gs-on/ );
 		}
 		// As wide as the screen.
 		expect(
@@ -504,7 +504,7 @@ test.describe( 'the page for phones', () => {
 		await expect( page.getByTestId( 'runs' ).getByRole( 'row' ) ).toHaveCount( 3 );
 		await expect( page.getByRole( 'button', { name: 'Measure' } ) ).toBeEnabled();
 		// Every slider that was made for it has ended.
-		await expect( page.locator( '[data-measured].ss-on' ) ).toHaveCount( 0 );
+		await expect( page.locator( '[data-measured].gs-on' ) ).toHaveCount( 0 );
 
 		await page.reload();
 		await expect(

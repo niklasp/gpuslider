@@ -48,7 +48,7 @@ test.describe( 'moving', () => {
 	} );
 
 	test( 'a fast drag over several slides goes as far as a view', async ( { page } ) => {
-		await open( page, { n: 12, css: '.ss { --ss-per-view: 4; }' } );
+		await open( page, { n: 12, css: '.gs { --gs-per-view: 4; }' } );
 		await page.evaluate( async () => {
 			const root = document.getElementById( 'slider' );
 			const box = root.getBoundingClientRect();
@@ -118,7 +118,7 @@ test.describe( 'moving', () => {
 
 	test( 'a click follows the link, the end of a drag does not', async ( { page } ) => {
 		await open( page, {
-			css: '.ss-content a { display: block; height: 100%; }',
+			css: '.gs-content a { display: block; height: 100%; }',
 		} );
 		await page.evaluate( () => {
 			window.clicks = 0;
@@ -132,7 +132,7 @@ test.describe( 'moving', () => {
 		// Nor does it reach what listens for clicks on the slider, such as
 		// a lightbox.
 		expect( await page.evaluate( () => window.clicks ) ).toBe( 0 );
-		await page.locator( '.ss-slide[data-i="0"] a' ).click();
+		await page.locator( '.gs-slide[data-i="0"] a' ).click();
 		expect( page.url() ).toContain( '#followed' );
 	} );
 } );
@@ -156,8 +156,8 @@ test.describe( 'keyboard and controls', () => {
 
 	test( 'arrows are disabled at the ends', async ( { page } ) => {
 		await open( page, { n: 3 } );
-		const prev = page.locator( '#slider > [data-ss-prev]' );
-		const next = page.locator( '#slider > [data-ss-next]' );
+		const prev = page.locator( '#slider > [data-gs-prev]' );
+		const next = page.locator( '#slider > [data-gs-next]' );
 		await expect( prev ).toBeDisabled();
 		await next.click();
 		await expect( prev ).toBeEnabled();
@@ -168,7 +168,7 @@ test.describe( 'keyboard and controls', () => {
 
 	test( 'dots show and set the slide', async ( { page } ) => {
 		await open( page, { n: 4 } );
-		const dots = page.locator( '[data-ss-dot]' );
+		const dots = page.locator( '[data-gs-dot]' );
 		await expect( dots ).toHaveCount( 4 );
 		await expect( dots.nth( 0 ) ).toHaveAttribute( 'aria-current', 'true' );
 		await dots.nth( 2 ).click();
@@ -198,7 +198,7 @@ test.describe( 'layout', () => {
 	test( 'several per view with a gap', async ( { page } ) => {
 		await open( page, {
 			n: 6,
-			css: '.ss { --ss-per-view: 3; --ss-gap: 20px; }',
+			css: '.gs { --gs-per-view: 3; --gs-gap: 20px; }',
 		} );
 		// ( 800 - 2 * 20 ) / 3
 		expect( await leftOf( page, 1 ) ).toBe( 273 );
@@ -227,7 +227,7 @@ test.describe( 'layout', () => {
 		await open( page, {
 			n: 5,
 			o: { align: 'center', contain: false },
-			css: '.ss { --ss-per-view: 2; }',
+			css: '.gs { --gs-per-view: 2; }',
 		} );
 		expect( await leftOf( page, 0 ) ).toBe( 200 );
 		await page.evaluate( () => window.slider.next() );
@@ -239,7 +239,7 @@ test.describe( 'layout', () => {
 		await open( page, {
 			n: 5,
 			o: { perView: 'auto' },
-			css: '.ss-slide { width: 300px; } .ss-slide:nth-child(2) { width: 450px; } .ss-media { width: 100% !important; }',
+			css: '.gs-slide { width: 300px; } .gs-slide:nth-child(2) { width: 450px; } .gs-media { width: 100% !important; }',
 		} );
 		await page.evaluate( () => window.slider.to( 2 ) );
 		await settled( page );
@@ -248,7 +248,7 @@ test.describe( 'layout', () => {
 	} );
 
 	test( 'a resize keeps the slide', async ( { page } ) => {
-		await open( page, { css: '.ss { width: auto; }' } );
+		await open( page, { css: '.gs { width: auto; }' } );
 		await page.evaluate( () => window.slider.to( 2, { instant: true } ) );
 		await settled( page );
 		await page.setViewportSize( { width: 700, height: 700 } );
@@ -264,7 +264,7 @@ test.describe( 'layout', () => {
 	test( 'right to left', async ( { page } ) => {
 		await open( page, {
 			dir: 'rtl',
-			css: '.ss { --ss-per-view: 2; }',
+			css: '.gs { --gs-per-view: 2; }',
 		} );
 		// The first slide is at the right.
 		expect( await leftOf( page, 0 ) ).toBe( 400 );
@@ -320,7 +320,7 @@ test.describe( 'loop', () => {
 		await open( page, {
 			n: 5,
 			o: { loop: true },
-			css: '.ss { --ss-per-view: 3; }',
+			css: '.gs { --gs-per-view: 3; }',
 		} );
 		await page.evaluate( () => window.slider.to( 4, { instant: true } ) );
 		await settled( page );
@@ -350,7 +350,7 @@ test.describe( 'loop', () => {
 		await open( page, {
 			n: 3,
 			o: { loop: true },
-			css: '.ss { --ss-per-view: 3; }',
+			css: '.gs { --gs-per-view: 3; }',
 		} );
 		expect(
 			await page.evaluate( () => window.slider.layout().loop )
@@ -375,7 +375,7 @@ test.describe( 'stack', () => {
 		const cover = await page.evaluate( () =>
 			Number(
 				getComputedStyle(
-					window.slider.slides[ 1 ].querySelector( '.ss-media' )
+					window.slider.slides[ 1 ].querySelector( '.gs-media' )
 				).opacity
 			)
 		);
@@ -389,7 +389,7 @@ test.describe( 'stack', () => {
 		await open( page, {
 			n: 3,
 			o: { mode: 'stack' },
-			css: '.ss-slide { height: auto; aspect-ratio: 16 / 9; max-height: 200px; }',
+			css: '.gs-slide { height: auto; aspect-ratio: 16 / 9; max-height: 200px; }',
 		} );
 		const size = await page.evaluate( () => {
 			const r = window.slider.slides[ 0 ].getBoundingClientRect();
@@ -456,7 +456,7 @@ test.describe( 'a stack whose images wait for their place', () => {
 		await page.evaluate( () => window.slider.destroy() );
 		expect(
 			await page
-				.locator( '#waits .ss-slide' )
+				.locator( '#waits .gs-slide' )
 				.evaluateAll( ( slides ) =>
 					slides.map( ( slide ) => slide.style.contentVisibility )
 				)
@@ -476,7 +476,7 @@ test.describe( 'a stack whose images wait for their place', () => {
 
 test.describe( 'a stack that is said in the HTML', () => {
 	const seen = ( page ) =>
-		page.locator( '#stacked .ss-slide' ).evaluateAll( ( slides ) =>
+		page.locator( '#stacked .gs-slide' ).evaluateAll( ( slides ) =>
 			slides.map( ( slide ) => {
 				const { x, y, width, height } = slide.getBoundingClientRect();
 				return [ getComputedStyle( slide ).visibility, x, y, width, height ].join( ' ' );
@@ -505,7 +505,7 @@ test.describe( 'a stack that is said in the HTML', () => {
 			);
 		}, process.env.FROM || 'src' );
 		expect( made ).toEqual( [ 'visible', 'hidden', 'hidden' ] );
-		await expect( page.locator( '#stacked' ) ).toHaveClass( /ss-on/ );
+		await expect( page.locator( '#stacked' ) ).toHaveClass( /gs-on/ );
 		expect( await seen( page ) ).toEqual( before );
 		await page.evaluate( () => window.slider.next() );
 		await settled( page );
@@ -516,7 +516,7 @@ test.describe( 'a stack that is said in the HTML', () => {
 		] );
 		// What the page has said stays when the slider ends.
 		await page.evaluate( () => window.slider.destroy() );
-		await expect( page.locator( '#stacked' ) ).toHaveClass( 'ss ss-stack' );
+		await expect( page.locator( '#stacked' ) ).toHaveClass( 'gs gs-stack' );
 		expect( await seen( page ) ).toEqual( before );
 	} );
 
@@ -543,7 +543,7 @@ test.describe( 'at rest', () => {
 	} );
 
 	test( 'slides out of view are inert', async ( { page } ) => {
-		await open( page, { css: '.ss { --ss-per-view: 2; }' } );
+		await open( page, { css: '.gs { --gs-per-view: 2; }' } );
 		const inert = () =>
 			page.evaluate( () => window.slider.slides.map( ( el ) => el.inert ) );
 		expect( await inert() ).toEqual( [ false, false, true, true, true ] );
@@ -570,15 +570,15 @@ test.describe( 'at rest', () => {
 			return {
 				classes: root.className,
 				role: root.getAttribute( 'role' ),
-				transform: root.querySelector( '.ss-track' ).style.transform,
-				dots: root.querySelectorAll( '[data-ss-dot]' ).length,
-				inert: [ ...root.querySelectorAll( '.ss-slide' ) ].some(
+				transform: root.querySelector( '.gs-track' ).style.transform,
+				dots: root.querySelectorAll( '[data-gs-dot]' ).length,
+				inert: [ ...root.querySelectorAll( '.gs-slide' ) ].some(
 					( el ) => el.inert
 				),
 			};
 		} );
 		expect( state ).toEqual( {
-			classes: 'ss',
+			classes: 'gs',
 			role: null,
 			transform: '',
 			dots: 0,
@@ -592,14 +592,14 @@ test.describe( 'without the script', () => {
 
 	test( 'the slider is a scroller that snaps', async ( { page } ) => {
 		await page.goto( '/tests/plain.html' );
-		const track = page.locator( '#several .ss-track' );
+		const track = page.locator( '#several .gs-track' );
 		const style = await track.evaluate( ( el ) => {
 			const { overflowX, scrollSnapType } = getComputedStyle( el );
 			return {
 				overflowX,
 				scrollSnapType,
 				scrolls: el.scrollWidth > el.clientWidth,
-				on: el.parentElement.classList.contains( 'ss-on' ),
+				on: el.parentElement.classList.contains( 'gs-on' ),
 			};
 		} );
 		expect( style ).toEqual( {

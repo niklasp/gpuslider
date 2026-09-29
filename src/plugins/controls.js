@@ -3,13 +3,13 @@
  *
  * In the slider:
  *
- *     <button data-ss-prev>, <button data-ss-next>
- *     <div data-ss-dots>         filled with one button per snap
- *     <button data-ss-to="2">    goes to a snap
+ *     <button data-gs-prev>, <button data-gs-next>
+ *     <div data-gs-dots>         filled with one button per snap
+ *     <button data-gs-to="2">    goes to a snap
  *
  * Anywhere else, with the id of the slider on them or around them:
  *
- *     <nav data-ss-for="photos"><button data-ss-next>…</button></nav>
+ *     <nav data-gs-for="photos"><button data-gs-next>…</button></nav>
  *
  * Or handed over:
  *
@@ -48,14 +48,14 @@ export function controls( given = {} ) {
 						return;
 					}
 				}
-				const to = target.closest( '[data-ss-dot], [data-ss-to]' );
+				const to = target.closest( '[data-gs-dot], [data-gs-to]' );
 				if (
 					to &&
-					( to.dataset.ssTo
+					( to.dataset.gsTo
 						? mine( to )
 						: all( 'dots' ).some( ( el ) => el.contains( to ) ) )
 				) {
-					slider.to( Number( to.dataset.ssTo ?? to.dataset.ssDot ) );
+					slider.to( Number( to.dataset.gsTo ?? to.dataset.gsDot ) );
 				}
 			},
 			{ signal: slider.signal }
@@ -77,8 +77,8 @@ export function controls( given = {} ) {
 						...Array.from( { length: count }, ( _, i ) => {
 							const dot = doc.createElement( 'button' );
 							dot.type = 'button';
-							dot.className = 'ss-dot';
-							dot.dataset.ssDot = String( i );
+							dot.className = 'gs-dot';
+							dot.dataset.gsDot = String( i );
 							dot.setAttribute( 'aria-label', `${ i + 1 }` );
 							return dot;
 						} )
@@ -87,9 +87,9 @@ export function controls( given = {} ) {
 				}
 				[ ...el.children ].forEach( ( dot, i ) => mark( dot, i === index ) );
 			} );
-			doc.querySelectorAll( '[data-ss-to]' ).forEach(
+			doc.querySelectorAll( '[data-gs-to]' ).forEach(
 				( el ) =>
-					mine( el ) && mark( el, Number( el.dataset.ssTo ) === index )
+					mine( el ) && mark( el, Number( el.dataset.gsTo ) === index )
 			);
 			all( 'prev' ).forEach( ( el ) => {
 				el.disabled = ! slider.canPrev;

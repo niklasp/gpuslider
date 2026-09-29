@@ -1,21 +1,21 @@
 import { type CSSProperties } from 'react';
-import 'shaderslide/lightbox.css';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
-import { controls, keyboard, wheel } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { split, stretch } from 'shaderslide/effects';
-import { lightbox } from 'shaderslide/lightbox';
+import 'gpuslider/lightbox.css';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
+import { controls, keyboard, wheel } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { split, stretch } from 'gpuslider/effects';
+import { lightbox } from 'gpuslider/lightbox';
 
 /** Click a slide. */
 export default function Lightbox() {
 	return (
 		<>
-			<ShaderSlider
+			<GpuSlider
 				id="opens"
 				label="Photos that open"
 				options={ { loop: true } }
 				className="cards"
-				style={ { '--ss-per-view': 3, '--ss-gap': '16px' } as CSSProperties }
+				style={ { '--gs-per-view': 3, '--gs-gap': '16px' } as CSSProperties }
 				made=""
 				measured=""
 				plugins={ () => [
@@ -35,7 +35,7 @@ export default function Lightbox() {
 						sizes="(max-width: 640px) 77vw, 30vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<p className="note">
 				Click a slide. In the lightbox: drag, the arrows, the keys, and
 				Escape to let the image go back into its slide.

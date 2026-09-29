@@ -1,21 +1,21 @@
 /*
- * shaderslide: the layout, in three tiers.
+ * gpuslider: the layout, in three tiers.
  *
  * 1. Without the script the track is a native scroller with scroll-snap.
- * 2. With the script (.ss-on) the slides are moved by transforms.
- * 3. With the canvas layer (.ss-gl) the canvas draws the media.
+ * 2. With the script (.gs-on) the slides are moved by transforms.
+ * 3. With the canvas layer (.gs-gl) the canvas draws the media.
  *
  * The page decides the layout; the script only measures it:
  *
- *     --ss-per-view  slides per view, fractions allowed
- *     --ss-gap       gap between slides
+ *     --gs-per-view  slides per view, fractions allowed
+ *     --gs-gap       gap between slides
  *
  * Both can change in media queries.
  */
 
-.ss {
-	--ss-per-view: 1;
-	--ss-gap: 0px;
+.gs {
+	--gs-per-view: 1;
+	--gs-gap: 0px;
 
 	position: relative;
 	/* As a flex or grid item it would otherwise be as wide as its images. */
@@ -23,29 +23,29 @@
 	overflow: hidden;
 }
 
-.ss-track {
+.gs-track {
 	position: relative;
 	display: flex;
-	gap: var(--ss-gap);
+	gap: var(--gs-gap);
 	overflow-x: auto;
 	overscroll-behavior-x: contain;
 	scroll-snap-type: x mandatory;
 	scrollbar-width: none;
 }
 
-.ss-slide {
+.gs-slide {
 	position: relative;
 	flex: 0 0
 		calc(
-			( 100% - ( var(--ss-per-view) - 1 ) * var(--ss-gap) ) /
-				var(--ss-per-view)
+			( 100% - ( var(--gs-per-view) - 1 ) * var(--gs-gap) ) /
+				var(--gs-per-view)
 		);
 	min-width: 0;
 	scroll-snap-align: start;
 }
 
 /* Downwards. The slider needs a height: the page gives it one. */
-.ss-y > .ss-track {
+.gs-y > .gs-track {
 	flex-direction: column;
 	height: 100%;
 	overflow: hidden auto;
@@ -53,43 +53,43 @@
 	scroll-snap-type: y mandatory;
 }
 
-.ss-y .ss-slide {
+.gs-y .gs-slide {
 	min-height: 0;
 }
 
 /* Each slide as wide as its content. */
-.ss-auto .ss-slide {
+.gs-auto .gs-slide {
 	flex-basis: auto;
 }
 
-/* --ss-focus is the point of the image that stays in view when it is
+/* --gs-focus is the point of the image that stays in view when it is
    cut: "30% 20%" is a third from the left, a fifth from the top. Set it on
    a slide or on the slider. */
-.ss-media {
+.gs-media {
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
-	object-position: var(--ss-focus, 50% 50%);
+	object-position: var(--gs-focus, 50% 50%);
 }
 
-.ss-auto .ss-media {
+.gs-auto .gs-media {
 	width: auto;
 	max-width: none;
 }
 
 /* Auto height: every slide as high as its content, the slider as high as
    the slides in view. */
-.ss-tall > .ss-track {
+.gs-tall > .gs-track {
 	align-items: start;
 }
 
-.ss-tall .ss-media {
+.gs-tall .gs-media {
 	height: auto;
 }
 
 /* Content on top of the media. */
-.ss-content {
+.gs-content {
 	position: absolute;
 	inset: 0;
 	z-index: 1;
@@ -97,35 +97,35 @@
 
 /* Tier 2: the script moves the slides. */
 
-.ss-on {
+.gs-on {
 	touch-action: pan-y;
 	cursor: grab;
 }
 
-.ss-on > .ss-track {
+.gs-on > .gs-track {
 	overflow: visible;
 	scroll-snap-type: none;
 	will-change: transform;
 }
 
-.ss-on.ss-y {
+.gs-on.gs-y {
 	touch-action: pan-x;
 }
 
-.ss-on.ss-dragging {
+.gs-on.gs-dragging {
 	cursor: grabbing;
 	user-select: none;
 	-webkit-user-select: none;
 }
 
-.ss-on:focus-visible {
+.gs-on:focus-visible {
 	outline: 2px solid Highlight;
 	outline-offset: 2px;
 }
 
 /* Stack: all slides in one place, the two around the position shown. */
 
-.ss-stack > .ss-track {
+.gs-stack > .gs-track {
 	display: grid;
 	gap: 0;
 	will-change: auto;
@@ -133,7 +133,7 @@
 
 /* The width is said: a slide with an aspect-ratio and a max-height would
    otherwise be as narrow as its height allows. */
-.ss-stack .ss-slide {
+.gs-stack .gs-slide {
 	grid-area: 1 / 1;
 	box-sizing: border-box;
 	width: 100%;
@@ -143,27 +143,27 @@
 /* Until the plugin says which slides are shown, the first is: in a
    stack that the page has said in its HTML that is before the script is
    there, and without it. */
-.ss-stack:not(.ss-on) > .ss-track {
+.gs-stack:not(.gs-on) > .gs-track {
 	overflow: hidden;
 }
 
-.ss-stack .ss-slide:not(:first-child) {
+.gs-stack .gs-slide:not(:first-child) {
 	visibility: hidden;
 	/* And its images that wait for their place go on waiting. */
 	content-visibility: hidden;
 }
 
-.ss-stack .ss-media {
-	opacity: var(--ss-cover, 1);
+.gs-stack .gs-media {
+	opacity: var(--gs-cover, 1);
 }
 
-.ss-stack .ss-content {
-	opacity: var(--ss-near, 1);
+.gs-stack .gs-content {
+	opacity: var(--gs-near, 1);
 }
 
 /* Tier 3: the canvas draws the media. */
 
-.ss-canvas {
+.gs-canvas {
 	position: absolute;
 	inset: 0;
 	width: 100%;
@@ -173,12 +173,12 @@
 
 /* Transparent, not hidden: the image keeps its place, its text for
    screen readers and its menu, and a video keeps playing. */
-.ss .ss-media.ss-drawn {
+.gs .gs-media.gs-drawn {
 	opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.ss-track {
+	.gs-track {
 		scroll-behavior: auto;
 	}
 }

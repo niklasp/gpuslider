@@ -1,14 +1,14 @@
 /**
- * shaderslide: a slider with its own motion, made to be drawn on a canvas.
+ * gpuslider: a slider with its own motion, made to be drawn on a canvas.
  *
  * This is the core: it moves the slides of the page when they are dragged
  * or told to. Everything else is a plugin, passed in by the caller: arrows
  * and dots, keys, the wheel, autoplay (see `plugins/`), and what draws on a
- * canvas (see `gl/`). `shaderslide/full` is the core with all of `plugins/`.
+ * canvas (see `gl/`). `gpuslider/full` is the core with all of `plugins/`.
  *
- *     <div class="ss" id="photos">
- *         <div class="ss-track">
- *             <div class="ss-slide"><img class="ss-media" src="…" alt="…"></div>
+ *     <div class="gs" id="photos">
+ *         <div class="gs-track">
+ *             <div class="gs-slide"><img class="gs-media" src="…" alt="…"></div>
  *             …
  *         </div>
  *     </div>
@@ -142,9 +142,9 @@ import { createDom } from './dom.js';
  * @property {number|'auto'}          [perView]  Slides per view; `auto`
  *                                               takes each slide's own
  *                                               width. Without it, the CSS
- *                                               decides (`--ss-per-view`).
+ *                                               decides (`--gs-per-view`).
  * @property {number}                 [gap]      Gap in px. Without it, the
- *                                               CSS decides (`--ss-gap`).
+ *                                               CSS decides (`--gs-gap`).
  * @property {'x'|'y'}                [axis]     `y`: the slides follow each
  *                                               other downwards. The slider
  *                                               needs a height then.
@@ -197,7 +197,7 @@ export function createSlider( root, options = {} ) {
 	/** @type {Options} */
 	const o = { ...DEFAULTS, ...options };
 	/** @type {HTMLElement} */
-	const track = root.querySelector( ':scope > .ss-track' );
+	const track = root.querySelector( ':scope > .gs-track' );
 	/** @type {HTMLElement[]} */
 	const slides = [];
 	/** @type {Place[]} */
@@ -224,16 +224,16 @@ export function createSlider( root, options = {} ) {
 	const dress = () => {
 		root.classList.remove( ...classes );
 		classes = [
-			'ss-on',
-			o.axis === 'y' && 'ss-y',
-			o.perView === 'auto' && 'ss-auto',
+			'gs-on',
+			o.axis === 'y' && 'gs-y',
+			o.perView === 'auto' && 'gs-auto',
 		].filter( Boolean );
 		root.classList.add( ...classes );
 		if ( o.perView > 0 ) {
-			root.style.setProperty( '--ss-per-view', String( o.perView ) );
+			root.style.setProperty( '--gs-per-view', String( o.perView ) );
 		}
 		if ( o.gap >= 0 ) {
-			root.style.setProperty( '--ss-gap', `${ o.gap }px` );
+			root.style.setProperty( '--gs-gap', `${ o.gap }px` );
 		}
 	};
 	dress();
@@ -606,7 +606,7 @@ export function createSlider( root, options = {} ) {
 			used.forEach( ( plugin ) => plugin.destroy?.() );
 			engine.destroy();
 			dom.destroy();
-			root.classList.remove( ...classes, 'ss-dragging' );
+			root.classList.remove( ...classes, 'gs-dragging' );
 			listeners.clear();
 		},
 	};
@@ -653,7 +653,7 @@ export function createSlider( root, options = {} ) {
 		'click',
 		( event ) => {
 			const { target } = event;
-			const slide = target.closest?.( '.ss-slide' );
+			const slide = target.closest?.( '.gs-slide' );
 			let at = -1;
 			// The canvas may draw a slide elsewhere than the page has it:
 			// then a plugin says which one is seen at a point. What is

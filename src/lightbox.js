@@ -19,9 +19,9 @@
  * Events of the slider: `lightbox:open` and `lightbox:close`, both with the
  * index of the slide.
  *
- * Opens on a click on a slide, or on a `[data-ss-zoom]` in it. The image
+ * Opens on a click on a slide, or on a `[data-gs-zoom]` in it. The image
  * of the lightbox is the one of the slide, in the size the browser picks
- * from its `srcset` for the whole screen, or the file in `data-ss-full`.
+ * from its `srcset` for the whole screen, or the file in `data-gs-full`.
  */
 import { createSlider } from './index.js';
 import { controls } from './plugins/controls.js';
@@ -38,7 +38,7 @@ const SETTLE = 9;
 // opens without it, ms.
 const PATIENCE = 400;
 
-const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-ss-no-zoom]';
+const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-gs-no-zoom]';
 
 /**
  * @param {Object}   [options]          Options.
@@ -75,7 +75,7 @@ export function lightbox( {
 		let items = [];
 		const read = () => {
 			items = slides.flatMap( ( slide, i ) => {
-				const media = slide.querySelector( '.ss-media' );
+				const media = slide.querySelector( '.gs-media' );
 				return media ? [ { i, media } ] : [];
 			} );
 		};
@@ -104,18 +104,18 @@ export function lightbox( {
 		// image is as on a plane that is seen from the side.
 		const corners = [ 0, 1, 2, 3 ].map( () => [ 0, 0, 1 ] );
 		const turned = {
-			params: { ssOpen: [ 1 ] },
+			params: { gsOpen: [ 1 ] },
 			vertex: `
-	vec3 to = mix( mix( ss0, ss1, uv.x ), mix( ss2, ss3, uv.x ), uv.y );
+	vec3 to = mix( mix( gs0, gs1, uv.x ), mix( gs2, gs3, uv.x ), uv.y );
 	// The slide that grows, not the ones next to it.
 	return mix(
 		vec3( to.xy + uView * 0.5 - uQuad.xy - uQuad.zw * 0.5, uDepth - to.z * uDepth ),
 		p,
-		max( ssOpen, step( 0.5, abs( uProgress ) ) )
+		max( gsOpen, step( 0.5, abs( uProgress ) ) )
 	);`,
 		};
 		corners.forEach( ( corner, n ) => {
-			turned.params[ 'ss' + n ] = corner;
+			turned.params[ 'gs' + n ] = corner;
 		} );
 		const down = inner.axis === 'y';
 
@@ -220,7 +220,7 @@ export function lightbox( {
 		const driver = () => ( {
 			frame( view, dt, now ) {
 				since ||= now;
-				const media = shown?.slides[ active ]?.querySelector( '.ss-media' );
+				const media = shown?.slides[ active ]?.querySelector( '.gs-media' );
 				if ( ! started ) {
 					// Not before the canvas has the image, or it would pop
 					// in half way.
@@ -242,8 +242,8 @@ export function lightbox( {
 						speed = 0;
 					}
 				}
-				turned.params.ssOpen[ 0 ] = t;
-				dialog.style.setProperty( '--ss-open', t.toFixed( 3 ) );
+				turned.params.gsOpen[ 0 ] = t;
+				dialog.style.setProperty( '--gs-open', t.toFixed( 3 ) );
 				if ( started && to === 0 && t === 0 ) {
 					// After this frame: the slider is still drawing.
 					win.setTimeout( finish, 0 );
@@ -254,12 +254,12 @@ export function lightbox( {
 
 		function build() {
 			dialog = doc.createElement( 'dialog' );
-			dialog.className = 'ss-lightbox';
+			dialog.className = 'gs-lightbox';
 			dialog.setAttribute( 'aria-label', labels.dialog || 'Image viewer' );
 			const button = ( name, label ) =>
-				`<button type="button" class="ss-button ss-${ name }" data-ss-${ name } aria-label="${ label }"></button>`;
+				`<button type="button" class="gs-button gs-${ name }" data-gs-${ name } aria-label="${ label }"></button>`;
 			dialog.innerHTML =
-				'<div class="ss ss-box"><div class="ss-track"></div>' +
+				'<div class="gs gs-box"><div class="gs-track"></div>' +
 				button( 'close', labels.close || 'Close' ) +
 				button( 'prev', labels.prev || 'Previous' ) +
 				button( 'next', labels.next || 'Next' ) +
@@ -271,7 +271,7 @@ export function lightbox( {
 				hide();
 			} );
 			dialog.addEventListener( 'click', ( event ) => {
-				if ( event.target.closest( '[data-ss-close]' ) ) {
+				if ( event.target.closest( '[data-gs-close]' ) ) {
 					hide();
 					return;
 				}
@@ -311,14 +311,14 @@ export function lightbox( {
 			track.replaceChildren(
 				...items.map( ( { media } ) => {
 					const slide = doc.createElement( 'div' );
-					slide.className = 'ss-slide';
+					slide.className = 'gs-slide';
 					const copy = media.cloneNode();
-					copy.className = 'ss-media';
+					copy.className = 'gs-media';
 					copy.removeAttribute( 'loading' );
 					copy.removeAttribute( 'style' );
-					if ( media.dataset.ssFull ) {
+					if ( media.dataset.gsFull ) {
 						copy.removeAttribute( 'srcset' );
-						copy.src = media.dataset.ssFull;
+						copy.src = media.dataset.gsFull;
 					} else if ( copy.srcset ) {
 						copy.sizes = '100vw';
 					}
@@ -340,7 +340,7 @@ export function lightbox( {
 			since = 0;
 			active = item;
 			from = place( item );
-			dialog.style.setProperty( '--ss-open', 0 );
+			dialog.style.setProperty( '--gs-open', 0 );
 			layer = null;
 			const draws = given || layerOf( slider )?.again;
 			shown = createSlider( box, {
@@ -407,7 +407,7 @@ export function lightbox( {
 		}
 
 		const off = slider.on( 'click', ( { index, event } ) => {
-			const zoom = event.target.closest( '[data-ss-zoom]' );
+			const zoom = event.target.closest( '[data-gs-zoom]' );
 			if (
 				! event.defaultPrevented &&
 				( zoom || ! event.target.closest( NOT_A_CLICK ) )
@@ -415,7 +415,7 @@ export function lightbox( {
 				show( items.findIndex( ( { i } ) => i === index ) );
 			}
 		} );
-		root.classList.add( 'ss-zooms' );
+		root.classList.add( 'gs-zooms' );
 
 		return {
 			name: 'lightbox',
@@ -439,7 +439,7 @@ export function lightbox( {
 
 			destroy() {
 				off();
-				root.classList.remove( 'ss-zooms' );
+				root.classList.remove( 'gs-zooms' );
 				shown?.destroy();
 				shown = null;
 				dialog?.remove();

@@ -38,7 +38,7 @@ test.describe( 'auto height', () => {
 		await open( page, {
 			...setup,
 			n: 4,
-			css: '.ss { --ss-per-view: 2; }',
+			css: '.gs { --gs-per-view: 2; }',
 		} );
 		// 400 px wide: 225, 300, 533, 225.
 		expect( await height( page ) ).toBe( 300 );
@@ -113,7 +113,7 @@ test.describe( 'autoplay', () => {
 	test( 'the pause button stops it', async ( { page } ) => {
 		await open( page, { n: 3, o: { autoplay: 300, duration: 200 } } );
 		await page.mouse.move( 5, 650 );
-		const button = page.locator( '[data-ss-pause]' );
+		const button = page.locator( '[data-gs-pause]' );
 		await expect( button ).toHaveAttribute( 'aria-pressed', 'false' );
 		await button.click();
 		await expect( button ).toHaveAttribute( 'aria-pressed', 'true' );
@@ -167,7 +167,7 @@ test.describe( 'free', () => {
 		await open( page, {
 			n: 8,
 			o: { free: true },
-			css: '.ss { --ss-per-view: 3; }',
+			css: '.gs { --gs-per-view: 3; }',
 		} );
 		await drag( page, -300, { pause: 150 } );
 		await settled( page );
@@ -181,7 +181,7 @@ test.describe( 'free', () => {
 		await open( page, {
 			n: 4,
 			o: { free: true },
-			css: '.ss { --ss-per-view: 3; }',
+			css: '.gs { --gs-per-view: 3; }',
 		} );
 		await drag( page, -200, { steps: 4 } );
 		await settled( page );
@@ -226,7 +226,7 @@ test.describe( 'video', () => {
 		await expect
 			.poll( () =>
 				page.evaluate( () =>
-					document.querySelector( 'video' ).classList.contains( 'ss-drawn' )
+					document.querySelector( 'video' ).classList.contains( 'gs-drawn' )
 				)
 			)
 			.toBe( true );

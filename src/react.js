@@ -1,15 +1,15 @@
 /**
  * The slider in React: React renders the slides, the slider moves them.
  *
- *     import { Slider, Slide } from 'shaderslide/react';
- *     import { controls } from 'shaderslide/plugins';
+ *     import { Slider, Slide } from 'gpuslider/react';
+ *     import { controls } from 'gpuslider/plugins';
  *
  *     function Photos( { photos, loop } ) {
  *         return (
  *             <Slider loop={ loop } plugins={ [ controls() ] } aria-label="Photos">
  *                 { photos.map( ( photo ) => (
  *                     <Slide key={ photo.src }>
- *                         <img className="ss-media" { ...photo } />
+ *                         <img className="gs-media" { ...photo } />
  *                     </Slide>
  *                 ) ) }
  *             </Slider>
@@ -200,19 +200,19 @@ export function Slider( {
 		{ value: slider },
 		createElement(
 			as,
-			{ ...given, ref, className: named( 'ss', className ) },
-			createElement( 'div', { className: 'ss-track' }, children ),
+			{ ...given, ref, className: named( 'gs', className ) },
+			createElement( 'div', { className: 'gs-track' }, children ),
 			around
 		)
 	);
 }
 
 /**
- * A slide of a `<Slider>`. Its image or film has the class `ss-media`.
+ * A slide of a `<Slider>`. Its image or film has the class `gs-media`.
  *
  * @param {import('react').HTMLAttributes<HTMLElement> & { as?: string }} props
  *        Props: `as` is its element, `div` when nothing is said.
  * @return {import('react').ReactElement} Element.
  */
 export const Slide = ( { as = 'div', className, ...rest } ) =>
-	createElement( as, { ...rest, className: named( 'ss-slide', className ) } );
+	createElement( as, { ...rest, className: named( 'gs-slide', className ) } );

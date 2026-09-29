@@ -46,7 +46,7 @@ for ( const [ name, ready ] of Object.entries( PAGES ) ) {
 	await page.goto( `${ base }/examples/${ name }/` );
 	// The screen that waits for the pictures has gone.
 	await page.waitForFunction(
-		() => ! document.querySelector( '.ss-is-loading' ),
+		() => ! document.querySelector( '.gs-is-loading' ),
 		null,
 		{ timeout: 30000 }
 	);

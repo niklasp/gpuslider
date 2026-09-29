@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import * as transitions from '../src/gl/transitions/index.js';
 import { open, settled, painted, difference, draws, expect } from './helpers.js';
 
-const shot = ( page ) => page.locator( '#slider .ss-track' ).screenshot();
+const shot = ( page ) => page.locator( '#slider .gs-track' ).screenshot();
 
 /**
  * Collects what the page logs as errors: a shader that does not compile
@@ -83,7 +83,7 @@ test.describe( 'transitions', () => {
 			const middle = await shot( page );
 			const moved = await difference( page, plain, middle );
 			expect( moved.mean ).toBeGreaterThan( 5 );
-			expect( await page.locator( '.ss-canvas' ).count() ).toBe( 1 );
+			expect( await page.locator( '.gs-canvas' ).count() ).toBe( 1 );
 			await test.info().attach( name, {
 				body: middle,
 				contentType: 'image/png',
@@ -116,7 +116,7 @@ test.describe( 'effects', () => {
 			const logged = errors( page );
 			const setup = {
 				n: 5,
-				css: '.ss { --ss-per-view: 2; --ss-gap: 10px; }',
+				css: '.gs { --gs-per-view: 2; --gs-gap: 10px; }',
 			};
 			await open( page, setup );
 			const plain = await shot( page );
@@ -198,7 +198,7 @@ test.describe( 'effects', () => {
 	} );
 
 	test( 'bend moves the mesh', async ( { page } ) => {
-		const setup = { n: 6, css: '.ss { --ss-per-view: 3; --ss-gap: 10px; }' };
+		const setup = { n: 6, css: '.gs { --gs-per-view: 3; --gs-gap: 10px; }' };
 		await open( page, setup );
 		const plain = await shot( page );
 		await open( page, { ...setup, plugins: 'gl', effects: 'bend' } );
@@ -235,7 +235,7 @@ test.describe( 'effects', () => {
 		} );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await page.waitForFunction( () =>
-			document.querySelector( '.ss-media.ss-drawn' )
+			document.querySelector( '.gs-media.gs-drawn' )
 		);
 		const { mean } = await difference( page, plain, await shot( page ) );
 		expect( mean ).toBeGreaterThan( 1 );
@@ -331,7 +331,7 @@ test.describe( 'effects of the pointer', () => {
 test.describe( 'effects that lay out', () => {
 	const setup = {
 		n: 6,
-		css: '.ss { --ss-per-view: 3; --ss-gap: 10px; }',
+		css: '.gs { --gs-per-view: 3; --gs-gap: 10px; }',
 		o: { align: 'center', contain: false, start: 2 },
 	};
 

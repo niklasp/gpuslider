@@ -1,8 +1,8 @@
 import { useState, type CSSProperties } from 'react';
-import { Slider, Slide, useSliderContext } from 'shaderslide/react';
-import { keyboard } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { stretch } from 'shaderslide/effects';
+import { Slider, Slide, useSliderContext } from 'gpuslider/react';
+import { keyboard } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { stretch } from 'gpuslider/effects';
 import { BUTTON } from '@/components/Frame';
 import { image } from '@/lib/media';
 
@@ -15,8 +15,8 @@ function Arrow( { to }: { to: 'prev' | 'next' } ) {
 		<button
 			type="button"
 			className="arrow"
-			data-ss-prev={ to === 'prev' ? '' : undefined }
-			data-ss-next={ to === 'next' ? '' : undefined }
+			data-gs-prev={ to === 'prev' ? '' : undefined }
+			data-gs-next={ to === 'next' ? '' : undefined }
 			aria-label={ to === 'prev' ? 'Previous slide' : 'Next slide' }
 			disabled={ ! ( to === 'prev' ? slider?.canPrev : slider?.canNext ) }
 			onClick={ () => slider?.[ to ]() }
@@ -35,7 +35,7 @@ export default function InReact() {
 			<Slider
 				id="react"
 				className="cards"
-				style={ { '--ss-per-view': 3, '--ss-gap': '16px' } as CSSProperties }
+				style={ { '--gs-per-view': 3, '--gs-gap': '16px' } as CSSProperties }
 				aria-label="Photos"
 				loop={ loop }
 				index={ at }
@@ -57,7 +57,7 @@ export default function InReact() {
 				{ PHOTOS.map( ( n ) => (
 					<Slide key={ n } className="card wide">
 						<img
-							className="ss-media"
+							className="gs-media"
 							{ ...image( n ) }
 							sizes="(max-width: 640px) 77vw, 30vw"
 							alt={ `Colour field ${ n }` }

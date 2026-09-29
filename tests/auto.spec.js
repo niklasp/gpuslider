@@ -1,5 +1,5 @@
 /**
- * Sliders without a script of one's own: `auto.js` and `data-ss`.
+ * Sliders without a script of one's own: `auto.js` and `data-gs`.
  */
 import { test, expect } from '@playwright/test';
 
@@ -15,21 +15,21 @@ test.beforeEach( async ( { page } ) => {
 	await page.waitForFunction( () => window.made.length === 2 );
 } );
 
-test( 'every element with data-ss is a slider, with its options', async ( { page } ) => {
+test( 'every element with data-gs is a slider, with its options', async ( { page } ) => {
 	expect( await page.evaluate( () => window.made ) ).toEqual( [
 		'plain',
 		'drawn',
 	] );
-	await expect( page.locator( '#plain' ) ).toHaveClass( /ss-on/ );
-	await page.locator( '#plain [data-ss-next]' ).click();
-	await expect( page.locator( '#plain .ss-slide' ).nth( 1 ) ).not.toHaveAttribute(
+	await expect( page.locator( '#plain' ) ).toHaveClass( /gs-on/ );
+	await page.locator( '#plain [data-gs-next]' ).click();
+	await expect( page.locator( '#plain .gs-slide' ).nth( 1 ) ).not.toHaveAttribute(
 		'inert'
 	);
-	await expect( page.locator( '#plain .ss-slide' ).first() ).toHaveAttribute(
+	await expect( page.locator( '#plain .gs-slide' ).first() ).toHaveAttribute(
 		'inert'
 	);
 	// start: 1
-	await expect( page.locator( '#drawn .ss-slide' ).first() ).toHaveAttribute(
+	await expect( page.locator( '#drawn .gs-slide' ).first() ).toHaveAttribute(
 		'inert'
 	);
 } );
@@ -67,8 +67,8 @@ test( 'a page without a canvas never loads it', async ( { page } ) => {
 	await page.route( '**/auto.html*', async ( route ) => {
 		const response = await route.fetch();
 		const body = ( await response.text() )
-			.replace( /data-ss-canvas='[^']*'/, '' )
-			.replace( 'data-ss-lightbox="stretch"', '' );
+			.replace( /data-gs-canvas='[^']*'/, '' )
+			.replace( 'data-gs-lightbox="stretch"', '' );
 		await route.fulfill( { response, body } );
 	} );
 	await page.goto( 'about:blank' );
@@ -92,7 +92,7 @@ test( 'what comes later is made when asked for', async ( { page } ) => {
 		later.innerHTML = document
 			.getElementById( 'plain' )
 			.outerHTML.replace( 'id="plain"', 'id="second"' )
-			.replace( / class="ss[^"]*"/, ' class="ss"' );
+			.replace( / class="gs[^"]*"/, ' class="gs"' );
 		auto( later );
 		auto();
 	}, from );
@@ -115,8 +115,8 @@ test( 'canvas() takes the layer the browser can draw, or the one it is told', as
 		for ( const layer of [ undefined, 'gl' ] ) {
 			const root = document.getElementById( 'plain' ).cloneNode( true );
 			root.id = `chosen-${ layer }`;
-			root.removeAttribute( 'data-ss' );
-			root.className = 'ss';
+			root.removeAttribute( 'data-gs' );
+			root.className = 'gs';
 			document.body.prepend( root );
 			const slider = createSlider( root, {
 				plugins: [ canvas( { effects: [ stretch() ], layer, eager: true } ) ],
@@ -148,17 +148,17 @@ test( 'a slider that asks for it has a screen while its media load', async ( { p
 		later.innerHTML = document
 			.getElementById( 'plain' )
 			.outerHTML.replace( 'id="plain"', 'id="waits"' )
-			.replace( / class="ss[^"]*"/, ' class="ss"' )
-			.replace( 'data-ss', 'data-ss data-ss-loading=\'{ "min": 1 }\'' )
+			.replace( / class="gs[^"]*"/, ' class="gs"' )
+			.replace( 'data-gs', 'data-gs data-gs-loading=\'{ "min": 1 }\'' )
 			.replaceAll( '.jpg', '.jpg?held=1' );
 		auto( later );
 	}, from );
-	const screen = page.locator( '#waits .ss-loading' );
+	const screen = page.locator( '#waits .gs-loading' );
 	await expect( screen ).toBeVisible();
 	await expect( screen ).toHaveText( '0 %' );
 	come();
 	await expect( screen ).toHaveText( '100 %' );
 	await expect( screen ).toBeHidden();
 	// The others have none.
-	await expect( page.locator( '.ss-loading' ) ).toHaveCount( 1 );
+	await expect( page.locator( '.gs-loading' ) ).toHaveCount( 1 );
 } );

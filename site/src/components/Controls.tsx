@@ -130,7 +130,7 @@ export default function Controls( { config, onChange }: Props ) {
 		>
 			<div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-5 gap-y-3 px-4 py-3 md:px-8">
 				<a href="/" className="mr-1 text-base font-semibold tracking-tight">
-					shaderslide
+					gpuslider
 				</a>
 
 				<Toggle

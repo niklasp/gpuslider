@@ -4,9 +4,9 @@ import {
 	type CSSProperties,
 	type ReactNode,
 } from 'react';
-import { type Create, type Options, type Slider } from 'shaderslide';
-import { useSlider } from 'shaderslide/react';
-import { thumbs } from 'shaderslide/plugins';
+import { type Create, type Options, type Slider } from 'gpuslider';
+import { useSlider } from 'gpuslider/react';
+import { thumbs } from 'gpuslider/plugins';
 import { ChevronLeft, ChevronRight, Pause } from 'lucide-react';
 
 // Classes that do not contradict each other need no merger.
@@ -44,7 +44,7 @@ const button =
  * A slider of the library in React: React renders the slides, the library
  * moves them.
  */
-export function ShaderSlider( {
+export function GpuSlider( {
 	id,
 	label,
 	className,
@@ -151,15 +151,15 @@ export function ShaderSlider( {
 				id={ id }
 				data-made={ made }
 				aria-label={ label }
-				className={ cn( 'ss rounded-xl', className ) }
+				className={ cn( 'gs rounded-xl', className ) }
 				style={ style }
 			>
-				<div className="ss-track">{ children }</div>
+				<div className="gs-track">{ children }</div>
 				{ ! bare && (
 					<>
 						<button
 							type="button"
-							data-ss-prev
+							data-gs-prev
 							aria-label="Previous slide"
 							className={ cn( button, 'start-3' ) }
 						>
@@ -167,7 +167,7 @@ export function ShaderSlider( {
 						</button>
 						<button
 							type="button"
-							data-ss-next
+							data-gs-next
 							aria-label="Next slide"
 							className={ cn( button, 'end-3' ) }
 						>
@@ -178,7 +178,7 @@ export function ShaderSlider( {
 				{ pause && (
 					<button
 						type="button"
-						data-ss-pause
+						data-gs-pause
 						aria-label="Pause autoplay"
 						className="absolute end-3 bottom-3 z-10 grid size-8 cursor-pointer place-items-center rounded-full bg-black/50 text-white backdrop-blur aria-pressed:bg-white aria-pressed:text-black"
 					>
@@ -187,7 +187,7 @@ export function ShaderSlider( {
 				) }
 				{ ! bare && (
 					<div
-						data-ss-dots
+						data-gs-dots
 						className="dots absolute inset-x-0 bottom-3 z-10 flex justify-center gap-2"
 					/>
 				) }
@@ -222,8 +222,8 @@ export function Thumbs( {
 		[ of ]
 	);
 	return (
-		<div ref={ root } id={ id } aria-label={ label } className="ss thumbs">
-			<div className="ss-track">{ children }</div>
+		<div ref={ root } id={ id } aria-label={ label } className="gs thumbs">
+			<div className="gs-track">{ children }</div>
 		</div>
 	);
 }
@@ -252,10 +252,10 @@ export function Slide( {
 	children,
 }: SlideProps ) {
 	return (
-		<div className={ cn( 'ss-slide', className ) }>
+		<div className={ cn( 'gs-slide', className ) }>
 			{ name ? (
 				<video
-					className="ss-media"
+					className="gs-media"
 					{ ...video( name ) }
 					aria-label={ alt }
 					preload="none"
@@ -266,7 +266,7 @@ export function Slide( {
 				/>
 			) : (
 				<img
-					className="ss-media"
+					className="gs-media"
 					{ ...image( n! ) }
 					sizes={ sizes }
 					alt={ alt }
@@ -277,7 +277,7 @@ export function Slide( {
 				/>
 			) }
 			{ children && (
-				<div className="ss-content flex flex-col justify-end gap-1 bg-gradient-to-b from-transparent from-40% to-black/70 p-6 pb-12 text-white md:p-10 md:pb-14">
+				<div className="gs-content flex flex-col justify-end gap-1 bg-gradient-to-b from-transparent from-40% to-black/70 p-6 pb-12 text-white md:p-10 md:pb-14">
 					{ children }
 				</div>
 			) }

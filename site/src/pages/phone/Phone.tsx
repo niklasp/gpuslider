@@ -1,15 +1,15 @@
 import '@/index.css';
-import 'shaderslide/style.css';
-import 'shaderslide/lightbox.css';
+import 'gpuslider/style.css';
+import 'gpuslider/lightbox.css';
 import '@/site.css';
 import '@/text.css';
 import './phone.css';
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
-import { Slider, Slide } from 'shaderslide/react';
-import { controls, stack, videos } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { coverflow, liquid, stretch, split } from 'shaderslide/effects';
-import { lightbox } from 'shaderslide/lightbox';
+import { Slider, Slide } from 'gpuslider/react';
+import { controls, stack, videos } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { coverflow, liquid, stretch, split } from 'gpuslider/effects';
+import { lightbox } from 'gpuslider/lightbox';
 import { BUTTON, FIRST, Footer, Nav, Section, WIDTH } from '@/components/Frame';
 import { image, video } from '@/lib/media';
 import { has, many, run, type Has, type Run } from './measure';
@@ -36,7 +36,7 @@ const ms = ( number: number ) => number.toFixed( number < 10 ? 2 : 1 );
 
 const Photo = ( { n, sizes }: { n: number; sizes: string } ) => (
 	<img
-		className="ss-media"
+		className="gs-media"
 		{ ...image( n ) }
 		sizes={ sizes }
 		alt={ `Colour field ${ n }` }
@@ -47,12 +47,12 @@ const Photo = ( { n, sizes }: { n: number; sizes: string } ) => (
 
 /** Plain slides for a slider that is made by the measuring. */
 const Plain = ( { id, small }: { id: string; small?: boolean } ) => (
-	<div className={ `ss cards${ small ? ' small' : '' }` } data-measured={ id }>
-		<div className="ss-track">
+	<div className={ `gs cards${ small ? ' small' : '' }` } data-measured={ id }>
+		<div className="gs-track">
 			{ [ 1, 2, 3, 4, 5, 6, 7, 8 ].map( ( n ) => (
-				<div className="ss-slide card" key={ n }>
+				<div className="gs-slide card" key={ n }>
 					<img
-						className="ss-media"
+						className="gs-media"
 						{ ...image( n ) }
 						sizes={ small ? '25vw' : '80vw' }
 						alt=""
@@ -134,7 +134,7 @@ export default function Phone() {
 	const report = useMemo(
 		() =>
 			[
-				`shaderslide on a phone, ${ new Date().toISOString().slice( 0, 16 ) }`,
+				`gpuslider on a phone, ${ new Date().toISOString().slice( 0, 16 ) }`,
 				'',
 				'WHAT IT HAS',
 				...Object.entries( found ).map( ( [ name, value ] ) => `${ name }: ${ value }` ),
@@ -211,7 +211,7 @@ export default function Phone() {
 					<Slider
 						id="row"
 						className="cards"
-						style={ { '--ss-per-view': 1.3, '--ss-gap': '12px' } as CSSProperties }
+						style={ { '--gs-per-view': 1.3, '--gs-gap': '12px' } as CSSProperties }
 						aria-label="A row"
 						loop
 						plugins={ [ controls(), canvas( { effects: [ stretch(), split() ] } ) ] }
@@ -224,7 +224,7 @@ export default function Phone() {
 					</Slider>
 					<Slider
 						id="turning"
-						className="ss-stack"
+						className="gs-stack"
 						aria-label="A stack with a film"
 						loop
 						plugins={ [
@@ -239,7 +239,7 @@ export default function Phone() {
 						</Slide>
 						<Slide className="hero">
 							<video
-								className="ss-media"
+								className="gs-media"
 								{ ...video( 'a' ) }
 								aria-label="Someone walking into a tunnel of coloured lights"
 								preload="none"
@@ -421,7 +421,7 @@ export default function Phone() {
 								className={ BUTTON + ' h-10' }
 								onClick={ () =>
 									navigator
-										.share( { title: 'shaderslide on a phone', text: report } )
+										.share( { title: 'gpuslider on a phone', text: report } )
 										.catch( () => {} )
 								}
 							>

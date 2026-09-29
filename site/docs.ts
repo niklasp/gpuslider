@@ -46,21 +46,21 @@ export const DOCS: Doc[] = [
 		slug: '',
 		title: 'Get started',
 		lead: 'A slider in a page: what to import, what to write, and what a visitor gets who has no script or no canvas.',
-		before: `shaderslide is a working name, and the library is not on npm yet. Until it is, \`npm run size\` in the repo builds \`dist/\`: the files for pages without a bundler.
+		before: `gpuslider is a working name, and the library is not on npm yet. Until it is, \`npm run size\` in the repo builds \`dist/\`: the files for pages without a bundler.
 
 ## The markup
 
-A slider is an element with a track in it, and the slides are the children of the track. What is drawn on the canvas has the class \`ss-media\`; what is in \`ss-content\` stays HTML on top of it.
+A slider is an element with a track in it, and the slides are the children of the track. What is drawn on the canvas has the class \`gs-media\`; what is in \`gs-content\` stays HTML on top of it.
 
 \`\`\`html
-<div class="ss" aria-label="Photos">
-	<div class="ss-track">
-		<div class="ss-slide">
-			<img class="ss-media" src="one.jpg" alt="…">
-			<div class="ss-content">Anything: headings, links, buttons.</div>
+<div class="gs" aria-label="Photos">
+	<div class="gs-track">
+		<div class="gs-slide">
+			<img class="gs-media" src="one.jpg" alt="…">
+			<div class="gs-content">Anything: headings, links, buttons.</div>
 		</div>
-		<div class="ss-slide">
-			<video class="ss-media" src="two.mp4" muted playsinline loop autoplay></video>
+		<div class="gs-slide">
+			<video class="gs-media" src="two.mp4" muted playsinline loop autoplay></video>
 		</div>
 	</div>
 </div>
