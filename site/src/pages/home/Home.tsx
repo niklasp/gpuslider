@@ -493,7 +493,7 @@ export default function Home() {
 								apart.
 							</p>
 						</Slide>
-						<Slide video="a" alt="Moving colour field" className="hero" sizes={ WIDE }>
+						<Slide video="a" alt="Someone walking into a tunnel of coloured lights" className="hero" sizes={ WIDE }>
 							<h2 className="text-2xl font-semibold md:text-4xl">Films too</h2>
 							<p className="text-white/80">
 								They play while their slide is in view, with the same

@@ -18,6 +18,7 @@ npm run size       # gzipped sizes, fails over budget; builds dist/
 npm run test:dist  # the tests, with what is built
 npm run types      # type declarations from the JSDoc, and a file that uses them
 npm run media      # generates the images and videos in media/ again
+node bin/make-film.mjs <video>  # the film of the site: a loop of a video of Pexels
 npm run media:wall # generates the pictures of the wall again
 npm run shots      # takes the pictures of the examples again; the site has to run
 npm run lighthouse # builds the site and asks Lighthouse about its pages

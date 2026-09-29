@@ -30,11 +30,14 @@ export function image( n: number ) {
 	};
 }
 
-/** What a `<video>` needs. */
+/**
+ * What a `<video>` needs. `a` is the film: a video of Pexels, cut to a
+ * loop by `bin/make-film.mjs`. `b` is a colour field of `npm run media`.
+ */
 export const video = ( name: 'a' | 'b' ) => ( {
-	src: `/media/${ name }.mp4`,
-	poster: `/media/${ name }-poster.avif`,
+	src: `/media/${ name === 'a' ? 'film' : name }.mp4`,
+	poster: `/media/${ name === 'a' ? 'film' : name }-poster.avif`,
 	...( name === 'a'
-		? { width: 1280, height: 720 }
+		? { width: 960, height: 540 }
 		: { width: 960, height: 1200 } ),
 } );

@@ -142,7 +142,7 @@ export default function Playground() {
 								A spring, solved exactly on every frame.
 							</p>
 						</Slide>
-						<Slide video="a" alt="Moving colour field" className="hero" sizes={ WIDE }>
+						<Slide video="a" alt="Someone walking into a tunnel of coloured lights" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">Video</h3>
 							<p className="text-white/80">
 								Plays while its slide is in view, with the same effects.

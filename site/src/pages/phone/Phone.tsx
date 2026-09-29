@@ -241,7 +241,7 @@ export default function Phone() {
 							<video
 								className="ss-media"
 								{ ...video( 'a' ) }
-								aria-label="A colour field that moves"
+								aria-label="Someone walking into a tunnel of coloured lights"
 								preload="none"
 								muted
 								playsInline

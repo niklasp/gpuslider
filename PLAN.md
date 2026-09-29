@@ -438,6 +438,16 @@ From the list of what is open, asked for by the user on 2026-09-29: "The flaky W
 - **A test gives the canvas what WebKit gives**: the first picture of every image is empty (`tests/gl.spec.js`). Without the check the canvas draws nothing of the slides, a difference of 154; with it the picture is the one of the page.
 - **The other test that failed now and then** was a fault of the test. In Chromium "a drag: dragstart, dragend with its velocity, change, settle" heard a `settle` before the drag, in 8 of 120 runs: the browser tells the sizes for the first time later in a frame than a test can ask whether the slider rests, the slider measures and says `settle` a frame after. The test listens from when the slider has rested for a frame now: 200 of 200 runs. That a slider says `settle` after it was measured, without having moved, is as it was, and the README says so now. It is the user's to change: a listener that counts what was seen by `settle` counts a resize too.
 
+### 28. The film of the site is a video, cut to a loop
+
+The user on 2026-09-29: "the film however needs some good loop", and then gave a video: `13794727_1280_720_30fps.mp4`, by its name one of Pexels (15 s, 1280 by 720, 18 MB). Someone walks into a tunnel of coloured lights.
+
+- **It is the film wherever the site showed film `a`**: first page, playground, reel, the docs of the canvas, the page for phones. `video( 'a' )` of `site/src/lib/media.ts` gives it. Film `b`, which stands upright, is the colour field it was, and jumps where it begins again as before. The tests keep the films that are made (`media/a.mp4`, `media/b.mp4`): they compare pixels.
+- **The video does not loop by itself**: its last picture is not its first. The loop is between the two moments that are most alike, found by comparing five pictures of every second with each other (6.6 s and 14.2 s: a difference of 14, where half of all pairs have 52 and more), and what comes after the second fades into what comes after the first in 0.6 s. The one who walks is in the same place at both, so nobody is seen twice in the fade.
+- **`media/film.mp4`**: 7.6 s, 960 by 540, 30 pictures a second, H.264, 1.8 MB, no sound. The video is soft; at 1280 by 720 the film was 3.5 MB and looked the same. `bin/make-film.mjs` makes it and its poster of the video, which is not in the repo.
+- **It flashes.** The brightness of the whole picture turns by a tenth of all there is up to eight times in a second of the loop, which is four flashes; three is where WCAG 2.3.1 draws the line. It was measured roughly, of pictures of 64 by 36. `photosensitivity` of ffmpeg takes every flash out and the colour with it: grey and smeared, so it was not done. `videos()` plays films for visitors who ask for less motion too. **Open, the user's to decide before the site is public**: another part of the video, the filter, or no film for those who ask for less motion.
+- **The licence of Pexels** lets the video be used and changed without a name being said. It was not read again for this, and whether it is the same for a file in a public repo is the user's to check before the repo is public.
+
 ## Modules
 
 | File | Does |
