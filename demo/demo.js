@@ -33,3 +33,35 @@ window.sliders = {
 		plugins: [ gl( { effects: [ split(), liquid() ] } ) ],
 	} ),
 };
+
+/**
+ * Under every slider: who draws it, and how fast it moves. A slider at
+ * rest is drawn by the page until somebody comes.
+ *
+ * @param {import('../src/index.js').Slider} slider Slider.
+ */
+function tell( slider ) {
+	const line = document.createElement( 'p' );
+	line.className = 'state';
+	slider.root.after( line );
+	const can = !! document.createElement( 'canvas' ).getContext( 'webgl2' );
+	let lost = 0;
+	const say = () => {
+		const by = slider.plugins.gl?.canvas ? 'canvas' : 'page';
+		line.textContent =
+			`Drawn by the ${ by }` +
+			( can ? '' : ' · this browser has no WebGL 2' ) +
+			( lost ? ` · the browser took the canvas away ${ lost } times` : '' ) +
+			` · ${ Math.abs( slider.view.velocity ).toFixed( 1 ) } views per second`;
+	};
+	slider.on( 'gl:on', say );
+	slider.on( 'gl:off', ( gone ) => {
+		lost += gone ? 1 : 0;
+		say();
+	} );
+	slider.on( 'frame', say );
+	say();
+}
+Object.values( window.sliders ).forEach( tell );
+// The one that `auto.js` makes.
+document.addEventListener( 'ss:ready', ( { detail } ) => tell( detail ) );

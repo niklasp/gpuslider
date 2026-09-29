@@ -230,3 +230,9 @@ header p {
 	margin: -8px 0 16px;
 	color: var(--dim);
 }
+
+.state {
+	margin: 8px 0 0;
+	color: var(--dim);
+	font: 12px/1.5 ui-monospace, monospace;
+}
