@@ -52,6 +52,7 @@
 	 *     &open=500       time the lightbox takes to open, ms
 	 *     &lazy=1         the canvas waits for the first sign of use
 	 *     &from=dist      what is built, not the source
+	 *     &layer=gpu      the canvas is drawn by WebGPU
 	 */
 	const query = new URLSearchParams( location.search );
 	const n = Number( query.get( 'n' ) ) || 5;
@@ -85,6 +86,16 @@
 	const { lightbox } = await import( `${ from }/lightbox.js` );
 	const others = await import( `${ from }/plugins${ from === '../src' ? '/index' : '' }.js` );
 	window.lib = { createSlider, core, lightbox, ...canvas, ...others };
+	if ( query.get( 'layer' ) === 'gpu' ) {
+		// The tests ask for `gl`, and for what it says of itself: here it
+		// is the other layer under that name.
+		const { gpu } = await import( `${ from }/gpu${ from === '../src' ? '/index' : '' }.js` );
+		window.lib.gpu = gpu;
+		window.lib.gl = ( options ) => ( slider ) =>
+			new Proxy( gpu( options )( slider ), {
+				get: ( layer, key ) => ( key === 'name' ? 'gl' : layer[ key ] ),
+			} );
+	}
 	const options = JSON.parse( query.get( 'o' ) || '{}' );
 	const names = ( query.get( 'plugins' ) || '' ).split( ',' ).filter( Boolean );
 	if ( names.length ) {
@@ -104,9 +115,10 @@
 						effects,
 						duration: Number( query.get( 'open' ) ) || 500,
 						canvas: { preserve: true },
+						layer: window.lib.gl,
 				  } )
 				: name === 'gl'
-				? canvas.gl( {
+				? window.lib.gl( {
 						effects,
 						preserve: true,
 						eager: ! query.get( 'lazy' ),
@@ -114,6 +126,24 @@
 				: others[ name ]()
 		);
 	}
+	/**
+	 * What a canvas layer has drawn, as rows of pixels from the top.
+	 *
+	 * @param {Object} layer The layer.
+	 * @param {number} [x]   From the left.
+	 * @param {number} [y]   From the top.
+	 * @param {number} [w]   Width.
+	 * @param {number} [h]   Height.
+	 * @return {Uint8ClampedArray} Red, green, blue and alpha of every pixel.
+	 */
+	window.pixels = ( layer, x = 0, y = 0, w, h ) => {
+		const from = layer.picture || layer.canvas;
+		const copy = new OffscreenCanvas( from.width, from.height );
+		const context = copy.getContext( '2d' );
+		context.drawImage( from, 0, 0 );
+		return context.getImageData( x, y, w || from.width, h || from.height )
+			.data;
+	};
 	window.events = [];
 	window.slider = createSlider( document.getElementById( 'slider' ), options );
 	[ 'change', 'settle' ].forEach( ( name ) =>

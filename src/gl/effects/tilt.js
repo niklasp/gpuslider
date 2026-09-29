@@ -14,9 +14,9 @@ export const tilt = ( { angle = 8 } = {} ) => ( {
 	vertex: `
 	vec2 at = uPointer - 0.5;
 	// This slide only, and softly where the pointer leaves it.
-	vec2 over = 1.0 - smoothstep( 0.45, 0.6, abs( at ) );
+	vec2 over = 1.0 - smoothstep( vec2( 0.45 ), vec2( 0.6 ), abs( at ) );
 	vec2 turn = radians( angle ) * 2.0 * at * over.x * over.y * uPointerIn;
 	p.z -= p.x * sin( turn.x ) + p.y * sin( turn.y );
-	p.xy *= cos( turn );
+	p = vec3( p.xy * cos( turn ), p.z );
 	return p;`,
 } );

@@ -1,5 +1,44 @@
 import { expect } from '@playwright/test';
 
+/** Whether the canvas is drawn by WebGPU: LAYER=gpu. */
+export const GPU = process.env.LAYER === 'gpu';
+
+/**
+ * A page whose browser cannot draw the canvas. Before the page is opened.
+ *
+ * @param {import('@playwright/test').Page} page Page.
+ */
+export const unable = ( page ) =>
+	page.addInitScript( ( gpu ) => {
+		if ( gpu ) {
+			Object.defineProperty( Navigator.prototype, 'gpu', {
+				get: () => undefined,
+			} );
+			return;
+		}
+		const get = HTMLCanvasElement.prototype.getContext;
+		HTMLCanvasElement.prototype.getContext = function ( type, ...rest ) {
+			return type === 'webgl2' ? null : get.call( this, type, ...rest );
+		};
+	}, GPU );
+
+/**
+ * The browser takes away what the canvas of the slider draws with.
+ *
+ * @param {import('@playwright/test').Page} page Page.
+ */
+export const lose = ( page ) =>
+	page.evaluate( ( gpu ) => {
+		if ( gpu ) {
+			window.devices.forEach( ( device ) => device.destroy() );
+			return;
+		}
+		window.slider.plugins.gl.canvas
+			.getContext( 'webgl2' )
+			.getExtension( 'WEBGL_lose_context' )
+			.loseContext();
+	}, GPU );
+
 /**
  * Opens the test page.
  *
@@ -16,8 +55,21 @@ export async function open( page, setup = {} ) {
 	if ( process.env.FROM ) {
 		query.set( 'from', process.env.FROM );
 	}
-	// Counts the frames the page asks for.
+	// LAYER=gpu tests the canvas of WebGPU.
+	if ( process.env.LAYER && ! setup.layer ) {
+		query.set( 'layer', process.env.LAYER );
+	}
+	// Counts the frames the page asks for, and keeps the devices it gets.
 	await page.addInitScript( () => {
+		window.devices = [];
+		const device = window.GPUAdapter?.prototype.requestDevice;
+		if ( device ) {
+			window.GPUAdapter.prototype.requestDevice = async function ( ...all ) {
+				const made = await device.apply( this, all );
+				window.devices.push( made );
+				return made;
+			};
+		}
 		window.frames_ = 0;
 		const request = window.requestAnimationFrame.bind( window );
 		window.requestAnimationFrame = ( fn ) => {

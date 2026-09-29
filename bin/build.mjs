@@ -89,6 +89,13 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 			`import { gl } from './src/gl/index.js'; export { gl };`
 		),
 	} );
+	parts.push( {
+		name: 'canvas layer of WebGPU, no effects',
+		budget: 9216,
+		size: await measure(
+			`import { gpu } from './src/gpu/index.js'; export { gpu };`
+		),
+	} );
 	for ( const kind of [ 'effects', 'transitions' ] ) {
 		const dir = resolve( root, 'src/gl', kind );
 		for ( const file of readdirSync( dir ).sort() ) {
@@ -166,6 +173,7 @@ const built = await Promise.all( [
 			full: 'src/full.js',
 			plugins: 'src/plugins/index.js',
 			gl: 'src/gl/index.js',
+			gpu: 'src/gpu/index.js',
 			lightbox: 'src/lightbox.js',
 		},
 		splitting: true,
@@ -174,7 +182,7 @@ const built = await Promise.all( [
 			{
 				name: 'glsl',
 				setup( { onLoad } ) {
-					onLoad( { filter: /\/src\/gl\/.*\.js$/ }, ( { path } ) => ( {
+					onLoad( { filter: /\/src\/(gl|gpu)\/.*\.js$/ }, ( { path } ) => ( {
 						contents: compactIn( readFileSync( path, 'utf8' ) ),
 					} ) );
 				},

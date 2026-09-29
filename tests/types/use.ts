@@ -4,6 +4,7 @@
  */
 import { createSlider, type Slider, type Plugin, type Create } from 'shaderslide';
 import { gl, stretch, coverflow, liquid, type Effect } from 'shaderslide/gl';
+import { gpu, stretch as same } from 'shaderslide/gpu';
 import { lightbox } from 'shaderslide/lightbox';
 import {
 	progress,
@@ -105,6 +106,14 @@ function Photos() {
 	return ref.current;
 }
 
+const drawn = createSlider( document.body, {
+	plugins: [
+		gpu( { effects: [ same(), wobble() ], eager: true, density: 1.5 } ),
+		lightbox( { layer: gpu } ),
+	],
+} );
+const canvas: HTMLCanvasElement | null = drawn.plugins.gpu.canvas;
+
 auto( document.body );
 const found: Slider | undefined = sliders.get( document.body );
 
@@ -132,7 +141,9 @@ marquee( { speed: 'fast' } );
 thumbs();
 // @ts-expect-error: no such axis.
 createSlider( document.body, { axis: 'z' } );
+// @ts-expect-error: a density is a number.
+gpu( { density: 'high' } );
 // @ts-expect-error: angles are numbers.
 coverflow( { angle: 'steep' } );
 
-export { position, can, Photos, found };
+export { position, can, Photos, found, canvas };

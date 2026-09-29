@@ -30,8 +30,18 @@ export default defineConfig( {
 				...devices[ 'Desktop Chrome' ],
 				viewport: { width: 1000, height: 700 },
 				launchOptions: {
-					// WebGL without a GPU, for machines that have none.
-					args: [ '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist' ],
+					// WebGL without a GPU, for machines that have none. For
+					// WebGPU (LAYER=gpu) there has to be one: a browser
+					// without a window has it only when asked, and draws
+					// nothing with the GPU that is software. Metal is what
+					// a Mac has.
+					args:
+						process.env.LAYER === 'gpu'
+							? [ '--enable-unsafe-webgpu', '--use-angle=metal' ]
+							: [
+									'--enable-unsafe-swiftshader',
+									'--ignore-gpu-blocklist',
+							  ],
 				},
 			},
 		},

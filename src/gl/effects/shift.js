@@ -14,6 +14,6 @@ export const shift = ( { size = 0.7, amount = 1 } = {} ) => ( {
 	head: NEAR,
 	params: { size, amount },
 	color: `
-	vec2 d = clamp( uPointerSpeed, -4.0, 4.0 ) * near( uv, size ) * amount * 0.03;
+	vec2 d = clamp( uPointerSpeed, vec2( -4.0 ), vec2( 4.0 ) ) * near( uv, size ) * amount * 0.03;
 	return vec4( media( uv + d ).r, color.g, media( uv - d ).b, color.a );`,
 } );

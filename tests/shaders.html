@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>shaderslide: every shader, compiled</title>
+<script type="module">
+	/*
+	 * Composes the shader of every effect and every transition for WebGPU
+	 * and hands it to the compiler: `window.said` is what it said.
+	 */
+	const from = new URLSearchParams( location.search ).get( 'from' ) || 'src';
+	const effects = await import( '../src/gl/effects/index.js' );
+	const transitions = await import( '../src/gl/transitions/index.js' );
+	const { compose } = await import( '../src/gpu/program.js' );
+	const FADE =
+		'vec4 transition( vec2 uv ) { return mix( getFromColor( uv ), getToColor( uv ), progress ); }';
+	const said = [];
+	window.codes = {};
+	const adapter = await navigator.gpu?.requestAdapter();
+	const device = await adapter?.requestDevice();
+	if ( ! device ) {
+		window.said = null;
+	} else {
+		const tries = [
+			[ 'nothing', [], null ],
+			[ 'nothing, down', [], null, true ],
+			[ 'fade', [], FADE ],
+			[ 'all effects', Object.values( effects ).map( ( make ) => make() ), null ],
+			[ 'all effects, down', Object.values( effects ).map( ( make ) => make() ), null, true ],
+			...Object.entries( effects ).map( ( [ name, make ] ) => [ name, [ make() ], null ] ),
+			...Object.entries( transitions ).map( ( [ name, make ] ) => [ name, [ make() ], FADE ] ),
+		];
+		for ( const [ name, list, transition, y ] of tries ) {
+			let code = '';
+			try {
+				( { code } = compose( list, transition, y ) );
+				window.codes[ name ] = code;
+				const module = device.createShaderModule( { code } );
+				const { messages } = await module.getCompilationInfo();
+				messages.forEach( ( { type, message, lineNum } ) =>
+					said.push(
+						`${ name }: ${ type }: ${ message }\n    ${ code.split( '\n' )[ lineNum - 1 ]?.trim() }`
+					)
+				);
+			} catch ( error ) {
+				said.push( `${ name }: ${ error.message }` );
+			}
+		}
+		window.tried = tries.length;
+		window.said = said;
+	}
+	window.ready = true;
+</script>
+</html>

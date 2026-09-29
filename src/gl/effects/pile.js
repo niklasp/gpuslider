@@ -21,7 +21,7 @@ export const pile = ( { offset = 0.06, turn = 5 } = {} ) => ( {
 	float below = max( uProgress, 0.0 );
 	float gone = clamp( -uProgress, 0.0, 1.0 );
 	float a = radians( turn ) * ( below - gone * 4.0 );
-	p.xy = vec2( p.x * cos( a ) - p.y * sin( a ), p.x * sin( a ) + p.y * cos( a ) );
+	p = vec3( p.x * cos( a ) - p.y * sin( a ), p.x * sin( a ) + p.y * cos( a ), p.z );
 	p.x += toCentre() + ( below * offset - gone * 1.2 ) * uSize.x;
 	p.y -= below * offset * 0.5 * uSize.y;
 	p.z -= below * 0.1 * uSize.x - gone;

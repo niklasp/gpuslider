@@ -14,6 +14,6 @@ export const smear = ( { size = 0.5, amount = 1 } = {} ) => ( {
 	head: NEAR,
 	params: { size, amount },
 	uv: `
-	vec2 speed = clamp( uPointerSpeed, -4.0, 4.0 );
+	vec2 speed = clamp( uPointerSpeed, vec2( -4.0 ), vec2( 4.0 ) );
 	return uv - speed * near( uv, size ) * amount * 0.08;`,
 } );

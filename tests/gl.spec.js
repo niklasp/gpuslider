@@ -1,6 +1,6 @@
 import { test } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
-import { open, settled, painted, drag, index, difference, draws, expect } from './helpers.js';
+import { open, settled, painted, drag, index, difference, draws, expect, GPU, unable, lose } from './helpers.js';
 
 const shot = ( page ) => page.locator( '#slider .ss-track' ).screenshot();
 
@@ -163,7 +163,7 @@ test.describe( 'the canvas follows the slider', () => {
 } );
 
 test.describe( 'without the canvas', () => {
-	test( 'no WebGL 2: the page draws, nothing is logged', async ( { page } ) => {
+	test( 'a browser that cannot: the page draws, nothing is logged', async ( { page } ) => {
 		const logged = [];
 		page.on( 'console', ( message ) => {
 			if ( [ 'error', 'warning' ].includes( message.type() ) ) {
@@ -171,12 +171,7 @@ test.describe( 'without the canvas', () => {
 			}
 		} );
 		page.on( 'pageerror', ( error ) => logged.push( error.message ) );
-		await page.addInitScript( () => {
-			const get = HTMLCanvasElement.prototype.getContext;
-			HTMLCanvasElement.prototype.getContext = function ( type, ...rest ) {
-				return type === 'webgl2' ? null : get.call( this, type, ...rest );
-			};
-		} );
+		await unable( page );
 		await open( page, { n: 4, plugins: 'gl' } );
 		await page.waitForTimeout( 300 );
 		expect(
@@ -196,12 +191,7 @@ test.describe( 'without the canvas', () => {
 		await page.waitForFunction(
 			() => document.querySelectorAll( '.ss-drawn' ).length > 0
 		);
-		await page.evaluate( () => {
-			window.slider.plugins.gl.canvas
-				.getContext( 'webgl2' )
-				.getExtension( 'WEBGL_lose_context' )
-				.loseContext();
-		} );
+		await lose( page );
 		await page.waitForFunction(
 			() => document.querySelectorAll( '.ss-drawn' ).length === 0
 		);
@@ -228,6 +218,7 @@ test.describe( 'without the canvas', () => {
 	} );
 
 	test( 'more sliders than contexts: the rest is drawn by the page', async ( { page } ) => {
+		test.skip( GPU, 'WebGPU has one device for all sliders of a page.' );
 		await open( page, { n: 3, plugins: 'gl', css: '.ss { margin-block: 4px; } .ss-slide { height: 30px; } .tall, button, [data-ss-dots] { display: none; }' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		const drawing = await page.evaluate( async () => {
@@ -266,6 +257,39 @@ test.describe( 'without the canvas', () => {
 			];
 		} );
 		expect( after ).toEqual( [ true, 12 ] );
+	} );
+} );
+
+test.describe( 'one device for all', () => {
+	test( 'twenty sliders, all drawn by the canvas, with one device', async ( { page } ) => {
+		test.skip( ! GPU, 'WebGL has a context for every slider.' );
+		await open( page, { n: 3, plugins: 'gl', css: '.ss { margin-block: 4px; } .ss-slide { height: 30px; } .tall, button, [data-ss-dots] { display: none; }' } );
+		test.skip( ! ( await draws( page ) ), 'No WebGPU in this browser.' );
+		const drawing = await page.evaluate( async () => {
+			const first = document.getElementById( 'slider' );
+			const sliders = [ window.slider ];
+			for ( let i = 0; i < 19; i++ ) {
+				const copy = first.cloneNode( true );
+				copy.removeAttribute( 'id' );
+				copy.querySelector( 'canvas' )?.remove();
+				copy.querySelectorAll( '.ss-drawn' ).forEach( ( el ) =>
+					el.classList.remove( 'ss-drawn' )
+				);
+				document.body.append( copy );
+				sliders.push(
+					window.lib.createSlider( copy, {
+						plugins: [ window.lib.gl( { eager: true } ) ],
+					} )
+				);
+			}
+			await new Promise( ( done ) => setTimeout( done, 800 ) );
+			return [
+				sliders.filter( ( slider ) => slider.plugins.gl.canvas ).length,
+				document.querySelectorAll( '.ss-drawn' ).length,
+				window.devices.length,
+			];
+		} );
+		expect( drawing ).toEqual( [ 20, 60, 1 ] );
 	} );
 } );
 

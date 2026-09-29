@@ -47,6 +47,8 @@ const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-ss-no-zoom
  * @param {import('./index.js').Options} [options.slider] Options for the
  *                                      slider in the lightbox.
  * @param {Object}   [options.canvas]   Options for its canvas layer.
+ * @param {Function} [options.layer]    The canvas layer: `gl`, or `gpu` of
+ *                                      `shaderslide/gpu`.
  * @param {Record<string, string>} [options.labels] `close`, `prev`,
  *                                      `next`, `dialog`.
  */
@@ -56,6 +58,7 @@ export function lightbox( {
 	punch = 0.4,
 	slider: inner = {},
 	canvas = {},
+	layer: draws = gl,
 	labels = {},
 } = {} ) {
 	// The plugin, for the `plugins` of a slider.
@@ -292,10 +295,10 @@ export function lightbox( {
 					driver,
 					controls(),
 					keyboard(),
-					gl( { effects, ...canvas, eager: true } ),
+					draws( { effects, ...canvas, eager: true } ),
 				],
 			} );
-			layer = shown.plugins.gl;
+			layer = shown.plugins.gl || shown.plugins.gpu;
 			layer.change = change;
 			box.focus( { preventScroll: true } );
 			slider.emit( 'lightbox:open', items[ item ].i );

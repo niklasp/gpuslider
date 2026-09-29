@@ -3,10 +3,18 @@
  * what several effects name is there once.
  */
 
-/** `hash( vec2 )`, `noise( vec2 )` and `fbm( vec2 )`: 0 to 1. */
+/**
+ * `hash( vec2 )`, `noise( vec2 )` and `fbm( vec2 )`: 0 to 1.
+ *
+ * The hash is one without a sine (Dave Hoskins, "Hash without Sine"): the
+ * sine of a large number is another number on every graphics card, and
+ * another one in WebGPU than in WebGL.
+ */
 export const NOISE = `
 float hash( vec2 p ) {
-	return fract( sin( dot( p, vec2( 127.1, 311.7 ) ) ) * 43758.5453 );
+	vec3 q = fract( vec3( p.x, p.y, p.x ) * 0.1031 );
+	q += dot( q, vec3( q.y, q.z, q.x ) + 33.33 );
+	return fract( ( q.x + q.y ) * q.z );
 }
 float noise( vec2 p ) {
 	vec2 i = floor( p );

@@ -1,7 +1,7 @@
 {
 	"name": "shaderslide",
 	"version": "0.0.1",
-	"description": "A slider that draws its media on a WebGL canvas. Small core, everything else a plugin. No dependencies.",
+	"description": "A slider that draws its media with WebGPU, or with WebGL. Small core, everything else a plugin. No dependencies.",
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": [
@@ -21,6 +21,10 @@
 		"./gl": {
 			"types": "./types/gl/index.d.ts",
 			"default": "./src/gl/index.js"
+		},
+		"./gpu": {
+			"types": "./types/gpu/index.d.ts",
+			"default": "./src/gpu/index.js"
 		},
 		"./lightbox": {
 			"types": "./types/lightbox.d.ts",
@@ -54,9 +58,10 @@
 		"media": "node bin/make-media.mjs && node bin/make-variants.mjs",
 		"test": "playwright test",
 		"types": "rm -rf types && tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
-		"prepublishOnly": "npm run types && npm run size && npm test && npm run test:dist",
+		"prepublishOnly": "npm run types && npm run size && npm test && npm run test:gpu && npm run test:dist",
 		"test:dist": "node bin/build.mjs && FROM=dist playwright test",
-		"prepack": "node bin/build.mjs --check && npm run types"
+		"prepack": "node bin/build.mjs --check && npm run types",
+		"test:gpu": "LAYER=gpu playwright test --project=chromium --project=webkit"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.63.0",

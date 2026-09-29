@@ -99,21 +99,32 @@ uniform vec4 uRectB;
 uniform vec2 uCut;
 uniform float uMix;
 uniform float uRadius;
+vec2 lods;
 `;
 
 // A lookup outside of the image takes its edge, unless the image does not
 // fill its element: then there is nothing. Where the element is not, there
 // is nothing either.
+//
+// How large the image is drawn says which of its sizes is looked up, not
+// how far apart the lookups of neighbouring pixels are: where an effect
+// cuts the image into rows or blocks, they are far apart at every cut, and
+// the smallest size of the image would show there. `sizeOf()` says which
+// size of an image it takes to have a pixel of it for a pixel drawn.
 const PICK = `
-vec4 pick( sampler2D image, vec4 box, vec4 rect, float cut, vec2 uv ) {
+vec4 pick( sampler2D image, vec4 box, vec4 rect, float cut, float which, vec2 uv ) {
 	vec2 at = uv * box.xy + box.zw;
 	vec2 inside = clamp( at, 0.0, 1.0 );
 	vec2 edge = step( rect.xy, vUv ) * step( vUv, rect.zw );
 	float there = edge.x * edge.y * ( 1.0 - cut * step( 0.0001, distance( at, inside ) ) );
-	return texture( image, inside ) * there;
+	return textureLod( image, inside, which ) * there;
 }
-vec4 getFromColor( vec2 uv ) { return pick( uA, uBoxA, uRectA, uCut.x, uv ); }
-vec4 getToColor( vec2 uv ) { return pick( uB, uBoxB, uRectB, uCut.y, uv ); }
+float sizeOf( sampler2D image, vec4 box ) {
+	vec2 pixels = box.xy * vec2( textureSize( image, 0 ) );
+	return log2( max( length( dFdx( vUv ) * pixels ), length( dFdy( vUv ) * pixels ) ) );
+}
+vec4 getFromColor( vec2 uv ) { return pick( uA, uBoxA, uRectA, uCut.x, lods.x, uv ); }
+vec4 getToColor( vec2 uv ) { return pick( uB, uBoxB, uRectB, uCut.y, lods.y, uv ); }
 `;
 
 // The names that transitions use, for them only.
@@ -127,6 +138,7 @@ const named = ( source ) =>
 // Rounded corners, and edges that are soft by a pixel.
 const MAIN = `
 void main() {
+	lods = vec2( sizeOf( uA, uBoxA ), sizeOf( uB, uBoxB ) );
 	vec2 uv = vUvTURNED;
 	vec4 color = media( uv );
 	CALLS

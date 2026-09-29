@@ -1,5 +1,5 @@
 import { test } from '@playwright/test';
-import { open, settled, drag, index, difference, expect } from './helpers.js';
+import { open, settled, drag, index, difference, expect, unable } from './helpers.js';
 
 const setup = {
 	n: 5,
@@ -91,11 +91,9 @@ test.describe( 'lightbox', () => {
 			page.evaluate( () => {
 				const layer = window.slider.plugins.lightbox;
 				const { canvas } = layer.slider.plugins.gl;
-				const g = canvas.getContext( 'webgl2' );
 				const w = canvas.width;
 				const h = canvas.height;
-				const pixels = new Uint8Array( 4 * w * h );
-				g.readPixels( 0, 0, w, h, g.RGBA, g.UNSIGNED_BYTE, pixels );
+				const pixels = window.pixels( layer.slider.plugins.gl );
 				let x0 = w;
 				let y0 = h;
 				let x1 = 0;
@@ -105,8 +103,8 @@ test.describe( 'lightbox', () => {
 						if ( pixels[ 4 * ( y * w + x ) + 3 ] > 128 ) {
 							x0 = Math.min( x0, x );
 							x1 = Math.max( x1, x );
-							y0 = Math.min( y0, h - y );
-							y1 = Math.max( y1, h - y );
+							y0 = Math.min( y0, y );
+							y1 = Math.max( y1, y );
 						}
 					}
 				}
@@ -212,13 +210,8 @@ test.describe( 'lightbox', () => {
 		expect( await page.locator( 'dialog[open]' ).count() ).toBe( 0 );
 	} );
 
-	test( 'without WebGL 2 it fades', async ( { page } ) => {
-		await page.addInitScript( () => {
-			const get = HTMLCanvasElement.prototype.getContext;
-			HTMLCanvasElement.prototype.getContext = function ( type, ...rest ) {
-				return type === 'webgl2' ? null : get.call( this, type, ...rest );
-			};
-		} );
+	test( 'in a browser that cannot draw the canvas it fades', async ( { page } ) => {
+		await unable( page );
 		await open( page, { ...setup, open: 600 } );
 		await page.evaluate( () => window.slider.plugins.lightbox.open( 1 ) );
 		await page.waitForFunction(

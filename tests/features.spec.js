@@ -231,13 +231,12 @@ test.describe( 'video', () => {
 			)
 			.toBe( true );
 		const read = () =>
-			page.evaluate( () => {
-				const { canvas } = window.slider.plugins.gl;
-				const g = canvas.getContext( 'webgl2' );
-				const pixels = new Uint8Array( 4 * 64 * 64 );
-				g.readPixels( 100, 100, 64, 64, g.RGBA, g.UNSIGNED_BYTE, pixels );
-				return [ ...pixels ];
-			} );
+			page.evaluate( () =>
+				// Of the whole picture, a pixel here and there.
+				[ ...window.pixels( window.slider.plugins.gl ) ].filter(
+					( value, i ) => i % 4 < 3 && ! ( ( i >> 2 ) % 97 )
+				)
+			);
 		const one = await read();
 		expect( Math.max( ...one ) ).toBeGreaterThan( 0 );
 		await page.waitForTimeout( 500 );
