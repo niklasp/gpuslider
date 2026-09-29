@@ -37,7 +37,13 @@ export function videos() {
 				video.autoplay = false;
 				video.pause();
 				resume.add( video );
-				if ( video.preload === 'none' && video.readyState < 2 ) {
+				// Only while it loads: a call of `load()` in Chromium loads
+				// even a video that says `preload="none"`.
+				if (
+					video.preload === 'none' &&
+					video.networkState === 2 &&
+					video.readyState < 2
+				) {
 					video.load();
 				}
 			} );

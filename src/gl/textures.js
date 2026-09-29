@@ -146,9 +146,11 @@ export function createTextures( gl, { maxSize, changed } ) {
 			records.set( key, record );
 		}
 		const { naturalWidth: w, naturalHeight: h } = media;
+		// Not at most its natural width: of an image of a `srcset` that is
+		// the width of its CSS pixels, not of the file.
 		const want = Math.max(
 			1,
-			Math.round( Math.min( w, width, limit, ( limit * w ) / h ) )
+			Math.round( Math.min( width, limit, ( limit * w ) / h ) )
 		);
 		// Again only when it is drawn clearly larger than it was loaded.
 		if ( ! record.failed && want > record.asked * 1.2 ) {

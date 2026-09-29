@@ -13,8 +13,9 @@
  * While it runs the slider is at no slide: its `index` is the one it was
  * at last, and it tells no `change`.
  *
- * It stands still while the slider is not on the screen, for visitors who
- * ask for less motion, and when it is told to: by `pause()`, or by a
+ * It stands still while the slider is not on the screen, while the focus
+ * of the keys is in it, for visitors who ask for less motion, and when it
+ * is told to: by `pause()`, or by a
  * `<button data-gs-pause>` (see `autoplay`).
  *
  * Events of the slider: `marquee:play`, `marquee:pause`.
@@ -43,6 +44,9 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 		const still = win.matchMedia( '(prefers-reduced-motion: reduce)' );
 		let seen = true;
 		let over = false;
+		// The focus of the keys is in it: it stands, so what has the focus
+		// stays in view.
+		let held = false;
 		let paused = false;
 		// Where the page was scrolled to, and how fast it is scrolled.
 		let was = win.scrollY;
@@ -52,6 +56,7 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 
 		const running = () =>
 			seen &&
+			! held &&
 			! paused &&
 			! still.matches &&
 			! doc.hidden &&
@@ -76,6 +81,16 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 		} );
 		root.addEventListener( 'pointerenter', () => ( over = true ), { signal } );
 		root.addEventListener( 'pointerleave', () => ( over = false ), { signal } );
+		[ 'focusin', 'focusout' ].forEach( ( name, i ) =>
+			root.addEventListener(
+				name,
+				( { target } ) => {
+					held = ! i && target.matches( ':focus-visible' );
+					slider.wake();
+				},
+				{ signal }
+			)
+		);
 		doc.addEventListener( 'visibilitychange', slider.wake, { signal } );
 		still.addEventListener( 'change', slider.wake, { signal } );
 		doc.addEventListener(
