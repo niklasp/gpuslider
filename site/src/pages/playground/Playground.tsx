@@ -31,8 +31,12 @@ import { kb, parts } from '@/lib/metrics';
 const PILL =
 	'sq-pill inline-flex h-10 items-center px-4 text-sm font-medium ring-1 ring-white/10 transition';
 
-/** How wide a slide that fills the page is. */
-const WIDE = '(min-width: 1400px) 1400px, 100vw';
+/**
+ * How wide a slide that fills the page is: the screen less the controls
+ * beside it and the room of the page, and at most 1400px less that room.
+ */
+const WIDE =
+	'(min-width: 1024px) min(1336px, calc(100vw - 388px)), (min-width: 768px) calc(100vw - 140px), calc(100vw - 100px)';
 
 /**
  * Every slider the library can be, with controls for all of it.

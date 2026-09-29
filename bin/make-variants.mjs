@@ -5,6 +5,7 @@
  *
  *     1.jpg  →  1-480.avif, 1-720.avif, 1-960.avif, 1-1600.avif
  *     a.mp4  →  a-poster.avif
+ *     wall/01.jpg  →  wall/01-420.avif, wall/01-840.avif
  *
  * The JPEGs stay: the tests compare pixels with them.
  *
@@ -62,5 +63,22 @@ for ( const file of readdirSync( out ).sort() ) {
 			// eslint-disable-next-line no-console
 			console.warn( `No poster for ${ file }: ffmpeg failed or is missing.` );
 		}
+	}
+}
+
+// The pictures of the wall, which are 840 wide and drawn a quarter of the
+// screen or less.
+const wall = resolve( out, 'wall' );
+for ( const file of only.length ? [] : readdirSync( wall ).sort() ) {
+	const [ , name ] = file.match( /^(\d+)\.jpg$/ ) || [];
+	if ( name ) {
+		for ( const w of [ 420, 840 ] ) {
+			await sharp( resolve( wall, file ) )
+				.resize( { width: w } )
+				.avif( { quality: 55, effort: 6 } )
+				.toFile( resolve( wall, `${ name }-${ w }.avif` ) );
+		}
+		// eslint-disable-next-line no-console
+		console.log( `wall/${ file } (${ kb( resolve( wall, file ) ) })  →  ${ kb( resolve( wall, `${ name }-840.avif` ) ) }` );
 	}
 }

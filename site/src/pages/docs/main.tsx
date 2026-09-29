@@ -6,7 +6,11 @@ import Docs from './Docs';
 // /docs/ is the first page, /docs/<slug>/ the others.
 const slug = location.pathname.replace( /^\/docs\/|\/$/g, '' );
 const page = pages.find( ( one ) => one.slug === slug ) || pages[ 0 ];
-const { default: html } = await load[ page.slug ]();
+// What it says is in the page the build has written: hydrated as it is,
+// not loaded again.
+const html =
+	document.querySelector( '.prose' )?.innerHTML ??
+	( await load[ page.slug ]() ).default;
 
 // The build has written them into the page; the server of `npm run dev`
 // has one page for all.

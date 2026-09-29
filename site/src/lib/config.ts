@@ -39,6 +39,7 @@ import {
 	marquee,
 } from 'gpuslider/plugins';
 import type { Create } from 'gpuslider';
+import { calm } from './media';
 
 export const EFFECTS = {
 	stretch: { label: 'Stretch', hint: 'The image gives way to the speed' },
@@ -197,7 +198,7 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 		plugins.push( marquee( { speed: 50, hover: 0.2, scroll: 0.4 } ) );
 	} else if ( config.autoplay || kind === 'down' ) {
 		// The slider that goes down runs by itself all the time.
-		plugins.push( autoplay( 3500 ) );
+		plugins.push( autoplay( 3500 ), calm() );
 	}
 	if ( kind === 'tall' ) {
 		plugins.push( autoHeight() );

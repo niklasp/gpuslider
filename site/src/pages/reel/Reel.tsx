@@ -12,7 +12,7 @@ import {
 import { canvas } from 'gpuslider/canvas';
 import { split, waves, warp } from 'gpuslider/effects';
 import { useSlider } from 'gpuslider/react';
-import { image, video } from '@/lib/media';
+import { calm, film, image, video } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
 
 const SLIDES: {
@@ -112,6 +112,7 @@ export default function Reel() {
 				videos(),
 				stack(),
 				autoplay( 5000 ),
+				calm(),
 				loading( { screen: false } ),
 				canvas( {
 					effects: [ split(), waves( { amount: 0.6 } ), warp() ],
@@ -182,7 +183,7 @@ export default function Reel() {
 									muted
 									playsInline
 									loop
-									autoPlay
+									ref={ film }
 								/>
 							) : (
 								<img

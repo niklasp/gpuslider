@@ -64,7 +64,7 @@ import {
 	type Layer,
 } from '@/lib/metrics';
 import { layer } from '../mount';
-import { LIGHT, lightOf, useKind } from '@/lib/media';
+import { LIGHT, calm, lightOf, useKind } from '@/lib/media';
 import {
 	ArrowsOut,
 	Atom,
@@ -74,8 +74,8 @@ import {
 	PuzzlePiece,
 	Shuffle,
 	Spiral,
-} from '@phosphor-icons/react/ssr';
-import type { Icon } from '@phosphor-icons/react';
+} from '@/components/icons';
+import type { Icon } from '@/components/icons';
 
 /** What a slide of the stage says: small, beside what the page says. */
 const SAID = 'font-display text-lg font-semibold tracking-[-0.02em]';
@@ -482,13 +482,14 @@ function Stage() {
 					stack(),
 					// The pointer is always over it: it goes on all the same.
 					autoplay( { delay: 4000, hover: false, left: left() } ),
+					calm(),
 					canvas( {
 						effects: [ TRANSITIONS[ drawn ]() ],
 						layer: layer(),
 					} ),
 				] }
 				over={
-					<div className="absolute inset-x-0 bottom-0 grid grid-cols-[minmax(0,1fr)] justify-items-start gap-5 bg-gradient-to-t from-black/55 via-black/20 to-transparent px-6 pt-40 pb-24 md:gap-6 md:px-14 lg:pb-8">
+					<div className="absolute inset-x-0 bottom-0 grid grid-cols-[minmax(0,1fr)] justify-items-start gap-5 bg-gradient-to-t from-black/55 via-black/20 to-transparent px-6 pt-40 pb-24 md:gap-6 md:px-14 lg:pe-72 lg:pb-8">
 						<h1 className="glow max-w-[13ch] font-display text-5xl leading-[0.95] font-semibold tracking-[-0.045em] text-balance text-white sm:text-7xl xl:text-8xl">
 							A slider drawn by shaders.
 						</h1>
@@ -602,8 +603,10 @@ export default function Home() {
 	return (
 		<>
 			<Nav at="home" />
+			{ /* The stage has the heading of the page: it is in the main part. */ }
+			<main>
 			<Stage />
-			<main className="mx-auto grid max-w-[1120px] grid-cols-[minmax(0,1fr)] gap-36 px-5 pt-28 pb-40 md:gap-48 md:px-8 md:pt-36">
+			<div className="mx-auto grid max-w-[1120px] grid-cols-[minmax(0,1fr)] gap-36 px-5 pt-28 pb-40 md:gap-48 md:px-8 md:pt-36">
 				<Section
 					center
 					id="several"
@@ -806,6 +809,7 @@ export default function Home() {
 						</a>
 					</div>
 				</Section>
+			</div>
 			</main>
 			<Footer />
 		</>

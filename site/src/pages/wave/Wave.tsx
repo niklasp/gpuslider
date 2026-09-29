@@ -7,6 +7,7 @@ import { keyboard, loading, marquee, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { dome, split, wave } from 'gpuslider/effects';
 import pictures from '@/lib/wall.json';
+import { pinned } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
 
 /**
@@ -56,9 +57,7 @@ export default function Wave() {
 						<div className="gs-slide" key={ title }>
 							<img
 								className="gs-media"
-								src={ `/media/wall/${ String( n + 1 ).padStart( 2, '0' ) }.jpg` }
-								width="840"
-								height="560"
+								{ ...pinned( n, 'clamp(150px, 17vw, 260px)' ) }
 								alt={ `${ title }. ${ line }` }
 								draggable={ false }
 							/>

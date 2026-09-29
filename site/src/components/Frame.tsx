@@ -3,7 +3,7 @@
  * foot, and how a section and a button look.
  */
 import type { ReactNode } from 'react';
-import { GithubLogo, ImageSquare, Swatches } from '@phosphor-icons/react/ssr';
+import { GithubLogo, ImageSquare, Swatches } from './icons';
 import { choose, useKind, type Kind } from '@/lib/media';
 
 /** The name: it is said here, and nowhere else on the site. */

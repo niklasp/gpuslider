@@ -4,6 +4,7 @@
  * photos from Pexels in their place.
  */
 import { useSyncExternalStore, type CSSProperties } from 'react';
+import type { Create } from 'gpuslider';
 
 /** What the pictures of the site are: colour fields, or photos. */
 export type Kind = 'fields' | 'photos';
@@ -129,6 +130,21 @@ export function image( n: number | 'a' | 'b', of: Kind = 'fields' ) {
 }
 
 /**
+ * What an `<img>` needs for picture `n` of the wall (from 0), drawn at
+ * `sizes`: AVIF, 420 or 840 wide.
+ */
+export const pinned = ( n: number, sizes: string ) => {
+	const name = `/media/wall/${ String( n + 1 ).padStart( 2, '0' ) }`;
+	return {
+		src: `${ name }-840.avif`,
+		srcSet: `${ name }-420.avif 420w, ${ name }-840.avif 840w`,
+		sizes,
+		width: 840,
+		height: 560,
+	};
+};
+
+/**
  * What is in the film `a`: video 13794727 of Pexels, cut to a loop by
  * `bin/make-film.mjs`. It is the film whatever the pictures are.
  */
@@ -142,6 +158,38 @@ export const filmed = ( name: 'a' | 'b', of: Kind = 'fields' ) =>
 	of === 'fields' || name === 'a';
 
 /** What a `<video>` needs. */
+/** Whether the visitor has asked for less motion. */
+const still = () => matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+
+/**
+ * A plugin after `autoplay()`: where less motion is asked for, it waits
+ * until the visitor lets it play.
+ */
+export const calm = (): Create => ( slider ) => {
+	if ( still() ) {
+		slider.plugins.autoplay?.pause();
+	}
+};
+
+/**
+ * For the `ref` of a film that plays by itself. Its `autoplay` is given by
+ * the script, not by the HTML: in the HTML the browser loads the whole
+ * film before the page is there, whatever `preload` says. It is loaded
+ * once the page is; and where motion is to be reduced, it stays a poster.
+ */
+export const film = ( el: HTMLVideoElement | null ) => {
+	if ( ! el || still() ) {
+		return;
+	}
+	el.autoplay = true;
+	const load = () => ( el.preload = 'auto' );
+	if ( document.readyState === 'complete' ) {
+		load();
+	} else {
+		addEventListener( 'load', load, { once: true } );
+	}
+};
+
 export const video = ( name: 'a' | 'b' ) => ( {
 	src: `/media/${ name === 'a' ? 'film' : name }.mp4`,
 	poster: `/media/${ name === 'a' ? 'film' : name }-poster.avif`,

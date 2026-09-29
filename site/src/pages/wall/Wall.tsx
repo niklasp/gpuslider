@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import 'gpuslider/style.css';
 import './wall.css';
 import pictures from '@/lib/wall.json';
+import { pinned } from '@/lib/media';
 import { wall } from './sliders';
 
 const ROWS = 7;
@@ -72,12 +73,7 @@ export default function Wall() {
 										<div className="gs-slide" key={ n }>
 											<img
 												className="gs-media"
-												src={ `/media/wall/${ String( n + 1 ).padStart(
-													2,
-													'0'
-												) }.jpg` }
-												width="840"
-												height="560"
+												{ ...pinned( n, 'clamp(230px, 27vw, 430px)' ) }
 												alt={ `${ pictures[ n ].title }. ${ pictures[ n ].line }` }
 												draggable={ false }
 											/>

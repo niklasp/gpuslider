@@ -7,6 +7,7 @@ import { loading, marquee } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { stretch, split, jelly } from 'gpuslider/effects';
 import pictures from '@/lib/wall.json';
+import { pinned } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
 
 const WORDS = [ 'Film', 'Field', 'Sound', 'Print' ];
@@ -80,12 +81,7 @@ export default function Tape() {
 									<div className="gs-slide" key={ n }>
 										<img
 											className="gs-media"
-											src={ `/media/wall/${ String( n + 1 ).padStart(
-												2,
-												'0'
-											) }.jpg` }
-											width="840"
-											height="560"
+											{ ...pinned( n, 'clamp(220px, 30vw, 520px)' ) }
 											alt={ `${ pictures[ n ].title }. ${ pictures[ n ].line }` }
 											draggable={ false }
 										/>

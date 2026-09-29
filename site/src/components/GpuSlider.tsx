@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 // Classes that do not contradict each other need no merger.
 const cn = ( ...classes: ( string | undefined )[] ) =>
 	classes.filter( Boolean ).join( ' ' );
-import { FILM, filmed, image, photo, useKind, video } from '@/lib/media';
+import { FILM, film, filmed, image, photo, useKind, video } from '@/lib/media';
 
 type Props = {
 	id: string;
@@ -323,7 +323,7 @@ export function Slide( {
 					muted
 					playsInline
 					loop
-					autoPlay
+					ref={ film }
 				/>
 			) : (
 				<img
