@@ -23,11 +23,11 @@ const opened = ( page, progress = 1 ) =>
 		progress
 	);
 
-/** Whether the canvas of the lightbox draws. */
+/** Whether the canvas of the slider draws the lightbox. */
 const draws = ( page ) =>
 	page
 		.waitForFunction(
-			() => !! window.slider.plugins.lightbox.slider?.plugins.gl.canvas,
+			() => !! document.querySelector( 'dialog > canvas' ),
 			null,
 			{ timeout: 2000 }
 		)
@@ -122,10 +122,10 @@ test.describe( 'lightbox', () => {
 				set: ( to ) => ( hook = to ),
 			} );
 		} );
+		// A frame that the canvas has drawn since it was asked.
 		const drawn = async () => {
-			await page.evaluate(
-				() => new Promise( ( done ) => requestAnimationFrame( done ) )
-			);
+			await page.evaluate( () => ( window.grown = null ) );
+			await page.waitForFunction( () => window.grown );
 			return page.evaluate( () => ( {
 				t: window.slider.plugins.lightbox.progress,
 				...window.grown,
@@ -168,14 +168,34 @@ test.describe( 'lightbox', () => {
 			)
 		);
 		await opened( page );
-		const shot = () =>
-			page.locator( 'dialog .gs-track' ).screenshot();
+		// The image, whole in the screen: around it the canvas draws the
+		// slider as the page behind the lightbox is.
+		const clip = await page.evaluate( () => {
+			const media =
+				window.slider.plugins.lightbox.slider.slides[ 2 ].firstChild;
+			const r = media.getBoundingClientRect();
+			const k = Math.min(
+				r.width / media.naturalWidth,
+				r.height / media.naturalHeight
+			);
+			const w = media.naturalWidth * k;
+			const h = media.naturalHeight * k;
+			return {
+				x: Math.ceil( r.left + ( r.width - w ) / 2 ) + 1,
+				y: Math.ceil( r.top + ( r.height - h ) / 2 ) + 1,
+				width: Math.floor( w ) - 2,
+				height: Math.floor( h ) - 2,
+			};
+		} );
+		const shot = () => page.screenshot( { clip } );
 		const canvas = await shot();
-		// The same without the canvas: the image of the page.
+		// The same without the canvas: the images of the lightbox, which
+		// are there and not seen.
 		await page.evaluate( () => {
-			const inner = window.slider.plugins.lightbox.slider;
-			inner.root.querySelector( 'canvas' ).style.visibility = 'hidden';
-			inner.root
+			const dialog = document.querySelector( 'dialog' );
+			dialog.querySelector( ':scope > canvas' ).style.visibility = 'hidden';
+			dialog.style.setProperty( '--gs-shown', 1 );
+			dialog
 				.querySelectorAll( '.gs-drawn' )
 				.forEach( ( el ) => el.classList.remove( 'gs-drawn' ) );
 		} );

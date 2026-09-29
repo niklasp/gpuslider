@@ -81,7 +81,7 @@ Three ways, from the least to write to the least to load.
 | `data-gs` | Makes the element a slider. Its value: the options of `gpuslider/full` as JSON, or nothing |
 | `data-gs-canvas` | The canvas, with the effects that are named: `"stretch waves"`, or with their options `'{ "stretch": { "amount": 2 } }'`. Drawn by WebGPU where the browser has it, by WebGL 2 where not |
 | `data-gs-gpu`, `data-gs-gl` | The same, by the one that is named or by the page |
-| `data-gs-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
+| `data-gs-lightbox` | A lightbox, drawn by the canvas of the slider, which it gives the slider if it has none. Needs `dist/lightbox.css` |
 | `data-gs-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
 `auto.js` is one file of 8.2 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
@@ -447,12 +447,12 @@ Transform what is in the slide, not the slide: that one the slider moves and mea
 import { lightbox } from 'gpuslider/lightbox';
 import 'gpuslider/lightbox.css';
 
-createSlider( element, { plugins: [ canvas(), lightbox( { effects: [ stretch() ] } ) ] } );
+createSlider( element, { plugins: [ canvas(), lightbox() ] } );
 ```
 
-A click on a slide lets its image grow to the screen, Escape lets it go back. `data-gs-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
+A click on a slide lets its image grow to the screen, Escape lets it go back. In the lightbox it can be dragged, and the arrows and the keys go to the next. `data-gs-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
 
-The image grows out of its slide as the slider draws it, with the effects of the slider, which fade on the way: the canvas of the slider draws the way, out of the slider and over the page, and the lightbox takes over at the screen. The effects of the lightbox are for the moves in it. `punch: 0.4` lets the speed of the growing count as speed for them, so that an image with `stretch()` bows while it opens.
+One canvas draws all of it: the one of the slider, which goes over the page while the lightbox is open. The image grows out of its slide as the slider draws it, with the effects of the slider, which fade on the way, and in the lightbox the images are drawn whole, from the file the browser picks for the screen. `punch: 0.4` lets the speed of the growing count as speed for the effects, so that an image with `stretch()` bows while it opens. Without a canvas the lightbox fades in.
 
 ## Loading
 
@@ -683,11 +683,11 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.0 KB |
-| Canvas layer of WebGL 2 | 7.0 KB |
+| Canvas layer of WebGPU | 9.1 KB |
+| Canvas layer of WebGL 2 | 7.1 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
-| Lightbox | 2.1 KB |
+| Lightbox | 1.9 KB |
 | `style.css`, `lightbox.css` | 0.7 and 0.6 KB |
 | `loading.css` | 0.4 KB |
 

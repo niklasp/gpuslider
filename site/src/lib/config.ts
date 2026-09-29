@@ -237,17 +237,7 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 		plugins.push( progress() );
 	}
 	if ( config.lightbox ) {
-		plugins.push(
-			lightbox( {
-				// In the lightbox the image is the point: what moves with
-				// the speed, and no more.
-				effects: config.canvas
-					? config.effects
-							.filter( ( name ) => name === 'stretch' || name === 'split' )
-							.map( ( name ) => make( name, config.intensity ) )
-					: [],
-			} )
-		);
+		plugins.push( lightbox() );
 	}
 	return plugins;
 }

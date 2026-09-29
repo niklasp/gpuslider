@@ -2,22 +2,18 @@
  * A lightbox for the slides of a slider: a click on a slide lets its image
  * grow out of its place to the size of the screen, Escape lets it go back.
  *
- * The lightbox is a slider of its own in a `<dialog>`, so it can be
- * dragged, has arrows and keys, and the canvas draws it with the effects
- * it is given. The dialog brings what a lightbox needs: the page behind it
- * is inert, the focus stays inside and comes back, Escape closes.
+ * One canvas draws all of it: the one of the slider, lifted out of it into
+ * a `<dialog>` for as long as the lightbox is open. The image grows from
+ * where it is, cut as it is there and with the effects of the slider, to
+ * the whole image, and the effects fade on the way. Open, the canvas draws
+ * the images where a slider of the lightbox has them: that slider is HTML
+ * that is not seen, so it can be dragged, has arrows and keys, and its
+ * images are the ones in the size of the screen. The dialog brings what a
+ * lightbox needs: the page behind it is inert, the focus stays inside and
+ * comes back, Escape closes. A slider without a canvas has its lightbox
+ * fade in.
  *
- * The growing is drawn by the canvas of the slider, lifted out of it for
- * the time: the image goes from where it is, cut as it is there and with
- * the effects of the slider, to the whole image, and the effects fade on
- * the way. There the canvas of the lightbox takes over, of the kind the
- * slider has: WebGPU, or WebGL. A slider without a canvas has its image
- * grow in the canvas of the lightbox, from the place it has on the page;
- * without any canvas the lightbox fades in.
- *
- *     createSlider( element, {
- *         plugins: [ gpu(), lightbox( { effects: [ stretch() ] } ) ],
- *     } );
+ *     createSlider( element, { plugins: [ gpu(), lightbox() ] } );
  *
  * Events of the slider: `lightbox:open` and `lightbox:close`, both with the
  * index of the slide.
@@ -37,43 +33,26 @@ const layerOf = ( { plugins } ) => plugins.gpu || plugins.gl;
 // The spring has arrived after about 9 / omega seconds (see engine.js).
 const SETTLE = 9;
 
-// The part of the way near the slide where the image of the lightbox and
-// the one of the page fade into each other, when the lightbox draws the
-// way; and near the screen, where its canvas takes over from the one of
-// the slider, when that draws it.
-const HANDOVER = 0.3;
-const TAKEOVER = 0.8;
-
-// How long the lightbox waits for the canvas to have the image before it
-// opens without it, ms.
-const PATIENCE = 400;
+// The part of the way over which the effects of the slider fade.
+const FADE = 0.8;
 
 const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-gs-no-zoom]';
 
 /**
  * @param {Object}   [options]          Options.
- * @param {import('./gl/program.js').Effect[]} [options.effects] Effects of
- *                                      the canvas.
  * @param {number}   [options.duration] Time of opening and closing, ms.
  * @param {number}   [options.punch]    How much the speed of the opening
  *                                      counts as speed for the effects.
  *                                      0: the image grows, and no more.
  * @param {import('./index.js').Options} [options.slider] Options for the
  *                                      slider in the lightbox.
- * @param {Object}   [options.canvas]   Options for its canvas layer.
- * @param {Function} [options.layer]    The canvas layer, `gpu` or `gl`,
- *                                      when it is not to be the one of the
- *                                      slider.
  * @param {Record<string, string>} [options.labels] `close`, `prev`,
  *                                      `next`, `dialog`.
  */
 export function lightbox( {
-	effects = [],
 	duration = 500,
 	punch = 0,
 	slider: inner = {},
-	canvas = {},
-	layer: given,
 	labels = {},
 } = {} ) {
 	// The plugin, for the `plugins` of a slider.
@@ -95,19 +74,17 @@ export function lightbox( {
 		let box = null;
 		// The slider in the lightbox, while it is open.
 		let shown = null;
-		let layer = null;
 		// How far it is open, where that goes and how fast.
 		let t = 0;
 		let to = 0;
 		let speed = 0;
 		let started = false;
 		let since = 0;
-		// The slide that grows or shrinks, and the place it comes from.
+		// The item that grows or shrinks.
 		let active = -1;
-		let from = null;
 		let wasPaused = false;
-		// The layer of the slider, while it draws the way; and the screen
-		// in px of its view.
+		// The layer of the slider, while it draws the lightbox; and the
+		// screen in px of its view.
 		let outer = null;
 		let screen = null;
 
@@ -115,6 +92,10 @@ export function lightbox( {
 		const mixed = new Float32Array( 13 );
 		mixed[ 6 ] = 1;
 		mixed[ 7 ] = 1;
+		// The whole image.
+		const whole = mixed.slice();
+		whole[ 0 ] = 1;
+		whole[ 1 ] = 1;
 
 		// The part of an image that its element shows: in px of the
 		// element, and as a box from that part to the texture.
@@ -137,84 +118,91 @@ export function lightbox( {
 			};
 		};
 
-		// Where the image of a slide is on the screen, in px of the
-		// lightbox.
-		const place = ( item ) => {
-			const { media } = items[ item ];
+		// Where the lightbox has the image of an item, whole, in px of the
+		// view of the slider; null while it has none.
+		const target = ( k ) => {
+			const media = shown?.slides[ k ]?.firstChild;
+			if ( ! media ) {
+				return null;
+			}
 			const r = media.getBoundingClientRect();
-			const around = box.getBoundingClientRect();
-			const style = styleOf( media );
-			fit(
-				media.naturalWidth || media.videoWidth || r.width,
-				media.naturalHeight || media.videoHeight || r.height,
-				{ x: 0, y: 0, w: r.width, h: r.height },
-				r.width,
-				r.height,
-				style,
-				numbers
-			);
-			const seen = part( numbers, r.width, r.height );
-			// Where the canvas draws it, which an effect may have moved.
-			const drawn = slider.plugins.hit?.where( items[ item ].i ) || r;
-			const wide = drawn.width / r.width;
-			const high = drawn.height / r.height;
-			seen.x = seen.x * wide + drawn.left - around.left;
-			seen.y = seen.y * high + drawn.top - around.top;
-			seen.w *= wide;
-			seen.h *= high;
-			seen.radius = style.radius;
-			seen.shape = style.shape;
-			return seen;
+			const page = items[ k ].media;
+			const iw = media.naturalWidth || media.videoWidth || page.naturalWidth || page.videoWidth || r.width;
+			const ih = media.naturalHeight || media.videoHeight || page.naturalHeight || page.videoHeight || r.height;
+			const k2 = Math.min( r.width / iw, r.height / ih );
+			return {
+				x: screen.x + r.left + ( r.width - iw * k2 ) / 2,
+				y: screen.y + r.top + ( r.height - ih * k2 ) / 2,
+				w: iw * k2,
+				h: ih * k2,
+				media,
+			};
 		};
 
-		// Between the place in the slide and the whole image.
-		const change = ( i, quad ) => {
-			if ( i !== active || ! from || t >= 1 ) {
-				return;
-			}
-			const whole = part( quad.a, quad.w, quad.h );
-			const mix = ( a, b ) => a + ( b - a ) * t;
-			for ( let k = 0; k < 4; k++ ) {
-				mixed[ k ] = mix( from.box[ k ], whole.box[ k ] );
-			}
-			quad.x = mix( from.x, quad.x + whole.x );
-			quad.y = mix( from.y, quad.y + whole.y );
-			quad.w = mix( from.w, whole.w );
-			quad.h = mix( from.h, whole.h );
-			quad.radius = mix( from.radius, 0 );
-			quad.shape = from.shape;
-			quad.speed = still.matches ? 0 : speed * punch;
-			quad.a = mixed;
-		};
-
-		// The same, drawn by the slider: its image grows out of it and its
-		// effects fade, the rest goes dark as the page does.
+		// What the canvas of the slider draws while it is lifted: the item
+		// that grows goes from its slide to its place in the lightbox, and
+		// the rest of the slider goes dark as the page does. Open, the
+		// items that the lightbox shows are drawn where it has them, and
+		// nothing else.
 		const grow = ( i, quad ) => {
-			if ( i !== items[ active ]?.i ) {
+			const k = items.findIndex( ( item ) => item.i === i );
+			const it = k < 0 ? null : target( k );
+			quad.p = 0;
+			// Whether the page has the picture of the slide yet.
+			const had = !! quad.a;
+			if ( it && k === active ) {
+				const seen = had
+					? part( quad.a, quad.w, quad.h )
+					: { x: 0, y: 0, w: quad.w, h: quad.h, box: whole };
+				const mix = ( a, b ) => a + ( b - a ) * t;
+				for ( let n = 0; n < 4; n++ ) {
+					mixed[ n ] = mix( seen.box[ n ], whole[ n ] );
+				}
+				quad.x = mix( quad.x + seen.x, it.x );
+				quad.y = mix( quad.y + seen.y, it.y );
+				quad.w = mix( seen.w, it.w );
+				quad.h = mix( seen.h, it.h );
+				quad.radius = mix( quad.radius, 0 );
+				quad.fx = Math.max( 0, 1 - t / FADE );
+				quad.speed = still.matches ? 0 : speed * punch;
+				quad.a = mixed;
+				quad.top = true;
+			} else if (
+				it &&
+				t === 1 &&
+				it.x < screen.x + screen.w &&
+				it.x + it.w > screen.x
+			) {
+				Object.assign( quad, it, { a: whole, radius: 0, fx: 0 } );
+			} else {
+				// Open, what the lightbox does not show is not drawn: it
+				// would be over what it shows.
 				quad.dim = 1 - 0.92 * t;
+				if ( t === 1 ) {
+					quad.a = null;
+				}
 				return;
 			}
-			const { media } = items[ active ];
-			const iw = media.naturalWidth || media.videoWidth || quad.w;
-			const ih = media.naturalHeight || media.videoHeight || quad.h;
-			const k = Math.min( screen.w / iw, screen.h / ih );
-			const seen = part( quad.a, quad.w, quad.h );
-			const mix = ( a, b ) => a + ( b - a ) * t;
-			for ( let n = 0; n < 4; n++ ) {
-				mixed[ n ] = mix( seen.box[ n ], n < 2 ? 1 : 0 );
-			}
-			quad.x = mix( quad.x + seen.x, screen.x + ( screen.w - iw * k ) / 2 );
-			quad.y = mix( quad.y + seen.y, screen.y + ( screen.h - ih * k ) / 2 );
-			quad.w = mix( seen.w, iw * k );
-			quad.h = mix( seen.h, ih * k );
-			quad.radius = mix( quad.radius, 0 );
-			quad.fx = Math.max( 0, 1 - t / TAKEOVER );
 			quad.clip = false;
-			quad.top = true;
-			quad.a = mixed;
+			// The image of the lightbox once it is open: asked for then, it
+			// is asked for at the size it is drawn at, not smaller on the
+			// way. Until its texture is there, the one of the slide; and
+			// where the page has none, as a slide of a stack that waits.
+			quad.media = t === 1 || ! had ? it.media : null;
 		};
 
-		// The slider draws the way, or stops.
+		// Measures where the view of the slider is on the screen.
+		const measure = () => {
+			const r = root.getBoundingClientRect();
+			screen = {
+				x: -r.left - root.clientLeft,
+				y: -r.top - root.clientTop,
+				w: dialog.clientWidth,
+				h: dialog.clientHeight,
+			};
+		};
+
+		// The canvas of the slider goes into the lightbox, or back.
 		const lift = ( on ) => {
 			if ( outer ) {
 				outer.lift = on ? dialog : null;
@@ -223,17 +211,15 @@ export function lightbox( {
 			}
 		};
 
-		// First layer of the slider in the lightbox: moves `t`.
+		// First plugin of the slider in the lightbox: moves `t`, and has
+		// the canvas draw when the lightbox has moved.
 		const driver = () => ( {
 			frame( view, dt, now ) {
 				since ||= now;
-				const media = shown?.slides[ active ]?.querySelector( '.gs-media' );
 				if ( ! started ) {
-					// Not before the canvas has the image, or it would pop
-					// in half way.
-					started =
-						now - since > PATIENCE ||
-						( layer?.canvas ? layer.shows( media ) : now - since > 50 );
+					// Without a canvas the lightbox fades in: not before a
+					// first frame of it.
+					started = !! outer || now - since > 50;
 				} else if ( still.matches ) {
 					t = to;
 					speed = 0;
@@ -250,27 +236,13 @@ export function lightbox( {
 					}
 				}
 				dialog.style.setProperty( '--gs-open', t.toFixed( 3 ) );
-				const over = outer
-					? Math.max( 0, t - TAKEOVER ) / ( 1 - TAKEOVER )
-					: 0;
-				dialog.style.setProperty(
-					'--gs-canvas',
-					Math.min( 1, outer ? over : t / HANDOVER ).toFixed( 3 )
-				);
-				// What the lightbox does not draw: while the slider draws
-				// the way, not before the takeover, or it is there twice.
-				dialog.style.setProperty(
-					'--gs-shown',
-					( outer ? over : t ).toFixed( 3 )
-				);
+				// The images of the lightbox, where no canvas draws them.
+				dialog.style.setProperty( '--gs-shown', outer ? 0 : t.toFixed( 3 ) );
 				if ( outer ) {
-					if ( t === 1 && to === 1 ) {
-						// Open: the slider draws itself again, under the
-						// lightbox.
-						lift( false );
-					} else {
-						slider.wake();
+					if ( screen.w !== dialog.clientWidth || screen.h !== dialog.clientHeight ) {
+						measure();
 					}
+					slider.wake();
 				}
 				if ( started && to === 0 && t === 0 ) {
 					// After this frame: the slider is still drawing.
@@ -374,39 +346,19 @@ export function lightbox( {
 			active = item;
 			outer = layerOf( slider );
 			outer = outer?.canvas ? outer : null;
-			if ( outer ) {
-				const r = root.getBoundingClientRect();
-				screen = {
-					x: -r.left - root.clientLeft,
-					y: -r.top - root.clientTop,
-					w: dialog.clientWidth,
-					h: dialog.clientHeight,
-				};
-				lift( true );
-			} else {
-				from = place( item );
-			}
 			dialog.style.setProperty( '--gs-open', 0 );
-			dialog.style.setProperty( '--gs-canvas', 0 );
 			dialog.style.setProperty( '--gs-shown', 0 );
-			layer = null;
-			const draws = given || layerOf( slider )?.again;
 			shown = createSlider( box, {
 				loop: slider.layout().loop && items.length > 2,
 				...inner,
 				perView: 1,
 				gap: 0,
 				start: item,
-				plugins: [
-					driver,
-					controls(),
-					keyboard(),
-					draws?.( { effects, ...canvas, eager: true } ),
-				],
+				plugins: [ driver, controls(), keyboard() ],
 			} );
-			layer = layerOf( shown );
-			if ( layer && ! outer ) {
-				layer.change = change;
+			if ( outer ) {
+				measure();
+				lift( true );
 			}
 			box.focus( { preventScroll: true } );
 			slider.emit( 'lightbox:open', items[ item ].i );
@@ -426,11 +378,6 @@ export function lightbox( {
 			// Measured after the slider has put its slides in place.
 			win.requestAnimationFrame( () => {
 				if ( shown ) {
-					if ( outer ) {
-						lift( true );
-					} else {
-						from = place( active );
-					}
 					started = true;
 					to = 0;
 					shown.wake();
@@ -454,8 +401,6 @@ export function lightbox( {
 			}
 			shown.destroy();
 			shown = null;
-			layer = null;
-			from = null;
 			box.firstChild.replaceChildren();
 			dialog.close();
 			const back = doc.activeElement;

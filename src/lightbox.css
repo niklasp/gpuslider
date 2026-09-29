@@ -67,12 +67,8 @@ html:has(.gs-lightbox[open]) {
 	border-radius: 0;
 }
 
-/* The canvas of the lightbox, as far as it has taken over. */
-.gs-box > .gs-canvas {
-	opacity: var(--gs-canvas, 1);
-}
-
-/* What the canvas does not draw fades in. */
+/* The images of the lightbox are drawn by the canvas of the slider; where
+   there is none, they fade in. */
 .gs-box .gs-media:not(.gs-drawn) {
 	opacity: var(--gs-shown, var(--gs-open));
 }

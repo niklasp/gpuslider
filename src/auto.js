@@ -18,7 +18,7 @@
  *                        where the browser has it, by WebGL 2 where not
  *     data-gs-gpu        the same, by WebGPU or not at all
  *     data-gs-gl         the same, by WebGL 2 or not at all
- *     data-gs-lightbox   a lightbox, with effects as above
+ *     data-gs-lightbox   a lightbox, drawn by the canvas of the slider
  *     data-gs-loading    a screen while the media load; its options as
  *                        JSON, or nothing. Needs `loading.css`
  *
@@ -91,14 +91,11 @@ export function auto( within = document ) {
 					return;
 				}
 				const layer = canvas.gpu || canvas.gl;
-				if ( drawn !== undefined ) {
-					slider.use( layer( { effects: effects( drawn ) } ) );
-				}
+				// A lightbox is drawn by the canvas of the slider.
+				slider.use( layer( { effects: effects( drawn || '' ) } ) );
 				if ( gsLightbox !== undefined ) {
 					const { lightbox } = await import( './lightbox.js' );
-					slider.use(
-						lightbox( { effects: effects( gsLightbox ), layer } )
-					);
+					slider.use( lightbox() );
 				}
 			} );
 		}

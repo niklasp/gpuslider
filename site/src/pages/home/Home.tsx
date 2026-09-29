@@ -625,7 +625,7 @@ export default function Home() {
 								effects: [ stretch( { amount: 2 } ), split( { amount: 2.5 } ) ],
 								layer: layer(),
 							} ),
-							lightbox( { effects: [ stretch(), split() ] } ),
+							lightbox(),
 						] }
 					>
 						{ [ 8, 6, 5, 7, 4, 3, 2, 1 ].map( ( n ) => (

@@ -138,14 +138,14 @@ slider.destroy();
 | Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7 KB | 7.0 KB (7161 of 7168 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 7 KB | 7.0 KB (7159 of 7168 B) |
-| Canvas layer of WebGPU without effects | 9 KB | 9.0 KB (9174 of 9216 B) |
+| Canvas layer of WebGL 2 without effects | 7.25 KB | 7.1 KB (7316 of 7424 B) |
+| Canvas layer of WebGPU without effects | 9.25 KB | 9.1 KB (9340 of 9472 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
-| Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.1 KB |
+| Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 1.9 KB (1986 of 2048 B) |
 | A page in React with arrows and dots | 6 KB | 5.7 KB |
-| The same with the canvas and one effect | 12.75 KB | 12.5 KB |
+| The same with the canvas and one effect | 12.75 KB | 12.7 KB (12997 of 13056 B) |
 
 Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
@@ -153,6 +153,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **Canvas layer, 6.5 to 6.75 KB, and `hit()`, 1 to 1.25 KB.** For the pointer in a slide as it is drawn (decision 22): 19 bytes in the layer, which had 3 left, and 0.15 KB in `hit()`. The same step of the layer is taken by the corners of the page's shape, which is work of the same day.
 - **Canvas layer, 6.75 to 7 KB; lightbox, 2 to 2.25 KB.** The canvas of a slider draws the way into the lightbox and back itself (`lift`, and `fx`, `dim` and `clip` of `change`): the image leaves its slide with the effects it has there, they fade on the way, and nothing jumps where the lightbox takes over or gives back. Before, the lightbox drew a flat image from the box around the slide, and the effects came back at once at the end. The corners of the shape the page gives with `corner-shape` are in the same layer: a squircle on the page is a squircle on the canvas, 0.1 KB.
 - **A page in React, 5.5 to 6 KB, and with the canvas 12 to 12.75 KB.** The page that is measured is made of the components now (decision 24), which are 0.4 KB more than the hook; the rest is what the layer grew by (decisions 22 and 27, and the way into the lightbox). The last quarter was taken when the two folders were put together (decision 29): each side was within 12.5 KB, both are 46 bytes over.
+- **Canvas layer, 7 to 7.25 KB, and the one of WebGPU, 9 to 9.25 KB; lightbox, 2.25 to 2 KB.** One canvas draws the lightbox (decision 30): lifted, a layer draws every slide, a stack as a row, and takes the picture of another element when `change` gives one. Of the quarter, 79 bytes of WebGL and 40 of WebGPU were over already when the two folders were put together (decision 29): the grown slide drawn over the others and a stack that grows out of its canvas, from `main`, beside `hit().uv()` and `empty()` from the worktree. The lightbox has no canvas of its own any more and is 0.2 KB smaller; its quarter is given back.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -460,6 +461,21 @@ On 2026-09-29 two sessions worked in the repo at once: one in `~/code/shaderslid
 - **The film is the film, whatever the pictures are.** The site of `main` lets a visitor choose between colour fields and photos, and had a photo in the place of every film of the photos. Film `a` is the user's video in both (decision 28); `b` is the colour field that moves, and a photo where the pictures are photos, as before. The first page and the playground say "Moving colour field" of `a` in their code, which the other session is changing: the slide says what is in the film whatever they say.
 - **Sizes**: the layer of WebGL had 3 bytes too many with the work of both in it. The check for an empty picture (decision 27) uses the helper that draws a picture smaller, which both layers have, and the layer is at 7159 of 7168 bytes. One budget was raised, see decision 11.
 - **Branch `together`**, in the worktree. `main` gets it when the other session has committed what it has.
+
+### 30. One canvas for the lightbox
+
+Asked for by the user on 2026-09-30: "why handover. can we not use the same canvas in the lightbox zoomed as in the slider?", and then, told what it costs: "do the bigger lightbox refactor with 1 canvas".
+
+- **What was**: the canvas of the slider drew the way into the lightbox (decision 23 as it was replaced, 29), and at 0.8 of the way the lightbox's own canvas faded in over it, a second layer of the same kind with textures of its own. The two drew the same image in the same place, but not with the same effects, and it was a second canvas, a second context and every image twice on the graphics card.
+- **Now the canvas of the slider is the canvas of the lightbox.** It is lifted into the `<dialog>` when the lightbox opens and comes back when it has closed. The slider of the lightbox is there as before, for the drag, the arrows, the keys and the focus, but it is HTML that is not seen: its images are not drawn by anything of their own. The canvas of the slider draws each of them where that slider has it, whole in the screen.
+- **The layer, lifted, draws every slide** where `change` says, a stack as a row, and none is left out for being far from the view. `change` may give `media`, another element whose texture is drawn, asked for at the size its quad is drawn at; until it is there, the texture of the slide. The lightbox gives its own image, the one in the size the browser picks for the screen, or `data-gs-full`: in the lightbox a picture is as sharp as before.
+- **The image of the lightbox is asked for when the lightbox is open**, not on the way: on the way it would be asked for at every size it passes, and a texture is made again only when it is drawn a fifth larger than it was made, so it could end up to a fifth too small. On the way the slide's own texture grows.
+- **A slide that the page has no picture of yet** (a stack keeps the slides that are not next from loading, decision 25) is drawn with the image of the lightbox: dragging to it, or closing from it, drew nothing before.
+- **Open, only what the lightbox shows is drawn.** The rest of the slider, dark as the page behind the lightbox is, was drawn over the images of the lightbox where an effect laid it out there (the covers).
+- **Its own effects are gone**: `effects`, `canvas` and `layer` of `lightbox()`. Open, the images are drawn without effects. `data-gs-lightbox` gives the slider a canvas, since the canvas of the slider is what draws the lightbox. Without a canvas the lightbox fades in, as before.
+- **The layer draws on demand again while it is lifted**: the lightbox wakes it when its slider moves, where before a lifted layer drew every frame.
+- **It costs** 0.15 KB in each layer and saves 0.2 KB in the lightbox; a page with a lightbox no longer loads a second layer for it at run time.
+- **Tests**: the ones of the lightbox, now of the one canvas: that it grows out of the slide and back, and that open the canvas draws the image as the page would, on both layers.
 
 ## Modules
 

@@ -103,7 +103,7 @@ parts.push( {
 if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 7168,
+		budget: 7424,
 		size: await measure(
 			`import { gl } from './src/gl/index.js'; export { gl };`
 		),
@@ -124,7 +124,7 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	} );
 	parts.push( {
 		name: 'canvas layer of WebGPU, no effects',
-		budget: 9216,
+		budget: 9472,
 		size: await measure(
 			`import { gpu } from './src/gpu/index.js'; export { gpu };`
 		),
@@ -174,7 +174,7 @@ if ( existsSync( resolve( root, 'src/lightbox.js' ) ) ) {
 	const both = `import { createSlider } from './src/index.js'; import { controls, keyboard } from './src/plugins/index.js'; import { gl } from './src/gl/index.js';`;
 	parts.push( {
 		name: 'lightbox',
-		budget: 2304,
+		budget: 2048,
 		size:
 			( await measure(
 				`${ both } import { lightbox } from './src/lightbox.js'; export { createSlider, controls, keyboard, gl, lightbox };`

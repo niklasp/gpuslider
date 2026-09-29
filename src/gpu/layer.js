@@ -419,13 +419,14 @@ export function gpu( {
 		 * @param {number} y  The slide in the quad, px.
 		 * @param {number} qw Width of the quad.
 		 * @param {number} qh Height of the quad.
+		 * @param {HTMLElement} [element] What the texture is of, if not
+		 *                    the media of the slide.
 		 * @return {Object|null} `record` of the texture and `numbers` of
 		 *                       `fit()`; null when the canvas has nothing
 		 *                       to draw.
 		 */
-		const bind = ( i, x, y, qw, qh ) => {
+		const bind = ( i, x, y, qw, qh, element = media[ i ] ) => {
 			const { textures } = context.shared;
-			const element = media[ i ];
 			const box = boxes[ i ];
 			if ( ! element || ! box || ! box.at.w || ! box.at.h ) {
 				return null;
@@ -438,9 +439,11 @@ export function gpu( {
 				return null;
 			}
 			const out = numbers[ i ];
-			box.at.x = x;
-			box.at.y = y;
-			const shown = fit( iw, ih, box.at, qw, qh, box.style, out );
+			// Another element is as large as its quad.
+			const at = element === media[ i ] ? box.at : { w: qw, h: qh };
+			at.x = x;
+			at.y = y;
+			const shown = fit( iw, ih, at, qw, qh, box.style, out );
 			const record = textures.get(
 				slider.wake,
 				element,
@@ -472,15 +475,19 @@ export function gpu( {
 			 * index and its quad: `x`, `y`, `w`, `h` in px of the view,
 			 * `a` (numbers of `fit()`), `radius`, `shape` and `speed`, which is
 			 * added to the speed of the slider; `fx`, how much the effects
-			 * do, 0 to 1; `dim`, what its colour is multiplied by; and
-			 * `clip`, whether it stays in the view. What it changes is drawn.
+			 * do, 0 to 1; `dim`, what its colour is multiplied by; `clip`,
+			 * whether it stays in the view; `p`, the progress of the slide;
+			 * `top`, whether it is drawn over the others; and `media`,
+			 * another element to take the picture of, while its texture is
+			 * there. What it changes is drawn.
 			 */
 			change: null,
 
 			/**
 			 * An element the canvas goes into, over the whole of it, and
 			 * draws the view where the view is: so that a slide can leave
-			 * it. Null, back in the slider.
+			 * it. Null, back in the slider. Lifted, every slide is drawn,
+			 * a stack as a row, and `change` says where.
 			 */
 			lift: null,
 
@@ -694,7 +701,8 @@ export function gpu( {
 					quads.push( [ a.record, b.record, lifted && clip ] );
 				};
 
-				if ( stack ) {
+				// Lifted, every slide is drawn where `change` says.
+				if ( stack && ! lifted ) {
 					// The slide the position has passed, and the one it
 					// moves to.
 					let from = -1;
@@ -732,16 +740,19 @@ export function gpu( {
 						// in.
 						if (
 							! box ||
-							place.x + size[ i ] < -span ||
-							place.x > 2 * span
+							( ! lifted &&
+								( place.x + size[ i ] < -span ||
+									place.x > 2 * span ) )
 						) {
 							return;
 						}
 						const along =
 							( rtl ? span - place.x - size[ i ] : place.x ) + box.dx;
 						const bound = bind( i, 0, 0, box.at.w, box.at.h );
-						if ( bound ) {
-							next.a = bound.numbers;
+						// Lifted, `change` may have a picture where the
+						// page has none yet.
+						if ( bound || lifted ) {
+							next.a = bound?.numbers;
 							next.x = down ? box.dy : along;
 							next.y = down ? along : box.dy;
 							next.w = box.at.w;
@@ -753,8 +764,20 @@ export function gpu( {
 							next.dim = 1;
 							next.clip = true;
 							next.top = false;
+							next.media = null;
+							next.p = place.p;
 							layer.change?.( i, next );
-							const args = [ next.x, next.y, next.w, next.h, { record: bound.record, numbers: next.a }, EMPTY, place.p, 0, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip ];
+							// The texture for the size it is drawn at, of
+							// the element `change` gives if it has one yet.
+							const { w, h } = next;
+							const again =
+								( next.media && bind( i, 0, 0, w, h, next.media ) ) ||
+								bind( i, 0, 0, w, h ) ||
+								bound;
+							if ( ! next.a || ! again ) {
+								return;
+							}
+							const args = [ next.x, next.y, w, h, { record: again.record, numbers: next.a }, EMPTY, next.p, 0, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip ];
 							// What grows out of the slider is drawn over the
 							// rest.
 							if ( next.top ) {
@@ -876,7 +899,6 @@ export function gpu( {
 
 			busy: () =>
 				making ||
-				!! layer.lift ||
 				( !! context &&
 					( pointer.moving ||
 						shader.animated ||

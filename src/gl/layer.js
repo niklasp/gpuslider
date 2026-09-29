@@ -369,9 +369,8 @@ export function gl( {
 		 * @return {Float32Array|null} Numbers of `fit()`; null when the
 		 *                             canvas has nothing to draw.
 		 */
-		const bind = ( i, unit, x, y, qw, qh ) => {
+		const bind = ( i, unit, x, y, qw, qh, element = media[ i ] ) => {
 			const { g, textures, nothing } = context;
-			const element = media[ i ];
 			const box = boxes[ i ];
 			g.activeTexture( g.TEXTURE0 + unit );
 			g.bindTexture( g.TEXTURE_2D, nothing );
@@ -386,9 +385,11 @@ export function gl( {
 				return null;
 			}
 			const out = numbers[ i ];
-			box.at.x = x;
-			box.at.y = y;
-			const shown = fit( iw, ih, box.at, qw, qh, box.style, out );
+			// Another element is as large as its quad.
+			const at = element === media[ i ] ? box.at : { w: qw, h: qh };
+			at.x = x;
+			at.y = y;
+			const shown = fit( iw, ih, at, qw, qh, box.style, out );
 			const record = textures.get( element, shown * ratio );
 			show( element, !! record );
 			if ( ! record ) {
@@ -414,15 +415,19 @@ export function gl( {
 			 * index and its quad: `x`, `y`, `w`, `h` in px of the view,
 			 * `a` (numbers of `fit()`), `radius`, `shape` and `speed`, which is
 			 * added to the speed of the slider; `fx`, how much the effects
-			 * do, 0 to 1; `dim`, what its colour is multiplied by; and
-			 * `clip`, whether it stays in the view. What it changes is drawn.
+			 * do, 0 to 1; `dim`, what its colour is multiplied by; `clip`,
+			 * whether it stays in the view; `p`, the progress of the slide;
+			 * `top`, whether it is drawn over the others; and `media`,
+			 * another element to take the picture of, while its texture is
+			 * there. What it changes is drawn.
 			 */
 			change: null,
 
 			/**
 			 * An element the canvas goes into, over the whole of it, and
 			 * draws the view where the view is: so that a slide can leave
-			 * it. Null, back in the slider.
+			 * it. Null, back in the slider. Lifted, every slide is drawn,
+			 * a stack as a row, and `change` says where.
 			 */
 			lift: null,
 
@@ -613,7 +618,8 @@ export function gl( {
 					g.drawElements( g.TRIANGLES, indices, g.UNSIGNED_SHORT, 0 );
 				};
 
-				if ( stack ) {
+				// Lifted, every slide is drawn where `change` says.
+				if ( stack && ! lifted ) {
 					// The slide the position has passed, and the one it
 					// moves to.
 					let from = -1;
@@ -651,15 +657,17 @@ export function gl( {
 					// A view further on each side: what bends may reach in.
 					if (
 						! box ||
-						place.x + size[ i ] < -span ||
-						place.x > 2 * span
+						( ! lifted &&
+							( place.x + size[ i ] < -span || place.x > 2 * span ) )
 					) {
 						return;
 					}
 					const along =
 						( rtl ? span - place.x - size[ i ] : place.x ) + box.dx;
 					next.a = bind( i, 0, 0, 0, box.at.w, box.at.h );
-					if ( next.a ) {
+					// Lifted, `change` may have a picture where the page
+					// has none yet.
+					if ( next.a || lifted ) {
 						turn(
 							( x, y ) => {
 								next.x = x;
@@ -677,18 +685,26 @@ export function gl( {
 						next.dim = 1;
 						next.clip = true;
 						next.top = false;
+						next.media = null;
+						next.p = place.p;
 						layer.change?.( i, next );
-						const args = [ next.x, next.y, next.w, next.h, next.a, null, place.p, 0, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip ];
-						// What grows out of the slider is drawn over the rest.
-						// Its texture is bound again when it is drawn.
+						const { w, h, media: of } = next;
+						if ( ! next.a ) {
+							return;
+						}
+						const args = [ next.x, next.y, w, h, next.a, null, next.p, 0, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip ];
+						// The texture again, for the size it is drawn at, of
+						// the element `change` gives if it has one yet.
 						const draw = () => {
-							bind( i, 0, 0, 0, box.at.w, box.at.h );
+							( of && bind( i, 0, 0, 0, w, h, of ) ) ||
+								bind( i, 0, 0, 0, w, h );
 							quad( ...args );
 						};
+						// What grows out of the slider is drawn over the rest.
 						if ( next.top ) {
 							top = draw;
 						} else {
-							quad( ...args );
+							draw();
 						}
 					}
 				} );
@@ -697,7 +713,6 @@ export function gl( {
 
 			busy: () =>
 				!! making ||
-				!! layer.lift ||
 				( !! context &&
 					( pointer.moving ||
 						shader.animated ||

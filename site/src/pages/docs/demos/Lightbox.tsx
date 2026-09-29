@@ -23,7 +23,7 @@ export default function Lightbox() {
 					keyboard(),
 					wheel(),
 					canvas( { effects: [ stretch(), split() ] } ),
-					lightbox( { effects: [ stretch(), split() ] } ),
+					lightbox(),
 				] }
 			>
 				{ [ 3, 5, 7, 1, 8, 2 ].map( ( n ) => (

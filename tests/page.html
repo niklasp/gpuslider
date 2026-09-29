@@ -112,10 +112,7 @@
 		options.plugins = names.map( ( name ) =>
 			name === 'lightbox'
 				? lightbox( {
-						effects,
 						duration: Number( query.get( 'open' ) ) || 500,
-						canvas: { preserve: true },
-						layer: window.lib.gl,
 				  } )
 				: name === 'hit'
 				? canvas.hit( { effects } )

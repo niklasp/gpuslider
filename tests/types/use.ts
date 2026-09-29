@@ -126,7 +126,7 @@ function Photos() {
 const drawn = createSlider( document.body, {
 	plugins: [
 		gpu( { effects: [ same(), wobble() ], eager: true, density: 1.5 } ),
-		lightbox( { layer: gpu } ),
+		lightbox(),
 	],
 } );
 const canvas: HTMLCanvasElement | null = drawn.plugins.gpu.canvas;
