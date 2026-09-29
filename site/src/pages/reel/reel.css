@@ -55,13 +55,13 @@ body {
 	transition: opacity 0.5s, translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.reel.ss-on .shown .ss-content > * {
+.reel.ss-on [data-shown] .ss-content > * {
 	opacity: 1;
 	translate: 0;
 	transition-delay: 0.45s;
 }
 
-.reel.ss-on .shown .ss-content h2 {
+.reel.ss-on [data-shown] .ss-content h2 {
 	transition-delay: 0.55s;
 }
 

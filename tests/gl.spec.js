@@ -314,6 +314,26 @@ test.describe( 'the canvas waits for the first sign of use', () => {
 		await painted( page );
 	} );
 
+	test( 'a pointer that was there before the slider, and moves', async ( { page } ) => {
+		await open( page, { n: 4, plugins: 'gl', lazy: 1 } );
+		const box = await page.locator( '#slider' ).boundingBox();
+		await page.mouse.move( box.x + 300, box.y + 100 );
+		await expect.poll( () => canvases( page ) ).toBe( 1 );
+		// The slider again, under the pointer that does not leave.
+		await page.evaluate( () => {
+			const { createSlider, gl } = window.lib;
+			window.slider.destroy();
+			window.slider = createSlider( document.getElementById( 'slider' ), {
+				plugins: [ gl( { preserve: true } ) ],
+			} );
+		} );
+		await page.waitForTimeout( 300 );
+		expect( await canvases( page ) ).toBe( 0 );
+		await page.mouse.move( box.x + 320, box.y + 110 );
+		await expect.poll( () => canvases( page ) ).toBe( 1 );
+		await painted( page );
+	} );
+
 	test( 'the focus', async ( { page } ) => {
 		await open( page, { n: 4, plugins: 'gl', lazy: 1 } );
 		await page.locator( '#slider' ).focus();

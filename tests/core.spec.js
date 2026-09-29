@@ -466,7 +466,7 @@ test.describe( 'without the script', () => {
 	test.use( { javaScriptEnabled: false } );
 
 	test( 'the slider is a scroller that snaps', async ( { page } ) => {
-		await page.goto( '/demo/' );
+		await page.goto( '/tests/plain.html' );
 		const track = page.locator( '#several .ss-track' );
 		const style = await track.evaluate( ( el ) => {
 			const { overflowX, scrollSnapType } = getComputedStyle( el );

@@ -1,5 +1,5 @@
 /**
- * Static server for the demo and the tests: serves the repo root.
+ * Static server for the tests and for `bench/`: serves the repo root.
  *
  * `node bin/serve.mjs [port]`
  */
@@ -65,5 +65,5 @@ createServer( ( request, response ) => {
 	createReadStream( file ).pipe( response );
 } ).listen( port, () => {
 	// eslint-disable-next-line no-console
-	console.log( `http://localhost:${ port }/demo/` );
+	console.log( `http://localhost:${ port }/bench/` );
 } );

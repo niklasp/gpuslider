@@ -1,5 +1,6 @@
 /**
- * Generates the demo media into `demo/media/`: nothing is downloaded.
+ * Generates the media of the site and the tests into `media/`: nothing is
+ * downloaded.
  *
  * Each image is a page rendered by Chromium: soft colour fields with a fine
  * grid and a number on top. The grid is there on purpose, it shows what a
@@ -16,7 +17,7 @@ import { mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const out = resolve( fileURLToPath( import.meta.url ), '../../demo/media' );
+const out = resolve( fileURLToPath( import.meta.url ), '../../media' );
 mkdirSync( out, { recursive: true } );
 
 const IMAGES = [

@@ -226,20 +226,25 @@ export default function Controls( { config, onChange }: Props ) {
 
 				<div className="grid gap-1.5">
 					<Label htmlFor="transition" className="text-xs text-muted-foreground">
-						Transition of the stack
+						Transition
 					</Label>
 					<Select
 						value={ config.transition }
 						disabled={ ! config.canvas }
 						onValueChange={ ( transition ) => onChange( { transition } ) }
 					>
-						<SelectTrigger id="transition" size="sm" className="w-36">
+						<SelectTrigger
+							id="transition"
+							size="sm"
+							className="w-36"
+							title="For the sliders that show one slide at a time. With none, their slides move."
+						>
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
 							{ TRANSITIONS.map( ( name ) => (
 								<SelectItem key={ name } value={ name }>
-									{ name }
+									{ name === 'none' ? 'None: the slides move' : name }
 								</SelectItem>
 							) ) }
 						</SelectContent>

@@ -19,6 +19,9 @@ import {
 	pixels,
 	pile,
 	fan,
+	dome,
+	jelly,
+	slab,
 	type Effect,
 } from 'shaderslide/effects';
 import * as transitions from '../../../src/gl/transitions/index.js';
@@ -43,6 +46,9 @@ export const EFFECTS = {
 	spotlight: { label: 'Spotlight', hint: 'Dimmed, except under the pointer' },
 	bend: { label: 'Bend', hint: 'The row is an arc' },
 	parallax: { label: 'Parallax', hint: 'The image is slower than its slide' },
+	jelly: { label: 'Jelly', hint: 'What moves the slides pulls them out of shape' },
+	slab: { label: 'Glass', hint: 'Thick glass: its edge bends the image' },
+	dome: { label: 'Dome', hint: 'What is far from the middle is smaller' },
 } as const;
 
 export type EffectName = keyof typeof EFFECTS;
@@ -81,7 +87,8 @@ export type Kind =
 	| 'fan'
 	| 'down';
 
-export const TRANSITIONS = Object.keys( transitions );
+/** The transitions, and none: the slides move. */
+export const TRANSITIONS = [ 'none', ...Object.keys( transitions ) ];
 
 export type Config = {
 	/** Draw on the canvas; off, the page draws. */
@@ -130,6 +137,9 @@ const make = ( name: EffectName, k: number ) =>
 		spotlight: () => spotlight( { dim: Math.min( 0.9, 0.45 * k ) } ),
 		bend: () => bend( { amount: 0.5 * k, speed: 0.25 * k } ),
 		parallax: () => parallax( { amount: Math.min( 0.4, 0.2 * k ) } ),
+		jelly: () => jelly( { amount: k } ),
+		slab: () => slab( { bend: Math.min( 1.6, 0.8 * k ) } ),
+		dome: () => dome( { amount: 0.8 * k } ),
 	} )[ name ]();
 
 const point = ( name: PointerName, k: number ): Effect[] =>
@@ -159,7 +169,9 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 	const laid = kind === 'covers' || kind === 'pile' || kind === 'fan';
 	const names = config.effects.filter(
 		( name ) =>
-			( kind === 'row' || name !== 'bend' ) &&
+			// What bends a row is for rows.
+			( kind === 'row' ||
+				! [ 'bend', 'dome', 'jelly' ].includes( name ) ) &&
 			! ( name === 'parallax' && ( laid || kind === 'stack' ) )
 	);
 	const effects = (): Effect[] => [
@@ -185,7 +197,8 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 	}
 	if ( config.canvas ) {
 		const more: Effect[] = [];
-		if ( kind === 'stack' ) {
+		// Without a transition a stack fades.
+		if ( kind === 'stack' && config.transition !== 'none' ) {
 			more.push(
 				( transitions as Record< string, () => Effect > )[
 					config.transition
@@ -227,6 +240,14 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 	}
 	return plugins;
 }
+
+/**
+ * What a slider is that shows one slide at a time: with a transition its
+ * slides are on top of each other and turn into each other, without one
+ * they are in a row and move. A transition is drawn by the canvas.
+ */
+export const single = ( config: Config ): Kind =>
+	config.canvas && config.transition !== 'none' ? 'stack' : 'row';
 
 /** What of the settings makes a slider another slider. */
 export const keyOf = ( config: Config ) =>

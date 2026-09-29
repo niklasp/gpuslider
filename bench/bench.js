@@ -58,7 +58,7 @@ for ( const layer of [ 'gpu', 'gl' ] ) {
 // Images that are loaded and read, so that no layer waits for them.
 const sources = Array.from(
 	{ length: 8 },
-	( _, i ) => `../demo/media/${ i + 1 }.jpg`
+	( _, i ) => `../media/${ i + 1 }.jpg`
 );
 await Promise.all(
 	sources.map( ( src ) => {

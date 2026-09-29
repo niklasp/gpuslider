@@ -335,7 +335,7 @@ test.describe( 'slides that come and go', () => {
 		page.evaluate( () => {
 			window.slider.track.insertAdjacentHTML(
 				'beforeend',
-				'<div class="ss-slide" data-i="new"><img class="ss-media" src="../demo/media/8.jpg" alt=""></div>'
+				'<div class="ss-slide" data-i="new"><img class="ss-media" src="../media/8.jpg" alt=""></div>'
 			);
 		} );
 

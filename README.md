@@ -9,29 +9,30 @@ Working name. The plan, with every decision and its reason, is in [PLAN.md](PLAN
 
 ```sh
 npm install
-npm start          # http://localhost:4173/demo/, and the demos below it
+npm start          # http://localhost:4173/bench/: the two layers, measured
 npm test           # Chromium, Firefox and WebKit
 npm run test:gpu   # the same, drawn by WebGPU: Chromium and WebKit
 npm run bench      # WebGPU and WebGL, measured against each other
-npm run site       # the site with controls, http://localhost:5183/
+npm run site       # the site with everything in it, http://localhost:5183/
 npm run size       # gzipped sizes, fails over budget; builds dist/
 npm run test:dist  # the tests, with what is built
 npm run types      # type declarations from the JSDoc, and a file that uses them
-npm run media      # generates the demo images and videos again
-npm run media:wall # generates the pictures of demo/wall/ again
+npm run media      # generates the images and videos in media/ again
+npm run media:wall # generates the pictures of the wall again
 ```
 
-## Demos
+## The site
 
-Pages without a build, in `demo/`. Each is the library and a page of script. `?layer=gl` and `?layer=gpu` say who draws.
+`npm run site`, http://localhost:5183/: a site of Vite and React that shows everything, with controls for all of it. What is to be seen of the library is there, and nowhere else. `?layer=gl` and `?layer=gpu` on the three pages below say who draws.
 
 | | |
 |---|---|
-| `demo/wall/` | A wall of glass without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, the page takes the pointer and moves both. `dome`, `jelly`, `slab`, and a screen with a mark that is drawn while the pictures load |
-| `demo/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
-| `demo/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
-| `demo/` | The slider in a plain page |
-| `bench/` | The two canvas layers, measured in the browser that opens it |
+| `/` | Every layout, every effect and transition, the lightbox, the loading screen, buttons anywhere and the events. Under every slider: who draws it, and what a frame costs |
+| `/wall/` | A wall of glass without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, the page takes the pointer and moves both. `dome`, `jelly`, `slab`, and a screen with a mark that is drawn while the pictures load |
+| `/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
+| `/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
+
+`bench/` is a page without a build, for `npm run bench` and for the browser that opens it: `npm start`, http://localhost:4173/bench/.
 
 ## Use it
 

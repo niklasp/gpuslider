@@ -23,11 +23,25 @@ export default defineConfig( {
 			'shaderslide/plugins': path.resolve( import.meta.dirname, '../src/plugins/index.js' ),
 			'shaderslide/style.css': path.resolve( import.meta.dirname, '../src/style.css' ),
 			'shaderslide/lightbox.css': path.resolve( import.meta.dirname, '../src/lightbox.css' ),
+			'shaderslide/loading.css': path.resolve( import.meta.dirname, '../src/loading.css' ),
 			shaderslide: path.resolve( import.meta.dirname, '../src/index.js' ),
 		},
 	},
-	// One page: what is not there is not found, and is not the page.
+	// Pages of their own: what is not there is not found, and is not the
+	// first page.
 	appType: 'mpa',
+	build: {
+		rollupOptions: {
+			input: Object.fromEntries(
+				[ 'index', 'wall/index', 'reel/index', 'tape/index' ].map(
+					( page ) => [
+						page.split( '/' )[ 0 ],
+						path.resolve( import.meta.dirname, `${ page }.html` ),
+					]
+				)
+			),
+		},
+	},
 	server: {
 		port: 5183,
 		fs: { allow: [ '..' ] },

@@ -1,5 +1,5 @@
 /**
- * Makes of every image in `demo/media/` what a page should send: AVIF, in
+ * Makes of every image in `media/` what a page should send: AVIF, in
  * the widths of `WIDTHS`, for `srcset`. And of every video its first frame,
  * as a poster.
  *
@@ -16,7 +16,7 @@ import { readdirSync, statSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const out = resolve( fileURLToPath( import.meta.url ), '../../demo/media' );
+const out = resolve( fileURLToPath( import.meta.url ), '../../media' );
 
 export const WIDTHS = [ 480, 720, 960, 1600 ];
 

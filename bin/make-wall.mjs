@@ -1,6 +1,7 @@
 /**
- * Generates the pictures of the wall into `demo/wall/media/`, and the rows
- * of `demo/wall/index.html`: nothing is downloaded.
+ * Generates the pictures of the wall of the site into `media/wall/`:
+ * nothing is downloaded. What is written on them is in
+ * `site/src/lib/wall.json`.
  *
  * Each picture is a page rendered by Chromium: a scene of gradients, noise
  * and shapes, with its title on it. The title is in the picture because
@@ -10,44 +11,21 @@
  * `node bin/make-wall.mjs`
  */
 import { chromium } from '@playwright/test';
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { readFileSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const wall = resolve( fileURLToPath( import.meta.url ), '../../demo/wall' );
-mkdirSync( resolve( wall, 'media' ), { recursive: true } );
+const root = resolve( fileURLToPath( import.meta.url ), '../..' );
+const site = resolve( root, 'site' );
+const out = resolve( root, 'media/wall' );
+mkdirSync( out, { recursive: true } );
 
 const W = 840;
 const H = 560;
-const ROWS = 7;
-const IN_A_ROW = 8;
 
-const TITLES = [
-	[ 'Quiet Engine', 'Work that runs without being heard.' ],
-	[ 'Salt Hour', 'The coast, an hour before anyone is up.' ],
-	[ 'Paper Weather', 'Forecasts, folded and kept.' ],
-	[ 'Low Orbit', 'Close enough to see the roads.' ],
-	[ 'Second Light', 'What a room looks like the next day.' ],
-	[ 'Glass Season', 'Four months of looking through things.' ],
-	[ 'Slow Signal', 'A message that takes its time.' ],
-	[ 'Open Water', 'No lanes, no walls, no floor.' ],
-	[ 'Warm Static', 'The sound between two stations.' ],
-	[ 'Blue Margin', 'Notes from the edge of the page.' ],
-	[ 'Long Shadow', 'Late in the day, everything is tall.' ],
-	[ 'First Draft', 'Before anyone said what it was.' ],
-	[ 'Tidal Room', 'A space that fills and empties.' ],
-	[ 'Dry Thunder', 'All of the noise, none of the rain.' ],
-	[ 'Far Field', 'Measured from a long way off.' ],
-	[ 'Still Moving', 'A study of things that do not stop.' ],
-	[ 'Bright Dust', 'What the light finds in the air.' ],
-	[ 'Half Light', 'Neither the day nor the night.' ],
-	[ 'Cold Open', 'It starts before the title.' ],
-	[ 'Inner Coast', 'A shoreline that is on no map.' ],
-	[ 'Lost Format', 'Made for a machine that is gone.' ],
-	[ 'Odd Hours', 'Open when nothing else is.' ],
-	[ 'Rough Cut', 'Everything is still in it.' ],
-	[ 'Thin Air', 'Higher than is good for you.' ],
-];
+const TITLES = JSON.parse(
+	readFileSync( resolve( site, 'src/lib/wall.json' ), 'utf8' )
+).map( ( { title, line } ) => [ title, line ] );
 const KINDS = [ 'Film', 'Field', 'Sound', 'Print', 'Light', 'Space' ];
 
 const PALETTES = [
@@ -168,33 +146,9 @@ const tab = await browser.newPage( { viewport: { width: W, height: H } } );
 for ( let i = 0; i < TITLES.length; i++ ) {
 	await tab.setContent( page( i ) );
 	await tab.screenshot( {
-		path: resolve( wall, `media/${ String( i + 1 ).padStart( 2, '0' ) }.jpg` ),
+		path: resolve( out, `${ String( i + 1 ).padStart( 2, '0' ) }.jpg` ),
 		type: 'jpeg',
 		quality: 80,
 	} );
 }
 await browser.close();
-
-// The rows of the page, between its two marks.
-let rows = '';
-for ( let row = 0; row < ROWS; row++ ) {
-	rows += `\t\t<div class="ss-slide">\n\t\t\t<div class="ss row" aria-label="Row ${ row + 1 } of ${ ROWS }">\n\t\t\t\t<div class="ss-track">\n`;
-	for ( let i = 0; i < IN_A_ROW; i++ ) {
-		// No picture twice in a row.
-		const n = ( row * 7 + i * [ 5, 7, 11, 13, 17, 19, 23 ][ row ] ) % TITLES.length;
-		const [ title, line ] = TITLES[ n ];
-		rows += `\t\t\t\t\t<div class="ss-slide"><img class="ss-media" src="media/${ String(
-			n + 1
-		).padStart( 2, '0' ) }.jpg" width="${ W }" height="${ H }" alt="${ title }. ${ line }"></div>\n`;
-	}
-	rows += '\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n';
-}
-const file = resolve( wall, 'index.html' );
-const html = readFileSync( file, 'utf8' );
-writeFileSync(
-	file,
-	html.replace(
-		/(<!-- rows -->\n)[^]*?(\t\t<!-- \/rows -->)/,
-		( all, from, to ) => from + rows + to
-	)
-);

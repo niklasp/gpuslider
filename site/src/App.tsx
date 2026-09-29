@@ -10,13 +10,22 @@ import {
 } from 'react';
 import 'shaderslide/style.css';
 import 'shaderslide/lightbox.css';
+import 'shaderslide/loading.css';
 import './site.css';
 // The controls are most of the script of the page, and no slider waits
 // for them.
 const Controls = lazy( () => import( '@/components/Controls' ) );
 import { ShaderSlider, Slide, Thumbs } from '@/components/ShaderSlider';
-import { DEFAULTS, keyOf, pluginsOf, type Config } from '@/lib/config';
+import {
+	DEFAULTS,
+	keyOf,
+	pluginsOf,
+	single,
+	type Config,
+} from '@/lib/config';
+import { image } from '@/lib/media';
 import type { Slider } from 'shaderslide';
+import { loading } from 'shaderslide/plugins';
 
 /** How wide a slide that fills the page is. */
 const WIDE = '(min-width: 1400px) 1400px, 100vw';
@@ -122,6 +131,89 @@ function Photos( props: PhotosProps ) {
 	);
 }
 
+/**
+ * A slider that shows a screen while its pictures load, and says what
+ * `loading()` tells. The pictures of the page are there already: they are
+ * asked for again, under another address.
+ */
+function Loads( props: PhotosProps ) {
+	const [ again, setAgain ] = useState( 0 );
+	const [ said, setSaid ] = useState< string[] >( [] );
+	const heard = useCallback( ( name: string, detail: unknown ) => {
+		if ( name.startsWith( 'loading:' ) ) {
+			const { loaded, failed, total, time } = detail as Record<
+				string,
+				number
+			>;
+			setSaid( ( now ) =>
+				[
+					`${ name } · ${ loaded + failed } of ${ total }` +
+						( time === undefined ? '' : ` · ${ time } ms` ),
+					...now,
+				].slice( 0, 8 )
+			);
+		}
+	}, [] );
+	return (
+		<div className="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+			<ShaderSlider
+				id="loads"
+				label="Pictures that load"
+				className="cards"
+				{ ...props }
+				made={ `${ props.made } ${ again }` }
+				heard={ heard }
+				plugins={ () => [
+					...props.plugins(),
+					// Not with the page: its first view is not to wait.
+					...( again ? [ loading( { min: 700 } ) ] : [] ),
+				] }
+			>
+				{ [ 7, 2, 5, 4, 1, 6 ].map( ( n ) => (
+					<div className="ss-slide card wide" key={ n }>
+						<img
+							className="ss-media"
+							{ ...image( n ) }
+							srcSet={ undefined }
+							src={ `/media/${ n }-960.avif${
+								again ? `?again=${ again }` : ''
+							}` }
+							alt={ `Colour field ${ n }` }
+							draggable={ false }
+							loading="lazy"
+						/>
+					</div>
+				) ) }
+			</ShaderSlider>
+			<div className="grid content-start gap-4">
+				<div>
+					<button
+						type="button"
+						className={ BUTTON }
+						onClick={ () => {
+							setSaid( [] );
+							setAgain( again + 1 );
+						} }
+					>
+						Load them again
+					</button>
+				</div>
+				<ol
+					data-testid="loaded"
+					aria-label="What the loading said"
+					className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
+				>
+					{ said.map( ( line, i ) => (
+						<li key={ said.length - i } className="first:text-foreground">
+							{ line }
+						</li>
+					) ) }
+				</ol>
+			</div>
+		</div>
+	);
+}
+
 export default function App() {
 	const [ config, setConfig ] = useState< Config >( DEFAULTS );
 	const change = useCallback(
@@ -144,6 +236,16 @@ export default function App() {
 		duration: config.duration,
 	};
 	const shared = { made, measured, plugins: () => pluginsOf( config ) };
+	// The sliders that show one slide at a time take the transition.
+	const one = {
+		made,
+		measured,
+		plugins: () => pluginsOf( config, single( config ) ),
+		options:
+			single( config ) === 'stack'
+				? { ...options, duration: Math.max( 900, config.duration * 1.8 ) }
+				: options,
+	};
 
 	// What the slider with the buttons outside of it said last.
 	const tell: Tell = useRef( null );
@@ -177,19 +279,35 @@ export default function App() {
 						scroll sideways, use the arrow keys. Click a slide for the
 						lightbox.
 					</p>
+					<nav
+						aria-label="Pages that are made of it"
+						className="mt-6 flex flex-wrap items-center gap-2"
+					>
+						<span className="text-sm text-muted-foreground">
+							Made of it:
+						</span>
+						<a className={ BUTTON } href="/wall/">
+							A wall of glass
+						</a>
+						<a className={ BUTTON } href="/reel/">
+							A reel
+						</a>
+						<a className={ BUTTON } href="/tape/">
+							Tape
+						</a>
+					</nav>
 				</div>
 
 				<Section
 					title="One per view"
-					note="Images and a video. The text is HTML on top of the canvas."
+					note="Images and a video. The text is HTML on top of the canvas. One slide at a time takes the transition that is chosen above: drag slowly to stop half way. With none, the slides move."
 				>
 					<ShaderSlider
 						id="one"
 						label="One per view"
-						options={ options }
 						style={ look }
 						pause={ config.autoplay }
-						{ ...shared }
+						{ ...one }
 					>
 						<Slide image={ 1 } alt="Warm colour field" className="hero" sizes={ WIDE } first>
 							<h3 className="text-2xl font-semibold md:text-4xl">Own motion</h3>
@@ -288,7 +406,7 @@ export default function App() {
 					title="With thumbnails"
 					note="Two sliders: the slides of the small one are the buttons of the large one."
 				>
-					<Photos options={ options } style={ look } { ...shared } />
+					<Photos style={ look } { ...one } />
 				</Section>
 
 				<Section
@@ -494,6 +612,25 @@ export default function App() {
 							/>
 						) ) }
 					</ShaderSlider>
+				</Section>
+
+				<Section
+					title="Loading"
+					note="A screen while the pictures load, and events that say how far they are. The screen is the one of the library; any element of the page can be it."
+				>
+					<Loads
+						options={ options }
+						style={
+							{
+								...look,
+								'--ss-per-view': 2.5,
+								'--ss-gap': '12px',
+							} as CSSProperties
+						}
+						made={ made }
+						measured={ measured }
+						plugins={ shared.plugins }
+					/>
 				</Section>
 
 				<Section

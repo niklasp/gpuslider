@@ -16,6 +16,7 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"allowJs": true,
+		"resolveJsonModule": true,
 		"checkJs": false,
 		"paths": {
 			"@/*": [ "./src/*" ],

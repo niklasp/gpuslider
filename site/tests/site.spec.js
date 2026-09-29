@@ -160,7 +160,7 @@ test( 'an effect switched on reaches every slider', async ( { page } ) => {
 
 test( 'the transition reaches the stack', async ( { page } ) => {
 	const before = await sliders( page );
-	await page.getByRole( 'combobox', { name: 'Transition of the stack' } ).click();
+	await page.getByRole( 'combobox', { name: 'Transition' } ).click();
 	await page.getByRole( 'option', { name: 'burn' } ).click();
 	await expect
 		.poll( async () => ( await sliders( page ) ).stack.made )
@@ -367,4 +367,55 @@ test( 'downwards: the keys go down, the slides are below each other', async ( { 
 	await expect
 		.poll( () => page.evaluate( () => window.sliders.down.index ) )
 		.toBe( 1 );
+} );
+
+test( 'a slider that shows one slide at a time takes the transition, and moves without one', async ( { page } ) => {
+	const stacks = () =>
+		page.evaluate( () =>
+			[ 'one', 'photos', 'stack', 'several' ].map(
+				( id ) => !! window.sliders[ id ].layout().stack
+			)
+		);
+	expect( await stacks() ).toEqual( [ true, true, true, false ] );
+	expect( await drawn( page, 'one' ) ).toBe( true );
+	// It goes on as a stack does: the next slide is where the first was.
+	await page.locator( '#one [data-ss-next]' ).click();
+	// The second slide is a film: a slider that shows one does not rest.
+	await page.waitForFunction( () => {
+		const { motion, index } = window.sliders.one;
+		return index === 1 && motion.pos === motion.target;
+	} );
+	expect(
+		await page.evaluate( () => {
+			const { slides, index, root } = window.sliders.one;
+			return (
+				slides[ index ].getBoundingClientRect().x -
+				root.getBoundingClientRect().x
+			);
+		} )
+	).toBe( 0 );
+
+	const before = await sliders( page );
+	await page.getByRole( 'combobox', { name: 'Transition' } ).click();
+	await page.getByRole( 'option', { name: 'None: the slides move' } ).click();
+	await expect
+		.poll( async () => ( await sliders( page ) ).one.made )
+		.not.toBe( before.one.made );
+	expect( await stacks() ).toEqual( [ false, false, true, false ] );
+	// And it is where it was.
+	expect( await page.evaluate( () => window.sliders.one.index ) ).toBe( 1 );
+	expect( await drawn( page, 'one' ) ).toBe( true );
+} );
+
+test( 'without the canvas nothing is a stack but the stack', async ( { page } ) => {
+	await page.getByRole( 'switch', { name: 'Canvas' } ).click();
+	await expect
+		.poll( () =>
+			page.evaluate( () =>
+				[ 'one', 'photos', 'stack' ].map(
+					( id ) => !! window.sliders[ id ].layout().stack
+				)
+			)
+		)
+		.toEqual( [ false, false, true ] );
 } );

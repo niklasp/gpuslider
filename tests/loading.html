@@ -41,11 +41,11 @@
 			.join( '' );
 	};
 	const image = ( n, more = '' ) =>
-		`<img class="ss-media" src="../demo/media/${ n }.jpg?held=${ n }" alt="" ${ more }>`;
+		`<img class="ss-media" src="../media/${ n }.jpg?held=${ n }" alt="" ${ more }>`;
 	fill( 'one', [ image( 1 ), image( 2 ), image( 3, 'loading="lazy"' ) ] );
 	fill( 'two', [
 		image( 4 ),
-		'<video class="ss-media" src="../demo/media/a.mp4?held=a" muted playsinline preload="none"></video>',
+		'<video class="ss-media" src="../media/a.mp4?held=a" muted playsinline preload="none"></video>',
 	] );
 
 	window.heard = [];

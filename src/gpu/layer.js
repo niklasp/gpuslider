@@ -394,13 +394,14 @@ export function gpu( {
 				slider.wake();
 			}
 		};
-		// The first sign of use.
+		// The first sign of use. A pointer that moves, not one that comes:
+		// it may have been there when the slider was made.
 		const want = () => {
 			wanted = true;
 			attach();
 		};
 		const hear = () =>
-			[ 'pointerenter', 'pointerdown', 'focusin' ].forEach( ( name ) =>
+			[ 'pointermove', 'pointerdown', 'focusin' ].forEach( ( name ) =>
 				root.addEventListener( name, want, { ...listening, once: true } )
 			);
 		hear();

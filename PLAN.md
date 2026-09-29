@@ -313,6 +313,19 @@ Asked for by the user on 2026-09-29: "crazy demos", similar to a wall of glass c
 - **Three loading screens**: a mark that is drawn as the pictures come (wall: an element of the page with `--ss-loaded`), a number that runs and a curtain (reel: `screen: false`, the events), the one of the library (tape).
 - **Not done**: the three effects in the controls of the site; a click on a card of the wall (a lightbox would have to know the dome); videos in the wall (their titles cannot be in the picture); phones were not tried.
 
+### 19. What is to be seen is in the site
+
+Decided by the user on 2026-09-29, after the demos had been built as plain pages under `demo/`: "i only want work on the vite site", and: remove the other.
+
+- **`demo/` is gone.** Its three pages are pages of the site: `/wall/`, `/reel/`, `/tape/`, each an HTML file of its own with its own script (`site/src/pages/`), rendered at build time as the first page is. What they are made of is on the first page too: `jelly`, `slab` and `dome` among the effects, and a section for `loading()`.
+- **In React the slider is made in an effect** and ended when the component goes. The wall is a function that is given its elements and gives back what ends it; the reel is `useSlider` and state that the events of `loading()` set; React never writes the classes of a slide, which are the slider's (the reel marks the slide that is shown by an attribute).
+- **The media are in `media/`**, for the site (`site/public/media` points there) and for the tests. The titles that are written on the pictures of the wall are in `site/src/lib/wall.json`, which the page and `bin/make-wall.mjs` read.
+- **The page without a script** that one test of the library needs is `tests/plain.html`.
+- **The scripts that the pages share give way** as the script of a page does: the build of several pages has hints for them in every page, which on a slow phone took from the first picture (Lighthouse mobile 90 with them as they came, 96 with `fetchpriority="low"`).
+- **A transition is for every slider that shows one slide at a time.** The user, the same day: "the transition on the stack still does not apply to sliders here. the first one e.g. always has liquid." What they saw on the first slider was `waves` under the pointer; the transition was for the slider named Stack, far down the page, and nothing said so. Now the sliders of the site with one slide per view are stacks while a transition is chosen and the canvas draws, and rows with "None: the slides move". A slider with several slides per view has no transition: there is no one picture that turns into another. A whole view that turns into the next would need the slides drawn into a picture first (the post pass, Open).
+- **The first sign of use is a pointer that moves**, not one that comes (both layers). A pointer that is over the slider when it is made never comes, and a visitor who moved it there got no canvas until they left and came back. Found by a test of the site that chose a transition with the pointer where the slider was.
+- **`bench/` stays a page without a build**: it measures the library, and what a build does to it is not what is to be measured.
+
 ## Modules
 
 | File | Does |
@@ -340,8 +353,9 @@ Asked for by the user on 2026-09-29: "crazy demos", similar to a wall of glass c
 | `src/gl/program.js` | Builds one shader from the chosen effects |
 | `src/gl/textures.js` | Image and video textures |
 | `bench/`, `bin/bench.mjs` | The two layers, measured against each other |
-| `demo/wall/`, `demo/reel/`, `demo/tape/` | Pages that are made of the library |
-| `bin/make-wall.mjs` | The pictures of the wall, and the rows of its page |
+| `site/` | The site: everything that is to be seen. `site/src/pages/` has the wall, the reel and the tape |
+| `media/` | Generated pictures and films, for the site and the tests |
+| `bin/make-wall.mjs` | The pictures of the wall |
 | `src/gl/fit.js` | Where `object-fit` and `object-position` put the pixels |
 | `src/gl/effects/*.js` | One effect per file |
 
@@ -407,7 +421,7 @@ Each phase ends with something that runs and with tests.
 - All of it again with `dist/` (`npm run test:dist`).
 - All of it again drawn by WebGPU (`npm run test:gpu`), and every effect and transition drawn by both layers and compared.
 - `canvas()` takes the layer the browser can draw, or the one it is told.
-- The demos: their loading screens, the wall moved both ways by a drag, the wheel and the keys, and without the script (`tests/demos.spec.js`).
+- The pages of the site that are made of the library: their loading screens, the wall moved both ways by a drag, the wheel and the keys; on the first page the loading section and the three effects (`site/tests/demos.spec.js`).
 - A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).
 
