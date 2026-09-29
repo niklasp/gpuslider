@@ -342,7 +342,7 @@ slider.on( '*', ( name, detail, slider ) => {} );
 |---|---|
 | `ready` | The slider. After the listeners that are added right after `createSlider()` |
 | `change` | Index of the snap the slider goes to |
-| `settle` | Index of the snap it came to rest at |
+| `settle` | Index of the snap it came to rest at. Also after the slider was measured, when it has not moved |
 | `visible` | Indexes of the slides in view, when they change |
 | `dragstart`, `dragend` | The motion; the velocity it was let go with |
 | `click` | `{ index, event }`. Not the click that ends a drag. A click on a slider that moves holds it, and is a click on the slide under it. The slide is the one that is seen: see [Effects](#effects) |
