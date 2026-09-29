@@ -316,12 +316,9 @@ export function Slide( {
 		<div className={ cn( 'gs-slide', className ) }>
 			{ name && filmed( name, kind ) ? (
 				<video
-					// Another film is another element: the canvas has the
-					// pictures of the one it knows.
-					key={ kind }
 					className="gs-media"
-					{ ...video( name, kind ) }
-					aria-label={ kind === 'photos' ? FILM : alt }
+					{ ...video( name ) }
+					aria-label={ name === 'a' ? FILM : alt }
 					preload="none"
 					muted
 					playsInline

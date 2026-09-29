@@ -121,29 +121,23 @@ export function image( n: number | 'a' | 'b', of: Kind = 'fields' ) {
 }
 
 /**
- * The film of the pictures that are photos, in the place of `a`: video
- * 13794727 of Pexels, cut to a loop by `bin/make-film.mjs`. There is one,
- * so `b` is a photo there.
+ * What is in the film `a`: video 13794727 of Pexels, cut to a loop by
+ * `bin/make-film.mjs`. It is the film whatever the pictures are.
  */
 export const FILM = 'Someone walking into a tunnel of coloured lights';
 
-/** Whether there is a film of that name in the pictures chosen. */
+/**
+ * Whether there is a film of that name in the pictures chosen: `b` is a
+ * colour field that moves, and a photo where the pictures are photos.
+ */
 export const filmed = ( name: 'a' | 'b', of: Kind = 'fields' ) =>
 	of === 'fields' || name === 'a';
 
-/** What a `<video>` needs. The films of the colour fields are made. */
-export const video = ( name: 'a' | 'b', of: Kind = 'fields' ) => {
-	const film = of === 'photos' && name === 'a';
-	const file = film ? 'film' : name;
-	const [ width, height ] = film
-		? [ 960, 540 ]
-		: name === 'a'
-		? [ 1280, 720 ]
-		: [ 960, 1200 ];
-	return {
-		src: `/media/${ file }.mp4`,
-		poster: `/media/${ file }-poster.avif`,
-		width,
-		height,
-	};
-};
+/** What a `<video>` needs. */
+export const video = ( name: 'a' | 'b' ) => ( {
+	src: `/media/${ name === 'a' ? 'film' : name }.mp4`,
+	poster: `/media/${ name === 'a' ? 'film' : name }-poster.avif`,
+	...( name === 'a'
+		? { width: 960, height: 540 }
+		: { width: 960, height: 1200 } ),
+} );

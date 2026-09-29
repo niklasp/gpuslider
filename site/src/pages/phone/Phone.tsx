@@ -240,7 +240,7 @@ export default function Phone() {
 						<Slide className="hero">
 							<video
 								className="gs-media"
-								{ ...video( 'a', 'photos' ) }
+								{ ...video( 'a' ) }
 								aria-label={ FILM }
 								preload="none"
 								muted
