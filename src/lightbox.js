@@ -147,7 +147,6 @@ export function lightbox( {
 		const grow = ( i, quad ) => {
 			const k = items.findIndex( ( item ) => item.i === i );
 			const it = k < 0 ? null : target( k );
-			quad.p = 0;
 			// Whether the page has the picture of the slide yet.
 			const had = !! quad.a;
 			if ( it && k === active ) {
@@ -163,6 +162,8 @@ export function lightbox( {
 				quad.w = mix( seen.w, it.w );
 				quad.h = mix( seen.h, it.h );
 				quad.radius = mix( quad.radius, 0 );
+				// Where an effect lays it out, it comes out of that place.
+				quad.p = mix( quad.p, 0 );
 				quad.fx = Math.max( 0, 1 - t / FADE );
 				quad.speed = still.matches ? 0 : speed * punch;
 				quad.a = mixed;
@@ -173,7 +174,7 @@ export function lightbox( {
 				it.x < screen.x + screen.w &&
 				it.x + it.w > screen.x
 			) {
-				Object.assign( quad, it, { a: whole, radius: 0, fx: 0 } );
+				Object.assign( quad, it, { a: whole, radius: 0, fx: 0, p: 0 } );
 			} else {
 				// Open, what the lightbox does not show is not drawn: it
 				// would be over what it shows.

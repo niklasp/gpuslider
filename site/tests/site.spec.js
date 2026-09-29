@@ -7,7 +7,6 @@ const IDS = [
 	'photos',
 	'down',
 	'rows',
-	'pile',
 	'fan',
 	'auto',
 	'tall',

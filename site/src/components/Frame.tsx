@@ -51,7 +51,7 @@ function Pictures() {
 		<div
 			role="group"
 			aria-label="Pictures"
-			className="sq-pill pointer-events-auto hidden h-12 sm:flex items-center gap-1 bg-black/45 p-1.5 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150"
+			className="hidden items-center gap-1 sm:flex"
 		>
 			{ KINDS.map( ( [ one, label, Icon ] ) => (
 				<button
@@ -70,7 +70,7 @@ function Pictures() {
 	);
 }
 
-/** The one button of the pictures, in the bar, on a phone. */
+/** The one button of the pictures, on a phone. */
 function Photos() {
 	const kind = useKind();
 	return (
@@ -119,19 +119,18 @@ export function Nav( { at }: { at: At } ) {
 						)
 					) }
 				</nav>
+				<span aria-hidden className="mx-1.5 h-6 w-px shrink-0 bg-white/15" />
+				<Pictures />
 				<Photos />
 			</div>
 			<a
 				href={ REPO }
 				aria-label="The code on GitHub"
 				title="The code on GitHub"
-				className="sq-pill pointer-events-auto absolute start-4 top-3 hidden size-12 place-items-center bg-black/45 text-white/70 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150 transition hover:text-white sm:grid md:start-5"
+				className="sq-pill pointer-events-auto absolute end-4 top-3 hidden size-12 place-items-center bg-black/45 text-white/70 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150 transition hover:text-white sm:grid md:end-5"
 			>
 				<GithubLogo size={ 20 } weight="fill" />
 			</a>
-			<div className="absolute end-4 top-3 md:end-5">
-				<Pictures />
-			</div>
 		</header>
 	);
 }

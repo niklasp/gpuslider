@@ -36,7 +36,8 @@ html {
 	}
 }
 
-/* A dot is small, what a finger has to hit is not: 24 px at least. */
+/* A dot is small, what a finger has to hit is not: 24 px high, and
+   close to the next. */
 .dots {
 	gap: 0;
 }
@@ -44,7 +45,7 @@ html {
 .dots .gs-dot {
 	display: grid;
 	place-items: center;
-	width: 24px;
+	width: 16px;
 	height: 24px;
 	padding: 0;
 	border: 0;
@@ -65,7 +66,7 @@ html {
 }
 
 .dots .gs-dot[aria-current] {
-	width: 38px;
+	width: 30px;
 }
 
 .dots .gs-dot[aria-current]::before {
@@ -151,9 +152,20 @@ html {
 	border-radius: 0;
 }
 
+/* As wide as the page, with more cards to fan. */
+.laid.wide {
+	--gs-per-view: 4.5;
+
+	padding-bottom: 10rem;
+}
+
 @media (max-width: 640px) {
 	.laid {
 		--gs-per-view: 1.6;
+	}
+
+	.laid.wide {
+		--gs-per-view: 2.2;
 	}
 }
 

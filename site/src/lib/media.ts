@@ -50,7 +50,7 @@ const PHOTOS: Record<
 	1: { alt: 'The silhouette of a man with a guitar in front of laser rays', light: '#5a4df0', focus: '45% 45%' },
 	2: { alt: 'A man kneeling by a boombox in front of neon signs', light: '#3f6df2', focus: '55% 45%' },
 	3: { alt: 'A woman in sunglasses between neon letters', light: '#16c8c0', focus: '45% 35%' },
-	4: { alt: 'A couple in an arcade, looking at the camera', light: '#c4e23c', focus: '72% 40%' },
+	4: { alt: 'A couple in an arcade, looking at the camera', light: '#9a4cf5', focus: '72% 40%' },
 	5: { alt: 'A woman in a white top, lightning projected on her', light: '#3d5cff', focus: '50% 35%' },
 	6: { alt: 'A man with words projected in red on his face', light: '#f0304f', focus: '55% 40%', tall: true },
 	7: { alt: 'A woman laughing in blue light, a stripe of warm light over her face', light: '#2a3cf0', focus: '50% 30%', tall: true },

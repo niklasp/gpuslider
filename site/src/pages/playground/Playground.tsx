@@ -302,34 +302,29 @@ export default function Playground() {
 				</Section>
 
 				<Section
-					title="A pile, and a fan"
-					note="Layouts that are effects of the canvas: the slider moves as ever, the effect says where a slide is drawn. Without the canvas they are rows."
+					title="A fan"
+					note="A layout that is an effect of the canvas: the slider moves as ever, the effect says where a slide is drawn. Without the canvas it is a row."
 				>
-					<div className="grid gap-6 md:grid-cols-2">
-						{ ( [ 'pile', 'fan' ] as const ).map( ( kind ) => (
-							<GpuSlider
-								key={ kind }
-								id={ kind }
-								label={ kind === 'pile' ? 'A pile' : 'A fan' }
-								options={ { ...options, align: 'center' } }
-								className="laid"
-								style={ look }
-								made={ made }
-								measured={ measured }
-								plugins={ () => pluginsOf( config, kind ) }
-							>
-								{ [ 2, 4, 6, 8, 1, 3, 5 ].map( ( n ) => (
-									<Slide
-										key={ n }
-										image={ n }
-										alt={ `Colour field ${ n }` }
-										className="cover"
-										sizes="(max-width: 640px) 60vw, 25vw"
-									/>
-								) ) }
-							</GpuSlider>
+					<GpuSlider
+						id="fan"
+						label="A fan"
+						options={ { ...options, align: 'center' } }
+						className="laid wide"
+						style={ look }
+						made={ made }
+						measured={ measured }
+						plugins={ () => pluginsOf( config, 'fan' ) }
+					>
+						{ [ 2, 4, 6, 8, 1, 3, 5, 7 ].map( ( n ) => (
+							<Slide
+								key={ n }
+								image={ n }
+								alt={ `Colour field ${ n }` }
+								className="cover"
+								sizes="(max-width: 640px) 60vw, 25vw"
+							/>
 						) ) }
-					</div>
+					</GpuSlider>
 				</Section>
 
 				<Section

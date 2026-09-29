@@ -64,7 +64,7 @@
 		"transition: zoom": 346,
 		"a page in React: arrows and dots": 5849,
 		"the same with the canvas and stretch": 12997,
-		"lightbox": 1986
+		"lightbox": 1985
 	},
 	"dist": {
 		"auto.js": 8358,
@@ -75,8 +75,8 @@
 		"gpu.js": 16545,
 		"hit.js": 1134,
 		"index.js": 4802,
-		"lightbox.css": 662,
-		"lightbox.js": 9009,
+		"lightbox.css": 726,
+		"lightbox.js": 9010,
 		"loading.css": 393,
 		"plugins.js": 4790,
 		"style.css": 690
