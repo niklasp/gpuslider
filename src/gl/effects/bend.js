@@ -17,4 +17,9 @@ export const bend = ( { amount = 0.5, speed = 0.25 } = {} ) => ( {
 	float depth = amount + speed * min( abs( uVelocity ), 6.0 );
 	p.z -= depth * x * x * uView.x * 0.3;
 	return p;`,
+	place( p, { velocity, view, quad } ) {
+		const x = ( ( quad[ 0 ] + quad[ 2 ] / 2 + p[ 0 ] ) / view[ 0 ] ) * 2 - 1;
+		const depth = amount + speed * Math.min( Math.abs( velocity ), 6 );
+		p[ 2 ] -= depth * x * x * view[ 0 ] * 0.3;
+	},
 } );

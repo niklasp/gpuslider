@@ -99,7 +99,7 @@ const slider = createSlider( document.querySelector( '.ss' ), {
 } );
 ```
 
-`shaderslide/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.6 KB.
+`shaderslide/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.7 KB.
 
 ### With what you name, and no more
 
@@ -110,7 +110,7 @@ import { controls, keyboard } from 'shaderslide/plugins';
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.4 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.5 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
@@ -140,7 +140,7 @@ function Photos( { photos, loop } ) {
 }
 ```
 
-The second argument is what the slider is made again for, as the dependencies of an effect; it stays at its slide. Slides that React adds or removes are seen by the slider. The hook adds 0.1 KB to the core. This page with arrows and dots is 5.1 KB in the bundle; with the canvas and `stretch` it is 11.4 KB.
+The second argument is what the slider is made again for, as the dependencies of an effect; it stays at its slide. Slides that React adds or removes are seen by the slider. The hook adds 0.1 KB to the core. This page with arrows and dots is 5.2 KB in the bundle; with the canvas and `stretch` it is 11.5 KB.
 
 ### Three tiers
 
@@ -295,7 +295,7 @@ slider.on( '*', ( name, detail, slider ) => {} );
 | `settle` | Index of the snap it came to rest at |
 | `visible` | Indexes of the slides in view, when they change |
 | `dragstart`, `dragend` | The motion; the velocity it was let go with |
-| `click` | `{ index, event }`. Not the click that ends a drag |
+| `click` | `{ index, event }`. Not the click that ends a drag. A click on a slider that moves holds it, and is a click on the slide under it. The slide is the one that is seen: see [Effects](#effects) |
 | `measure` | The layout, after every measuring |
 | `slides` | The slides, after some were added or removed |
 | `frame` | The view, on every frame of a move |
@@ -398,6 +398,8 @@ createSlider( element, { plugins: [ canvas(), lightbox( { effects: [ stretch() ]
 ```
 
 A click on a slide lets its image grow to the screen, Escape lets it go back. `data-ss-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
+
+The image grows, and no more: the effects of the lightbox are for the moves in it. `punch: 0.4` lets the speed of the growing count as speed for them, so that an image with `stretch()` bows while it opens.
 
 ## Loading
 
@@ -541,6 +543,17 @@ Effects that lay out: the slider moves as ever, the effect says where a slide is
 | `fan( { angle, radius } )` | A hand of cards, or a wheel |
 | `dome( { amount, centre, size } )` | The slides as on a dome: what is far from the middle is smaller and nearer to it |
 
+The page has such a slide in one place, and the canvas draws it in another. A click is a click on the slide that is seen: on the cover at the edge, not on the slide in whose place it is drawn. And the lightbox lets the image grow out of where it is drawn. `canvas()` sees to that with `hit()`, which it loads when an effect lays out; with a layer by its name it is a plugin to add:
+
+```js
+import { gl, hit, coverflow } from 'shaderslide/gl';
+
+const effects = [ coverflow() ];
+createSlider( element, { align: 'center', plugins: [ gl( { effects } ), hit( { effects } ) ] } );
+```
+
+`slider.plugins.hit.at( x, y )` is the slide that is seen at a point of the page, `.where( index )` is what is around a slide as it is drawn. What is there to be used in a slide (links, buttons) is where the page has it.
+
 Transitions, for `stack()`, one at a time:
 `liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`. Without one the stack fades.
 
@@ -586,6 +599,8 @@ level[ 0 ] = 0.8;
 slider.wake();
 ```
 
+An effect that lays the slides out says in JS too where it moves a point to, so that a click finds the slide that is seen: `place( p, about )` does what `vertex` does, with `p` as `[ x, y, z ]` and `about` with `progress`, `velocity`, `size`, `view` and `quad` as the uniforms of their names. Without it a click is a click on the slide whose place on the page it is.
+
 `head` is GLSL the bodies need, `animated: true` says that it moves without the slider moving, `animated: 'pointer'` that it does while the pointer is over the slider.
 
 Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`, and in `color` and `uv` also `uRadius`. See `src/gl/program.js`.
@@ -604,16 +619,17 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 
 | Part | Size |
 |---|---|
-| Core | 4.4 KB |
+| Core | 4.5 KB |
 | A plugin | 0.3 to 1 KB |
-| `shaderslide/full`: the core with all its options | 6.6 KB |
+| `shaderslide/full`: the core with all its options | 6.7 KB |
 | `useSlider` for React | 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
+| `hit()`, which says what slide is seen at a point | 0.9 KB |
 | Canvas layer of WebGPU | 8.4 KB |
 | Canvas layer of WebGL 2 | 6.5 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
-| Lightbox | 1.6 KB |
+| Lightbox | 1.7 KB |
 | `style.css`, `lightbox.css` | 0.7 and 0.6 KB |
 | `loading.css` | 0.4 KB |
 

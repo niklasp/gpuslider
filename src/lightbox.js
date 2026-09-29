@@ -47,6 +47,7 @@ const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-ss-no-zoom
  * @param {number}   [options.duration] Time of opening and closing, ms.
  * @param {number}   [options.punch]    How much the speed of the opening
  *                                      counts as speed for the effects.
+ *                                      0: the image grows, and no more.
  * @param {import('./index.js').Options} [options.slider] Options for the
  *                                      slider in the lightbox.
  * @param {Object}   [options.canvas]   Options for its canvas layer.
@@ -59,7 +60,7 @@ const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-ss-no-zoom
 export function lightbox( {
 	effects = [],
 	duration = 500,
-	punch = 0.4,
+	punch = 0,
 	slider: inner = {},
 	canvas = {},
 	layer: given,
@@ -139,8 +140,14 @@ export function lightbox( {
 				numbers
 			);
 			const seen = part( numbers, r.width, r.height );
-			seen.x += r.left - around.left;
-			seen.y += r.top - around.top;
+			// Where the canvas draws it, which an effect may have moved.
+			const drawn = slider.plugins.hit?.where( items[ item ].i ) || r;
+			const wide = drawn.width / r.width;
+			const high = drawn.height / r.height;
+			seen.x = seen.x * wide + drawn.left - around.left;
+			seen.y = seen.y * high + drawn.top - around.top;
+			seen.w *= wide;
+			seen.h *= high;
 			seen.radius = style.radius;
 			return seen;
 		};

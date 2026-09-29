@@ -652,7 +652,20 @@ export function createSlider( root, options = {} ) {
 	root.addEventListener(
 		'click',
 		( event ) => {
-			const at = slides.indexOf( event.target.closest?.( '.ss-slide' ) );
+			const { target } = event;
+			const slide = target.closest?.( '.ss-slide' );
+			let at = -1;
+			// The canvas may draw a slide elsewhere than the page has it:
+			// then a plugin says which one is seen at a point. What is
+			// there to be used is where the page has it.
+			if ( ! target.closest?.( 'a, button, input, select, textarea, label' ) ) {
+				used.forEach( ( plugin ) => {
+					at = plugin.at?.( event.clientX, event.clientY ) ?? at;
+				} );
+			}
+			if ( at < 0 ) {
+				at = slides.indexOf( slide );
+			}
 			if ( at >= 0 ) {
 				emit( 'click', { index: at, event } );
 			}

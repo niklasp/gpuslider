@@ -22,4 +22,17 @@ export const fan = ( { angle = 14, radius = 2.2 } = {} ) => ( {
 	p.y = radius * uSize.y + from.x * sin( a ) + from.y * cos( a );
 	p.z -= abs( uProgress ) * 0.02 * uSize.x;
 	return p;`,
+	place( p, { progress, size, view, quad } ) {
+		const a = ( angle * Math.PI * progress ) / 180;
+		const x = p[ 0 ];
+		const y = p[ 1 ] - radius * size[ 1 ];
+		p[ 0 ] =
+			view[ 0 ] / 2 -
+			quad[ 0 ] -
+			quad[ 2 ] / 2 +
+			x * Math.cos( a ) -
+			y * Math.sin( a );
+		p[ 1 ] = radius * size[ 1 ] + x * Math.sin( a ) + y * Math.cos( a );
+		p[ 2 ] -= Math.abs( progress ) * 0.02 * size[ 0 ];
+	},
 } );

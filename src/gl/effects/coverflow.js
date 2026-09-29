@@ -2,7 +2,8 @@
  * The slides next to the active one turn away and step back, like covers
  * in a rack.
  *
- * Moves the mesh. For a row with the active slide in the middle:
+ * Moves the mesh, and says where to in JS too (`place`): a click finds
+ * the slide that is seen. For a row with the active slide in the middle:
  * `align: 'center'`.
  *
  * @param {Object} [options]       Options.
@@ -24,4 +25,11 @@ export const coverflow = ( { angle = 50, depth = 0.4, range = 1 } = {} ) => ( {
 	p.x = x * cos( turn );
 	p.z = x * sin( turn ) - abs( away ) * depth * uSize.x;
 	return p;`,
+	place( p, { progress, size } ) {
+		const away = Math.max( -range, Math.min( range, progress ) );
+		const turn = ( angle * Math.PI * away ) / 180;
+		const [ x ] = p;
+		p[ 0 ] = x * Math.cos( turn );
+		p[ 2 ] = x * Math.sin( turn ) - Math.abs( away ) * depth * size[ 0 ];
+	},
 } );

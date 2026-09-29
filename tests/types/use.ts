@@ -3,7 +3,7 @@
  * `npm run types`.
  */
 import { createSlider, type Slider, type Plugin, type Create } from 'shaderslide';
-import { gl, stretch, coverflow, liquid, type Effect } from 'shaderslide/gl';
+import { gl, hit, stretch, coverflow, liquid, type Effect } from 'shaderslide/gl';
 import { gpu, stretch as same } from 'shaderslide/gpu';
 import { lightbox } from 'shaderslide/lightbox';
 import {
@@ -130,6 +130,22 @@ const drawn = createSlider( document.body, {
 	],
 } );
 const canvas: HTMLCanvasElement | null = drawn.plugins.gpu.canvas;
+
+// Effects that lay out, and the slide that is seen at a point.
+const covers: Effect[] = [ coverflow( { angle: 40 } ) ];
+const laid = createSlider( document.body, {
+	align: 'center',
+	plugins: [ gl( { effects: covers } ), hit( { effects: covers, perspective: 1200 } ) ],
+} );
+const seen: number | undefined = laid.plugins.hit.at( 10, 20 );
+const around: { left: number; width: number } | null = laid.plugins.hit.where( 0 );
+const moves: Effect = {
+	vertex: 'p.z -= 10.0; return p;',
+	place( p, { progress, size } ) {
+		p[ 2 ] -= 10 + progress * size[ 0 ];
+	},
+};
+
 
 auto( document.body );
 const found: Slider | undefined = sliders.get( document.body );

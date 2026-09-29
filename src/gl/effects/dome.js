@@ -29,4 +29,21 @@ export const dome = ( {
 	float far = dot( away, away ) / ( wide * wide );
 	vec2 to = p.xy - away * ( 1.0 - 1.0 / ( 1.0 + amount * far ) );
 	return vec3( to, p.z );`,
+	place( p, { view, quad } ) {
+		// Numbers, or what the page writes into.
+		const of = ( value, k = 0 ) => ( value.map ? value[ k ] : value );
+		const wide = of( size ) > 0 ? of( size ) : view[ 0 ];
+		const away = [ 0, 1 ].map(
+			( k ) =>
+				quad[ k ] +
+				quad[ k + 2 ] / 2 +
+				p[ k ] -
+				view[ k ] / 2 -
+				of( centre, k )
+		);
+		const far = ( away[ 0 ] ** 2 + away[ 1 ] ** 2 ) / wide ** 2;
+		const by = 1 - 1 / ( 1 + of( amount ) * far );
+		p[ 0 ] -= away[ 0 ] * by;
+		p[ 1 ] -= away[ 1 ] * by;
+	},
 } );

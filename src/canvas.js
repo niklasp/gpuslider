@@ -44,7 +44,14 @@ export function canvas( { layer, ...options } = {} ) {
 				can || layer === 'gpu'
 					? ( await import( './gpu/layer.js' ) ).gpu
 					: ( await import( './gl/layer.js' ) ).gl;
+			// Effects that lay the slides out: a click finds what is seen.
+			const seen =
+				options.effects?.some( ( effect ) => effect.place ) &&
+				( await import( './hit.js' ) ).hit;
 			if ( ! signal.aborted ) {
+				if ( seen ) {
+					slider.use( seen( options ) );
+				}
 				slider.emit( 'canvas:ready', slider.use( made( options ) ).name );
 			}
 		} );

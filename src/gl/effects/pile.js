@@ -26,4 +26,20 @@ export const pile = ( { offset = 0.06, turn = 5 } = {} ) => ( {
 	p.y -= below * offset * 0.5 * uSize.y;
 	p.z -= below * 0.1 * uSize.x - gone;
 	return p;`,
+	place( p, { progress, size, view, quad } ) {
+		const below = Math.max( progress, 0 );
+		const gone = Math.max( 0, Math.min( 1, -progress ) );
+		const a = ( turn * Math.PI * ( below - gone * 4 ) ) / 180;
+		const [ x, y ] = p;
+		p[ 0 ] =
+			x * Math.cos( a ) -
+			y * Math.sin( a ) +
+			view[ 0 ] / 2 -
+			quad[ 0 ] -
+			quad[ 2 ] / 2 +
+			( below * offset - gone * 1.2 ) * size[ 0 ];
+		p[ 1 ] =
+			x * Math.sin( a ) + y * Math.cos( a ) - below * offset * 0.5 * size[ 1 ];
+		p[ 2 ] -= below * 0.1 * size[ 0 ] - gone;
+	},
 } );

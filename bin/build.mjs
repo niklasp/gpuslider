@@ -103,8 +103,13 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 		size:
 			( await measure(
 				`export * from './src/canvas.js';`,
-				[ './src/gpu/layer.js', './src/gl/layer.js' ]
+				[ './src/gpu/layer.js', './src/gl/layer.js', './src/hit.js' ]
 			) ),
+	} );
+	parts.push( {
+		name: 'canvas: which slide is seen at a point',
+		budget: 1024,
+		size: await measure( `export * from './src/hit.js';` ),
 	} );
 	parts.push( {
 		name: 'canvas layer of WebGPU, no effects',
@@ -192,6 +197,7 @@ const built = await Promise.all( [
 			gl: 'src/gl/index.js',
 			gpu: 'src/gpu/index.js',
 			canvas: 'src/canvas.js',
+			hit: 'src/hit.js',
 			effects: 'src/effects.js',
 			lightbox: 'src/lightbox.js',
 		},

@@ -419,3 +419,57 @@ test( 'without the canvas nothing is a stack but the stack', async ( { page } ) 
 		)
 		.toEqual( [ false, false, true ] );
 } );
+
+test( 'a click on the cover at the edge opens that cover, not the one whose place it is', async ( { page } ) => {
+	test.slow();
+	expect( await drawn( page, 'covers' ) ).toBe( true );
+	// The covers at the edges are drawn once their pictures are there.
+	const at = await page
+		.waitForFunction( () => {
+			const { plugins, root, slides } = window.sliders.covers;
+			const box = root.getBoundingClientRect();
+			const bar = document
+				.querySelector( '[data-testid="controls"]' )
+				.getBoundingClientRect();
+			const x = box.left + 12;
+			const y = Math.max( box.top + box.height * 0.75, bar.bottom + 10 );
+			const seen = plugins.hit?.at( x, y );
+			const under = slides.indexOf(
+				document.elementFromPoint( x, y ).closest( '.ss-slide' )
+			);
+			return seen >= 0 && seen !== under && { x, y, seen, under };
+		} )
+		.then( ( found ) => found.jsonValue() );
+	await page.evaluate( () => {
+		window.opened = [];
+		window.sliders.covers.on( 'lightbox:open', ( index ) =>
+			window.opened.push( index )
+		);
+	} );
+	await page.mouse.click( at.x, at.y );
+	await expect( page.locator( '.ss-lightbox' ) ).toBeVisible();
+	expect( await page.evaluate( () => window.opened ) ).toEqual( [ at.seen ] );
+} );
+
+test( 'a click on a slider that moves opens the lightbox', async ( { page } ) => {
+	const slider = page.locator( '#several' );
+	await slider.scrollIntoViewIfNeeded();
+	const box = await slider.boundingBox();
+	const bar = await page.getByTestId( 'controls' ).boundingBox();
+	await page.evaluate( () => {
+		window.opened = [];
+		window.sliders.several.on( 'lightbox:open', ( index ) =>
+			window.opened.push( index )
+		);
+		window.sliders.several.set( { duration: 1500 } );
+		window.sliders.several.next();
+	} );
+	await page.waitForTimeout( 150 );
+	expect( await page.evaluate( () => window.sliders.several.resting ) ).toBe( false );
+	await page.mouse.click(
+		box.x + box.width / 2,
+		Math.max( box.y + box.height / 2, bar.height + 10 )
+	);
+	await expect( page.locator( '.ss-lightbox' ) ).toBeVisible();
+	expect( await page.evaluate( () => window.opened.length ) ).toBe( 1 );
+} );

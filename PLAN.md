@@ -342,6 +342,20 @@ Asked for by the user on 2026-09-29: "thik of the localhost:5183 like a package 
 - **Tailwind has a class `table`**, which makes a block a table: the block around a table that scrolls is `.scrolls`.
 - **The pictures of the examples** are taken by `npm run shots` from the site that runs, drawn by WebGPU.
 
+### 21. A click is a click on what is seen
+
+Reported by the user on 2026-09-29, with a picture of the covers in the playground: "when mouse is over the outermost slide here it should also zoom that but it zooms the slide 5. make sure zoom trigger even works when still sliding atm it only works when settled?" And of the lightbox: "when opening a zoom slide the slide gets the move left right animations shift applied. but that does not fit. either use another growing animation or just leave it". And of the wall: "the wobble used here is much too strong".
+
+- **The page has a slide in one place, the canvas draws it in another**, when an effect lays the slides out. Of the covers three have a place in view, and five are seen: the two at the edges are drawn in the places of their neighbours, and a click there opened the neighbour.
+- **`hit()` says which slide is seen at a point** (`src/hit.js`, 0.9 KB): it does in JS what the vertex shader does, for a mesh of 8 by 8 squares for every slide that the canvas draws, and takes the slide that is nearest to the eye, and of two that are as near the one that is drawn later, as the canvas does. The core asks the plugins that have `at( x, y )` when there is a click; `click` says what they say, and what the page says where they say nothing. `canvas()` loads `hit()` when an effect lays out, and a page without such an effect never loads it.
+- **An effect that moves the mesh says so twice**: `vertex` in GLSL, `place` in JS. `coverflow`, `pile`, `fan`, `dome` and `bend` do. `jelly` and `tilt` do not: they move a slide by little, around its place. A test holds the two against each other for every one of them: at some 1500 points of the slider, where a slide is said to be the canvas has drawn, and where none is said to be it has not.
+- **Considered: asking the canvas**, by drawing the slides with their number for a colour and reading the pixel under the pointer. It needs no second telling of where a slide is, and is right for every effect there will be. It is code in both layers, of which the one of WebGL has 3 bytes left of its budget, and in WebGPU a pixel is read after the click, not with it.
+- **What is there to be used is where the page has it**: a click on a link or a button in a slide is a click on the slide it is in. The text of a slide is not moved by the canvas (Open: slide content is not distorted with the image).
+- **The lightbox lets the image grow out of where it is drawn**: `hit().where( index )` is what is around the slide as the canvas draws it. For a cover that is turned away that is narrower than its place.
+- **A click on a slider that moves is a click.** The slider took the pointer as soon as it came down on a slider that moved, and the browser gives the click to who has the pointer: it came to the slider, not to a slide, and nothing was said. Now a pointer that comes down on a slider that moves holds it, and is taken when it has moved 4 px. Let go before, it was a click, and the slider goes to the snap that is nearest.
+- **The image of the lightbox grows, and no more.** `punch` is 0 where it was 0.4: the speed of the growing counted as speed for the effects, so an image with `stretch()` and `split()` bowed sideways while it opened. The option stays for who wants it.
+- **The wall swings less**: `jelly` at 0.4 of what it is, and springs that swing past once and a little (hold 16 and 10, where they were 8 and 4.5).
+
 ## Modules
 
 | File | Does |
@@ -361,6 +375,7 @@ Asked for by the user on 2026-09-29: "thik of the localhost:5183 like a package 
 | `bin/build.mjs`, `bin/glsl.mjs` | Sizes against budgets; `dist/`, with the shaders made small |
 | `src/canvas.js` | `canvas()`: the layer that the browser can draw |
 | `src/effects.js` | The effects and transitions, without a layer |
+| `src/hit.js` | `hit()`: which slide is seen at a point, where effects lay the slides out |
 | `src/gpu/layer.js` | The canvas layer of WebGPU: one device for a window, visibility, the draw |
 | `src/gpu/program.js` | Builds one shader in WGSL from the chosen effects |
 | `src/gpu/wgsl.js` | GLSL of the effects to WGSL |
@@ -444,6 +459,8 @@ Each phase ends with something that runs and with tests.
 - The pages of the site that are made of the library: their loading screens, the wall moved both ways by a drag, the wheel and the keys; in the playground the loading section and the three effects (`site/tests/demos.spec.js`).
 - The first page: its numbers are the ones that were measured, every feature and every link leads to a page that is there, its sliders are drawn by the canvas; the examples; every page of the docs, its links, and the sliders that show what it says; five pages on a screen as wide as a phone (`site/tests/pages.spec.js`).
 - A stack that is said in the HTML is one before the script, and nothing moves when it comes.
+- What `hit()` says is what the canvas has drawn, for every effect that lays out; a click on a cover at the edge is a click on that cover (`tests/hit.spec.js`).
+- A click on a slider that moves holds it, and is a click on the slide under it.
 - A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).
 

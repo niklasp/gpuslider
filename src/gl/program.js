@@ -24,6 +24,12 @@
  *     head        GLSL the bodies need: helper functions
  *     animated    true when it moves without the slider moving; 'pointer'
  *                 when it does so while the pointer is over the slider
+ *     place       what `vertex` does, in JS: `( p, about, uv )` with `p`
+ *                 as `[ x, y, z ]`, which it changes or gives back
+ *                 another, and `about` with `progress`, `velocity`,
+ *                 `size`, `view` and `quad` as the uniforms of their
+ *                 names. For effects that lay the slides out: a click
+ *                 finds the slide that is seen (see `hit.js`)
  *
  * `uv` runs over the quad from the top left, 0 to 1. The quad is the media
  * of a slide, or the whole view in a stack.
@@ -65,6 +71,8 @@
  *           mixes two slides.
  * @property {string | string[]}                 [head]       GLSL the bodies
  *           need: helper functions.
+ * @property {( p: number[], about: { progress: number, velocity: number, size: number[], view: number[], quad: number[] }, uv: number[] ) => number[] | void} [place]
+ *           What `vertex` does, in JS: where a point of the mesh is drawn.
  * @property {boolean | 'pointer'}               [animated]   Moves without
  *           the slider moving: always, or while the pointer is over the
  *           slider.
