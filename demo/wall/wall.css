@@ -81,6 +81,12 @@ footer a {
 	pointer-events: auto;
 }
 
+@media (max-width: 600px) {
+	#said {
+		display: none;
+	}
+}
+
 /* The screen while the pictures load. */
 
 .intro {

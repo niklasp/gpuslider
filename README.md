@@ -18,6 +18,7 @@ npm run size       # gzipped sizes, fails over budget; builds dist/
 npm run test:dist  # the tests, with what is built
 npm run types      # type declarations from the JSDoc, and a file that uses them
 npm run media      # generates the demo images and videos again
+npm run media:wall # generates the pictures of demo/wall/ again
 ```
 
 ## Demos
@@ -575,7 +576,7 @@ slider.wake();
 
 `head` is GLSL the bodies need, `animated: true` says that it moves without the slider moving, `animated: 'pointer'` that it does while the pointer is over the slider.
 
-Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`. See `src/gl/program.js`.
+Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`, and in `color` and `uv` also `uRadius`. See `src/gl/program.js`.
 
 What the translation knows is the GLSL that all effects here are written in. For an effect that is to run on WebGPU too:
 

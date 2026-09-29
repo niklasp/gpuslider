@@ -41,6 +41,8 @@
  *     uSize       size of the quad, px
  *     uView       size of the view, px
  *     uQuad       the quad in the view, px: left, top, width, height
+ *     uRadius     how round the corners of the quad are, px; not in
+ *                 `vertex`
  *
  * Effects are chained in the order given.
  *

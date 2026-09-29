@@ -66,6 +66,7 @@
 		"build": "node bin/build.mjs",
 		"size": "node bin/build.mjs --check",
 		"media": "node bin/make-media.mjs && node bin/make-variants.mjs",
+		"media:wall": "node bin/make-wall.mjs",
 		"test": "playwright test",
 		"types": "rm -rf types && tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
 		"prepublishOnly": "npm run types && npm run size && npm test && npm run test:gpu && npm run test:dist",
