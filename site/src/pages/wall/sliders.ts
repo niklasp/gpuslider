@@ -29,6 +29,9 @@ const moving = ( slider: Slider ) => -slider.view.velocity;
  * The springs. A spring follows the speed of the wall and swings past it:
  * when the wall stops, the glass does not. Two for each way, a tight one
  * and a loose one, and what swings is somewhere between them.
+ *
+ * They swing past once, and a little: with less hold the glass went to
+ * and fro for seconds, which the user found "much too strong".
  */
 const spring = ( pull: number, hold: number ) => ( {
 	pull,
@@ -41,6 +44,9 @@ const follow = ( one: ReturnType< typeof spring >, to: number, dt: number ) => {
 	one.at += one.speed * dt;
 	return Math.abs( to - one.at ) + Math.abs( one.speed ) * 0.1;
 };
+
+// How soft the glass is: 1 is jelly as it comes.
+const GIVE = 0.4;
 
 // A pointer that rested this long before it let go has no speed left, ms.
 const RECENT = 100;
@@ -57,8 +63,8 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 	const ended = new AbortController();
 	const { signal } = ended;
 	const swing = {
-		x: [ spring( 130, 8 ), spring( 60, 4.5 ) ],
-		y: [ spring( 130, 8 ), spring( 60, 4.5 ) ],
+		x: [ spring( 130, 16 ), spring( 60, 10 ) ],
+		y: [ spring( 130, 16 ), spring( 60, 10 ) ],
 	};
 
 	const outer = createSlider( root, {
@@ -95,7 +101,7 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 					canvas( {
 						effects: [
 							dome( { amount: 0.6, centre, size } ),
-							jelly( { across } ),
+							jelly( { amount: GIVE, across } ),
 							slab( { edge, bend: 0.8 } ),
 						],
 						eager: true,
