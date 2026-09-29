@@ -77,7 +77,7 @@ export function gl( {
 		const numbers = [];
 		const read = () => {
 			slides.forEach( ( slide, i ) => {
-				media[ i ] = slide.querySelector( '.ss-media' );
+				media[ i ] = slide.querySelector( '.gs-media' );
 				boxes[ i ] = null;
 				numbers[ i ] ||= new Float32Array( 13 );
 			} );
@@ -87,6 +87,10 @@ export function gl( {
 		read();
 		// The quad about to be drawn, for whoever changes it (see `change`).
 		const next = { x: 0, y: 0, w: 0, h: 0, a: null, radius: 0, speed: 0 };
+		// Where the canvas is, when it is lifted out of the slider (see
+		// `lift`): the view in it, and its size.
+		let lifted = null;
+		const frame = [ 0, 0, 0, 0 ];
 
 		let context = null;
 		// A canvas whose shader the compiler still has.
@@ -114,7 +118,7 @@ export function gl( {
 
 		const show = ( element, on ) => {
 			if ( on !== drawn.has( element ) ) {
-				element.classList.toggle( 'ss-drawn', on );
+				element.classList.toggle( 'gs-drawn', on );
 				drawn[ on ? 'add' : 'delete' ]( element );
 			}
 		};
@@ -154,7 +158,7 @@ export function gl( {
 				if ( ! made ) {
 					return;
 				}
-				canvas.className = 'ss-canvas';
+				canvas.className = 'gs-canvas';
 				canvas.setAttribute( 'aria-hidden', 'true' );
 				spare = { canvas, gl: made, kind, programs: new Map() };
 				canvas.addEventListener( 'webglcontextlost', ( event ) => {
@@ -185,7 +189,7 @@ export function gl( {
 				}
 			} catch ( error ) {
 				// eslint-disable-next-line no-console
-				console.error( 'shaderslide:', error );
+				console.error( 'gpuslider:', error );
 				making = null;
 				live--;
 				spares.get( doc ).push( spare );
@@ -274,7 +278,7 @@ export function gl( {
 			};
 			width = 0;
 			root.prepend( canvas );
-			root.classList.add( 'ss-gl' );
+			root.classList.add( 'gs-gl' );
 			slider.wake();
 			slider.emit( 'gl:on', canvas );
 		}
@@ -292,7 +296,7 @@ export function gl( {
 			context = null;
 			live--;
 			drawn.forEach( ( element ) => show( element, false ) );
-			root.classList.remove( 'ss-gl' );
+			root.classList.remove( 'gs-gl' );
 			slider.emit( 'gl:off', !! lost );
 			spare.canvas.remove();
 			spare.lost = null;
@@ -407,11 +411,20 @@ export function gl( {
 
 			/**
 			 * Called with every slide of a row before it is drawn, with its
-			 * index and its quad: `x`, `y`, `w`, `h` in px of the canvas,
-			 * `a` (numbers of `fit()`), `radius` and `speed`, which is
-			 * added to the speed of the slider. What it changes is drawn.
+			 * index and its quad: `x`, `y`, `w`, `h` in px of the view,
+			 * `a` (numbers of `fit()`), `radius`, `shape` and `speed`, which is
+			 * added to the speed of the slider; `fx`, how much the effects
+			 * do, 0 to 1; `dim`, what its colour is multiplied by; and
+			 * `clip`, whether it stays in the view. What it changes is drawn.
 			 */
 			change: null,
+
+			/**
+			 * An element the canvas goes into, over the whole of it, and
+			 * draws the view where the view is: so that a slide can leave
+			 * it. Null, back in the slider.
+			 */
+			lift: null,
 
 			/**
 			 * @param {HTMLElement} element Media element.
@@ -496,13 +509,26 @@ export function gl( {
 				// As high as the view gets: with auto height the view
 				// changes on every frame, the canvas does not.
 				const high = slider.plugins.autoHeight?.most || layout.height;
+				if ( layer.lift !== lifted ) {
+					lifted = layer.lift;
+					( lifted || root ).prepend( spare.canvas );
+					width = 0;
+				}
 				if ( layout.width !== width || high !== height || to !== ratio ) {
 					width = layout.width;
 					height = high;
 					ratio = to;
-					spare.canvas.style.height = `${ height }px`;
-					spare.canvas.width = Math.max( 1, Math.round( width * ratio ) );
-					spare.canvas.height = Math.max( 1, Math.round( height * ratio ) );
+					// Measured here, and drawn at once: a canvas of another
+					// size is empty.
+					const view = root.getBoundingClientRect();
+					const over = lifted?.getBoundingClientRect();
+					frame[ 0 ] = over ? view.left + root.clientLeft - over.left : 0;
+					frame[ 1 ] = over ? view.top + root.clientTop - over.top : 0;
+					frame[ 2 ] = over ? lifted.clientWidth : width;
+					frame[ 3 ] = over ? lifted.clientHeight : height;
+					spare.canvas.style.height = `${ frame[ 3 ] }px`;
+					spare.canvas.width = Math.max( 1, Math.round( frame[ 2 ] * ratio ) );
+					spare.canvas.height = Math.max( 1, Math.round( frame[ 3 ] * ratio ) );
 					g.viewport( 0, 0, spare.canvas.width, spare.canvas.height );
 				}
 
@@ -528,6 +554,18 @@ export function gl( {
 				const turn = ( fn, x, y ) => ( down ? fn( y, x ) : fn( x, y ) );
 				g.clear( g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT );
 				turn( ( x, y ) => g.uniform2f( at.uView, x, y ), width, height );
+				if ( down ) {
+					g.uniform4f( at.uFrame, frame[ 1 ], frame[ 0 ], frame[ 3 ], frame[ 2 ] );
+				} else {
+					g.uniform4fv( at.uFrame, frame );
+				}
+				// What leaves the view is cut where the slider cuts it.
+				g.scissor(
+					frame[ 0 ] * ratio,
+					( frame[ 3 ] - frame[ 1 ] - height ) * ratio,
+					width * ratio,
+					height * ratio
+				);
 				g.uniform1f( at.uTime, now / 1000 );
 				g.uniform1f( at.uPointerIn, pointer.in );
 				for ( const name in shader.params ) {
@@ -537,8 +575,11 @@ export function gl( {
 				// To the right on the screen, whatever the reading direction.
 				const velocity = ( layout.rtl ? 1 : -1 ) * view.velocity;
 
-				const quad = ( x, y, w, h, a, b, progress, mix, radius, speed ) => {
+				const quad = ( x, y, w, h, a, b, progress, mix, radius, speed, shape = 2, fx = 1, dim = 1, clip = true ) => {
 					g.uniform1f( at.uVelocity, velocity + speed );
+					g.uniform1f( at.uFx, fx );
+					g.uniform1f( at.uDim, dim );
+					g[ lifted && clip ? 'enable' : 'disable' ]( g.SCISSOR_TEST );
 					if ( down ) {
 						g.uniform4f( at.uQuad, y, x, h, w );
 					} else {
@@ -558,6 +599,7 @@ export function gl( {
 					g.uniform1f( at.uProgress, progress );
 					g.uniform1f( at.uMix, mix );
 					g.uniform1f( at.uRadius, radius );
+					g.uniform1f( at.uShape, shape );
 					g.uniform4f( at.uBoxA, a[ 0 ], a[ 1 ], a[ 2 ], a[ 3 ] );
 					g.uniform4f( at.uRectA, a[ 4 ], a[ 5 ], a[ 6 ], a[ 7 ] );
 					if ( b ) {
@@ -621,7 +663,11 @@ export function gl( {
 						next.w = box.at.w;
 						next.h = box.at.h;
 						next.radius = box.style.radius;
+						next.shape = box.style.shape;
 						next.speed = 0;
+						next.fx = 1;
+						next.dim = 1;
+						next.clip = true;
 						layer.change?.( i, next );
 						quad(
 							next.x,
@@ -633,7 +679,11 @@ export function gl( {
 							place.p,
 							0,
 							next.radius,
-							next.speed
+							next.speed,
+							next.shape,
+							next.fx,
+							next.dim,
+							next.clip
 						);
 					}
 				} );
@@ -641,6 +691,7 @@ export function gl( {
 
 			busy: () =>
 				!! making ||
+				!! layer.lift ||
 				( !! context &&
 					( pointer.moving ||
 						shader.animated ||

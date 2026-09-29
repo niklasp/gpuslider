@@ -1,6 +1,6 @@
 import { useState, type CSSProperties } from 'react';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
-import { controls, keyboard, wheel } from 'shaderslide/plugins';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
+import { controls, keyboard, wheel } from 'gpuslider/plugins';
 
 const plugins = () => [ controls(), keyboard(), wheel() ];
 
@@ -50,7 +50,7 @@ export default function Layout() {
 		<>
 			<div className="flex flex-wrap gap-6">
 				<Range
-					label="--ss-per-view"
+					label="--gs-per-view"
 					value={ perView }
 					min={ 1 }
 					max={ 5 }
@@ -58,7 +58,7 @@ export default function Layout() {
 					onChange={ setPerView }
 				/>
 				<Range
-					label="--ss-gap"
+					label="--gs-gap"
 					value={ gap }
 					unit="px"
 					min={ 0 }
@@ -67,13 +67,13 @@ export default function Layout() {
 					onChange={ setGap }
 				/>
 			</div>
-			<ShaderSlider
+			<GpuSlider
 				id="several"
 				label="Several per view"
 				options={ {} }
 				className="cards"
 				style={
-					{ '--ss-per-view': perView, '--ss-gap': `${ gap }px` } as CSSProperties
+					{ '--gs-per-view': perView, '--gs-gap': `${ gap }px` } as CSSProperties
 				}
 				made=""
 				measured={ measured }
@@ -88,14 +88,14 @@ export default function Layout() {
 						sizes="33vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-				<ShaderSlider
+				<GpuSlider
 					id="down"
 					label="Downwards"
 					options={ { axis: 'y' } }
 					className="down"
-					style={ { '--ss-gap': `${ gap }px` } as CSSProperties }
+					style={ { '--gs-gap': `${ gap }px` } as CSSProperties }
 					made=""
 					measured={ measured }
 					plugins={ plugins }
@@ -109,13 +109,13 @@ export default function Layout() {
 							sizes="(min-width: 768px) 30vw, 100vw"
 						/>
 					) ) }
-				</ShaderSlider>
-				<ShaderSlider
+				</GpuSlider>
+				<GpuSlider
 					id="rows"
 					label="Two rows"
 					options={ {} }
 					className="rows"
-					style={ { '--ss-gap': `${ gap }px` } as CSSProperties }
+					style={ { '--gs-gap': `${ gap }px` } as CSSProperties }
 					made=""
 					measured={ measured }
 					plugins={ plugins }
@@ -128,7 +128,7 @@ export default function Layout() {
 							sizes="(min-width: 768px) 15vw, 50vw"
 						/>
 					) ) }
-				</ShaderSlider>
+				</GpuSlider>
 			</div>
 			<p className="note">
 				The two at the top write custom properties of the first slider, and

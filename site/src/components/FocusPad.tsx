@@ -50,7 +50,7 @@ export function FocusPad( { value, onChange, image }: Props ) {
 				aria-valuetext={ `${ value.x }% from the left, ${ value.y }% from the top` }
 				aria-valuenow={ value.x }
 				data-testid="focus-pad"
-				className="relative aspect-video w-56 cursor-crosshair touch-none overflow-hidden rounded-md bg-cover bg-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				className="relative aspect-video w-56 cursor-crosshair touch-none overflow-hidden sq-knob bg-cover bg-center outline-none focus-visible:ring-2 focus-visible:ring-ring"
 				style={ { backgroundImage: `url(${ image })` } }
 				onPointerDown={ ( event ) => {
 					event.currentTarget.setPointerCapture( event.pointerId );
@@ -69,7 +69,7 @@ export function FocusPad( { value, onChange, image }: Props ) {
 				/>
 			</div>
 			<p className="font-mono text-xs text-muted-foreground">
-				--ss-focus: { value.x }% { value.y }%
+				--gs-focus: { value.x }% { value.y }%
 			</p>
 		</div>
 	);

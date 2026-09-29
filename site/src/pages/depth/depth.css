@@ -1,0 +1,159 @@
+/*
+ * Depth: black, large pictures, a panel of glass.
+ */
+
+:root {
+	--ground: #000;
+	--ink: #f5f5f7;
+	--muted: #8e8e93;
+}
+
+html,
+body {
+	margin: 0;
+}
+
+body {
+	display: flex;
+	flex-direction: column;
+	min-height: 100svh;
+	background: var(--ground);
+	color: var(--ink);
+	font: 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+	overflow-x: hidden;
+}
+
+#root {
+	display: contents;
+}
+
+header,
+footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px 24px;
+	padding: 18px clamp(16px, 4vw, 40px);
+	color: var(--muted);
+}
+
+header a,
+footer a {
+	color: var(--ink);
+}
+
+footer p {
+	max-width: 52ch;
+	margin: 0;
+}
+
+.gallery {
+	--gs-per-view: 1.7;
+	--gs-gap: clamp(12px, 2vw, 24px);
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--ink);
+
+	margin-block: auto;
+	padding-inline: clamp(16px, 4vw, 40px);
+}
+
+@media (max-width: 700px) {
+	.gallery {
+		--gs-per-view: 1.15;
+	}
+}
+
+.gallery .gs-slide {
+	aspect-ratio: 3 / 2;
+}
+
+.gallery .gs-media {
+	border-radius: 20px;
+}
+
+.arrow {
+	position: absolute;
+	top: 50%;
+	z-index: 2;
+	width: 44px;
+	height: 44px;
+	margin-top: -22px;
+	border: 0;
+	border-radius: 50%;
+	background: rgb(0 0 0 / 0.45);
+	backdrop-filter: blur(12px);
+	color: #fff;
+	cursor: pointer;
+}
+
+.arrow::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	width: 10px;
+	height: 10px;
+	margin: auto;
+	border-top: 2px solid;
+	border-inline-start: 2px solid;
+}
+
+[data-gs-prev] {
+	left: clamp(24px, 5vw, 56px);
+}
+
+[data-gs-prev]::before {
+	rotate: -45deg;
+	translate: 2px;
+}
+
+[data-gs-next] {
+	right: clamp(24px, 5vw, 56px);
+}
+
+[data-gs-next]::before {
+	rotate: 135deg;
+	translate: -2px;
+}
+
+/* The panel: glass, top right, as on the first page of the site. */
+.panel {
+	position: fixed;
+	top: 14px;
+	right: clamp(16px, 4vw, 40px);
+	z-index: 5;
+	display: grid;
+	gap: 10px;
+	width: min(300px, calc(100vw - 32px));
+	padding: 14px 16px;
+	border-radius: 22px;
+	background: rgb(20 20 22 / 0.6);
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+	backdrop-filter: blur(24px) saturate(1.5);
+}
+
+.panel label {
+	display: grid;
+	grid-template-columns: 92px 1fr 36px;
+	align-items: center;
+	gap: 10px;
+	color: var(--muted);
+}
+
+.panel output {
+	color: var(--ink);
+	font-variant-numeric: tabular-nums;
+	text-align: end;
+}
+
+.panel input {
+	width: 100%;
+	accent-color: #fff;
+}
+
+@media (max-width: 700px) {
+	.panel {
+		position: static;
+		margin: 0 16px;
+		width: auto;
+	}
+}

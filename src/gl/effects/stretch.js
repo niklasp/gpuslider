@@ -2,8 +2,11 @@
  * The image gives way to the speed of the slider: its middle hangs back
  * like cloth that is pulled at the top and the bottom.
  *
- * @param {Object} [options]        Options.
- * @param {number} [options.amount] How much; negative bows the other way.
+ * @param {Object}            [options]        Options.
+ * @param {number | number[]} [options.amount] How much; negative bows the
+ *                                             other way. An array of one
+ *                                             can be written into while it
+ *                                             runs.
  * @return {import('../program.js').Effect} Effect.
  */
 export const stretch = ( { amount = 1 } = {} ) => ( {

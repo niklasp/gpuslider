@@ -2,21 +2,21 @@
  * Animations in CSS: tells every slide where it is, as custom properties,
  * on every frame of a move.
  *
- *     --ss-p       how far the slide is from its resting place, in slides:
+ *     --gs-p       how far the slide is from its resting place, in slides:
  *                  -1 is one slide before the active one, 1 one after
- *     --ss-away    the same without a sign and not more than `range`
- *     --ss-share   how much of the slide is in the view, 0 to 1
+ *     --gs-away    the same without a sign and not more than `range`
+ *     --gs-share   how much of the slide is in the view, 0 to 1
  *
  * What to do with them is up to the page. What moves is what is in the
  * slide, not the slide: that one the slider moves and measures.
  *
- *     .ss-slide {
+ *     .gs-slide {
  *         perspective: 1200px;
- *         opacity: calc( 1 - var(--ss-away) * 0.6 );
+ *         opacity: calc( 1 - var(--gs-away) * 0.6 );
  *     }
- *     .ss-slide > * {
- *         scale: calc( 1 - var(--ss-away) * 0.2 );
- *         rotate: y calc( var(--ss-p) * -30deg );
+ *     .gs-slide > * {
+ *         scale: calc( 1 - var(--gs-away) * 0.2 );
+ *         rotate: y calc( var(--gs-p) * -30deg );
  *     }
  *
  * This styles the slides of the page. What the canvas draws of them is
@@ -54,18 +54,18 @@ export function progress( { range = 1 } = {} ) {
 					const key = values.join();
 					if ( key !== told[ i ] ) {
 						told[ i ] = key;
-						el.style.setProperty( '--ss-p', values[ 0 ] );
-						el.style.setProperty( '--ss-away', values[ 1 ] );
-						el.style.setProperty( '--ss-share', values[ 2 ] );
+						el.style.setProperty( '--gs-p', values[ 0 ] );
+						el.style.setProperty( '--gs-away', values[ 1 ] );
+						el.style.setProperty( '--gs-share', values[ 2 ] );
 					}
 				} );
 			},
 
 			destroy() {
 				slider.slides.forEach( ( { style } ) => {
-					style.removeProperty( '--ss-p' );
-					style.removeProperty( '--ss-away' );
-					style.removeProperty( '--ss-share' );
+					style.removeProperty( '--gs-p' );
+					style.removeProperty( '--gs-away' );
+					style.removeProperty( '--gs-share' );
 				} );
 			},
 		};

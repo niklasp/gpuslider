@@ -1,0 +1,77 @@
+/*
+ * Wave: a light room, and a band that runs through it.
+ */
+
+:root {
+	--ground: #f3f1ee;
+	--ink: #15130f;
+}
+
+body {
+	margin: 0;
+	background: var(--ground);
+	color: var(--ink);
+	font: 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+	overflow: hidden;
+}
+
+header,
+footer {
+	position: fixed;
+	inset-inline: 0;
+	z-index: 3;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px 24px;
+	padding: 18px clamp(16px, 4vw, 40px);
+	pointer-events: none;
+}
+
+header {
+	top: 0;
+}
+
+footer {
+	bottom: 0;
+}
+
+header a,
+footer a {
+	color: inherit;
+	pointer-events: auto;
+}
+
+footer p {
+	max-width: 52ch;
+	margin: 0;
+}
+
+.band {
+	--gs-gap: clamp(8px, 1vw, 14px);
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--ink);
+
+	display: grid;
+	align-items: center;
+	height: 100svh;
+}
+
+.band .gs-slide {
+	flex: 0 0 clamp(150px, 17vw, 260px);
+	aspect-ratio: 3 / 2;
+}
+
+.band .gs-media {
+	border-radius: 4px;
+}
+
+/* The band fades into the room at its ends. */
+.band::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	background: radial-gradient(ellipse 62% 70% at 50% 50%, transparent 55%, var(--ground) 100%);
+}

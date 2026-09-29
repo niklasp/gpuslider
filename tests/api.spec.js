@@ -79,7 +79,7 @@ test.describe( 'events', () => {
 	} );
 
 	test( 'visible says what changes, when it changes', async ( { page } ) => {
-		await open( page, { css: '.ss { --ss-per-view: 2; }' } );
+		await open( page, { css: '.gs { --gs-per-view: 2; }' } );
 		const got = await page.evaluate(
 			() =>
 				new Promise( ( done ) => {
@@ -97,7 +97,7 @@ test.describe( 'events', () => {
 	} );
 
 	test( 'click says the slide; the end of a drag is no click', async ( { page } ) => {
-		await open( page, { css: '.ss { --ss-per-view: 2; }' } );
+		await open( page, { css: '.gs { --gs-per-view: 2; }' } );
 		await page.evaluate( () => {
 			window.clicked = [];
 			window.slider.on( 'click', ( { index: at, event } ) =>
@@ -107,7 +107,7 @@ test.describe( 'events', () => {
 		await drag( page, -100, { pause: 150 } );
 		await settled( page );
 		expect( await page.evaluate( () => window.clicked ) ).toEqual( [] );
-		await page.locator( '.ss-slide[data-i="1"]' ).click( {
+		await page.locator( '.gs-slide[data-i="1"]' ).click( {
 			position: { x: 200, y: 200 },
 		} );
 		expect( await page.evaluate( () => window.clicked ) ).toEqual( [
@@ -116,7 +116,7 @@ test.describe( 'events', () => {
 	} );
 
 	test( 'a click on a slider that moves holds it, and is a click on the slide under it', async ( { page } ) => {
-		await open( page, { css: '.ss { --ss-per-view: 2; }', o: { duration: 1500 } } );
+		await open( page, { css: '.gs { --gs-per-view: 2; }', o: { duration: 1500 } } );
 		await page.evaluate( () => {
 			window.clicked = [];
 			window.slider.on( 'click', ( { index: at } ) => window.clicked.push( at ) );
@@ -124,7 +124,7 @@ test.describe( 'events', () => {
 			window.addEventListener(
 				'pointerdown',
 				( event ) => {
-					window.under = Number( event.target.closest( '.ss-slide' ).dataset.i );
+					window.under = Number( event.target.closest( '.gs-slide' ).dataset.i );
 					window.moving = ! window.slider.resting;
 				},
 				true
@@ -148,7 +148,7 @@ test.describe( 'events', () => {
 	test( 'autoplay says when it stops and goes on; measure, destroy', async ( { page } ) => {
 		await open( page, { o: { autoplay: 5000 } } );
 		await record( page );
-		const button = page.locator( '#slider > [data-ss-pause]' );
+		const button = page.locator( '#slider > [data-gs-pause]' );
 		await button.click();
 		await expect( button ).toHaveAttribute( 'aria-pressed', 'true' );
 		expect(
@@ -194,7 +194,7 @@ test.describe( 'events', () => {
 
 test.describe( 'what the slider knows', () => {
 	test( 'canNext, canPrev, progress, visible, previous', async ( { page } ) => {
-		await open( page, { n: 5, css: '.ss { --ss-per-view: 2; }' } );
+		await open( page, { n: 5, css: '.gs { --gs-per-view: 2; }' } );
 		const state = () =>
 			page.evaluate( () => {
 				const { canNext, canPrev, progress, previous } = window.slider;
@@ -283,8 +283,8 @@ test.describe( 'what the slider knows', () => {
 test.describe( 'controls anywhere on the page', () => {
 	test( 'with the id of the slider around them', async ( { page } ) => {
 		await open( page );
-		const back = page.locator( '#outside [data-ss-prev]' );
-		const on = page.locator( '#outside [data-ss-next]' );
+		const back = page.locator( '#outside [data-gs-prev]' );
+		const on = page.locator( '#outside [data-gs-next]' );
 		await expect( back ).toBeDisabled();
 		await on.click();
 		await on.click();
@@ -292,7 +292,7 @@ test.describe( 'controls anywhere on the page', () => {
 		await expect( back ).toBeEnabled();
 		await back.click();
 		expect( await index( page ) ).toBe( 1 );
-		const fourth = page.locator( '#outside [data-ss-to]' );
+		const fourth = page.locator( '#outside [data-gs-to]' );
 		await fourth.click();
 		await settled( page );
 		expect( await index( page ) ).toBe( 3 );
@@ -333,7 +333,7 @@ test.describe( 'controls anywhere on the page', () => {
 		await page.evaluate( () =>
 			document.body.insertAdjacentHTML(
 				'afterbegin',
-				'<button id="late" data-ss-for="slider" data-ss-next>late</button>'
+				'<button id="late" data-gs-for="slider" data-gs-next>late</button>'
 			)
 		);
 		await page.locator( '#late' ).click();
@@ -350,11 +350,11 @@ test.describe( 'controls anywhere on the page', () => {
 			return true;
 		} );
 		expect( other ).toBe( true );
-		await page.locator( '#outside [data-ss-next]' ).click();
-		await page.locator( '#slider > [data-ss-next]' ).click();
+		await page.locator( '#outside [data-gs-next]' ).click();
+		await page.locator( '#slider > [data-gs-next]' ).click();
 		expect( await index( page ) ).toBe( 2 );
 		expect( await page.evaluate( () => window.other.index ) ).toBe( 0 );
-		await page.locator( '#other > [data-ss-next]' ).click();
+		await page.locator( '#other > [data-gs-next]' ).click();
 		expect( await page.evaluate( () => window.other.index ) ).toBe( 1 );
 		expect( await index( page ) ).toBe( 2 );
 	} );
@@ -365,7 +365,7 @@ test.describe( 'slides that come and go', () => {
 		page.evaluate( () => {
 			window.slider.track.insertAdjacentHTML(
 				'beforeend',
-				'<div class="ss-slide" data-i="new"><img class="ss-media" src="../media/8.jpg" alt=""></div>'
+				'<div class="gs-slide" data-i="new"><img class="gs-media" src="../media/8.jpg" alt=""></div>'
 			);
 		} );
 
@@ -377,7 +377,7 @@ test.describe( 'slides that come and go', () => {
 			.poll( () => page.evaluate( () => window.slider.count() ) )
 			.toBe( 4 );
 		expect( ( await heard( page, 'slides' ) ).length ).toBe( 1 );
-		await expect( page.locator( '#slider > [data-ss-dots] button' ) ).toHaveCount( 4 );
+		await expect( page.locator( '#slider > [data-gs-dots] button' ) ).toHaveCount( 4 );
 		await page.evaluate( () => window.slider.to( 3 ) );
 		await settled( page );
 		expect( await leftOf( page, 3 ) ).toBe( 0 );
@@ -414,7 +414,7 @@ test.describe( 'slides that come and go', () => {
 		await page.evaluate( () => window.slider.to( 3, { instant: true } ) );
 		await settled( page );
 		await painted( page );
-		const shown = await page.locator( '#slider .ss-track' ).screenshot();
+		const shown = await page.locator( '#slider .gs-track' ).screenshot();
 		await open( page, { n: 3 } );
 		await add( page );
 		await page.evaluate( () => window.slider.to( 3, { instant: true } ) );
@@ -425,7 +425,7 @@ test.describe( 'slides that come and go', () => {
 		const { mean } = await difference(
 			page,
 			shown,
-			await page.locator( '#slider .ss-track' ).screenshot()
+			await page.locator( '#slider .gs-track' ).screenshot()
 		);
 		expect( mean ).toBeLessThan( 2 );
 	} );
@@ -507,14 +507,14 @@ test.describe( 'plugins', () => {
 		await open( page, {
 			n: 5,
 			plugins: 'progress',
-			css: '.ss { --ss-per-view: 3; } .ss-slide { opacity: calc( 1 - var(--ss-away) * 0.5 ); }',
+			css: '.gs { --gs-per-view: 3; } .gs-slide { opacity: calc( 1 - var(--gs-away) * 0.5 ); }',
 			o: { align: 'center', contain: false },
 		} );
 		const told = () =>
 			page.evaluate( () =>
 				window.slider.slides.map( ( el ) => [
-					Number( el.style.getPropertyValue( '--ss-p' ) ),
-					Number( el.style.getPropertyValue( '--ss-away' ) ),
+					Number( el.style.getPropertyValue( '--gs-p' ) ),
+					Number( el.style.getPropertyValue( '--gs-away' ) ),
 					Number( getComputedStyle( el ).opacity ),
 				] )
 			);
@@ -533,7 +533,7 @@ test.describe( 'plugins', () => {
 		await page.evaluate( () => window.slider.destroy() );
 		expect(
 			await page.evaluate( () =>
-				window.slider.slides[ 0 ].style.getPropertyValue( '--ss-p' )
+				window.slider.slides[ 0 ].style.getPropertyValue( '--gs-p' )
 			)
 		).toBe( '' );
 	} );
@@ -541,7 +541,7 @@ test.describe( 'plugins', () => {
 	test( 'coverflow: the slides beside the active one step back', async ( { page } ) => {
 		const setup = {
 			n: 5,
-			css: '.ss { --ss-per-view: 3; --ss-gap: 10px; }',
+			css: '.gs { --gs-per-view: 3; --gs-gap: 10px; }',
 			o: { align: 'center', contain: false, start: 2 },
 		};
 		await open( page, setup );
@@ -597,10 +597,10 @@ test.describe( 'the core alone', () => {
 		await settled( page );
 		expect( await index( page ) ).toBe( 2 );
 		// No arrows, no dots, no keys.
-		await page.locator( '#slider > [data-ss-next]' ).click();
+		await page.locator( '#slider > [data-gs-next]' ).click();
 		await page.locator( '#slider' ).press( 'ArrowRight' ).catch( () => {} );
 		expect( await index( page ) ).toBe( 2 );
-		await expect( page.locator( '#slider .ss-dot' ) ).toHaveCount( 0 );
+		await expect( page.locator( '#slider .gs-dot' ) ).toHaveCount( 0 );
 		// What assistive technology needs is there.
 		expect(
 			await page.evaluate( () => [
@@ -616,14 +616,14 @@ test.describe( 'the core alone', () => {
 		expect(
 			await page.evaluate( () => Object.keys( window.slider.plugins ) )
 		).toEqual( [ 'controls', 'keyboard' ] );
-		await page.locator( '#slider > [data-ss-next]' ).click();
+		await page.locator( '#slider > [data-gs-next]' ).click();
 		expect( await index( page ) ).toBe( 1 );
 		await page.locator( '#slider' ).focus();
 		await page.keyboard.press( 'ArrowRight' );
 		expect( await index( page ) ).toBe( 2 );
-		await expect( page.locator( '#slider .ss-dot' ) ).toHaveCount( 5 );
+		await expect( page.locator( '#slider .gs-dot' ) ).toHaveCount( 5 );
 		await page.evaluate( () => window.slider.destroy() );
-		await expect( page.locator( '#slider .ss-dot' ) ).toHaveCount( 0 );
+		await expect( page.locator( '#slider .gs-dot' ) ).toHaveCount( 0 );
 		expect(
 			await page.evaluate( () =>
 				window.slider.root.hasAttribute( 'tabindex' )

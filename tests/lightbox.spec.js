@@ -4,7 +4,7 @@ import { open, settled, drag, index, difference, expect, unable } from './helper
 const setup = {
 	n: 5,
 	plugins: 'gl,lightbox',
-	css: '.ss { --ss-per-view: 2; --ss-gap: 10px; } .ss-slide { border-radius: 12px; overflow: hidden; }',
+	css: '.gs { --gs-per-view: 2; --gs-gap: 10px; } .gs-slide { border-radius: 12px; overflow: hidden; }',
 };
 
 const box = ( page ) =>
@@ -39,8 +39,8 @@ const draws = ( page ) =>
 test.describe( 'lightbox', () => {
 	test( 'a click on a slide opens it, Escape closes it', async ( { page } ) => {
 		await open( page, setup );
-		const dialog = page.locator( 'dialog.ss-lightbox' );
-		await page.locator( '.ss-slide[data-i="1"] .ss-content' ).click( {
+		const dialog = page.locator( 'dialog.gs-lightbox' );
+		await page.locator( '.gs-slide[data-i="1"] .gs-content' ).click( {
 			position: { x: 200, y: 200 },
 		} );
 		await expect( dialog ).toBeVisible();
@@ -60,11 +60,25 @@ test.describe( 'lightbox', () => {
 		expect( await box( page ) ).toBeTruthy();
 	} );
 
+	test( 'opened by a click, the focus comes back without its ring', async ( { page } ) => {
+		await open( page, { ...setup, plugins: 'gl,lightbox,keyboard' } );
+		await page.locator( '#slider .gs-slide' ).nth( 1 ).click();
+		await opened( page );
+		await page.keyboard.press( 'Escape' );
+		await opened( page, 0 );
+		expect(
+			await page.evaluate( () => [
+				document.activeElement === window.slider.root,
+				document.activeElement.matches( ':focus-visible' ),
+			] )
+		).toEqual( [ true, false ] );
+	} );
+
 	test( 'the end of a drag and a click on a link do not open it', async ( { page } ) => {
 		await open( page, setup );
 		await drag( page, -300, { pause: 150 } );
 		await settled( page );
-		await page.locator( '.ss-slide[data-i="1"] a' ).click();
+		await page.locator( '.gs-slide[data-i="1"] a' ).click();
 		await page.waitForTimeout( 100 );
 		expect( await page.locator( 'dialog[open]' ).count() ).toBe( 0 );
 		expect( page.url() ).toContain( '#followed' );
@@ -75,7 +89,7 @@ test.describe( 'lightbox', () => {
 		// Where the image of the second slide is.
 		const thumb = await page.evaluate( () => {
 			const r = window.slider.slides[ 1 ]
-				.querySelector( '.ss-media' )
+				.querySelector( '.gs-media' )
 				.getBoundingClientRect();
 			return { x: r.left, y: r.top, w: r.width, h: r.height };
 		} );
@@ -85,38 +99,38 @@ test.describe( 'lightbox', () => {
 			() => window.slider.plugins.lightbox.progress > 0
 		);
 
-		// What the canvas of the lightbox has, as a box around everything
-		// that is not transparent.
-		const drawn = () =>
-			page.evaluate( () => {
-				const layer = window.slider.plugins.lightbox;
-				const { canvas } = layer.slider.plugins.gl;
-				const w = canvas.width;
-				const h = canvas.height;
-				const pixels = window.pixels( layer.slider.plugins.gl );
-				let x0 = w;
-				let y0 = h;
-				let x1 = 0;
-				let y1 = 0;
-				for ( let y = 0; y < h; y += 2 ) {
-					for ( let x = 0; x < w; x += 2 ) {
-						if ( pixels[ 4 * ( y * w + x ) + 3 ] > 128 ) {
-							x0 = Math.min( x0, x );
-							x1 = Math.max( x1, x );
-							y0 = Math.min( y0, y );
-							y1 = Math.max( y1, y );
+		// The canvas of the slider draws the way: where it draws the
+		// image, on the screen.
+		await page.evaluate( () => {
+			const layer = window.slider.plugins.gl;
+			let hook = layer.change;
+			Object.defineProperty( layer, 'change', {
+				get: () =>
+					hook &&
+					( ( i, quad ) => {
+						hook( i, quad );
+						if ( i === 1 ) {
+							const r = window.slider.root.getBoundingClientRect();
+							window.grown = {
+								x: quad.x + r.left,
+								y: quad.y + r.top,
+								w: quad.w,
+								h: quad.h,
+							};
 						}
-					}
-				}
-				const ratio = w / canvas.clientWidth;
-				return {
-					t: layer.progress,
-					x: x0 / ratio,
-					y: y0 / ratio,
-					w: ( x1 - x0 ) / ratio,
-					h: ( y1 - y0 ) / ratio,
-				};
+					} ),
+				set: ( to ) => ( hook = to ),
 			} );
+		} );
+		const drawn = async () => {
+			await page.evaluate(
+				() => new Promise( ( done ) => requestAnimationFrame( done ) )
+			);
+			return page.evaluate( () => ( {
+				t: window.slider.plugins.lightbox.progress,
+				...window.grown,
+			} ) );
+		};
 
 		const early = await drawn();
 		expect( early.t ).toBeLessThan( 0.5 );
@@ -150,20 +164,20 @@ test.describe( 'lightbox', () => {
 		await opened( page );
 		await page.waitForFunction( () =>
 			window.slider.plugins.lightbox.slider.slides[ 2 ].querySelector(
-				'.ss-drawn'
+				'.gs-drawn'
 			)
 		);
 		await opened( page );
 		const shot = () =>
-			page.locator( 'dialog .ss-track' ).screenshot();
+			page.locator( 'dialog .gs-track' ).screenshot();
 		const canvas = await shot();
 		// The same without the canvas: the image of the page.
 		await page.evaluate( () => {
 			const inner = window.slider.plugins.lightbox.slider;
 			inner.root.querySelector( 'canvas' ).style.visibility = 'hidden';
 			inner.root
-				.querySelectorAll( '.ss-drawn' )
-				.forEach( ( el ) => el.classList.remove( 'ss-drawn' ) );
+				.querySelectorAll( '.gs-drawn' )
+				.forEach( ( el ) => el.classList.remove( 'gs-drawn' ) );
 		} );
 		const { mean, far } = await difference( page, canvas, await shot() );
 		expect( mean ).toBeLessThan( 2 );
@@ -178,7 +192,7 @@ test.describe( 'lightbox', () => {
 			page.evaluate( () => window.slider.plugins.lightbox.slider.index );
 		await page.keyboard.press( 'ArrowRight' );
 		await expect.poll( at ).toBe( 1 );
-		await page.locator( 'dialog [data-ss-next]' ).click();
+		await page.locator( 'dialog [data-gs-next]' ).click();
 		await expect.poll( at ).toBe( 2 );
 		await opened( page );
 		await page.mouse.move( 700, 350 );
@@ -191,7 +205,7 @@ test.describe( 'lightbox', () => {
 		await opened( page );
 		// It goes back to the slide it was left at, and the slider behind
 		// has that slide in view.
-		await page.locator( 'dialog [data-ss-close]' ).click();
+		await page.locator( 'dialog [data-gs-close]' ).click();
 		await opened( page, 0 );
 		await settled( page );
 		expect( await index( page ) ).toBe( 3 );
@@ -220,7 +234,7 @@ test.describe( 'lightbox', () => {
 		const half = await page.evaluate( () =>
 			Number(
 				getComputedStyle(
-					document.querySelector( 'dialog .ss-slide:nth-child(2) .ss-media' )
+					document.querySelector( 'dialog .gs-slide:nth-child(2) .gs-media' )
 				).opacity
 			)
 		);

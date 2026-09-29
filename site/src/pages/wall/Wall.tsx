@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import 'shaderslide/style.css';
+import 'gpuslider/style.css';
 import './wall.css';
 import pictures from '@/lib/wall.json';
 import { wall } from './sliders';
@@ -35,7 +35,7 @@ export default function Wall() {
 			<div
 				ref={ intro }
 				id="intro"
-				className="intro ss-loading"
+				className="intro gs-loading"
 				aria-label="The wall is loading"
 			>
 				<svg
@@ -49,7 +49,7 @@ export default function Wall() {
 					<rect x="18" y="22" width="40" height="28" rx="7" />
 				</svg>
 				<p>
-					<span data-ss-loaded>0</span>
+					<span data-gs-loaded>0</span>
 					<span> %</span>
 				</p>
 			</div>
@@ -57,21 +57,21 @@ export default function Wall() {
 			<main
 				ref={ root }
 				id="wall"
-				className="ss wall"
+				className="gs wall"
 				aria-label="A wall of pictures. Drag it, or use the arrow keys."
 			>
-				<div className="ss-track">
+				<div className="gs-track">
 					{ rows.map( ( row, at ) => (
-						<div className="ss-slide" key={ at }>
+						<div className="gs-slide" key={ at }>
 							<div
-								className="ss row"
+								className="gs row"
 								aria-label={ `Row ${ at + 1 } of ${ ROWS }` }
 							>
-								<div className="ss-track">
+								<div className="gs-track">
 									{ row.map( ( n ) => (
-										<div className="ss-slide" key={ n }>
+										<div className="gs-slide" key={ n }>
 											<img
-												className="ss-media"
+												className="gs-media"
 												src={ `/media/wall/${ String( n + 1 ).padStart(
 													2,
 													'0'
@@ -91,7 +91,7 @@ export default function Wall() {
 			</main>
 
 			<footer>
-				<a href="/examples/">shaderslide</a>
+				<a href="/examples/">gpu slider</a>
 				<span ref={ said } id="said">
 					Drag the wall
 				</span>

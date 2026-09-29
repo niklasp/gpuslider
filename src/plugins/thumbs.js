@@ -6,7 +6,7 @@
  *     const photos = createSlider( one, { … } );
  *     createSlider( two, { plugins: [ thumbs( photos ) ] } );
  *
- * The thumbnail of the slide that is shown has the class `ss-active` and
+ * The thumbnail of the slide that is shown has the class `gs-active` and
  * `aria-current`. A thumbnail is named by the text of its picture (`alt`),
  * or by its number.
  */
@@ -23,7 +23,7 @@ export function thumbs( of ) {
 		const mark = () => {
 			slides.forEach( ( slide, i ) => {
 				const on = i === of.index;
-				slide.classList.toggle( 'ss-active', on );
+				slide.classList.toggle( 'gs-active', on );
 				if ( on ) {
 					slide.setAttribute( 'aria-current', 'true' );
 				} else {
@@ -74,7 +74,7 @@ export function thumbs( of ) {
 			destroy() {
 				off();
 				slides.forEach( ( slide ) => {
-					slide.classList.remove( 'ss-active' );
+					slide.classList.remove( 'gs-active' );
 					slide.removeAttribute( 'aria-current' );
 					slide.removeAttribute( 'tabindex' );
 				} );

@@ -22,12 +22,12 @@ body {
 	height: 100dvh;
 }
 
-.reel .ss-slide {
+.reel .gs-slide {
 	height: 100vh;
 	height: 100dvh;
 }
 
-.ss-content {
+.gs-content {
 	display: grid;
 	align-content: end;
 	padding: clamp(24px, 6vw, 96px);
@@ -36,37 +36,37 @@ body {
 	pointer-events: none;
 }
 
-.ss-content p {
+.gs-content p {
 	margin: 0 0 12px;
 	letter-spacing: 0.16em;
 	text-transform: uppercase;
 }
 
-.ss-content h2 {
+.gs-content h2 {
 	margin: 0;
 	font: 600 clamp(44px, 11vw, 190px) / 0.92 "Helvetica Neue", Helvetica, Arial, sans-serif;
 	letter-spacing: -0.045em;
 }
 
 /* The words come when their picture does. */
-.reel.ss-on .ss-content > * {
+.reel.gs-on .gs-content > * {
 	opacity: 0;
 	translate: 0 40px;
 	transition: opacity 0.5s, translate 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
-.reel.ss-on [data-shown] .ss-content > * {
+.reel.gs-on [data-shown] .gs-content > * {
 	opacity: 1;
 	translate: 0;
 	transition-delay: 0.45s;
 }
 
-.reel.ss-on [data-shown] .ss-content h2 {
+.reel.gs-on [data-shown] .gs-content h2 {
 	transition-delay: 0.55s;
 }
 
 .reel button,
-.reel [data-ss-dots] {
+.reel [data-gs-dots] {
 	position: absolute;
 	z-index: 2;
 	bottom: clamp(20px, 4vh, 44px);
@@ -89,31 +89,31 @@ body {
 	color: #000;
 }
 
-.reel [data-ss-prev] {
+.reel [data-gs-prev] {
 	right: calc(clamp(24px, 6vw, 96px) + 108px);
 }
 
-.reel [data-ss-next] {
+.reel [data-gs-next] {
 	right: calc(clamp(24px, 6vw, 96px) + 54px);
 }
 
-.reel [data-ss-pause] {
+.reel [data-gs-pause] {
 	right: clamp(24px, 6vw, 96px);
 }
 
-.reel [data-ss-pause][aria-pressed="true"] {
+.reel [data-gs-pause][aria-pressed="true"] {
 	background: #fff;
 	color: #000;
 }
 
-.reel [data-ss-dots] {
+.reel [data-gs-dots] {
 	left: clamp(24px, 6vw, 96px);
 	display: flex;
 	align-items: center;
 	height: 44px;
 }
 
-.reel [data-ss-dots] button {
+.reel [data-gs-dots] button {
 	position: static;
 	width: 24px;
 	height: 24px;
@@ -123,7 +123,7 @@ body {
 	backdrop-filter: none;
 }
 
-.reel [data-ss-dots] button::before {
+.reel [data-gs-dots] button::before {
 	content: "";
 	display: block;
 	width: 100%;
@@ -132,7 +132,7 @@ body {
 	transition: background 0.3s;
 }
 
-.reel [data-ss-dots] button[aria-current]::before {
+.reel [data-gs-dots] button[aria-current]::before {
 	background: #fff;
 }
 
@@ -192,7 +192,7 @@ footer a {
 
 @media (prefers-reduced-motion: reduce) {
 	.intro,
-	.reel.ss-on .ss-content > * {
+	.reel.gs-on .gs-content > * {
 		transition: none;
 	}
 }

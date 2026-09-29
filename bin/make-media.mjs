@@ -55,8 +55,10 @@ const page = ( { w, h, colors: [ a, b, c ] }, n ) => `<!doctype html>
 			repeating-linear-gradient( 0deg, #fff3 0 2px, transparent 2px 80px ),
 			repeating-linear-gradient( 90deg, #fff3 0 2px, transparent 2px 80px );
 	}
+	/* In the middle: what is laid over a picture is mostly at its edges. */
 	.n {
-		position: absolute; left: 5%; bottom: 4%;
+		position: absolute; inset: 0;
+		display: grid; place-items: center;
 		color: #fff; text-shadow: 0 10px 60px #0008;
 		letter-spacing: -0.04em;
 	}

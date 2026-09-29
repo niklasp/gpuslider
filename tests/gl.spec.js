@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 import { writeFileSync } from 'node:fs';
 import { open, settled, painted, drag, index, difference, draws, expect, GPU, unable, lose } from './helpers.js';
 
-const shot = ( page ) => page.locator( '#slider .ss-track' ).screenshot();
+const shot = ( page ) => page.locator( '#slider .gs-track' ).screenshot();
 
 /**
  * Opens the same slider without and with the canvas layer and compares
@@ -43,7 +43,7 @@ test.describe( 'the canvas draws what the page would', () => {
 		// slides.
 		const state = await page.evaluate( () => {
 			const root = window.slider.root;
-			const media = root.querySelector( '.ss-media' );
+			const media = root.querySelector( '.gs-media' );
 			return {
 				first: root.firstElementChild.className,
 				opacity: getComputedStyle( media ).opacity,
@@ -51,7 +51,7 @@ test.describe( 'the canvas draws what the page would', () => {
 			};
 		} );
 		expect( state ).toEqual( {
-			first: 'ss-canvas',
+			first: 'gs-canvas',
 			opacity: '0',
 			alt: 'Slide 1',
 		} );
@@ -63,7 +63,7 @@ test.describe( 'the canvas draws what the page would', () => {
 			{
 				n: 6,
 				o: { loop: true },
-				css: '.ss { --ss-per-view: 2.5; --ss-gap: 10px; } .ss-slide { border-radius: 30px; overflow: hidden; }',
+				css: '.gs { --gs-per-view: 2.5; --gs-gap: 10px; } .gs-slide { border-radius: 30px; overflow: hidden; }',
 			},
 			() => page.evaluate( () => window.slider.to( 5, { instant: true } ) )
 		);
@@ -71,10 +71,19 @@ test.describe( 'the canvas draws what the page would', () => {
 		expect( far ).toBeLessThan( 0.01 );
 	} );
 
+	test( 'corners of the shape the page gives them', async ( { page } ) => {
+		const { mean, far } = await compare( page, {
+			n: 4,
+			css: '.gs { --gs-per-view: 2; --gs-gap: 10px; } .gs-slide { border-radius: 90px; corner-shape: squircle; overflow: hidden; } .gs-slide:nth-child(2) { border-radius: 60px; corner-shape: superellipse(3); }',
+		} );
+		expect( mean ).toBeLessThan( 2 );
+		expect( far ).toBeLessThan( 0.01 );
+	} );
+
 	test( 'object-fit: contain and object-position', async ( { page } ) => {
 		const { mean, far } = await compare( page, {
 			n: 4,
-			css: '.ss { --ss-per-view: 2; } .ss-media { object-fit: contain; object-position: 20% 80%; } .ss-slide:nth-child(2) .ss-media { object-fit: cover; object-position: 10px 100%; }',
+			css: '.gs { --gs-per-view: 2; } .gs-media { object-fit: contain; object-position: 20% 80%; } .gs-slide:nth-child(2) .gs-media { object-fit: cover; object-position: 10px 100%; }',
 		} );
 		expect( mean ).toBeLessThan( 2 );
 		expect( far ).toBeLessThan( 0.01 );
@@ -83,22 +92,22 @@ test.describe( 'the canvas draws what the page would', () => {
 	test( 'the focus point, for all slides and for one', async ( { page } ) => {
 		const { mean, far } = await compare( page, {
 			n: 4,
-			css: '.ss { --ss-per-view: 2; --ss-focus: 0% 100%; } .ss-slide:nth-child(2) { --ss-focus: 100% 30%; }',
+			css: '.gs { --gs-per-view: 2; --gs-focus: 0% 100%; } .gs-slide:nth-child(2) { --gs-focus: 100% 30%; }',
 		} );
 		expect( mean ).toBeLessThan( 2 );
 		expect( far ).toBeLessThan( 0.01 );
 		// And it is not the middle that is drawn.
-		const focus = await page.locator( '#slider .ss-track' ).screenshot();
-		await open( page, { n: 4, plugins: 'gl', css: '.ss { --ss-per-view: 2; }' } );
+		const focus = await page.locator( '#slider .gs-track' ).screenshot();
+		await open( page, { n: 4, plugins: 'gl', css: '.gs { --gs-per-view: 2; }' } );
 		await painted( page );
-		const middle = await page.locator( '#slider .ss-track' ).screenshot();
+		const middle = await page.locator( '#slider .gs-track' ).screenshot();
 		expect( ( await difference( page, focus, middle ) ).mean ).toBeGreaterThan( 3 );
 	} );
 
 	test( 'media smaller than its slide', async ( { page } ) => {
 		const { mean, far } = await compare( page, {
 			n: 4,
-			css: '.ss { --ss-per-view: 2; } .ss-slide { padding: 20px 30px 40px 50px; box-sizing: border-box; }',
+			css: '.gs { --gs-per-view: 2; } .gs-slide { padding: 20px 30px 40px 50px; box-sizing: border-box; }',
 		} );
 		expect( mean ).toBeLessThan( 2 );
 		expect( far ).toBeLessThan( 0.01 );
@@ -107,7 +116,7 @@ test.describe( 'the canvas draws what the page would', () => {
 	test( 'right to left', async ( { page } ) => {
 		const { mean, far } = await compare(
 			page,
-			{ n: 5, dir: 'rtl', css: '.ss { --ss-per-view: 2; --ss-gap: 10px; }' },
+			{ n: 5, dir: 'rtl', css: '.gs { --gs-per-view: 2; --gs-gap: 10px; }' },
 			() => page.evaluate( () => window.slider.to( 1, { instant: true } ) )
 		);
 		expect( mean ).toBeLessThan( 2 );
@@ -177,8 +186,8 @@ test.describe( 'without the canvas', () => {
 		expect(
 			await page.evaluate( () => window.slider.plugins.gl.canvas )
 		).toBe( null );
-		expect( await page.locator( '.ss-canvas' ).count() ).toBe( 0 );
-		expect( await page.locator( '.ss-drawn' ).count() ).toBe( 0 );
+		expect( await page.locator( '.gs-canvas' ).count() ).toBe( 0 );
+		expect( await page.locator( '.gs-drawn' ).count() ).toBe( 0 );
 		await drag( page, -500, { pause: 150 } );
 		await settled( page );
 		expect( await index( page ) ).toBe( 1 );
@@ -189,18 +198,18 @@ test.describe( 'without the canvas', () => {
 		await open( page, { n: 4, plugins: 'gl' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await page.waitForFunction(
-			() => document.querySelectorAll( '.ss-drawn' ).length > 0
+			() => document.querySelectorAll( '.gs-drawn' ).length > 0
 		);
 		await lose( page );
 		await page.waitForFunction(
-			() => document.querySelectorAll( '.ss-drawn' ).length === 0
+			() => document.querySelectorAll( '.gs-drawn' ).length === 0
 		);
-		expect( await page.locator( '.ss-canvas' ).count() ).toBe( 0 );
+		expect( await page.locator( '.gs-canvas' ).count() ).toBe( 0 );
 		await page.evaluate( () => window.slider.next() );
 		await settled( page );
 		expect( await index( page ) ).toBe( 1 );
 		await page.waitForFunction(
-			() => document.querySelectorAll( '.ss-drawn' ).length > 0,
+			() => document.querySelectorAll( '.gs-drawn' ).length > 0,
 			null,
 			{ timeout: 5000 }
 		);
@@ -212,14 +221,14 @@ test.describe( 'without the canvas', () => {
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		await page.evaluate( () => window.scrollTo( 0, 1500 ) );
 		await page.waitForFunction( () => ! window.slider.plugins.gl.canvas );
-		expect( await page.locator( '.ss-drawn' ).count() ).toBe( 0 );
+		expect( await page.locator( '.gs-drawn' ).count() ).toBe( 0 );
 		await page.evaluate( () => window.scrollTo( 0, 0 ) );
 		await page.waitForFunction( () => !! window.slider.plugins.gl.canvas );
 	} );
 
 	test( 'more sliders than contexts: the rest is drawn by the page', async ( { page } ) => {
 		test.skip( GPU, 'WebGPU has one device for all sliders of a page.' );
-		await open( page, { n: 3, plugins: 'gl', css: '.ss { margin-block: 4px; } .ss-slide { height: 30px; } .tall, button, [data-ss-dots] { display: none; }' } );
+		await open( page, { n: 3, plugins: 'gl', css: '.gs { margin-block: 4px; } .gs-slide { height: 30px; } .tall, button, [data-gs-dots] { display: none; }' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGL 2 in this browser.' );
 		const drawing = await page.evaluate( async () => {
 			const first = document.getElementById( 'slider' );
@@ -228,8 +237,8 @@ test.describe( 'without the canvas', () => {
 				const copy = first.cloneNode( true );
 				copy.removeAttribute( 'id' );
 				copy.querySelector( 'canvas' )?.remove();
-				copy.querySelectorAll( '.ss-drawn' ).forEach( ( el ) =>
-					el.classList.remove( 'ss-drawn' )
+				copy.querySelectorAll( '.gs-drawn' ).forEach( ( el ) =>
+					el.classList.remove( 'gs-drawn' )
 				);
 				document.body.append( copy );
 				sliders.push(
@@ -263,7 +272,7 @@ test.describe( 'without the canvas', () => {
 test.describe( 'one device for all', () => {
 	test( 'twenty sliders, all drawn by the canvas, with one device', async ( { page } ) => {
 		test.skip( ! GPU, 'WebGL has a context for every slider.' );
-		await open( page, { n: 3, plugins: 'gl', css: '.ss { margin-block: 4px; } .ss-slide { height: 30px; } .tall, button, [data-ss-dots] { display: none; }' } );
+		await open( page, { n: 3, plugins: 'gl', css: '.gs { margin-block: 4px; } .gs-slide { height: 30px; } .tall, button, [data-gs-dots] { display: none; }' } );
 		test.skip( ! ( await draws( page ) ), 'No WebGPU in this browser.' );
 		const drawing = await page.evaluate( async () => {
 			const first = document.getElementById( 'slider' );
@@ -272,8 +281,8 @@ test.describe( 'one device for all', () => {
 				const copy = first.cloneNode( true );
 				copy.removeAttribute( 'id' );
 				copy.querySelector( 'canvas' )?.remove();
-				copy.querySelectorAll( '.ss-drawn' ).forEach( ( el ) =>
-					el.classList.remove( 'ss-drawn' )
+				copy.querySelectorAll( '.gs-drawn' ).forEach( ( el ) =>
+					el.classList.remove( 'gs-drawn' )
 				);
 				document.body.append( copy );
 				sliders.push(
@@ -285,7 +294,7 @@ test.describe( 'one device for all', () => {
 			await new Promise( ( done ) => setTimeout( done, 800 ) );
 			return [
 				sliders.filter( ( slider ) => slider.plugins.gl.canvas ).length,
-				document.querySelectorAll( '.ss-drawn' ).length,
+				document.querySelectorAll( '.gs-drawn' ).length,
 				window.devices.length,
 			];
 		} );
@@ -294,13 +303,13 @@ test.describe( 'one device for all', () => {
 } );
 
 test.describe( 'the canvas waits for the first sign of use', () => {
-	const canvases = ( page ) => page.locator( '#slider .ss-canvas' ).count();
+	const canvases = ( page ) => page.locator( '#slider .gs-canvas' ).count();
 
 	test( 'a slider that rests has none', async ( { page } ) => {
 		await open( page, { n: 4, plugins: 'gl', lazy: 1 } );
 		await page.waitForTimeout( 500 );
 		expect( await canvases( page ) ).toBe( 0 );
-		expect( await page.locator( '.ss-drawn' ).count() ).toBe( 0 );
+		expect( await page.locator( '.gs-drawn' ).count() ).toBe( 0 );
 		// And the page has asked for no frame since.
 		const frames = await page.evaluate( () => window.frames_ );
 		await page.waitForTimeout( 300 );

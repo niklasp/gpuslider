@@ -1,9 +1,9 @@
-# shaderslide
+# gpu slider
 
 A slider that draws its media on a canvas and owns its own motion: with WebGPU where the browser has it, with WebGL 2 where not.
 No dependencies.
 
-Working name. The plan, with every decision and its reason, is in [PLAN.md](PLAN.md).
+The plan, with every decision and its reason, is in [PLAN.md](PLAN.md).
 
 ## Run it
 
@@ -50,75 +50,75 @@ Three ways, from the least to write to the least to load.
 ### Without a script of your own
 
 ```html
-<link rel="stylesheet" href="…/shaderslide/dist/style.css">
-<script type="module" src="…/shaderslide/dist/auto.js"></script>
+<link rel="stylesheet" href="…/gpuslider/dist/style.css">
+<script type="module" src="…/gpuslider/dist/auto.js"></script>
 
-<div class="ss" aria-label="Photos"
-	data-ss='{ "loop": true, "autoplay": 4000 }'
-	data-ss-canvas="stretch waves">
-	<div class="ss-track">
-		<div class="ss-slide">
-			<img class="ss-media" src="one.jpg" alt="…">
-			<div class="ss-content">Anything: headings, links, buttons.</div>
+<div class="gs" aria-label="Photos"
+	data-gs='{ "loop": true, "autoplay": 4000 }'
+	data-gs-canvas="stretch waves">
+	<div class="gs-track">
+		<div class="gs-slide">
+			<img class="gs-media" src="one.jpg" alt="…">
+			<div class="gs-content">Anything: headings, links, buttons.</div>
 		</div>
-		<div class="ss-slide">
-			<video class="ss-media" src="two.mp4" muted playsinline loop autoplay></video>
+		<div class="gs-slide">
+			<video class="gs-media" src="two.mp4" muted playsinline loop autoplay></video>
 		</div>
 	</div>
-	<button data-ss-prev aria-label="Previous slide">‹</button>
-	<button data-ss-next aria-label="Next slide">›</button>
-	<button data-ss-pause aria-label="Pause autoplay"></button>
-	<div data-ss-dots></div>
+	<button data-gs-prev aria-label="Previous slide">‹</button>
+	<button data-gs-next aria-label="Next slide">›</button>
+	<button data-gs-pause aria-label="Pause autoplay"></button>
+	<div data-gs-dots></div>
 </div>
 ```
 
 | Attribute | |
 |---|---|
-| `data-ss` | Makes the element a slider. Its value: the options of `shaderslide/full` as JSON, or nothing |
-| `data-ss-canvas` | The canvas, with the effects that are named: `"stretch waves"`, or with their options `'{ "stretch": { "amount": 2 } }'`. Drawn by WebGPU where the browser has it, by WebGL 2 where not |
-| `data-ss-gpu`, `data-ss-gl` | The same, by the one that is named or by the page |
-| `data-ss-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
-| `data-ss-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
+| `data-gs` | Makes the element a slider. Its value: the options of `gpuslider/full` as JSON, or nothing |
+| `data-gs-canvas` | The canvas, with the effects that are named: `"stretch waves"`, or with their options `'{ "stretch": { "amount": 2 } }'`. Drawn by WebGPU where the browser has it, by WebGL 2 where not |
+| `data-gs-gpu`, `data-gs-gl` | The same, by the one that is named or by the page |
+| `data-gs-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
+| `data-gs-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
-`auto.js` is one file of 7.8 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
+`auto.js` is one file of 8.1 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
 
-The element tells when its slider is made: `ss:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
+The element tells when its slider is made: `gs:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
 
 ### With all options
 
 ```js
-import { createSlider } from 'shaderslide/full';
-import { canvas } from 'shaderslide/canvas';
-import { stretch, split } from 'shaderslide/effects';
-import 'shaderslide/style.css';
+import { createSlider } from 'gpuslider/full';
+import { canvas } from 'gpuslider/canvas';
+import { stretch, split } from 'gpuslider/effects';
+import 'gpuslider/style.css';
 
-const slider = createSlider( document.querySelector( '.ss' ), {
+const slider = createSlider( document.querySelector( '.gs' ), {
 	loop: true,
 	autoplay: 4000,
 	plugins: [ canvas( { effects: [ stretch(), split() ] } ) ],
 } );
 ```
 
-`shaderslide/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.7 KB.
+`gpuslider/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.7 KB.
 
 ### With what you name, and no more
 
 ```js
-import { createSlider } from 'shaderslide';
-import { controls, keyboard } from 'shaderslide/plugins';
+import { createSlider } from 'gpuslider';
+import { controls, keyboard } from 'gpuslider/plugins';
 
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.5 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.6 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
 ```jsx
-import { useSlider } from 'shaderslide/react';
-import { controls } from 'shaderslide/plugins';
-import { canvas } from 'shaderslide/canvas';
-import { stretch } from 'shaderslide/effects';
+import { useSlider } from 'gpuslider/react';
+import { controls } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { stretch } from 'gpuslider/effects';
 
 function Photos( { photos, loop } ) {
 	const [ ref, slider ] = useSlider(
@@ -126,11 +126,11 @@ function Photos( { photos, loop } ) {
 		[ loop ]
 	);
 	return (
-		<div className="ss" ref={ ref } aria-label="Photos">
-			<div className="ss-track">
+		<div className="gs" ref={ ref } aria-label="Photos">
+			<div className="gs-track">
 				{ photos.map( ( photo ) => (
-					<div className="ss-slide" key={ photo.src }>
-						<img className="ss-media" { ...photo } />
+					<div className="gs-slide" key={ photo.src }>
+						<img className="gs-media" { ...photo } />
 					</div>
 				) ) }
 			</div>
@@ -153,10 +153,10 @@ With it the canvas draws the media, and the text stays HTML on top of it.
 The script measures what the page lays out, so responsive settings are media queries:
 
 ```css
-.ss { --ss-per-view: 1.2; --ss-gap: 12px; }
+.gs { --gs-per-view: 1.2; --gs-gap: 12px; }
 
 @media (min-width: 960px) {
-	.ss { --ss-per-view: 3; }
+	.gs { --gs-per-view: 3; }
 }
 ```
 
@@ -169,7 +169,7 @@ createSlider( element, { axis: 'y' } );
 ```
 
 ```css
-.ss { height: 70vh; --ss-per-view: 1.5; }
+.gs { height: 70vh; --gs-per-view: 1.5; }
 ```
 
 The slides follow each other downwards: drag up and down, arrow up and down, the wheel as it is. At its ends the wheel scrolls the page. The slider needs a height. Effects are written for a row and are turned with the slider.
@@ -179,12 +179,12 @@ The slides follow each other downwards: drag up and down, arrow up and down, the
 Nothing of the script: a grid that flows in columns. A column is a snap.
 
 ```css
-.ss-track {
+.gs-track {
 	display: grid;
 	grid-auto-flow: column;
 	grid-template-rows: repeat( 2, 1fr );
-	grid-auto-columns: calc( ( 100% - 2 * var(--ss-gap) ) / 3 );
-	gap: var(--ss-gap);
+	grid-auto-columns: calc( ( 100% - 2 * var(--gs-gap) ) / 3 );
+	gap: var(--gs-gap);
 }
 ```
 
@@ -203,12 +203,13 @@ Of the core:
 | `contain` | `true` | No empty space at the ends |
 | `free` | `false` | Rest anywhere, glide on after a drag |
 | `duration` | `600` | ms of a move |
+| `ease` | | curve of a move to a slide, `u => …` from 0 to 1 in `duration`, instead of the spring; a drag let go keeps the spring |
 | `start` | `0` | First slide |
 | `drag` | `true` | |
 | `on` | | Listeners by the name of their event: `{ change: ( index ) => … }` |
 | `plugins` | `[]` | See [Plugins that come with it](#plugins-that-come-with-it) |
 
-Of `shaderslide/full`, and of `data-ss`, also:
+Of `gpuslider/full`, and of `data-gs`, also:
 
 | Option | Default | Is the plugin |
 |---|---|---|
@@ -220,14 +221,14 @@ Of `shaderslide/full`, and of `data-ss`, also:
 
 ## Plugins that come with it
 
-From `shaderslide/plugins`. Each is 0.3 to 1 KB.
+From `gpuslider/plugins`. Each is 0.3 to 1 KB.
 
 | Plugin | |
 |---|---|
-| `controls( { prev, next, dots } )` | Arrows, dots and `data-ss-to` buttons, in the slider or anywhere |
+| `controls( { prev, next, dots } )` | Arrows, dots and `data-gs-to` buttons, in the slider or anywhere |
 | `keyboard()` | Arrow keys, Home, End. Makes the slider focusable |
 | `wheel()` | The wheel and two fingers on a trackpad, along the slider |
-| `autoplay( 3500 )` | Goes on by itself. Waits for the pointer, the focus, the tab and the screen. `slider.plugins.autoplay.pause()`, `.play()`, `.paused` |
+| `autoplay( 3500 )` | Goes on by itself. Waits for the pointer, the focus, the tab and the screen; `{ delay, hover: false }` does not wait for the pointer, `{ delay, left }` gives the first slide less time, for a slider made again that goes on where it was. `slider.plugins.autoplay.pause()`, `.play()`, `.paused` |
 | `marquee( { speed, hover, scroll } )` | A ticker: runs evenly and without an end, slower under the pointer, faster while the page is scrolled. For `loop: true` |
 | `thumbs( other )` | The slides are the buttons of another slider |
 | `videos()` | Videos play while their slide is in view |
@@ -236,10 +237,10 @@ From `shaderslide/plugins`. Each is 0.3 to 1 KB.
 | `progress()` | Tells the slides where they are, for animations in CSS |
 | `loading( { screen, min, timeout, also } )` | A screen while the media load, and events that say how far they are |
 
-And `canvas()` from `shaderslide/canvas`, `lightbox()` from `shaderslide/lightbox`.
+And `canvas()` from `gpuslider/canvas`, `lightbox()` from `gpuslider/lightbox`.
 
 ```js
-import { marquee, thumbs } from 'shaderslide/plugins';
+import { marquee, thumbs } from 'gpuslider/plugins';
 
 // A ticker whose pictures stretch while the page is scrolled.
 createSlider( one, {
@@ -301,6 +302,7 @@ slider.on( '*', ( name, detail, slider ) => {} );
 | `frame` | The view, on every frame of a move |
 | `destroy` | The slider |
 | `autoplay:play`, `autoplay:pause` | |
+| `autoplay:run`, `autoplay:wait` | `{ delay, left }` when the time of a slide begins to run, `left` of `delay`; nothing when it stops before its end |
 | `marquee:play`, `marquee:pause` | |
 | `canvas:ready` | `canvas()` has chosen its layer: `'gpu'` or `'gl'` |
 | `gpu:on`, `gpu:off`, `gl:on`, `gl:off` | The canvas took over, or gave the slides back to the page |
@@ -314,13 +316,13 @@ Whether the slider is at an end: `canNext` and `canPrev`, at `change`.
 In the slider, attributes are all it takes (see [Without a script of your own](#without-a-script-of-your-own)). Anywhere else, name the slider:
 
 ```html
-<div class="ss" id="photos">…</div>
+<div class="gs" id="photos">…</div>
 
-<nav data-ss-for="photos">
-	<button data-ss-prev>Back</button>
-	<button data-ss-next>On</button>
-	<button data-ss-to="0">First</button>
-	<div data-ss-dots></div>
+<nav data-gs-for="photos">
+	<button data-gs-prev>Back</button>
+	<button data-gs-next>On</button>
+	<button data-gs-to="0">First</button>
+	<div data-gs-dots></div>
 </nav>
 ```
 
@@ -332,7 +334,7 @@ createSlider( element, {
 } );
 ```
 
-Arrows at an end are `disabled`, the dot and the `data-ss-to` of the active snap have `aria-current`. Buttons that are added later work too.
+Arrows at an end are `disabled`, the dot and the `data-gs-to` of the active snap have `aria-current`. Buttons that are added later work too.
 
 ## Plugins
 
@@ -370,19 +372,19 @@ slider.on( 'counter:count', ( changes ) => {} );
 
 On the canvas an animation is an [effect](#effects): `coverflow()` turns the slides beside the active one.
 
-On the page it is CSS. The `progress` plugin writes `--ss-p` (-1 is one slide before the active one), `--ss-away` (the same without the sign) and `--ss-share` on every slide, on every frame of a move:
+On the page it is CSS. The `progress` plugin writes `--gs-p` (-1 is one slide before the active one), `--gs-away` (the same without the sign) and `--gs-share` on every slide, on every frame of a move:
 
 ```js
-import { progress } from 'shaderslide/plugins';
+import { progress } from 'gpuslider/plugins';
 
 createSlider( element, { align: 'center', plugins: [ progress() ] } );
 ```
 
 ```css
-.ss-slide { perspective: 1200px; }
-.ss-slide > * {
-	rotate: y calc( var(--ss-p) * -45deg );
-	scale: calc( 1 - var(--ss-away) * 0.2 );
+.gs-slide { perspective: 1200px; }
+.gs-slide > * {
+	rotate: y calc( var(--gs-p) * -45deg );
+	scale: calc( 1 - var(--gs-away) * 0.2 );
 }
 ```
 
@@ -391,42 +393,42 @@ Transform what is in the slide, not the slide: that one the slider moves and mea
 ## Lightbox
 
 ```js
-import { lightbox } from 'shaderslide/lightbox';
-import 'shaderslide/lightbox.css';
+import { lightbox } from 'gpuslider/lightbox';
+import 'gpuslider/lightbox.css';
 
 createSlider( element, { plugins: [ canvas(), lightbox( { effects: [ stretch() ] } ) ] } );
 ```
 
-A click on a slide lets its image grow to the screen, Escape lets it go back. `data-ss-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
+A click on a slide lets its image grow to the screen, Escape lets it go back. `data-gs-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
 
-The image grows, and no more: the effects of the lightbox are for the moves in it. `punch: 0.4` lets the speed of the growing count as speed for them, so that an image with `stretch()` bows while it opens.
+The image grows out of its slide as the slider draws it, with the effects of the slider, which fade on the way: the canvas of the slider draws the way, out of the slider and over the page, and the lightbox takes over at the screen. The effects of the lightbox are for the moves in it. `punch: 0.4` lets the speed of the growing count as speed for them, so that an image with `stretch()` bows while it opens.
 
 ## Loading
 
 ```js
-import { loading } from 'shaderslide/plugins';
-import 'shaderslide/loading.css';
+import { loading } from 'gpuslider/plugins';
+import 'gpuslider/loading.css';
 
 createSlider( element, { plugins: [ loading() ] } );
 ```
 
-The slider waits for its images and for the first picture of its videos, and shows a screen meanwhile: a number and a line. `loading.css` is its look, with `--ss-loading-back` and `--ss-loading-color` for its colours.
+The slider waits for its images and for the first picture of its videos, and shows a screen meanwhile: a number and a line. `loading.css` is its look, with `--gs-loading-back` and `--gs-loading-color` for its colours.
 
-A screen of your own is an element with the class `ss-loading` in the slider, or any element of the page, given as `screen`. It is told how far the loading is, and what it makes of it is its own:
+A screen of your own is an element with the class `gs-loading` in the slider, or any element of the page, given as `screen`. It is told how far the loading is, and what it makes of it is its own:
 
 ```html
-<div class="ss-loading">
+<div class="gs-loading">
 	<img src="logo.svg" alt="">
-	<span data-ss-loaded></span> %
+	<span data-gs-loaded></span> %
 </div>
 ```
 
 | | |
 |---|---|
-| `--ss-loaded` | On the screen: 0 to 1 |
-| `[data-ss-loaded]` | Elements in the screen whose text is the number, 0 to 100 |
-| `.ss-loaded` | The class of the screen when all is there. `loading.css` lets it fade |
-| `.ss-is-loading` | The class of the slider meanwhile |
+| `--gs-loaded` | On the screen: 0 to 1 |
+| `[data-gs-loaded]` | Elements in the screen whose text is the number, 0 to 100 |
+| `.gs-loaded` | The class of the screen when all is there. `loading.css` lets it fade |
+| `.gs-is-loading` | The class of the slider meanwhile |
 
 Or no screen, `screen: false`, and the events:
 
@@ -460,12 +462,12 @@ createSlider( one, { plugins: [ together ] } );
 createSlider( two, { plugins: [ together ] } );
 ```
 
-A screen that is in the HTML is there before the script is. Without the script it would stay: `<noscript><style>.ss-loading { display: none }</style></noscript>`.
+A screen that is in the HTML is there before the script is. Without the script it would stay: `<noscript><style>.gs-loading { display: none }</style></noscript>`.
 
 ## Focus point
 
 ```css
-.ss { --ss-focus: 30% 70%; }
+.gs { --gs-focus: 30% 70%; }
 ```
 
 What `object-position` is for an image: the point that stays in view when the image is cut. The canvas takes it from the page.
@@ -473,8 +475,8 @@ What `object-position` is for an image: the point that stays in view when the im
 ## The canvas
 
 ```js
-import { canvas } from 'shaderslide/canvas';
-import { stretch } from 'shaderslide/effects';
+import { canvas } from 'gpuslider/canvas';
+import { stretch } from 'gpuslider/effects';
 
 canvas( { effects: [ stretch() ], eager: false, density: 2, maxSize: 2048, perspective: 1200 } )
 ```
@@ -484,8 +486,8 @@ canvas( { effects: [ stretch() ], eager: false, density: 2, maxSize: 2048, persp
 `canvas( { layer: 'gl' } )` and `layer: 'gpu'` say which. Who wants the layer in the bundle, and no request for it later, names it:
 
 ```js
-import { gpu, stretch } from 'shaderslide/gpu';   // WebGPU, or the page draws
-import { gl, stretch } from 'shaderslide/gl';     // WebGL 2, or the page draws
+import { gpu, stretch } from 'gpuslider/gpu';   // WebGPU, or the page draws
+import { gl, stretch } from 'gpuslider/gl';     // WebGL 2, or the page draws
 ```
 
 The canvas is made at the first sign of use: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same, and the page has loaded without a context and without a shader. A slider that moves by itself (autoplay, a ticker), or whose effects show at rest, gets its canvas when the page has time. `eager: true` makes it with the slider.
@@ -505,7 +507,7 @@ Shaders are compiled on another thread where the browser can, and no frame is dr
 | Script in a frame while 6 sliders move | 0.15 ms, 0.17 ms | 0.33 ms, 0.27 ms |
 | Frames that came late while 20 sliders moved for 4 s | 0 of 241 | 0 of 241 |
 | Work of the page and of the GPU process, 6 sliders (Chromium) | 10 % and 18 % of a core | 11 % and 18 % |
-| The layer in the bundle | 6.5 KB | 8.4 KB |
+| The layer in the bundle | 6.9 KB | 8.9 KB |
 | Browsers | all | Chrome, Edge, Safari from 26, Firefox on some systems: about 87 % of visitors |
 
 What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which for six sliders is 0.3 ms of the 16.7 that a frame has.
@@ -520,9 +522,10 @@ Any number, in the order given.
 |---|---|---|
 | `stretch( { amount } )` | The middle of the image hangs back | Speed |
 | `split( { amount } )` | The colours come apart | Speed |
-| `parallax( { amount } )` | The image is slower than its slide | Position |
+| `parallax( { amount, zoom } )` | The image is slower than its slide | Position |
 | `bend( { amount, speed } )` | The row is an arc; bends the mesh | Position and speed |
 | `magnify( { size, strength } )` | A lens | Pointer |
+| `cells( { size, zoom, reach } )` | Squares in the wake of the pointer, each its part closer; as far as the pointer is fast | Speed of the pointer |
 | `spotlight( { size, dim } )` | The rest is dimmed | Pointer |
 | `reveal( { size } )` | The images lose their colours, except around the pointer | Pointer |
 | `glass( { size, lines, amount } )` | Fluted glass around the pointer | Pointer |
@@ -541,12 +544,14 @@ Effects that lay out: the slider moves as ever, the effect says where a slide is
 | `coverflow( { angle, depth, range } )` | The slides beside the active one turn away |
 | `pile( { offset, turn } )` | A pile of cards; the one on top leaves to the side |
 | `fan( { angle, radius } )` | A hand of cards, or a wheel |
+| `wave( { height, length, slope } )` | The row runs along a wave, across the view on a slope |
+| `unweave( { amount, threads } )` | Near the edges of the view the slides come apart into threads |
 | `dome( { amount, centre, size } )` | The slides as on a dome: what is far from the middle is smaller and nearer to it |
 
 The page has such a slide in one place, and the canvas draws it in another. A click is a click on the slide that is seen: on the cover at the edge, not on the slide in whose place it is drawn. And the lightbox lets the image grow out of where it is drawn. `canvas()` sees to that with `hit()`, which it loads when an effect lays out; with a layer by its name it is a plugin to add:
 
 ```js
-import { gl, hit, coverflow } from 'shaderslide/gl';
+import { gl, hit, coverflow } from 'gpuslider/gl';
 
 const effects = [ coverflow() ];
 createSlider( element, { align: 'center', plugins: [ gl( { effects } ), hit( { effects } ) ] } );
@@ -563,7 +568,7 @@ createSlider( element, {
 } );
 ```
 
-A stack in the first view of a page says so in its HTML: `class="ss ss-stack"`. Then the slides are on top of each other before the script is there, and nothing of the page gives way when it comes. Without the script such a slider shows its first slide, and is no scroller: the slides after the first cannot be reached then. It is for a stack that starts at its first slide.
+A stack in the first view of a page says so in its HTML: `class="gs gs-stack"`. Then the slides are on top of each other before the script is there, and nothing of the page gives way when it comes. Without the script such a slider shows its first slide, and is no scroller: the slides after the first cannot be reached then. It is for a stack that starts at its first slide.
 
 ### Your own
 
@@ -611,7 +616,7 @@ What the translation knows is the GLSL that all effects here are written in. For
 - What `max`, `min`, `clamp` and `smoothstep` are given is of one kind: `max( v, vec2( 0.0 ) )`, not `max( v, 0.0 )`.
 - One component is assigned at a time, or the whole vector: `p = vec3( q, p.z )`, not `p.xy = q`.
 
-A shader that WebGPU does not take is said in the console, as `shaderslide: …`, and the page draws that slider.
+A shader that WebGPU does not take is said in the console, as `gpuslider: …`, and the page draws that slider.
 
 ## Size
 
@@ -619,17 +624,17 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 
 | Part | Size |
 |---|---|
-| Core | 4.5 KB |
+| Core | 4.6 KB |
 | A plugin | 0.3 to 1 KB |
-| `shaderslide/full`: the core with all its options | 6.7 KB |
+| `gpuslider/full`: the core with all its options | 6.9 KB |
 | `useSlider` for React | 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 0.9 KB |
-| Canvas layer of WebGPU | 8.4 KB |
-| Canvas layer of WebGL 2 | 6.5 KB |
+| Canvas layer of WebGPU | 8.9 KB |
+| Canvas layer of WebGL 2 | 6.9 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
-| Lightbox | 1.7 KB |
+| Lightbox | 2.1 KB |
 | `style.css`, `lightbox.css` | 0.7 and 0.6 KB |
 | `loading.css` | 0.4 KB |
 
@@ -637,7 +642,7 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 
 ## Not yet
 
-- Published on npm, so no CDN has it yet: `…/shaderslide/dist/` in the examples is wherever you put `dist/`.
+- Published on npm, so no CDN has it yet: `…/gpuslider/dist/` in the examples is wherever you put `dist/`.
 - A file for `<script>` without `type="module"`.
 - A ticker has no slide it is at: no `change`, no dots.
 - Effects that lay out are cut at the edge of the slider.

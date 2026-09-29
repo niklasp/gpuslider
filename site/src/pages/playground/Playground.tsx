@@ -7,14 +7,14 @@ import {
 	type CSSProperties,
 } from 'react';
 import '@/index.css';
-import 'shaderslide/style.css';
-import 'shaderslide/lightbox.css';
-import 'shaderslide/loading.css';
+import 'gpuslider/style.css';
+import 'gpuslider/lightbox.css';
+import 'gpuslider/loading.css';
 import '@/site.css';
 // The controls are most of the script of the page, and no slider waits
 // for them.
 const Controls = lazy( () => import( '@/components/Controls' ) );
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
 import { Events, Loads, Photos, type Tell } from '@/components/Pieces';
 import {
 	DEFAULTS,
@@ -23,8 +23,13 @@ import {
 	single,
 	type Config,
 } from '@/lib/config';
-import { BUTTON, Section } from '@/components/Frame';
+import { BUTTON, Footer, Nav, Section } from '@/components/Frame';
+import { EXAMPLES } from '@/components/Shots';
 import { kb, parts } from '@/lib/metrics';
+
+/** A link of the page, as the pills of the first page. */
+const PILL =
+	'sq-pill inline-flex h-10 items-center px-4 text-sm font-medium ring-1 ring-white/10 transition';
 
 /** How wide a slide that fills the page is. */
 const WIDE = '(min-width: 1400px) 1400px, 100vw';
@@ -47,7 +52,7 @@ export default function Playground() {
 	) }vw`;
 	const focus = `${ config.focus.x }% ${ config.focus.y }%`;
 	const measured = `${ config.perView } ${ config.gap } ${ focus }`;
-	const look = { '--ss-focus': focus } as CSSProperties;
+	const look = { '--gs-focus': focus } as CSSProperties;
 	const options = {
 		loop: config.loop,
 		free: config.free,
@@ -58,7 +63,7 @@ export default function Playground() {
 	// That they are stacks is in the HTML: nothing gives way when the
 	// script comes.
 	const one = {
-		className: single( config ) === 'stack' ? 'ss-stack' : undefined,
+		className: single( config ) === 'stack' ? 'gs-stack' : undefined,
 		made,
 		measured,
 		plugins: () => pluginsOf( config, single( config ) ),
@@ -82,44 +87,35 @@ export default function Playground() {
 
 	return (
 		<>
+			<Nav at="playground" />
 			<Suspense
-				fallback={ <header className="sticky top-0 z-40 h-16 border-b" /> }
+				fallback={ <div className="sticky top-[4.5rem] z-30 h-[4.5rem]" /> }
 			>
 				<Controls config={ config } onChange={ change } />
 			</Suspense>
 			<main
 				id="top"
-				className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-16 px-4 pb-32 md:px-8"
+				className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-24 px-4 pb-32 md:px-8"
 			>
-				<div className="pt-12">
-					<h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
+				<div className="grid justify-items-start gap-5 pt-16 md:pt-24">
+					<h1 className="font-display text-5xl leading-[0.95] font-semibold tracking-[-0.045em] md:text-7xl">
 						Playground
 					</h1>
-					<p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-						Every slider the library can be, and controls for all of it
-						above. Drag, swipe, scroll sideways, use the arrow keys. Click
-						a slide for the lightbox.
+					<p className="max-w-2xl text-lg text-balance text-muted-foreground">
+						Every slider the library can be, and the controls for all of
+						it above. Drag, swipe, scroll sideways, use the arrow keys.
+						Click a slide for the lightbox.
 					</p>
 					<nav
 						aria-label="Pages that are made of it"
-						className="mt-6 flex flex-wrap items-center gap-2"
+						className="flex flex-wrap items-center gap-2"
 					>
-						<span className="text-sm text-muted-foreground">
-							Made of it:
-						</span>
-						<a className={ BUTTON } href="/examples/wall/">
-							A wall of glass
-						</a>
-						<a className={ BUTTON } href="/examples/reel/">
-							A reel
-						</a>
-						<a className={ BUTTON } href="/examples/tape/">
-							Tape
-						</a>
-						<span className="ml-2 text-sm text-muted-foreground">
-							How to:
-						</span>
-						<a className={ BUTTON } href="/docs/">
+						{ EXAMPLES.map( ( { name, title } ) => (
+							<a key={ name } className={ `${ PILL } bg-white/6 hover:bg-white/12` } href={ `/examples/${ name }/` }>
+								{ title }
+							</a>
+						) ) }
+						<a className={ `${ PILL } bg-white text-black hover:bg-white/85` } href="/docs/">
 							Docs
 						</a>
 					</nav>
@@ -129,7 +125,7 @@ export default function Playground() {
 					title="One per view"
 					note="Images and a video. The text is HTML on top of the canvas. One slide at a time takes the transition that is chosen above: drag slowly to stop half way. With none, the slides move."
 				>
-					<ShaderSlider
+					<GpuSlider
 						id="one"
 						label="One per view"
 						style={ look }
@@ -163,14 +159,14 @@ export default function Playground() {
 								No frame is drawn while nothing moves.
 							</p>
 						</Slide>
-					</ShaderSlider>
+					</GpuSlider>
 				</Section>
 
 				<Section
 					title="Several per view"
 					note="Slides per view and gap are CSS custom properties: set them under Slider."
 				>
-					<ShaderSlider
+					<GpuSlider
 						id="several"
 						label="Several per view"
 						options={ options }
@@ -178,8 +174,8 @@ export default function Playground() {
 						style={
 							{
 								...look,
-								'--ss-per-view': config.perView,
-								'--ss-gap': `${ config.gap }px`,
+								'--gs-per-view': config.perView,
+								'--gs-gap': `${ config.gap }px`,
 							} as CSSProperties
 						}
 						{ ...shared }
@@ -193,14 +189,14 @@ export default function Playground() {
 								sizes={ share }
 							/>
 						) ) }
-					</ShaderSlider>
+					</GpuSlider>
 				</Section>
 
 				<Section
 					title="Ticker"
 					note="Runs by itself and without an end, slower under the pointer. Scroll the page: it runs faster, and the images give way to the speed. Drag it, and it runs on."
 				>
-					<ShaderSlider
+					<GpuSlider
 						id="ticker"
 						label="Ticker"
 						options={ { loop: true, free: true, duration: config.duration } }
@@ -208,8 +204,8 @@ export default function Playground() {
 						style={
 							{
 								...look,
-								'--ss-per-view': 4.5,
-								'--ss-gap': `${ config.gap }px`,
+								'--gs-per-view': 4.5,
+								'--gs-gap': `${ config.gap }px`,
 							} as CSSProperties
 						}
 						made={ made }
@@ -227,7 +223,7 @@ export default function Playground() {
 								sizes="(max-width: 640px) 77vw, 22vw"
 							/>
 						) ) }
-					</ShaderSlider>
+					</GpuSlider>
 				</Section>
 
 				<Section
@@ -242,12 +238,12 @@ export default function Playground() {
 					note="The same slider with its slides below each other: drag up and down, or use the keys. And two rows, which are a grid of CSS and nothing of the script."
 				>
 					<div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-						<ShaderSlider
+						<GpuSlider
 							id="down"
 							label="Downwards"
 							options={ { ...options, axis: 'y' } }
 							className="down"
-							style={ { ...look, '--ss-gap': `${ config.gap }px` } as CSSProperties }
+							style={ { ...look, '--gs-gap': `${ config.gap }px` } as CSSProperties }
 							made={ made }
 							measured={ measured }
 							plugins={ () => pluginsOf( config, 'down' ) }
@@ -261,13 +257,13 @@ export default function Playground() {
 									sizes="(min-width: 768px) 40vw, 100vw"
 								/>
 							) ) }
-						</ShaderSlider>
-						<ShaderSlider
+						</GpuSlider>
+						<GpuSlider
 							id="rows"
 							label="Two rows"
 							options={ options }
 							className="rows"
-							style={ { ...look, '--ss-gap': `${ config.gap }px` } as CSSProperties }
+							style={ { ...look, '--gs-gap': `${ config.gap }px` } as CSSProperties }
 							{ ...shared }
 						>
 							{ [ 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4 ].map( ( n, i ) => (
@@ -278,7 +274,7 @@ export default function Playground() {
 									sizes="(min-width: 768px) 20vw, 50vw"
 								/>
 							) ) }
-						</ShaderSlider>
+						</GpuSlider>
 					</div>
 				</Section>
 
@@ -288,7 +284,7 @@ export default function Playground() {
 				>
 					<div className="grid gap-6 md:grid-cols-2">
 						{ ( [ 'pile', 'fan' ] as const ).map( ( kind ) => (
-							<ShaderSlider
+							<GpuSlider
 								key={ kind }
 								id={ kind }
 								label={ kind === 'pile' ? 'A pile' : 'A fan' }
@@ -308,7 +304,7 @@ export default function Playground() {
 										sizes="(max-width: 640px) 60vw, 25vw"
 									/>
 								) ) }
-							</ShaderSlider>
+							</GpuSlider>
 						) ) }
 					</div>
 				</Section>
@@ -317,12 +313,12 @@ export default function Playground() {
 					title="As wide as the image"
 					note="Every slide takes the width of its image."
 				>
-					<ShaderSlider
+					<GpuSlider
 						id="auto"
 						label="Widths from the images"
 						options={ { ...options, perView: 'auto', align: 'center' } }
 						className="strip"
-						style={ { ...look, '--ss-gap': `${ config.gap }px` } as CSSProperties }
+						style={ { ...look, '--gs-gap': `${ config.gap }px` } as CSSProperties }
 						{ ...shared }
 					>
 						{ [
@@ -340,7 +336,7 @@ export default function Playground() {
 								sizes="(max-width: 640px) 90vw, 50vw"
 							/>
 						) ) }
-					</ShaderSlider>
+					</GpuSlider>
 				</Section>
 
 				<Section
@@ -348,7 +344,7 @@ export default function Playground() {
 					note="The height follows the move, and the page below follows the height."
 				>
 					<div className="max-w-2xl">
-						<ShaderSlider
+						<GpuSlider
 							id="tall"
 							label="Auto height"
 							options={ options }
@@ -370,7 +366,7 @@ export default function Playground() {
 									sizes="(min-width: 700px) 672px, 100vw"
 								/>
 							) ) }
-						</ShaderSlider>
+						</GpuSlider>
 					</div>
 				</Section>
 
@@ -378,10 +374,10 @@ export default function Playground() {
 					title="Stack"
 					note="Slides on top of each other. The position runs through a transition: drag slowly to stop half way."
 				>
-					<ShaderSlider
+					<GpuSlider
 						id="stack"
 						label="Stack"
-						className="ss-stack"
+						className="gs-stack"
 						options={ {
 							...options,
 							duration: Math.max( 900, config.duration * 1.8 ),
@@ -414,14 +410,14 @@ export default function Playground() {
 							</h3>
 							<p className="text-white/80">Switch the canvas off to see it.</p>
 						</Slide>
-					</ShaderSlider>
+					</GpuSlider>
 				</Section>
 
 				<Section
 					title="Covers"
 					note="An animation as a plugin. On the canvas it is an effect that turns the mesh; with the canvas off, the progress plugin tells the slides where they are and CSS turns them."
 				>
-					<ShaderSlider
+					<GpuSlider
 						id="covers"
 						label="Covers"
 						options={ { ...options, align: 'center' } }
@@ -440,7 +436,7 @@ export default function Playground() {
 								sizes="(max-width: 640px) 62vw, 33vw"
 							/>
 						) ) }
-					</ShaderSlider>
+					</GpuSlider>
 				</Section>
 
 				<Section
@@ -452,8 +448,8 @@ export default function Playground() {
 						style={
 							{
 								...look,
-								'--ss-per-view': 2.5,
-								'--ss-gap': '12px',
+								'--gs-per-view': 2.5,
+								'--gs-gap': '12px',
 							} as CSSProperties
 						}
 						made={ made }
@@ -464,10 +460,10 @@ export default function Playground() {
 
 				<Section
 					title="Buttons anywhere, and events"
-					note="The buttons are not in the slider: they name it with data-ss-for. The list is what the slider says while it is used."
+					note="The buttons are not in the slider: they name it with data-gs-for. The list is what the slider says while it is used."
 				>
 					<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_16rem]">
-						<ShaderSlider
+						<GpuSlider
 							id="remote"
 							label="Driven from outside"
 							options={ options }
@@ -475,8 +471,8 @@ export default function Playground() {
 							style={
 								{
 									...look,
-									'--ss-per-view': 2,
-									'--ss-gap': `${ config.gap }px`,
+									'--gs-per-view': 2,
+									'--gs-gap': `${ config.gap }px`,
 								} as CSSProperties
 							}
 							heard={ heard }
@@ -492,18 +488,18 @@ export default function Playground() {
 									sizes="(min-width: 768px) 40vw, 50vw"
 								/>
 							) ) }
-						</ShaderSlider>
+						</GpuSlider>
 						<div className="grid content-start gap-4">
 							<nav
-								data-ss-for="remote"
+								data-gs-for="remote"
 								data-testid="remote-buttons"
 								aria-label="Driven from outside"
 								className="flex flex-wrap gap-2"
 							>
-								<button type="button" className={ BUTTON } data-ss-prev>
+								<button type="button" className={ BUTTON } data-gs-prev>
 									Back
 								</button>
-								<button type="button" className={ BUTTON } data-ss-next>
+								<button type="button" className={ BUTTON } data-gs-next>
 									On
 								</button>
 								{ [ 0, 2, 4 ].map( ( n ) => (
@@ -511,7 +507,7 @@ export default function Playground() {
 										key={ n }
 										type="button"
 										className={ BUTTON }
-										data-ss-to={ n }
+										data-gs-to={ n }
 									>
 										{ n + 1 }
 									</button>
@@ -522,6 +518,7 @@ export default function Playground() {
 					</div>
 				</Section>
 			</main>
+			<Footer />
 		</>
 	);
 }

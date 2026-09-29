@@ -10,7 +10,7 @@ const LAID = [ 'coverflow', 'pile', 'fan', 'dome:{"amount":1.5}', 'bend' ];
 const setup = ( effects, more = {} ) => ( {
 	n: 7,
 	o: { loop: true, align: 'center', ...more },
-	css: '.ss { --ss-per-view: 3; padding-block: 40px; } .ss-y { height: 600px; padding: 0 40px; }',
+	css: '.gs { --gs-per-view: 3; padding-block: 40px; } .gs-y { height: 600px; padding: 0 40px; }',
 	plugins: 'gl,hit',
 	effects,
 } );
@@ -92,7 +92,7 @@ test.describe( 'what is seen at a point', () => {
 		const at = [ 105, 240 ];
 		const under = await page.evaluate(
 			( [ x, y ] ) =>
-				Number( document.elementFromPoint( x, y ).closest( '.ss-slide' ).dataset.i ),
+				Number( document.elementFromPoint( x, y ).closest( '.gs-slide' ).dataset.i ),
 			at
 		);
 		expect( under ).toBe( 6 );
@@ -102,12 +102,12 @@ test.describe( 'what is seen at a point', () => {
 		await page.evaluate( () => {
 			window.clicked = [];
 			document
-				.querySelectorAll( '.ss-content a' )
+				.querySelectorAll( '.gs-content a' )
 				.forEach( ( link ) =>
 					link.addEventListener( 'click', ( event ) => event.preventDefault() )
 				);
 		} );
-		await page.locator( '.ss-slide[data-i="6"] a' ).click();
+		await page.locator( '.gs-slide[data-i="6"] a' ).click();
 		expect( await page.evaluate( () => window.clicked ) ).toEqual( [ 6 ] );
 	} );
 
@@ -137,12 +137,12 @@ test.describe( 'what is seen at a point', () => {
 		await painted( page );
 		const drawn = await page.evaluate( () => window.slider.plugins.hit.where( 6 ) );
 		const onPage = await page
-			.locator( '.ss-slide[data-i="6"] img' )
+			.locator( '.gs-slide[data-i="6"] img' )
 			.boundingBox();
 		// Turned away, it is narrower than its place.
 		expect( drawn.width ).toBeLessThan( onPage.width - 20 );
 		await page.mouse.click( drawn.left + drawn.width / 2, 240 );
-		await expect( page.locator( '.ss-lightbox' ) ).toBeVisible();
+		await expect( page.locator( '.gs-lightbox' ) ).toBeVisible();
 		expect(
 			await page.evaluate( () => window.slider.plugins.lightbox.slider.index )
 		).toBe( 6 );

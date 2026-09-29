@@ -1,6 +1,6 @@
-# shaderslide
+# gpu slider
 
-> A slider for the web that draws its media on a canvas and owns its motion: with WebGPU where the browser has it, with WebGL 2 where not. The core is a few kilobytes; arrows, keys, autoplay, the canvas, every effect, the lightbox and the loading screen are plugins that a page imports when it uses them. No dependencies. A working name; not on npm yet.
+> A slider for the web that draws its media on a canvas and owns its motion: with WebGPU where the browser has it, with WebGL 2 where not. The core is a few kilobytes; arrows, keys, autoplay, the canvas, every effect, the lightbox and the loading screen are plugins that a page imports when it uses them. No dependencies. Not on npm yet.
 
 ## Docs
 
@@ -21,15 +21,18 @@
 - [A wall of glass](/examples/wall/)
 - [A reel](/examples/reel/)
 - [Tape](/examples/tape/)
+- [Loom](/examples/loom/)
+- [Wave](/examples/wave/)
+- [Depth](/examples/depth/)
 - [Playground](/playground/): every slider the library can be, with controls
 
 ## Use
 
-- `import { createSlider } from 'shaderslide'`: the core
-- `import { controls, keyboard, wheel, autoplay, marquee, thumbs, videos, autoHeight, stack, progress, loading } from 'shaderslide/plugins'`
-- `import { canvas } from 'shaderslide/canvas'`: the canvas, which chooses its layer
-- `import { stretch, split, waves, liquid } from 'shaderslide/effects'`: effects and transitions
-- `import { gpu } from 'shaderslide/gpu'`, `import { gl } from 'shaderslide/gl'`: a layer by name
-- `import { lightbox } from 'shaderslide/lightbox'`
-- `import { useSlider } from 'shaderslide/react'`
-- `import { createSlider } from 'shaderslide/full'`: the core with all plugins, by options
+- `import { createSlider } from 'gpuslider'`: the core
+- `import { controls, keyboard, wheel, autoplay, marquee, thumbs, videos, autoHeight, stack, progress, loading } from 'gpuslider/plugins'`
+- `import { canvas } from 'gpuslider/canvas'`: the canvas, which chooses its layer
+- `import { stretch, split, waves, liquid } from 'gpuslider/effects'`: effects and transitions
+- `import { gpu } from 'gpuslider/gpu'`, `import { gl } from 'gpuslider/gl'`: a layer by name
+- `import { lightbox } from 'gpuslider/lightbox'`
+- `import { useSlider } from 'gpuslider/react'`
+- `import { createSlider } from 'gpuslider/full'`: the core with all plugins, by options

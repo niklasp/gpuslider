@@ -28,7 +28,7 @@ const sliders = ( page ) =>
 						id,
 						{
 							made: root.dataset.made,
-							on: root.classList.contains( 'ss-on' ),
+							on: root.classList.contains( 'gs-on' ),
 							same: slider.root === root,
 							names: Object.keys( slider.plugins ),
 						},
@@ -50,13 +50,13 @@ async function drawn( page, id ) {
 	// Where the controls are not.
 	await page.mouse.move(
 		box.x + box.width / 2,
-		Math.max( box.y + box.height / 2, bar.height + 10 )
+		Math.max( box.y + box.height / 2, bar.y + bar.height + 10 )
 	);
 	return page
 		.waitForFunction(
 			( name ) =>
 				!! ( window.sliders[ name ].plugins.gpu || window.sliders[ name ].plugins.gl )?.canvas &&
-				!! document.querySelector( `#${ name } .ss-drawn` ),
+				!! document.querySelector( `#${ name } .gs-drawn` ),
 			id,
 			{ timeout: 4000 }
 		)
@@ -78,26 +78,27 @@ test.beforeEach( async ( { page } ) => {
 
 test( 'a slider that nobody uses has no canvas', async ( { page } ) => {
 	await page.waitForTimeout( 500 );
-	await expect( page.locator( '.ss-canvas' ) ).toHaveCount( 0 );
+	await expect( page.locator( '.gs-canvas' ) ).toHaveCount( 0 );
 	expect( await drawn( page, 'several' ) ).toBe( true );
-	await expect( page.locator( '#several .ss-canvas' ) ).toHaveCount( 1 );
-	await expect( page.locator( '#one .ss-canvas' ) ).toHaveCount( 0 );
+	await expect( page.locator( '#several .gs-canvas' ) ).toHaveCount( 1 );
+	await expect( page.locator( '#one .gs-canvas' ) ).toHaveCount( 0 );
 	// The ticker moves by itself: it has its canvas once it is in view,
 	// without anybody coming.
 	await page.mouse.move( 2, 300 );
 	await page.locator( '#ticker' ).scrollIntoViewIfNeeded();
-	await expect( page.locator( '#ticker .ss-canvas' ) ).toHaveCount( 1 );
+	await expect( page.locator( '#ticker .gs-canvas' ) ).toHaveCount( 1 );
 } );
 
-test( 'the controls stay at the top', async ( { page } ) => {
+test( 'the controls stay at the top, under the bar of the site', async ( { page } ) => {
 	const bar = page.getByTestId( 'controls' );
 	await page.locator( '#stack' ).scrollIntoViewIfNeeded();
 	expect( await page.evaluate( () => window.scrollY ) ).toBeGreaterThan( 500 );
-	expect( ( await bar.boundingBox() ).y ).toBe( 0 );
+	expect( ( await bar.boundingBox() ).y ).toBe( 72 );
 	// And nothing of the page begins under them.
 	await page.evaluate( () => window.scrollTo( 0, 0 ) );
 	const title = await page.locator( 'h1' ).boundingBox();
-	expect( title.y ).toBeGreaterThan( ( await bar.boundingBox() ).height );
+	const { y, height } = await bar.boundingBox();
+	expect( title.y ).toBeGreaterThan( y + height );
 } );
 
 test( 'every slider is drawn by the canvas', async ( { page } ) => {
@@ -171,8 +172,8 @@ test( 'the transition reaches the stack', async ( { page } ) => {
 test( 'without the canvas the page draws, with it the canvas again', async ( { page } ) => {
 	const canvas = page.getByRole( 'switch', { name: 'Canvas' } );
 	await canvas.click();
-	await expect( page.locator( '.ss-canvas' ) ).toHaveCount( 0 );
-	await expect( page.locator( '.ss-drawn' ) ).toHaveCount( 0 );
+	await expect( page.locator( '.gs-canvas' ) ).toHaveCount( 0 );
+	await expect( page.locator( '.gs-drawn' ) ).toHaveCount( 0 );
 	await expect( page.locator( '#one + p' ) ).toContainText( 'drawn by the page' );
 	await canvas.click();
 	for ( const id of IDS ) {
@@ -186,7 +187,7 @@ test( 'slides per view change without making the slider again', async ( { page }
 		page.evaluate(
 			() =>
 				document
-					.querySelector( '#several .ss-slide' )
+					.querySelector( '#several .gs-slide' )
 					.getBoundingClientRect().width
 		);
 	const three = await width();
@@ -211,7 +212,7 @@ test( 'slides per view change without making the slider again', async ( { page }
 
 test( 'the focus point moves what the slides show', async ( { page } ) => {
 	expect( await drawn( page, 'several' ) ).toBe( true );
-	const shot = () => page.locator( '#several .ss-track' ).screenshot();
+	const shot = () => page.locator( '#several .gs-track' ).screenshot();
 	// Under the pointer there are waves, and no rest.
 	await page.mouse.move( 2, 300 );
 	await page.waitForFunction( () => window.sliders.several.resting );
@@ -224,7 +225,7 @@ test( 'the focus point moves what the slides show', async ( { page } ) => {
 		.poll( () =>
 			page.evaluate( () =>
 				getComputedStyle( document.getElementById( 'several' ) )
-					.getPropertyValue( '--ss-focus' )
+					.getPropertyValue( '--gs-focus' )
 					.trim()
 			)
 		)
@@ -237,7 +238,7 @@ test( 'the focus point moves what the slides show', async ( { page } ) => {
 	expect(
 		await page.evaluate(
 			() =>
-				getComputedStyle( document.querySelector( '#several .ss-media' ) )
+				getComputedStyle( document.querySelector( '#several .gs-media' ) )
 					.objectPosition
 		)
 	).toMatch( /^[0-3]% 9[0-9]%$/ );
@@ -249,15 +250,15 @@ test( 'the slides of the stack are as wide as the stack', async ( { page } ) => 
 		const root = document.getElementById( 'stack' );
 		return [
 			root.getBoundingClientRect().width,
-			root.querySelector( '.ss-slide' ).getBoundingClientRect().width,
+			root.querySelector( '.gs-slide' ).getBoundingClientRect().width,
 		];
 	} );
 	expect( sizes[ 1 ] ).toBe( sizes[ 0 ] );
 } );
 
 test( 'a click on a slide opens the lightbox, Escape closes it', async ( { page } ) => {
-	await page.locator( '#several .ss-slide' ).nth( 1 ).click();
-	const dialog = page.locator( 'dialog.ss-lightbox' );
+	await page.locator( '#several .gs-slide' ).nth( 1 ).click();
+	const dialog = page.locator( 'dialog.gs-lightbox' );
 	await expect( dialog ).toBeVisible();
 	await page.waitForFunction(
 		() => window.sliders.several.plugins.lightbox.progress === 1
@@ -304,7 +305,7 @@ test( 'covers: turned by the canvas, or by CSS without it', async ( { page } ) =
 	const turned = await page.evaluate( () => {
 		const { slides, index } = window.sliders.covers;
 		const turn = ( slide ) =>
-			getComputedStyle( slide.querySelector( '.ss-media' ) ).rotate;
+			getComputedStyle( slide.querySelector( '.gs-media' ) ).rotate;
 		return [ turn( slides[ index ] ), turn( slides[ index + 1 ] ) ];
 	} );
 	expect( turned[ 0 ] ).toMatch( /^(none|y 0deg)$/ );
@@ -330,7 +331,7 @@ test( 'the ticker runs, and stops when told to', async ( { page } ) => {
 	const pos = () => page.evaluate( () => window.sliders.ticker.motion.pos );
 	const from = await pos();
 	await expect.poll( pos ).toBeGreaterThan( from + 20 );
-	await page.locator( '#ticker [data-ss-pause]' ).click();
+	await page.locator( '#ticker [data-gs-pause]' ).click();
 	await page.waitForTimeout( 200 );
 	const then = await pos();
 	await page.waitForTimeout( 300 );
@@ -339,16 +340,16 @@ test( 'the ticker runs, and stops when told to', async ( { page } ) => {
 
 test( 'a thumbnail takes the photos to its slide', async ( { page } ) => {
 	await page.locator( '#thumbs' ).scrollIntoViewIfNeeded();
-	const third = page.locator( '#thumbs .ss-slide' ).nth( 2 );
+	const third = page.locator( '#thumbs .gs-slide' ).nth( 2 );
 	await expect( third ).toHaveAttribute( 'role', 'button' );
 	await third.click();
 	await expect
 		.poll( () => page.evaluate( () => window.sliders.photos.index ) )
 		.toBe( 2 );
-	await expect( third ).toHaveClass( /ss-active/ );
+	await expect( third ).toHaveClass( /gs-active/ );
 	// Made again with other settings, the photos still have them.
 	await page.getByRole( 'button', { name: 'Bend' } ).click();
-	await page.locator( '#thumbs .ss-slide' ).nth( 4 ).click();
+	await page.locator( '#thumbs .gs-slide' ).nth( 4 ).click();
 	await expect
 		.poll( () => page.evaluate( () => window.sliders.photos.index ) )
 		.toBe( 4 );
@@ -357,7 +358,7 @@ test( 'a thumbnail takes the photos to its slide', async ( { page } ) => {
 test( 'downwards: the keys go down, the slides are below each other', async ( { page } ) => {
 	await page.locator( '#down' ).scrollIntoViewIfNeeded();
 	const tops = await page.evaluate( () =>
-		[ ...document.querySelectorAll( '#down .ss-slide' ) ]
+		[ ...document.querySelectorAll( '#down .gs-slide' ) ]
 			.slice( 0, 2 )
 			.map( ( slide ) => slide.getBoundingClientRect().top )
 	);
@@ -379,7 +380,7 @@ test( 'a slider that shows one slide at a time takes the transition, and moves w
 	expect( await stacks() ).toEqual( [ true, true, true, false ] );
 	expect( await drawn( page, 'one' ) ).toBe( true );
 	// It goes on as a stack does: the next slide is where the first was.
-	await page.locator( '#one [data-ss-next]' ).click();
+	await page.locator( '#one [data-gs-next]' ).click();
 	// The second slide is a film: a slider that shows one does not rest.
 	await page.waitForFunction( () => {
 		const { motion, index } = window.sliders.one;
@@ -435,7 +436,7 @@ test( 'a click on the cover at the edge opens that cover, not the one whose plac
 			const y = Math.max( box.top + box.height * 0.75, bar.bottom + 10 );
 			const seen = plugins.hit?.at( x, y );
 			const under = slides.indexOf(
-				document.elementFromPoint( x, y ).closest( '.ss-slide' )
+				document.elementFromPoint( x, y ).closest( '.gs-slide' )
 			);
 			return seen >= 0 && seen !== under && { x, y, seen, under };
 		} )
@@ -447,7 +448,7 @@ test( 'a click on the cover at the edge opens that cover, not the one whose plac
 		);
 	} );
 	await page.mouse.click( at.x, at.y );
-	await expect( page.locator( '.ss-lightbox' ) ).toBeVisible();
+	await expect( page.locator( '.gs-lightbox' ) ).toBeVisible();
 	expect( await page.evaluate( () => window.opened ) ).toEqual( [ at.seen ] );
 } );
 
@@ -468,8 +469,8 @@ test( 'a click on a slider that moves opens the lightbox', async ( { page } ) =>
 	expect( await page.evaluate( () => window.sliders.several.resting ) ).toBe( false );
 	await page.mouse.click(
 		box.x + box.width / 2,
-		Math.max( box.y + box.height / 2, bar.height + 10 )
+		Math.max( box.y + box.height / 2, bar.y + bar.height + 10 )
 	);
-	await expect( page.locator( '.ss-lightbox' ) ).toBeVisible();
+	await expect( page.locator( '.gs-lightbox' ) ).toBeVisible();
 	expect( await page.evaluate( () => window.opened.length ) ).toBe( 1 );
 } );

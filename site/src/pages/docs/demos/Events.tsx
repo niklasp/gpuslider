@@ -1,8 +1,8 @@
 import { useCallback, useRef, type CSSProperties } from 'react';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
 import { Events as Said, type Tell } from '@/components/Pieces';
 import { BUTTON } from '@/components/Frame';
-import { controls, keyboard, wheel } from 'shaderslide/plugins';
+import { controls, keyboard, wheel } from 'gpuslider/plugins';
 
 /** Buttons that are not in the slider, and what the slider says. */
 export default function Events() {
@@ -19,12 +19,12 @@ export default function Events() {
 	return (
 		<>
 			<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_16rem]">
-				<ShaderSlider
+				<GpuSlider
 					id="remote"
 					label="Driven from outside"
 					options={ { loop: true } }
 					className="cards"
-					style={ { '--ss-per-view': 2, '--ss-gap': '16px' } as CSSProperties }
+					style={ { '--gs-per-view': 2, '--gs-gap': '16px' } as CSSProperties }
 					made=""
 					measured=""
 					heard={ heard }
@@ -40,21 +40,21 @@ export default function Events() {
 							sizes="(min-width: 768px) 30vw, 50vw"
 						/>
 					) ) }
-				</ShaderSlider>
+				</GpuSlider>
 				<div className="grid content-start gap-4">
 					<nav
-						data-ss-for="remote"
+						data-gs-for="remote"
 						aria-label="Driven from outside"
 						className="flex flex-wrap gap-2"
 					>
-						<button type="button" className={ BUTTON } data-ss-prev>
+						<button type="button" className={ BUTTON } data-gs-prev>
 							prev()
 						</button>
-						<button type="button" className={ BUTTON } data-ss-next>
+						<button type="button" className={ BUTTON } data-gs-next>
 							next()
 						</button>
 						{ [ 0, 2, 4 ].map( ( n ) => (
-							<button key={ n } type="button" className={ BUTTON } data-ss-to={ n }>
+							<button key={ n } type="button" className={ BUTTON } data-gs-to={ n }>
 								to( { n } )
 							</button>
 						) ) }

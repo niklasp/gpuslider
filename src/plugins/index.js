@@ -2,14 +2,14 @@
  * What a slider can do besides moving its slides. Nothing of it is in the
  * core: a slider has what it is given.
  *
- *     import { createSlider } from 'shaderslide';
- *     import { controls, keyboard, autoplay } from 'shaderslide/plugins';
+ *     import { createSlider } from 'gpuslider';
+ *     import { controls, keyboard, autoplay } from 'gpuslider/plugins';
  *
  *     createSlider( element, {
  *         plugins: [ controls(), keyboard(), autoplay( 3500 ) ],
  *     } );
  *
- * All of them at once: `shaderslide/full`.
+ * All of them at once: `gpuslider/full`.
  */
 export { controls } from './controls.js';
 export { keyboard } from './keyboard.js';

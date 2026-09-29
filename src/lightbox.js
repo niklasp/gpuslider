@@ -7,10 +7,13 @@
  * it is given. The dialog brings what a lightbox needs: the page behind it
  * is inert, the focus stays inside and comes back, Escape closes.
  *
- * The growing is drawn by the canvas: one quad that goes from the image in
- * the slide, cut as it is there, to the whole image. The canvas of the
- * lightbox is of the kind the slider has: WebGPU, or WebGL. Without a
- * canvas the lightbox fades in.
+ * The growing is drawn by the canvas of the slider, lifted out of it for
+ * the time: the image goes from where it is, cut as it is there and with
+ * the effects of the slider, to the whole image, and the effects fade on
+ * the way. There the canvas of the lightbox takes over, of the kind the
+ * slider has: WebGPU, or WebGL. A slider without a canvas, or a stack,
+ * has its image grow in the canvas of the lightbox, from the place it has
+ * on the page; without any canvas the lightbox fades in.
  *
  *     createSlider( element, {
  *         plugins: [ gpu(), lightbox( { effects: [ stretch() ] } ) ],
@@ -19,9 +22,9 @@
  * Events of the slider: `lightbox:open` and `lightbox:close`, both with the
  * index of the slide.
  *
- * Opens on a click on a slide, or on a `[data-ss-zoom]` in it. The image
+ * Opens on a click on a slide, or on a `[data-gs-zoom]` in it. The image
  * of the lightbox is the one of the slide, in the size the browser picks
- * from its `srcset` for the whole screen, or the file in `data-ss-full`.
+ * from its `srcset` for the whole screen, or the file in `data-gs-full`.
  */
 import { createSlider } from './index.js';
 import { controls } from './plugins/controls.js';
@@ -34,11 +37,18 @@ const layerOf = ( { plugins } ) => plugins.gpu || plugins.gl;
 // The spring has arrived after about 9 / omega seconds (see engine.js).
 const SETTLE = 9;
 
+// The part of the way near the slide where the image of the lightbox and
+// the one of the page fade into each other, when the lightbox draws the
+// way; and near the screen, where its canvas takes over from the one of
+// the slider, when that draws it.
+const HANDOVER = 0.3;
+const TAKEOVER = 0.8;
+
 // How long the lightbox waits for the canvas to have the image before it
 // opens without it, ms.
 const PATIENCE = 400;
 
-const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-ss-no-zoom]';
+const NOT_A_CLICK = 'a, button, input, select, textarea, label, [data-gs-no-zoom]';
 
 /**
  * @param {Object}   [options]          Options.
@@ -75,7 +85,7 @@ export function lightbox( {
 		let items = [];
 		const read = () => {
 			items = slides.flatMap( ( slide, i ) => {
-				const media = slide.querySelector( '.ss-media' );
+				const media = slide.querySelector( '.gs-media' );
 				return media ? [ { i, media } ] : [];
 			} );
 		};
@@ -96,6 +106,10 @@ export function lightbox( {
 		let active = -1;
 		let from = null;
 		let wasPaused = false;
+		// The layer of the slider, while it draws the way; and the screen
+		// in px of its view.
+		let outer = null;
+		let screen = null;
 
 		const numbers = new Float32Array( 13 );
 		const mixed = new Float32Array( 13 );
@@ -149,6 +163,7 @@ export function lightbox( {
 			seen.w *= wide;
 			seen.h *= high;
 			seen.radius = style.radius;
+			seen.shape = style.shape;
 			return seen;
 		};
 
@@ -167,15 +182,51 @@ export function lightbox( {
 			quad.w = mix( from.w, whole.w );
 			quad.h = mix( from.h, whole.h );
 			quad.radius = mix( from.radius, 0 );
+			quad.shape = from.shape;
 			quad.speed = still.matches ? 0 : speed * punch;
 			quad.a = mixed;
+		};
+
+		// The same, drawn by the slider: its image grows out of it and its
+		// effects fade, the rest goes dark as the page does.
+		const grow = ( i, quad ) => {
+			if ( i !== items[ active ]?.i ) {
+				quad.dim = 1 - 0.92 * t;
+				return;
+			}
+			const { media } = items[ active ];
+			const iw = media.naturalWidth || media.videoWidth || quad.w;
+			const ih = media.naturalHeight || media.videoHeight || quad.h;
+			const k = Math.min( screen.w / iw, screen.h / ih );
+			const seen = part( quad.a, quad.w, quad.h );
+			const mix = ( a, b ) => a + ( b - a ) * t;
+			for ( let n = 0; n < 4; n++ ) {
+				mixed[ n ] = mix( seen.box[ n ], n < 2 ? 1 : 0 );
+			}
+			quad.x = mix( quad.x + seen.x, screen.x + ( screen.w - iw * k ) / 2 );
+			quad.y = mix( quad.y + seen.y, screen.y + ( screen.h - ih * k ) / 2 );
+			quad.w = mix( seen.w, iw * k );
+			quad.h = mix( seen.h, ih * k );
+			quad.radius = mix( quad.radius, 0 );
+			quad.fx = 1 - t;
+			quad.clip = false;
+			quad.a = mixed;
+		};
+
+		// The slider draws the way, or stops.
+		const lift = ( on ) => {
+			if ( outer ) {
+				outer.lift = on ? dialog : null;
+				outer.change = on ? grow : null;
+				slider.wake();
+			}
 		};
 
 		// First layer of the slider in the lightbox: moves `t`.
 		const driver = () => ( {
 			frame( view, dt, now ) {
 				since ||= now;
-				const media = shown?.slides[ active ]?.querySelector( '.ss-media' );
+				const media = shown?.slides[ active ]?.querySelector( '.gs-media' );
 				if ( ! started ) {
 					// Not before the canvas has the image, or it would pop
 					// in half way.
@@ -197,7 +248,25 @@ export function lightbox( {
 						speed = 0;
 					}
 				}
-				dialog.style.setProperty( '--ss-open', t.toFixed( 3 ) );
+				dialog.style.setProperty( '--gs-open', t.toFixed( 3 ) );
+				dialog.style.setProperty(
+					'--gs-canvas',
+					Math.min(
+						1,
+						outer
+							? Math.max( 0, t - TAKEOVER ) / ( 1 - TAKEOVER )
+							: t / HANDOVER
+					).toFixed( 3 )
+				);
+				if ( outer ) {
+					if ( t === 1 && to === 1 ) {
+						// Open: the slider draws itself again, under the
+						// lightbox.
+						lift( false );
+					} else {
+						slider.wake();
+					}
+				}
 				if ( started && to === 0 && t === 0 ) {
 					// After this frame: the slider is still drawing.
 					win.setTimeout( finish, 0 );
@@ -208,12 +277,12 @@ export function lightbox( {
 
 		function build() {
 			dialog = doc.createElement( 'dialog' );
-			dialog.className = 'ss-lightbox';
+			dialog.className = 'gs-lightbox';
 			dialog.setAttribute( 'aria-label', labels.dialog || 'Image viewer' );
 			const button = ( name, label ) =>
-				`<button type="button" class="ss-button ss-${ name }" data-ss-${ name } aria-label="${ label }"></button>`;
+				`<button type="button" class="gs-button gs-${ name }" data-gs-${ name } aria-label="${ label }"></button>`;
 			dialog.innerHTML =
-				'<div class="ss ss-box"><div class="ss-track"></div>' +
+				'<div class="gs gs-box"><div class="gs-track"></div>' +
 				button( 'close', labels.close || 'Close' ) +
 				button( 'prev', labels.prev || 'Previous' ) +
 				button( 'next', labels.next || 'Next' ) +
@@ -225,7 +294,7 @@ export function lightbox( {
 				hide();
 			} );
 			dialog.addEventListener( 'click', ( event ) => {
-				if ( event.target.closest( '[data-ss-close]' ) ) {
+				if ( event.target.closest( '[data-gs-close]' ) ) {
 					hide();
 					return;
 				}
@@ -254,10 +323,15 @@ export function lightbox( {
 			doc.body.append( dialog );
 		}
 
-		function show( item ) {
+		// Whether a pointer opened it: then the focus goes back without the
+		// ring that says where the keys are.
+		let pointed = false;
+
+		function show( item, byPointer = false ) {
 			if ( shown || ! items[ item ] ) {
 				return;
 			}
+			pointed = byPointer;
 			if ( ! dialog ) {
 				build();
 			}
@@ -265,14 +339,14 @@ export function lightbox( {
 			track.replaceChildren(
 				...items.map( ( { media } ) => {
 					const slide = doc.createElement( 'div' );
-					slide.className = 'ss-slide';
+					slide.className = 'gs-slide';
 					const copy = media.cloneNode();
-					copy.className = 'ss-media';
+					copy.className = 'gs-media';
 					copy.removeAttribute( 'loading' );
 					copy.removeAttribute( 'style' );
-					if ( media.dataset.ssFull ) {
+					if ( media.dataset.gsFull ) {
 						copy.removeAttribute( 'srcset' );
-						copy.src = media.dataset.ssFull;
+						copy.src = media.dataset.gsFull;
 					} else if ( copy.srcset ) {
 						copy.sizes = '100vw';
 					}
@@ -293,8 +367,22 @@ export function lightbox( {
 			started = false;
 			since = 0;
 			active = item;
-			from = place( item );
-			dialog.style.setProperty( '--ss-open', 0 );
+			outer = layerOf( slider );
+			outer = outer?.canvas && ! slider.layout().stack ? outer : null;
+			if ( outer ) {
+				const r = root.getBoundingClientRect();
+				screen = {
+					x: -r.left - root.clientLeft,
+					y: -r.top - root.clientTop,
+					w: dialog.clientWidth,
+					h: dialog.clientHeight,
+				};
+				lift( true );
+			} else {
+				from = place( item );
+			}
+			dialog.style.setProperty( '--gs-open', 0 );
+			dialog.style.setProperty( '--gs-canvas', 0 );
 			layer = null;
 			const draws = given || layerOf( slider )?.again;
 			shown = createSlider( box, {
@@ -311,7 +399,7 @@ export function lightbox( {
 				],
 			} );
 			layer = layerOf( shown );
-			if ( layer ) {
+			if ( layer && ! outer ) {
 				layer.change = change;
 			}
 			box.focus( { preventScroll: true } );
@@ -332,7 +420,11 @@ export function lightbox( {
 			// Measured after the slider has put its slides in place.
 			win.requestAnimationFrame( () => {
 				if ( shown ) {
-					from = place( active );
+					if ( outer ) {
+						lift( true );
+					} else {
+						from = place( active );
+					}
 					started = true;
 					to = 0;
 					shown.wake();
@@ -344,12 +436,27 @@ export function lightbox( {
 			if ( ! shown ) {
 				return;
 			}
+			if ( outer?.lift ) {
+				// The dialog goes once the slider has drawn itself where it
+				// is again: its canvas is in it until then.
+				lift( false );
+				const off = slider.on( 'frame', () => {
+					off();
+					finish();
+				} );
+				return;
+			}
 			shown.destroy();
 			shown = null;
 			layer = null;
 			from = null;
 			box.firstChild.replaceChildren();
 			dialog.close();
+			const back = doc.activeElement;
+			if ( pointed && back !== doc.body ) {
+				back.blur();
+				back.focus( { preventScroll: true, focusVisible: false } );
+			}
 			slider.emit( 'lightbox:close', items[ active ]?.i );
 			if ( ! wasPaused ) {
 				slider.plugins.autoplay?.play();
@@ -357,15 +464,19 @@ export function lightbox( {
 		}
 
 		const off = slider.on( 'click', ( { index, event } ) => {
-			const zoom = event.target.closest( '[data-ss-zoom]' );
+			const zoom = event.target.closest( '[data-gs-zoom]' );
 			if (
 				! event.defaultPrevented &&
 				( zoom || ! event.target.closest( NOT_A_CLICK ) )
 			) {
-				show( items.findIndex( ( { i } ) => i === index ) );
+				show(
+					items.findIndex( ( { i } ) => i === index ),
+					// A click of the keys has no count of clicks.
+					event.detail > 0
+				);
 			}
 		} );
-		root.classList.add( 'ss-zooms' );
+		root.classList.add( 'gs-zooms' );
 
 		return {
 			name: 'lightbox',
@@ -389,7 +500,8 @@ export function lightbox( {
 
 			destroy() {
 				off();
-				root.classList.remove( 'ss-zooms' );
+				lift( false );
+				root.classList.remove( 'gs-zooms' );
 				shown?.destroy();
 				shown = null;
 				dialog?.remove();

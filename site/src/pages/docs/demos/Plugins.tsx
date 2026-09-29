@@ -1,18 +1,18 @@
 import { type CSSProperties } from 'react';
-import { ShaderSlider, Slide } from '@/components/ShaderSlider';
+import { GpuSlider, Slide } from '@/components/GpuSlider';
 import { Photos } from '@/components/Pieces';
-import { controls, keyboard, marquee, wheel } from 'shaderslide/plugins';
+import { controls, keyboard, marquee, wheel } from 'gpuslider/plugins';
 
 /** A ticker, and photos with thumbnails. */
 export default function Plugins() {
 	return (
 		<>
-			<ShaderSlider
+			<GpuSlider
 				id="ticker"
 				label="Ticker"
 				options={ { loop: true, free: true } }
 				className="cards"
-				style={ { '--ss-per-view': 4.5, '--ss-gap': '16px' } as CSSProperties }
+				style={ { '--gs-per-view': 4.5, '--gs-gap': '16px' } as CSSProperties }
 				made=""
 				measured=""
 				plugins={ () => [ marquee( { speed: 50, hover: 0.2, scroll: 0.4 } ) ] }
@@ -27,7 +27,7 @@ export default function Plugins() {
 						sizes="(max-width: 640px) 77vw, 22vw"
 					/>
 				) ) }
-			</ShaderSlider>
+			</GpuSlider>
 			<p className="note">
 				<code>marquee()</code>: it runs by itself, slower under the pointer
 				and faster while the page is scrolled. Drag it, and it runs on.

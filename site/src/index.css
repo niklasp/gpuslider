@@ -1,32 +1,35 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/funnel-sans";
+@import "@fontsource-variable/funnel-display";
 
 /*
  * What is shown until the font is there is as wide as the font, so that
- * no line breaks elsewhere when it comes. Measured against Geist with
- * the text of a page of the docs: see PLAN.md.
+ * no line breaks elsewhere when it comes. Measured against Funnel Sans
+ * with the text of a page of the docs.
  */
 @font-face {
-    font-family: "Geist Fallback";
+    font-family: "Funnel Sans Fallback";
     font-weight: 100 500;
     src: local("Arial");
-    size-adjust: 103.5%;
+    size-adjust: 100.2%;
 }
 
 @font-face {
-    font-family: "Geist Fallback";
+    font-family: "Funnel Sans Fallback";
     font-weight: 600 900;
     src: local("Arial Bold"), local("Arial-BoldMT");
-    size-adjust: 99.5%;
+    size-adjust: 94%;
 }
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', 'Geist Fallback', sans-serif;
+    --font-heading: var(--font-display);
+    --font-sans: 'Funnel Sans Variable', 'Funnel Sans Fallback', sans-serif;
+    /* For what is large: the same family, drawn for it. */
+    --font-display: 'Funnel Display Variable', 'Funnel Sans Variable', 'Funnel Sans Fallback', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -102,38 +105,83 @@
     --sidebar-ring: oklch(0.708 0 0);
 }
 
+/*
+ * Black, as a stage is: what colour there is comes from the slides, and
+ * what a slide lights up (see .lit) is lit in its own colour.
+ */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
+    --background: #000000;
+    --foreground: #f5f5f7;
+    --card: #141416;
+    --card-foreground: #f5f5f7;
+    --popover: #141416;
+    --popover-foreground: #f5f5f7;
+    --primary: #f5f5f7;
+    --primary-foreground: #000000;
+    --secondary: #1e1e21;
+    --secondary-foreground: #f5f5f7;
+    --muted: #1e1e21;
+    --muted-foreground: #8e8e93;
+    --accent: #2a2a2e;
+    --accent-foreground: #f5f5f7;
     --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
+    --border: rgb(255 255 255 / 9%);
+    --input: rgb(255 255 255 / 14%);
+    --ring: #8e8e93;
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar: #141416;
+    --sidebar-foreground: #f5f5f7;
     --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --sidebar-primary-foreground: #f5f5f7;
+    --sidebar-accent: #1e1e21;
+    --sidebar-accent-foreground: #f5f5f7;
+    --sidebar-border: rgb(255 255 255 / 9%);
+    --sidebar-ring: #8e8e93;
+}
+
+/*
+ * Squircles, of three sizes: what shows a slider, what is one of several,
+ * and what is pressed. Where a browser has no corner-shape, the corners
+ * are round and smaller, for a round corner of the same radius looks
+ * rounder.
+ */
+:root {
+    --stage: 44px;
+    --tile: 28px;
+    --knob: 14px;
+}
+
+@supports not (corner-shape: squircle) {
+    :root {
+        --stage: 24px;
+        --tile: 16px;
+        --knob: 9px;
+    }
+}
+
+@utility sq-stage {
+    border-radius: var(--stage);
+    corner-shape: squircle;
+}
+
+@utility sq-tile {
+    border-radius: var(--tile);
+    corner-shape: squircle;
+}
+
+@utility sq-knob {
+    border-radius: var(--knob);
+    corner-shape: squircle;
+}
+
+/* The pill of a squircle: as round as it is high. */
+@utility sq-pill {
+    border-radius: 999px;
+    corner-shape: squircle;
 }
 
 @layer base {
@@ -142,6 +190,9 @@
     }
   body {
     @apply bg-background text-foreground;
+    /* What reaches from one side of the window to the other, without a
+       scrollbar for it. */
+    overflow-x: clip;
     }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;

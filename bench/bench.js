@@ -87,15 +87,15 @@ let canvases = 0;
  */
 function make() {
 	const root = document.createElement( 'div' );
-	root.className = 'ss';
+	root.className = 'gs';
 	root.setAttribute( 'aria-label', 'Measured' );
 	root.innerHTML =
-		'<div class="ss-track">' +
+		'<div class="gs-track">' +
 		sources
 			.slice( 0, 5 )
 			.map(
 				( src ) =>
-					`<div class="ss-slide"><img class="ss-media" src="${ src }" alt=""></div>`
+					`<div class="gs-slide"><img class="gs-media" src="${ src }" alt=""></div>`
 			)
 			.join( '' ) +
 		'</div>';
@@ -104,7 +104,7 @@ function make() {
 		const times = {};
 		const began = performance.now();
 		const watch = new MutationObserver( async () => {
-			if ( root.querySelector( '.ss-drawn' ) ) {
+			if ( root.querySelector( '.gs-drawn' ) ) {
 				watch.disconnect();
 				clearTimeout( late );
 				canvases++;
