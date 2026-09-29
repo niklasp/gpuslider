@@ -469,7 +469,7 @@ Shaders are compiled on another thread where the browser can, and no frame is dr
 
 ### WebGPU and WebGL, measured
 
-`npm run bench` makes the same sliders with each layer, in the same browser with the same GPU, and measures. On a Mac with an Apple M5, 2 device pixels per pixel, 2026-09-29, in Chromium 153 (Metal) and WebKit 26.6, both without a window:
+`npm run bench` makes the same sliders with each layer, in the same browser with the same GPU, and measures. On a Mac with an Apple M5, 2 device pixels per pixel, 2026-09-29, in Chromium 153 (Metal) and WebKit 26.6, both without a window. The first two lines are the middle of five runs, the others are one run each:
 
 | | WebGL 2 | WebGPU |
 |---|---|---|
@@ -552,7 +552,7 @@ Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `
 What the translation knows is the GLSL that all effects here are written in. For an effect that is to run on WebGPU too:
 
 - Functions, `if`, `for`, `a ? b : c`, and the functions GLSL comes with. No `out` and `inout` parameters, no structs, no arrays, no `#define`.
-- Both sides of `max`, `min`, `clamp`, `smoothstep` and `mix` are of one kind: `max( v, vec2( 0.0 ) )`, not `max( v, 0.0 )`.
+- What `max`, `min`, `clamp` and `smoothstep` are given is of one kind: `max( v, vec2( 0.0 ) )`, not `max( v, 0.0 )`.
 - One component is assigned at a time, or the whole vector: `p = vec3( q, p.z )`, not `p.xy = q`.
 
 A shader that WebGPU does not take is said in the console, as `shaderslide: …`, and the page draws that slider.

@@ -232,9 +232,6 @@ export function gl( {
 			g.uniform1i( at.uA, 0 );
 			g.uniform1i( at.uB, 1 );
 			g.uniform1f( at.uDepth, perspective );
-			for ( const [ name, value ] of Object.entries( shader.params ) ) {
-				g[ `uniform${ value.length }fv` ]( at[ name ], value );
-			}
 
 			g.enable( g.BLEND );
 			g.blendFunc( g.ONE, g.ONE_MINUS_SRC_ALPHA );
@@ -532,6 +529,10 @@ export function gl( {
 				turn( ( x, y ) => g.uniform2f( at.uView, x, y ), width, height );
 				g.uniform1f( at.uTime, now / 1000 );
 				g.uniform1f( at.uPointerIn, pointer.in );
+				for ( const name in shader.params ) {
+					const value = shader.params[ name ];
+					g[ `uniform${ value.length }fv` ]( at[ name ], value );
+				}
 				// To the right on the screen, whatever the reading direction.
 				const velocity = ( layout.rtl ? 1 : -1 ) * view.velocity;
 

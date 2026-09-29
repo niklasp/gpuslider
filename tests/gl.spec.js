@@ -340,3 +340,42 @@ test.describe( 'the canvas waits for the first sign of use', () => {
 		expect( await page.evaluate( () => window.slider.index ) ).toBe( 0 );
 	} );
 } );
+
+test.describe( 'an effect of one\'s own', () => {
+	test( 'what is written into a parameter is drawn in the next frame', async ( { page } ) => {
+		await open( page, { plugins: 'gl' } );
+		test.skip( ! ( await draws( page ) ), 'No canvas in this browser.' );
+		await page.evaluate( () => {
+			const { createSlider, gl } = window.lib;
+			window.slider.destroy();
+			window.tint = [ 1, 0, 0 ];
+			window.slider = createSlider( document.getElementById( 'slider' ), {
+				plugins: [
+					gl( {
+						effects: [
+							{
+								params: { tint: window.tint, more: [ 1 ] },
+								color: 'return vec4( tint * more * color.a, color.a );',
+							},
+						],
+						preserve: true,
+						eager: true,
+					} ),
+				],
+			} );
+		} );
+		expect( await draws( page ) ).toBe( true );
+		await painted( page );
+		const colour = () =>
+			page.evaluate( () => [
+				...window.pixels( window.slider.plugins.gl, 200, 100, 1, 1 ),
+			] );
+		await expect.poll( colour ).toEqual( [ 255, 0, 0, 255 ] );
+		await page.evaluate( () => {
+			window.tint[ 0 ] = 0;
+			window.tint[ 2 ] = 1;
+			window.slider.wake();
+		} );
+		await expect.poll( colour ).toEqual( [ 0, 0, 255, 255 ] );
+	} );
+} );

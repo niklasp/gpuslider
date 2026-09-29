@@ -45,7 +45,12 @@
  *                                                    such time.
  * @param {Array<Promise<unknown>>} [options.also]    What else is waited
  *                                                    for, and counted:
- *                                                    fonts, data.
+ *                                                    fonts, data. The
+ *                                                    plugin is for a
+ *                                                    slider that is made
+ *                                                    now: what is kept
+ *                                                    before there is one
+ *                                                    is told to nobody.
  */
 export function loading( {
 	screen,
@@ -59,6 +64,8 @@ export function loading( {
 	const state = { loaded: 0, failed: 0, total: 0, progress: 0 };
 	let began = 0;
 	let done = false;
+	// The window of the sliders.
+	let page;
 	let finish;
 	const ready = new Promise( ( resolve ) => {
 		finish = resolve;
@@ -88,7 +95,7 @@ export function loading( {
 		}
 		done = true;
 		const time = Date.now() - began;
-		setTimeout(
+		( page || globalThis ).setTimeout(
 			() => {
 				sliders.forEach( ( { root } ) =>
 					root.classList.remove( 'ss-is-loading' )
@@ -154,9 +161,10 @@ export function loading( {
 			root.classList.add( 'ss-is-loading' );
 		}
 		if ( ! sliders.size ) {
+			page = win;
 			began = Date.now();
 			if ( timeout ) {
-				setTimeout( () => end( true ), timeout );
+				win.setTimeout( () => end( true ), timeout );
 			}
 			// Who listens does so when the slider is made.
 			win.queueMicrotask( () => {

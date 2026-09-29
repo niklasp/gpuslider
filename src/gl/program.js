@@ -18,8 +18,9 @@
  *
  * and
  *
- *     params      numbers, or arrays of 2 to 4, that the bodies use by
- *                 their name
+ *     params      numbers, or arrays of 1 to 4, that the bodies use by
+ *                 their name. An array can be written into while the
+ *                 effect runs: the next frame is drawn with what it has
  *     head        GLSL the bodies need: helper functions
  *     animated    true when it moves without the slider moving; 'pointer'
  *                 when it does so while the pointer is over the slider
@@ -52,7 +53,8 @@
 /**
  * @typedef {Object} Effect
  * @property {Record<string, number | number[]>} [params]     Numbers, or
- *           arrays of 2 to 4, that the bodies use by their name.
+ *           arrays of 1 to 4, that the bodies use by their name. What is
+ *           written into an array is drawn in the next frame.
  * @property {string}                            [vertex]     Moves the mesh.
  * @property {string}                            [uv]         Moves the lookup.
  * @property {string}                            [color]      Changes the
@@ -183,11 +185,12 @@ export function compose( effects, transition, y ) {
 		let define = '';
 		let undefine = '';
 		for ( const [ name, value ] of Object.entries( effect.params || {} ) ) {
-			const type = TYPES[ [ value ].flat().length ];
-			uniforms += `uniform ${ type } e${ k }_${ name };\n`;
+			// An array stays the one it is: who made it may write into it.
+			const all = value.map ? value : [ value ];
+			uniforms += `uniform ${ TYPES[ all.length ] } e${ k }_${ name };\n`;
 			define += `#define ${ name } e${ k }_${ name }\n`;
 			undefine += `#undef ${ name }\n`;
-			params[ `e${ k }_${ name }` ] = [ value ].flat();
+			params[ `e${ k }_${ name }` ] = all;
 		}
 		if ( effect.transition && transition !== null ) {
 			base = named( define + effect.transition + '\n' + undefine );

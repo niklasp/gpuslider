@@ -217,7 +217,7 @@ Asked for by the user on 2026-09-28: as fast as possible, for everyone, with wha
 - **The canvas is made at the first sign of use**: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same. A slider that moves by itself (`autoplay`, `marquee`) or whose effects show at rest gets its canvas when the page has time (`requestIdleCallback`). `eager: true` is as before. Why: a context, its shaders and the textures of a slider cost the main thread 50 to 200 ms, and most sliders of a page are never touched.
 - **Shaders compile on another thread** where the browser has `KHR_parallel_shader_compile`. Nothing waits for them: the page draws until they are ready.
 - **The list of sliders that wait for a context is gone.** With contexts made late, a slider without one gets one when it is next used.
-- **`dist/` for pages without a bundler.** Modules that share what they have in common (`index`, `full`, `plugins`, `gl`, `lightbox`), and `auto.js`: one file of 7.1 KB that makes a slider of every `[data-ss]` and loads the canvas and the lightbox only for sliders that ask for them, when the page has time. Its lightbox brings a second copy of the core (4.5 KB, loaded late, only with a lightbox): one request at the start was worth more.
+- **`dist/` for pages without a bundler.** Modules that share what they have in common (`index`, `full`, `plugins`, `gl`, `lightbox`), and `auto.js`: one file of 7.1 KB (7.9 since decision 17) that makes a slider of every `[data-ss]` and loads the canvas and the lightbox only for sliders that ask for them, when the page has time. Its lightbox brings a second copy of the core (4.5 KB, loaded late, only with a lightbox): one request at the start was worth more.
 - **The shaders of `dist/` are made small** (`bin/glsl.mjs`): comments and spaces go, 3 to 8 % of what has shaders. The first two tries broke every shader (`#version` not first; a `#define` on the line of its neighbour), and the tests found both, because `npm run test:dist` runs them with what is built.
 - **`exports` of the package point at `src/`**, not at `dist/`. A bundler makes the script small itself and leaves out what is not used, and the source has the comments a debugger shows. The price: the shaders in a bundle are not made small, about 0.3 KB of the canvas layer.
 - **React**: `useSlider( options, remake )` in `shaderslide/react`, 0.1 KB. React is an optional peer. A component would have to decide about the markup of the slides, which is the page's.
@@ -294,7 +294,7 @@ Asked for by the user on 2026-09-29: media take time to load, the visitor can be
 - **It makes lazy images load.** That is against what the lazy loading is for, and what a loading screen means: the README says where it belongs.
 - **One plugin for several sliders** counts them together. A wall of sliders has one screen.
 - **`also`**: promises that count as media. Fonts, data, whatever the page waits for.
-- **In `auto.js`**: `data-ss-loading`. The file is 7.9 KB with it (7.2 before).
+- **In `auto.js`**: `data-ss-loading`. The file is 7.9 KB with it (7.2 before), for every page that has the file: the canvas and the lightbox are loaded when they are asked for, a loading screen that comes late is none.
 - **Not in `shaderslide/full`**: it has no option for it, and its budget no room. A plugin as the others.
 - **Not waited for: the canvas.** Until it is there the page draws the slides, which look the same.
 

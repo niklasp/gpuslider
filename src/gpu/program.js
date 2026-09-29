@@ -86,7 +86,8 @@ export function compose( effects, transition, y ) {
 		// The bodies use their parameters by name; each effect has its own.
 		const own = {};
 		for ( const [ name, value ] of Object.entries( effect.params || {} ) ) {
-			const all = [ value ].flat();
+			// An array stays the one it is: who made it may write into it.
+			const all = value.map ? value : [ value ];
 			own[ name ] = `e${ k }_${ name }`;
 			told[ 4 - all.length ].push( own[ name ] );
 			params[ own[ name ] ] = all;
