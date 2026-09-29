@@ -37,8 +37,9 @@ export default function Lightbox() {
 				) ) }
 			</GpuSlider>
 			<p className="note">
-				Click a slide. In the lightbox: drag, the arrows, the keys, and
-				Escape to let the image go back into its slide.
+				Click a slide. One canvas draws all of it, the one of the slider:
+				in the lightbox drag, or use the arrows and the keys, and Escape
+				lets the image go back into its slide.
 			</p>
 		</>
 	);

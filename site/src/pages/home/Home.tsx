@@ -156,14 +156,14 @@ const FEATURES: {
 	},
 	{
 		title: 'A lightbox',
-		text: 'A click lets the image grow out of its slide to the screen, with the effects of the slider. Escape lets it go back into it.',
+		text: 'A click lets the image grow out of its slide to the screen, and one canvas draws all of it: the one of the slider, with its effects, which fade on the way. Drag it there, or the arrows; Escape lets it go back into its slide.',
 		to: '/docs/lightbox/',
 		more: 'Lightbox',
 		icon: ArrowsOut,
 	},
 	{
 		title: 'React',
-		text: `A hook of ${ parts[ 'react: what useSlider adds' ] } bytes. React renders the slides, the library moves them, and slides that come and go are seen.`,
+		text: `<Slider> and <Slide>, ${ parts[ 'react: what <Slider> and <Slide> add' ] } bytes on the core. Options are props, React renders the slides, the library moves them, and slides that come and go are seen.`,
 		to: '/docs/react/',
 		more: 'React',
 		icon: Atom,
@@ -494,8 +494,8 @@ function Stage() {
 						</h1>
 						<p className="max-w-md text-white/75 md:text-lg">
 							By WebGPU, or by WebGL 2 where there is none. A core of{ ' ' }
-							{ kb( parts.core ) } KB, everything else a plugin. Choose how
-							one picture turns into the next:
+							{ kb( parts.core ) } KB, everything else a plugin. Every slide
+							turns into the next another way; choose one to keep it:
 						</p>
 						<div className="flex max-w-full flex-wrap items-center gap-2">
 						<div

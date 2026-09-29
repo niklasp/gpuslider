@@ -573,7 +573,7 @@ Any number, in the order given.
 |---|---|---|
 | `stretch( { amount } )` | The middle of the image hangs back | Speed |
 | `split( { amount } )` | The colours come apart | Speed |
-| `parallax( { amount, zoom } )` | The image is slower than its slide | Position |
+| `parallax( { amount, zoom } )` | The image is slower than its slide; closer all round, so it keeps its shape | Position |
 | `bend( { amount, speed } )` | The row is an arc; bends the mesh | Position and speed |
 | `magnify( { size, strength } )` | A lens | Pointer |
 | `cells( { size, zoom, reach } )` | Squares in the wake of the pointer, each its part closer; as far as the pointer is fast | Speed of the pointer |
@@ -688,7 +688,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 1.9 KB |
-| `style.css`, `lightbox.css` | 0.7 and 0.6 KB |
+| `style.css`, `lightbox.css` | 0.7 KB each |
 | `loading.css` | 0.4 KB |
 
 A visitor loads one of the two layers. `dist/` has the same for pages without a bundler, as modules that share what they have in common, with the shaders made small. `npm run test:dist` runs the tests with them.

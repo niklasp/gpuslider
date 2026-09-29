@@ -144,7 +144,7 @@ export default function Playground() {
 
 				<Section
 					title="One per view"
-					note="Images and a video. The text is HTML on top of the canvas. One slide at a time takes the transition that is chosen above: drag slowly to stop half way. With none, the slides move."
+					note="Images and a video. The text is HTML on top of the canvas. One slide at a time takes the transition that is chosen in the settings, or another every time: drag slowly to stop half way. With none, the slides move."
 				>
 					<GpuSlider
 						id="one"
@@ -258,7 +258,7 @@ export default function Playground() {
 
 				<Section
 					title="Downwards, and in rows"
-					note="The same slider with its slides below each other: drag up and down, or use the keys. And two rows, which are a grid of CSS and nothing of the script."
+					note="The same slider with its slides below each other, the one that is shown in the middle: it runs by itself, and can be dragged up and down, or moved with the keys. And two rows, which are a grid of CSS and nothing of the script."
 				>
 					<div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
 						<GpuSlider
