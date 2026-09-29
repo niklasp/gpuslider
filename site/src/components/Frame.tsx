@@ -3,21 +3,23 @@
  * foot, and how a section and a button look.
  */
 import type { ReactNode } from 'react';
+import { ImageSquare, Swatches } from '@phosphor-icons/react/ssr';
+import { choose, useKind, type Kind } from '@/lib/media';
 
-/** A working name: it is said here, and nowhere else on the site. */
-export const NAME = 'gpuslider';
+/** The name: it is said here, and nowhere else on the site. */
+export const NAME = 'gpu slider';
 
 /** A button of the site, as the controls have them. */
 export const BUTTON =
-	'inline-flex h-8 cursor-pointer items-center rounded-md border bg-background px-3 text-sm font-medium shadow-xs transition hover:bg-accent disabled:cursor-default disabled:opacity-40 aria-[current]:bg-foreground aria-[current]:text-background dark:border-input dark:bg-input/30 dark:aria-[current]:bg-foreground';
+	'sq-knob inline-flex h-9 cursor-pointer items-center bg-secondary px-3.5 text-sm font-medium transition hover:bg-accent disabled:cursor-default disabled:opacity-40 aria-[current]:bg-foreground aria-[current]:text-background';
 
 /** The button of a page that is the one to press. */
 export const FIRST =
-	'inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:bg-primary/80';
+	'sq-knob inline-flex h-12 items-center bg-primary px-6 font-medium text-primary-foreground transition hover:bg-primary/85';
 
 /** The same for what may be pressed as well. */
 export const SECOND =
-	'inline-flex h-10 items-center rounded-md border bg-background px-4 text-sm font-medium shadow-xs transition hover:bg-accent dark:border-input dark:bg-input/30';
+	'sq-knob inline-flex h-12 items-center bg-secondary px-6 font-medium transition hover:bg-accent';
 
 /** As wide as the pages are. */
 export const WIDTH = 'mx-auto max-w-[1400px] px-4 md:px-8';
@@ -30,31 +32,94 @@ const PAGES = {
 
 export type At = keyof typeof PAGES | 'home';
 
+const KINDS: [ Kind, string, typeof Swatches ][] = [
+	[ 'fields', 'Colour fields', Swatches ],
+	[ 'photos', 'Photos', ImageSquare ],
+];
+
+/**
+ * Which pictures the sliders of the site show: two buttons of glass, top
+ * right. On a phone there is no room beside the bar: there it is one
+ * button in it, that says whether the photos are shown.
+ */
+function Pictures() {
+	const kind = useKind();
+	return (
+		<div
+			role="group"
+			aria-label="Pictures"
+			className="sq-pill pointer-events-auto hidden h-12 sm:flex items-center gap-1 bg-black/45 p-1.5 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150"
+		>
+			{ KINDS.map( ( [ one, label, Icon ] ) => (
+				<button
+					key={ one }
+					type="button"
+					aria-label={ label }
+					title={ label }
+					aria-pressed={ one === kind }
+					onClick={ () => choose( one ) }
+					className="sq-pill grid size-9 cursor-pointer place-items-center text-white/55 transition hover:text-white aria-pressed:bg-white/12 aria-pressed:text-white"
+				>
+					<Icon size={ 18 } weight={ one === kind ? 'fill' : 'regular' } />
+				</button>
+			) ) }
+		</div>
+	);
+}
+
+/** The one button of the pictures, in the bar, on a phone. */
+function Photos() {
+	const kind = useKind();
+	return (
+		<button
+			type="button"
+			aria-label="Photos"
+			aria-pressed={ kind === 'photos' }
+			onClick={ () => choose( kind === 'photos' ? 'fields' : 'photos' ) }
+			className="sq-pill grid size-9 shrink-0 cursor-pointer place-items-center text-white/55 transition hover:text-white aria-pressed:bg-white/12 aria-pressed:text-white sm:hidden"
+		>
+			<ImageSquare size={ 18 } weight={ kind === 'photos' ? 'fill' : 'regular' } />
+		</button>
+	);
+}
+
+/**
+ * A bar of glass that floats over the page. On the first page it floats
+ * over the slider, and takes no room of its own.
+ */
 export function Nav( { at }: { at: At } ) {
 	return (
-		<header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
-			<div className={ `${ WIDTH } flex h-14 items-center gap-x-6` }>
+		<header
+			className={ `pointer-events-none inset-x-0 top-0 z-40 flex h-[4.5rem] items-center justify-center px-4 ${
+				at === 'home' ? 'fixed' : 'sticky'
+			}` }
+		>
+			<div className="sq-pill pointer-events-auto flex h-12 items-center gap-x-1 bg-black/45 ps-4 pe-1.5 sm:ps-5 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150">
 				<a
 					href="/"
 					aria-current={ at === 'home' ? 'page' : undefined }
-					className="text-base font-semibold tracking-tight"
+					className="me-2 font-display text-[0.9375rem] font-semibold tracking-[-0.02em] sm:me-4"
 				>
 					{ NAME }
 				</a>
-				<nav aria-label="Pages" className="flex gap-x-1 text-sm">
+				<nav aria-label="Pages" className="flex text-sm">
 					{ ( Object.keys( PAGES ) as ( keyof typeof PAGES )[] ).map(
 						( name ) => (
 							<a
 								key={ name }
 								href={ PAGES[ name ][ 0 ] }
 								aria-current={ at === name ? 'page' : undefined }
-								className="rounded-md px-2.5 py-1.5 text-muted-foreground transition hover:text-foreground aria-[current]:text-foreground"
+								className="sq-pill px-2 py-2 text-white/65 transition hover:text-white aria-[current]:bg-white/12 aria-[current]:text-white sm:px-3.5"
 							>
 								{ PAGES[ name ][ 1 ] }
 							</a>
 						)
 					) }
 				</nav>
+				<Photos />
+			</div>
+			<div className="absolute end-4 top-3 md:end-5">
+				<Pictures />
 			</div>
 		</header>
 	);
@@ -62,12 +127,12 @@ export function Nav( { at }: { at: At } ) {
 
 export function Footer() {
 	return (
-		<footer className="border-t">
+		<footer className="border-t border-white/8">
 			<div
 				className={ `${ WIDTH } flex flex-wrap items-baseline gap-x-6 gap-y-2 py-8 text-sm text-muted-foreground` }
 			>
-				<span className="font-semibold text-foreground">{ NAME }</span>
-				<span>A working name. Not on npm yet.</span>
+				<span className="font-display font-medium text-foreground">{ NAME }</span>
+				<span>Not on npm yet.</span>
 				<nav aria-label="Pages, again" className="flex flex-wrap gap-x-4 md:ml-auto">
 					<a className="hover:text-foreground" href="/docs/">
 						Docs
@@ -94,20 +159,28 @@ export function Section( {
 	id,
 	title,
 	note,
+	center,
 	children,
 }: {
 	id?: string;
 	title: string;
 	note: ReactNode;
+	/** The heading in the middle, over what is below it. */
+	center?: boolean;
 	children: ReactNode;
 } ) {
 	return (
-		<section id={ id } className="grid scroll-mt-20 grid-cols-[minmax(0,1fr)] gap-4">
-			<div>
-				<h2 className="text-sm font-semibold tracking-wide uppercase">
+		<section
+			id={ id }
+			className={ `grid scroll-mt-24 grid-cols-[minmax(0,1fr)] ${
+				center ? 'gap-12' : 'gap-6'
+			}` }
+		>
+			<div className={ `grid gap-3 ${ center ? 'justify-items-center text-center' : '' }` }>
+				<h2 className="font-display text-3xl font-semibold tracking-[-0.035em] text-balance md:text-5xl">
 					{ title }
 				</h2>
-				<p className="max-w-3xl text-sm text-muted-foreground">{ note }</p>
+				<p className="max-w-2xl text-lg text-balance text-muted-foreground">{ note }</p>
 			</div>
 			{ children }
 		</section>

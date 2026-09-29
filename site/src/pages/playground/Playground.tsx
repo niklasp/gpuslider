@@ -23,8 +23,13 @@ import {
 	single,
 	type Config,
 } from '@/lib/config';
-import { BUTTON, Section } from '@/components/Frame';
+import { BUTTON, Footer, Nav, Section } from '@/components/Frame';
+import { EXAMPLES } from '@/components/Shots';
 import { kb, parts } from '@/lib/metrics';
+
+/** A link of the page, as the pills of the first page. */
+const PILL =
+	'sq-pill inline-flex h-10 items-center px-4 text-sm font-medium ring-1 ring-white/10 transition';
 
 /** How wide a slide that fills the page is. */
 const WIDE = '(min-width: 1400px) 1400px, 100vw';
@@ -82,44 +87,35 @@ export default function Playground() {
 
 	return (
 		<>
+			<Nav at="playground" />
 			<Suspense
-				fallback={ <header className="sticky top-0 z-40 h-16 border-b" /> }
+				fallback={ <div className="sticky top-[4.5rem] z-30 h-[4.5rem]" /> }
 			>
 				<Controls config={ config } onChange={ change } />
 			</Suspense>
 			<main
 				id="top"
-				className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-16 px-4 pb-32 md:px-8"
+				className="mx-auto grid max-w-[1400px] grid-cols-[minmax(0,1fr)] gap-24 px-4 pb-32 md:px-8"
 			>
-				<div className="pt-12">
-					<h1 className="text-4xl font-semibold tracking-tight md:text-6xl">
+				<div className="grid justify-items-start gap-5 pt-16 md:pt-24">
+					<h1 className="font-display text-5xl leading-[0.95] font-semibold tracking-[-0.045em] md:text-7xl">
 						Playground
 					</h1>
-					<p className="mt-3 max-w-2xl text-lg text-muted-foreground">
-						Every slider the library can be, and controls for all of it
-						above. Drag, swipe, scroll sideways, use the arrow keys. Click
-						a slide for the lightbox.
+					<p className="max-w-2xl text-lg text-balance text-muted-foreground">
+						Every slider the library can be, and the controls for all of
+						it above. Drag, swipe, scroll sideways, use the arrow keys.
+						Click a slide for the lightbox.
 					</p>
 					<nav
 						aria-label="Pages that are made of it"
-						className="mt-6 flex flex-wrap items-center gap-2"
+						className="flex flex-wrap items-center gap-2"
 					>
-						<span className="text-sm text-muted-foreground">
-							Made of it:
-						</span>
-						<a className={ BUTTON } href="/examples/wall/">
-							A wall of glass
-						</a>
-						<a className={ BUTTON } href="/examples/reel/">
-							A reel
-						</a>
-						<a className={ BUTTON } href="/examples/tape/">
-							Tape
-						</a>
-						<span className="ml-2 text-sm text-muted-foreground">
-							How to:
-						</span>
-						<a className={ BUTTON } href="/docs/">
+						{ EXAMPLES.map( ( { name, title } ) => (
+							<a key={ name } className={ `${ PILL } bg-white/6 hover:bg-white/12` } href={ `/examples/${ name }/` }>
+								{ title }
+							</a>
+						) ) }
+						<a className={ `${ PILL } bg-white text-black hover:bg-white/85` } href="/docs/">
 							Docs
 						</a>
 					</nav>
@@ -142,7 +138,7 @@ export default function Playground() {
 								A spring, solved exactly on every frame.
 							</p>
 						</Slide>
-						<Slide video="a" alt="Someone walking into a tunnel of coloured lights" className="hero" sizes={ WIDE }>
+						<Slide video="a" alt="Moving colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">Video</h3>
 							<p className="text-white/80">
 								Plays while its slide is in view, with the same effects.
@@ -522,6 +518,7 @@ export default function Playground() {
 					</div>
 				</Section>
 			</main>
+			<Footer />
 		</>
 	);
 }

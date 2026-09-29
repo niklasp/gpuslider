@@ -1,5 +1,6 @@
 import { test } from '@playwright/test';
 import * as transitions from '../src/gl/transitions/index.js';
+import { dome } from '../src/gl/effects/dome.js';
 import { open, settled, painted, difference, draws, expect } from './helpers.js';
 
 const shot = ( page ) => page.locator( '#slider .gs-track' ).screenshot();
@@ -109,7 +110,7 @@ test.describe( 'effects', () => {
 		'reveal',
 		'glass',
 		'pixels',
-		'smear;shift;tilt;waves;reveal;glass;pixels',
+		'smear;shift;tilt;waves;reveal;glass;pixels;cells',
 	];
 	for ( const effects of REST ) {
 		test( `${ effects }: at rest the slides are as the page draws them`, async ( { page } ) => {
@@ -329,6 +330,21 @@ test.describe( 'effects of the pointer', () => {
 } );
 
 test.describe( 'effects that lay out', () => {
+	test( 'dome: what is further out is not drawn nearer the middle, however round', () => {
+		for ( const amount of [ 0.6, 0.9, 1.5, 3 ] ) {
+			const { place } = dome( { amount } );
+			let before = 0;
+			// Along the row, from the middle to a view and a half away.
+			for ( let x = 0; x <= 1500; x += 10 ) {
+				const p = [ x, 0, 0 ];
+				place( p, { view: [ 1000, 400 ], quad: [ 500, 200, 0, 0 ] } );
+				const from = p[ 0 ] - 500 + 500;
+				expect( from, `amount ${ amount }, x ${ x }` ).toBeGreaterThanOrEqual( before - 1e-9 );
+				before = from;
+			}
+		}
+	} );
+
 	const setup = {
 		n: 6,
 		css: '.gs { --gs-per-view: 3; --gs-gap: 10px; }',

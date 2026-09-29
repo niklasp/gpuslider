@@ -1,4 +1,10 @@
-import { useState, type CSSProperties, type ReactNode } from 'react';
+import {
+	useCallback,
+	useRef,
+	useState,
+	type CSSProperties,
+	type ReactNode,
+} from 'react';
 import '@/index.css';
 import 'gpuslider/style.css';
 import '@/site.css';
@@ -6,40 +12,44 @@ import '@/text.css';
 import './home.css';
 import { code } from 'virtual:docs';
 import { GpuSlider, Slide } from '@/components/GpuSlider';
+import type { Slider } from 'gpuslider';
 import {
 	BUTTON,
 	Code,
-	FIRST,
 	Footer,
-	NAME,
 	Nav,
 	SECOND,
 	Section,
-	WIDTH,
 } from '@/components/Frame';
 import { Shots } from '@/components/Shots';
 import {
 	autoplay,
 	controls,
 	keyboard,
-	marquee,
 	stack,
 	videos,
 	wheel,
 } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
+import { lightbox } from 'gpuslider/lightbox';
+import 'gpuslider/lightbox.css';
 import {
 	burn,
+	dome,
+	cells,
+	parallax,
+	shift,
 	fold,
 	glitch,
 	liquid,
 	mosaic,
-	ripple,
+	push,
 	split,
 	stretch,
 	swirl,
-	waves,
+	warp,
 	wind,
+	zoom,
 } from 'gpuslider/effects';
 import {
 	asked,
@@ -53,9 +63,26 @@ import {
 	type Layer,
 } from '@/lib/metrics';
 import { layer } from '../mount';
+import { LIGHT, lightOf, useKind } from '@/lib/media';
+import {
+	ArrowsOut,
+	Atom,
+	BracketsAngle,
+	Cpu,
+	Gauge,
+	MagicWand,
+	PuzzlePiece,
+	Shuffle,
+	Spiral,
+} from '@phosphor-icons/react/ssr';
+import type { Icon } from '@phosphor-icons/react';
 
-/** How wide a slide that fills the page is. */
-const WIDE = '(min-width: 1400px) 1400px, 100vw';
+/** What a slide of the stage says: small, beside what the page says. */
+const SAID = 'font-display text-lg font-semibold tracking-[-0.02em]';
+const SAYS = 'max-w-64 text-sm text-white/70';
+
+/** The colours of the pictures, one for each card in turn. */
+const TINTS = [ 1, 2, 5, 4, 6, 3, 8, 7 ].map( ( n ) => LIGHT[ n ] );
 
 const [ chromium, webkit ] = bench.browsers;
 const ms = ( time: number ) => `${ Math.round( time ) } ms`;
@@ -71,178 +98,99 @@ function Figure( {
 	children: ReactNode;
 } ) {
 	return (
-		<li className="grid content-start gap-1 rounded-xl border bg-muted/30 p-5">
-			<span className="text-3xl font-semibold tracking-tight tabular-nums md:text-4xl">
+		<li className="grid content-start justify-items-center gap-2 text-center">
+			<span className="font-display text-5xl font-semibold tracking-[-0.04em] tabular-nums md:text-6xl">
 				{ value }
 				{ unit && (
-					<span className="ml-1 text-base font-medium text-muted-foreground">
+					<span className="ml-1.5 text-lg tracking-normal text-muted-foreground">
 						{ unit }
 					</span>
 				) }
 			</span>
-			<span className="text-sm text-muted-foreground">{ children }</span>
+			<span className="max-w-60 text-sm text-muted-foreground">{ children }</span>
 		</li>
 	);
 }
 
-const FEATURES: { title: string; text: string; to: string; more: string }[] = [
+const FEATURES: {
+	title: string;
+	text: string;
+	to: string;
+	more: string;
+	icon: Icon;
+}[] = [
 	{
 		title: 'Its own motion',
 		text: 'A spring, solved exactly on every frame. Drag, swipe, the wheel, the keys. It snaps, loops, rests anywhere, goes sideways or downwards.',
 		to: '/docs/options/',
 		more: 'Options, API and events',
+		icon: Spiral,
 	},
 	{
 		title: 'WebGPU first',
 		text: 'The canvas asks the browser and loads one layer: WebGPU where it is, WebGL 2 where not. Both draw the same picture, and the tests hold them against each other, effect by effect.',
 		to: '/docs/canvas/',
 		more: 'The canvas',
+		icon: Cpu,
 	},
 	{
 		title: `${ count( 'effect' ) } effects, written once`,
 		text: 'Images that give way to the speed, colours that come apart, lenses and waves under the pointer, slides of jelly and of thick glass. An effect is a few lines of GLSL, and is translated for WebGPU when the shader is made.',
 		to: '/docs/effects/',
 		more: 'Effects',
+		icon: MagicWand,
 	},
 	{
 		title: `${ count( 'transition' ) } transitions`,
 		text: 'One slide turns into the next: liquid, burn, glitch, fold. They follow the pointer, so a slow drag stops half way. What is written for gl-transitions runs as it is.',
 		to: '/docs/effects/',
 		more: 'Transitions',
+		icon: Shuffle,
 	},
 	{
 		title: 'Everything is a plugin',
 		text: 'Arrows, dots, keys, autoplay, a ticker, thumbnails, videos that play in view. What is not imported is not in the bundle, and a plugin of your own is a function.',
 		to: '/docs/plugins/',
 		more: 'Plugins',
-	},
-	{
-		title: 'Layout is CSS',
-		text: 'Slides per view and the gap are custom properties, so what changes with the screen is a media query. Rows are a grid. The script measures what the page lays out.',
-		to: '/docs/layout/',
-		more: 'Layout',
-	},
-	{
-		title: 'Three tiers',
-		text: 'Without the script it is a native scroller with scroll-snap. Without the canvas the page draws the slides. With it the canvas draws the media, and the text stays HTML on top.',
-		to: '/docs/#three-tiers',
-		more: 'Get started',
-	},
-	{
-		title: 'Idle is free',
-		text: 'The canvas is made at the first sign of use: until then the page has no context and no shader. Shaders compile on another thread, and no frame is drawn while nothing moves.',
-		to: '/docs/canvas/',
-		more: 'The canvas',
+		icon: PuzzlePiece,
 	},
 	{
 		title: 'A lightbox',
 		text: 'A click lets the image grow out of its slide to the screen, with the effects of the slider. Escape lets it go back into it.',
 		to: '/docs/lightbox/',
 		more: 'Lightbox',
-	},
-	{
-		title: 'A loading screen',
-		text: 'A screen while the media load: the one that comes with it, or any element of yours. And events that say how far it is, for a screen that is all your own.',
-		to: '/docs/loading/',
-		more: 'Loading',
+		icon: ArrowsOut,
 	},
 	{
 		title: 'React',
 		text: `A hook of ${ parts[ 'react: what useSlider adds' ] } bytes. React renders the slides, the library moves them, and slides that come and go are seen.`,
 		to: '/docs/react/',
 		more: 'React',
+		icon: Atom,
 	},
 	{
 		title: 'No script of your own',
 		text: `One file of ${ kb( files[ 'auto.js' ] ) } KB and attributes in the HTML. The canvas and the lightbox are loaded when a slider asks for them and the page has time.`,
 		to: '/docs/html/',
 		more: 'Without a script',
+		icon: BracketsAngle,
 	},
 ];
 
 /** The transitions that can be chosen here. The docs have all of them. */
-const TRANSITIONS = { liquid, burn, glitch, ripple, swirl, fold, mosaic, wind };
-
-type Name = keyof typeof TRANSITIONS;
+const TRANSITIONS = { liquid, push, warp, zoom, burn, glitch, swirl, mosaic, wind };
 
 /**
- * A stack that goes on by itself, and the transitions it can take. It
- * keeps what is chosen to itself: the page around it is not rendered
- * again.
+ * How a transition goes: quick away, slowing down, and done in its time,
+ * without the long end of a spring.
  */
-function Transitions() {
-	const [ name, setName ] = useState< Name >( 'liquid' );
-	return (
-		<div className="grid grid-cols-[minmax(0,1fr)] gap-3">
-			<div
-				role="group"
-				aria-label="Transition"
-				className="flex flex-wrap gap-2"
-			>
-				{ ( Object.keys( TRANSITIONS ) as Name[] ).map( ( one ) => (
-					<button
-						key={ one }
-						type="button"
-						className={ BUTTON }
-						aria-current={ one === name ? 'true' : undefined }
-						onClick={ () => setName( one ) }
-					>
-						{ one }
-					</button>
-				) ) }
-				<a className={ `${ BUTTON } text-muted-foreground` } href="/playground/">
-					All { count( 'transition' ) }
-				</a>
-			</div>
-			<GpuSlider
-				id="turns"
-				label="Slides that turn into each other"
-				// Said in the HTML: a stack before the script is there.
-				className="gs-stack"
-				options={ { loop: true, duration: 1100 } }
-				made={ name }
-				measured=""
-				pause
-				plugins={ () => [
-					controls(),
-					keyboard(),
-					videos(),
-					stack(),
-					autoplay( 3200 ),
-					canvas( {
-						effects: [ TRANSITIONS[ name ]() ],
-						layer: layer(),
-					} ),
-				] }
-			>
-				<Slide image={ 6 } alt="Violet colour field" className="hero" sizes={ WIDE }>
-					<h3 className="text-2xl font-semibold md:text-4xl">
-						On top of each other
-					</h3>
-					<p className="text-white/80">
-						The position runs through the transition.
-					</p>
-				</Slide>
-				<Slide image={ 4 } alt="Pink colour field" className="hero" sizes={ WIDE }>
-					<h3 className="text-2xl font-semibold md:text-4xl">
-						Follows the pointer
-					</h3>
-					<p className="text-white/80">Drag slowly: stop half way, go back.</p>
-				</Slide>
-				<Slide video="b" alt="Moving colour field" className="hero" sizes={ WIDE }>
-					<h3 className="text-2xl font-semibold md:text-4xl">Video too</h3>
-					<p className="text-white/80">A transition into a film that plays.</p>
-				</Slide>
-				<Slide image={ 2 } alt="Blue colour field" className="hero" sizes={ WIDE }>
-					<h3 className="text-2xl font-semibold md:text-4xl">
-						A crossfade without the canvas
-					</h3>
-					<p className="text-white/80">The page draws, and all else is the same.</p>
-				</Slide>
-			</GpuSlider>
-		</div>
-	);
-}
+const SNAP = ( u: number ) => 1 - ( 1 - u ) ** 4;
+
+/** The time of a transition, ms: from the fastest to the slowest. */
+const FASTEST = 600;
+const SLOWEST = 3000;
+
+type Name = keyof typeof TRANSITIONS;
 
 const WAYS = {
 	script: 'What you name',
@@ -256,7 +204,7 @@ function Ways() {
 	const [ way, setWay ] = useState< keyof typeof WAYS >( 'script' );
 	return (
 		<div className="grid grid-cols-[minmax(0,1fr)] gap-3">
-			<div role="tablist" aria-label="Ways to use it" className="flex flex-wrap gap-2">
+			<div role="tablist" aria-label="Ways to use it" className="flex flex-wrap justify-center gap-2">
 				{ ( Object.keys( WAYS ) as ( keyof typeof WAYS )[] ).map( ( one ) => (
 					<button
 						key={ one }
@@ -330,7 +278,7 @@ function Sizes() {
 						Gzipped, in the bundle of who imports it.
 					</strong>{ ' ' }
 					Every part has a budget, and the build fails over it.{ ' ' }
-					<a className="underline underline-offset-4" href="/docs/size/">
+					<a className="underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground" href="/docs/size/">
 						All sizes
 					</a>
 				</li>
@@ -415,12 +363,190 @@ function Measured() {
 				as many sliders on the canvas as it likes. While they move there is
 				no difference to see.{ ' ' }
 				<a
-					className="underline underline-offset-4"
+					className="underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground"
 					href="/docs/canvas/#webgpu-and-webgl-measured"
 				>
 					What it says, and what it does not
 				</a>
 			</p>
+		</div>
+	);
+}
+
+/**
+ * Light in the colours of the pictures, that drifts behind what is laid
+ * over it: fields of colour, blurred, each on its own slow way.
+ */
+function Field() {
+	const kind = useKind();
+	return (
+		<div aria-hidden className="blobs">
+			{ [ 1, 6, 4, 2, 5 ].map( ( n ) => (
+				<span key={ n } style={ { '--tint': lightOf( n, kind ) } as CSSProperties } />
+			) ) }
+		</div>
+	);
+}
+
+/** What the slides at the top show, in their order. */
+const FIRST_SLIDES = [ 1, 'a', 2, 4 ] as const;
+
+/**
+ * The slider at the top, as large as the window: a stack that goes on by
+ * itself, with the transition that is chosen on it. The page around it is
+ * lit in the colour of the slide that is seen, and the dot of that slide
+ * fills while its time runs.
+ */
+function Stage() {
+	const [ name, setName ] = useState< Name >( 'liquid' );
+	const [ index, setIndex ] = useState( 0 );
+	// Where it is and when the time of its slide ends: a slider made
+	// again for another transition goes on from there.
+	const at = useRef( { index: 0, ends: 0 } );
+	// The time of a move, changed on the slider that there is.
+	const [ time, setTime ] = useState( 900 );
+	const slider = useRef< Slider | null >( null );
+	const kind = useKind();
+	const heard = useCallback( ( event: string, detail: unknown ) => {
+		const root = document.getElementById( 'first' );
+		if ( event === 'change' ) {
+			at.current.index = detail as number;
+			setIndex( detail as number );
+		} else if ( root && event === 'autoplay:run' ) {
+			const { delay, left } = detail as { delay: number; left: number };
+			at.current.ends = performance.now() + left;
+			root.style.setProperty( '--run', `${ delay }ms` );
+			root.style.setProperty( '--ran', `${ delay - left }ms` );
+			// Again from where it is: a class taken away and given again.
+			root.classList.remove( 'running' );
+			void root.offsetWidth;
+			root.classList.add( 'running' );
+		} else if ( root && event === 'autoplay:wait' ) {
+			root.classList.remove( 'running' );
+		}
+	}, [] );
+	// Asked while the slider is made: what is left of the time of now.
+	const left = () =>
+		at.current.ends
+			? Math.max( 0, at.current.ends - performance.now() )
+			: undefined;
+	return (
+		<div
+			className="lit px-3 pt-[4.5rem] md:px-5"
+			style={ { '--light': lightOf( FIRST_SLIDES[ index ], kind ) } as CSSProperties }
+		>
+			<GpuSlider
+				id="first"
+				label="What the slider is"
+				// Said in the HTML: a stack before the script is there.
+				className="stage gs-stack"
+				options={ { loop: true, duration: time, ease: SNAP, start: at.current.index } }
+				onSlider={ ( made ) => ( slider.current = made ) }
+				made={ name }
+				measured=""
+				pause
+				dock
+				heard={ heard }
+				plugins={ () => [
+					controls(),
+					keyboard(),
+					videos(),
+					stack(),
+					// The pointer is always over it: it goes on all the same.
+					autoplay( { delay: 4000, hover: false, left: left() } ),
+					canvas( {
+						effects: [ TRANSITIONS[ name ]() ],
+						layer: layer(),
+					} ),
+				] }
+				over={
+					<div className="absolute inset-x-0 bottom-0 grid grid-cols-[minmax(0,1fr)] justify-items-start gap-5 bg-gradient-to-t from-black/55 via-black/20 to-transparent px-6 pt-40 pb-24 md:gap-6 md:px-14 lg:pb-8">
+						<h1 className="glow max-w-[13ch] font-display text-5xl leading-[0.95] font-semibold tracking-[-0.045em] text-balance text-white sm:text-7xl xl:text-8xl">
+							A slider drawn by shaders.
+						</h1>
+						<p className="max-w-md text-white/75 md:text-lg">
+							By WebGPU, or by WebGL 2 where there is none. A core of{ ' ' }
+							{ kb( parts.core ) } KB, everything else a plugin. Choose how
+							one picture turns into the next:
+						</p>
+						<div className="flex max-w-full flex-wrap items-center gap-2">
+						<div
+							role="group"
+							aria-labelledby="effect"
+							className="sq-pill flex max-w-full min-w-0 gap-1 overflow-x-auto bg-black/30 p-1 ring-1 ring-white/12 backdrop-blur-xl [scrollbar-width:none]"
+						>
+							<span
+								id="effect"
+								className="flex shrink-0 cursor-default items-center gap-1.5 ps-3 pe-3 text-[0.8125rem] text-white/50 select-none"
+							>
+								<MagicWand size={ 15 } weight="duotone" aria-hidden />
+								Effect
+							</span>
+							<span aria-hidden className="my-2 me-1 w-px shrink-0 bg-white/15" />
+							{ ( Object.keys( TRANSITIONS ) as Name[] ).map( ( one ) => (
+								<button
+									key={ one }
+									type="button"
+									className="sq-pill h-9 shrink-0 cursor-pointer px-3.5 text-sm font-medium text-white/70 transition hover:text-white aria-[current]:bg-white aria-[current]:text-black"
+									aria-current={ one === name ? 'true' : undefined }
+									onClick={ () => setName( one ) }
+								>
+									{ one }
+								</button>
+							) ) }
+							<a
+								className="sq-pill inline-flex h-9 shrink-0 items-center px-3.5 text-sm text-white/50 transition hover:text-white"
+								href="/playground/"
+							>
+								All { count( 'transition' ) }
+							</a>
+						</div>
+						<label className="sq-pill flex h-11 shrink-0 items-center gap-3 bg-black/30 ps-4 pe-5 text-[0.8125rem] text-white/50 ring-1 ring-white/12 backdrop-blur-xl">
+							<Gauge size={ 15 } weight="duotone" aria-hidden />
+							Speed
+							<input
+								type="range"
+								className="speed w-28"
+								// Faster to the right: the time, the other way round.
+								min={ FASTEST }
+								max={ SLOWEST }
+								step={ 100 }
+								value={ FASTEST + SLOWEST - time }
+								aria-valuetext={ `${ ( time / 1000 ).toFixed( 1 ) } seconds` }
+								onChange={ ( event ) => {
+									const to = FASTEST + SLOWEST - Number( event.target.value );
+									setTime( to );
+									slider.current?.set( { duration: to } );
+								} }
+							/>
+						</label>
+						</div>
+					</div>
+				}
+			>
+				<Slide image={ 1 } alt="Warm colour field" className="full" sizes="100vw" first>
+					<h2 className={ SAID }>Drag it slowly</h2>
+					<p className={ SAYS }>
+						The transition follows the pointer: stop half way, go back.
+					</p>
+				</Slide>
+				<Slide video="a" alt="Moving colour field" className="full" sizes="100vw">
+					<h2 className={ SAID }>Films too</h2>
+					<p className={ SAYS }>A transition into a film that plays.</p>
+				</Slide>
+				<Slide image={ 2 } alt="Blue colour field" className="full" sizes="100vw">
+					<h2 className={ SAID }>The text is HTML</h2>
+					<p className={ SAYS }>
+						It can be read, found and chosen, on top of the canvas.
+					</p>
+				</Slide>
+				<Slide image={ 4 } alt="Pink colour field" className="full" sizes="100vw">
+					<h2 className={ SAID }>Without the canvas</h2>
+					<p className={ SAYS }>
+						A crossfade, drawn by the page, and all else the same.
+					</p>
+				</Slide>
+			</GpuSlider>
 		</div>
 	);
 }
@@ -436,95 +562,136 @@ export default function Home() {
 	return (
 		<>
 			<Nav at="home" />
-			<main className={ `${ WIDTH } grid grid-cols-[minmax(0,1fr)] gap-20 pb-32` }>
-				<div className="grid gap-8 pt-12 md:pt-20">
-					<div>
-						<p className="mb-4 font-mono text-xs tracking-wide text-muted-foreground uppercase">
-							WebGPU where the browser has it · WebGL 2 where not
-						</p>
-						<h1 className="max-w-4xl text-4xl font-semibold tracking-tight md:text-7xl">
-							A slider drawn by shaders.
-						</h1>
-						<p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-							It moves by its own spring, draws its pictures and films on a
-							canvas, and leaves the text to the page. The core is{ ' ' }
-							{ kb( parts.core ) } KB, everything else is a plugin, and it
-							depends on nothing.
-						</p>
-						<nav
-							aria-label="Where to go from here"
-							className="mt-8 flex flex-wrap gap-3"
-						>
-							<a className={ FIRST } href="/docs/">
-								Get started
-							</a>
-							<a className={ SECOND } href="/examples/">
-								Examples
-							</a>
-							<a className={ SECOND } href="/playground/">
-								Playground
-							</a>
-						</nav>
-					</div>
-
+			<Stage />
+			<main className="mx-auto grid max-w-[1120px] grid-cols-[minmax(0,1fr)] gap-36 px-5 pt-28 pb-40 md:gap-48 md:px-8 md:pt-36">
+				<Section
+					center
+					id="several"
+					title="Several at a time"
+					note="Drag it, swipe it, or turn the wheel. The faster it goes, the more the pictures give way, and their colours come apart. A click lets one grow to the screen."
+				>
 					<GpuSlider
-						id="first"
-						label="What the slider is"
+						id="row"
+						label="Several at a time"
 						options={ { loop: true } }
+						className="cards whole bleed inset"
 						made=""
 						measured=""
-						pause
 						plugins={ () => [
 							controls(),
 							keyboard(),
 							wheel(),
-							videos(),
-							autoplay( 5000 ),
 							canvas( {
-								effects: [ stretch(), split(), waves() ],
+								effects: [ stretch( { amount: 2 } ), split( { amount: 2.5 } ) ],
 								layer: layer(),
 							} ),
+							lightbox( { effects: [ stretch(), split() ] } ),
 						] }
 					>
-						<Slide image={ 1 } alt="Warm colour field" className="hero" sizes={ WIDE } first>
-							<h2 className="text-2xl font-semibold md:text-4xl">Drag it</h2>
-							<p className="text-white/80">
-								The picture gives way to the speed, and its colours come
-								apart.
-							</p>
-						</Slide>
-						<Slide video="a" alt="Someone walking into a tunnel of coloured lights" className="hero" sizes={ WIDE }>
-							<h2 className="text-2xl font-semibold md:text-4xl">Films too</h2>
-							<p className="text-white/80">
-								They play while their slide is in view, with the same
-								effects.
-							</p>
-						</Slide>
-						<Slide image={ 2 } alt="Blue colour field" className="hero" sizes={ WIDE }>
-							<h2 className="text-2xl font-semibold md:text-4xl">
-								Move the pointer over it
-							</h2>
-							<p className="text-white/80">Rings run away from it.</p>
-						</Slide>
-						<Slide image={ 4 } alt="Pink colour field" className="hero" sizes={ WIDE }>
-							<h2 className="text-2xl font-semibold md:text-4xl">
-								The text is HTML
-							</h2>
-							<p className="text-white/80">
-								It can be read, found and chosen, on top of the canvas.
-							</p>
-						</Slide>
+						{ [ 8, 6, 5, 7, 4, 3, 2, 1 ].map( ( n ) => (
+							<Slide
+								key={ n }
+								image={ n }
+								alt={ `Colour field ${ n }` }
+								className="card"
+								// A card is higher than wide and most pictures are
+								// wider than high: covering it takes about twice
+								// the width of the card.
+								sizes="(max-width: 640px) 160vw, 60vw"
+							/>
+						) ) }
 					</GpuSlider>
-				</div>
+				</Section>
+
+				<div className="field">
+					<Field />
+				<Section
+					center
+					id="features"
+					title="What it does"
+					note="Every one of these is a page of the docs."
+				>
+					<ul
+						data-testid="features"
+						className="grid w-[min(1360px,calc(100vw-2.5rem))] gap-4 justify-self-center sm:grid-cols-2 xl:grid-cols-4"
+					>
+						{ FEATURES.map( ( { title, text, to, more, icon: Icon }, i ) => (
+							<li
+								key={ title }
+								className="frost sq-tile relative grid content-start gap-3 p-7"
+								style={ { '--tint': TINTS[ i % TINTS.length ] } as CSSProperties }
+							>
+								<span className="tint sq-knob mb-3 grid size-12 place-items-center">
+									<Icon size={ 26 } weight="duotone" aria-hidden />
+								</span>
+								<h3 className="font-display text-xl font-semibold tracking-[-0.02em]">
+									{ title }
+								</h3>
+								<p className="text-muted-foreground">{ text }</p>
+								<a
+									// The whole card leads there.
+									className="mt-1 text-sm font-medium text-foreground/80 after:absolute after:inset-0 after:rounded-[inherit] hover:text-foreground focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ring"
+									href={ to }
+									aria-label={ `${ more }: ${ title }` }
+								>
+									{ more }
+								</a>
+							</li>
+						) ) }
+					</ul>
+				</Section>
 
 				<Section
+					center
+					id="effects"
+					title="Effects"
+					note="They go together: here a dome, parallax, and squares in the wake of the pointer that show their part closer, with colours that come apart. Every slide as wide as its picture, and a click lets one grow to the screen."
+				>
+					<GpuSlider
+						id="auto"
+						label="Widths from the images"
+						options={ { loop: true, perView: 'auto', align: 'center' } }
+						className="strip bleed"
+						style={ { '--gs-gap': '16px' } as CSSProperties }
+						made=""
+						measured=""
+						plugins={ () => [
+							controls(),
+							keyboard(),
+							wheel(),
+							canvas( {
+								// As strong as 1.4 of the playground.
+								effects: [
+									cells( { zoom: 1.4, reach: 0.35 } ),
+									parallax( { amount: 0.28 } ),
+									dome( { amount: 1.12 } ),
+									shift( { amount: 1.4 } ),
+								],
+								layer: layer(),
+							} ),
+							lightbox(),
+						] }
+					>
+						{ [ 3, 1, 5, 8, 7, 2 ].map( ( n ) => (
+							<Slide
+								key={ n }
+								image={ n }
+								alt={ `Colour field ${ n }` }
+								sizes="(max-width: 640px) 90vw, 50vw"
+							/>
+						) ) }
+					</GpuSlider>
+				</Section>
+
+				<Section
+					center
 					id="numbers"
 					title="In numbers"
 					note="Measured, not guessed: the sizes by the build, the times by the benchmark of the repo. Below is what they were measured with."
 				>
 					<ul
 						data-testid="numbers"
-						className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6"
+						className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3"
 					>
 						<Figure value={ kb( parts.core ) } unit="KB">
 							The core, gzipped
@@ -552,77 +719,13 @@ export default function Home() {
 					</ul>
 				</Section>
 
-				<Section
-					id="features"
-					title="What it does"
-					note="Every one of these is a page of the docs."
-				>
-					<ul
-						data-testid="features"
-						className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-					>
-						{ FEATURES.map( ( { title, text, to, more } ) => (
-							<li
-								key={ title }
-								className="grid content-start gap-2 rounded-xl border p-5"
-							>
-								<h3 className="font-medium">{ title }</h3>
-								<p className="text-sm text-muted-foreground">{ text }</p>
-								<a
-									className="mt-1 text-sm underline underline-offset-4"
-									href={ to }
-									aria-label={ `${ more }: ${ title }` }
-								>
-									{ more }
-								</a>
-							</li>
-						) ) }
-					</ul>
-				</Section>
+				</div>
 
 				<Section
-					id="transitions"
-					title="Transitions"
-					note="Choose one. The slider goes on by itself, and waits while the pointer is over it: drag slowly to stop half way."
-				>
-					<Transitions />
-				</Section>
-
-				<Section
-					id="ticker"
-					title="A ticker"
-					note="Runs by itself and without an end, slower under the pointer. Scroll the page: it runs faster, and the pictures give way to the speed."
-				>
-					<GpuSlider
-						id="ticker"
-						label="Ticker"
-						options={ { loop: true, free: true } }
-						className="cards"
-						style={ { '--gs-per-view': 4.5, '--gs-gap': '16px' } as CSSProperties }
-						made=""
-						measured=""
-						plugins={ () => [
-							marquee( { speed: 50, hover: 0.2, scroll: 0.4 } ),
-							canvas( { effects: [ stretch(), split() ], layer: layer() } ),
-						] }
-						bare
-					>
-						{ [ 8, 6, 4, 2, 7, 5, 3, 1 ].map( ( n ) => (
-							<Slide
-								key={ n }
-								image={ n }
-								alt={ `Colour field ${ n }` }
-								className="card"
-								sizes="(max-width: 640px) 77vw, 22vw"
-							/>
-						) ) }
-					</GpuSlider>
-				</Section>
-
-				<Section
+					center
 					id="use"
 					title="In a page"
-					note={ `From the least to load to the least to write. ${ NAME } is a working name, and the library is not on npm yet.` }
+					note={ `From the least to load to the least to write. The library is not on npm yet.` }
 				>
 					<Ways />
 					<div>
@@ -633,6 +736,7 @@ export default function Home() {
 				</Section>
 
 				<Section
+					center
 					id="size"
 					title="What it weighs"
 					note="A page has in its bundle what it names, and no more: every entry has named exports only and no side effects."
@@ -641,6 +745,7 @@ export default function Home() {
 				</Section>
 
 				<Section
+					center
 					id="measured"
 					title="WebGPU and WebGL, measured"
 					note="The same sliders, made with each layer, in the same browser with the same GPU. In every cell: Chromium, and under it WebKit."
@@ -649,6 +754,7 @@ export default function Home() {
 				</Section>
 
 				<Section
+					center
 					id="examples"
 					title="Made of it"
 					note="Pages that are made of the library, and of little else."

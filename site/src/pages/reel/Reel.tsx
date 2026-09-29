@@ -23,7 +23,7 @@ const SLIDES: {
 	title: string;
 }[] = [
 	{ image: 4, alt: 'A pink colour field', kind: 'Film', title: 'Quiet Engine' },
-	{ video: 'a', alt: 'Someone walking into a tunnel of coloured lights', kind: 'Field', title: 'Salt Hour' },
+	{ video: 'a', alt: 'A colour field that moves', kind: 'Field', title: 'Salt Hour' },
 	{ image: 2, alt: 'A blue colour field', kind: 'Sound', title: 'Paper Weather' },
 	{ image: 6, alt: 'A violet colour field', kind: 'Print', title: 'Low Orbit' },
 	{ video: 'b', alt: 'Another colour field that moves', kind: 'Light', title: 'Second Light' },
@@ -215,7 +215,7 @@ export default function Reel() {
 			</main>
 
 			<footer>
-				<a href="/examples/">gpuslider</a>
+				<a href="/examples/">gpu slider</a>
 				<span id="said">
 					Arrows, keys, a drag{ by && ` · drawn by ${ by }` }
 				</span>

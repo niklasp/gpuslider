@@ -11,7 +11,7 @@ import {
 } from 'react';
 import { GpuSlider, Slide, Thumbs } from '@/components/GpuSlider';
 import { BUTTON } from '@/components/Frame';
-import { image } from '@/lib/media';
+import { image, photo, useKind } from '@/lib/media';
 import type { Slider } from 'gpuslider';
 import { loading } from 'gpuslider/plugins';
 
@@ -34,7 +34,7 @@ export function Events( { tell }: { tell: Tell } ) {
 		<ol
 			data-testid="events"
 			aria-label="Events"
-			className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
+			className="sq-tile min-h-44 bg-card p-4 font-mono text-xs leading-5 text-muted-foreground"
 		>
 			{ log.map( ( line, i ) => (
 				<li key={ log.length - i } className="first:text-foreground">
@@ -97,6 +97,7 @@ export function Photos( props: PhotosProps ) {
  */
 export function Loads( props: PhotosProps ) {
 	const [ again, setAgain ] = useState( 0 );
+	const kind = useKind();
 	const [ said, setSaid ] = useState< string[] >( [] );
 	const heard = useCallback( ( name: string, detail: unknown ) => {
 		if ( name.startsWith( 'loading:' ) ) {
@@ -132,12 +133,12 @@ export function Loads( props: PhotosProps ) {
 					<div className="gs-slide card wide" key={ n }>
 						<img
 							className="gs-media"
-							{ ...image( n ) }
+							{ ...image( n, kind ) }
 							srcSet={ undefined }
-							src={ `/media/${ n }-960.avif${
+							src={ `${ image( n, kind ).src }${
 								again ? `?again=${ again }` : ''
 							}` }
-							alt={ `Colour field ${ n }` }
+							alt={ kind === 'photos' ? photo( n ).alt : `Colour field ${ n }` }
 							draggable={ false }
 							loading="lazy"
 						/>
@@ -160,7 +161,7 @@ export function Loads( props: PhotosProps ) {
 				<ol
 					data-testid="loaded"
 					aria-label="What the loading said"
-					className="min-h-44 rounded-lg border bg-muted/40 p-3 font-mono text-xs leading-5 text-muted-foreground"
+					className="sq-tile min-h-44 bg-card p-4 font-mono text-xs leading-5 text-muted-foreground"
 				>
 					{ said.map( ( line, i ) => (
 						<li key={ said.length - i } className="first:text-foreground">

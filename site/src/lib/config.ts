@@ -17,6 +17,7 @@ import {
 	reveal,
 	glass,
 	pixels,
+	cells,
 	pile,
 	fan,
 	dome,
@@ -63,6 +64,7 @@ export const POINTERS = {
 	reveal: 'Reveal',
 	glass: 'Fluted glass',
 	pixels: 'Pixels',
+	cells: 'Cells',
 } as const;
 
 export type PointerName = keyof typeof POINTERS;
@@ -152,6 +154,7 @@ const point = ( name: PointerName, k: number ): Effect[] =>
 		reveal: () => [ reveal() ],
 		glass: () => [ glass( { amount: k } ) ],
 		pixels: () => [ pixels() ],
+		cells: () => [ cells( { zoom: 0.8 * k } ) ],
 	} )[ name ]();
 
 /**

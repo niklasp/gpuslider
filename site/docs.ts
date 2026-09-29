@@ -46,7 +46,7 @@ export const DOCS: Doc[] = [
 		slug: '',
 		title: 'Get started',
 		lead: 'A slider in a page: what to import, what to write, and what a visitor gets who has no script or no canvas.',
-		before: `gpuslider is a working name, and the library is not on npm yet. Until it is, \`npm run size\` in the repo builds \`dist/\`: the files for pages without a bundler.
+		before: `gpu slider is not on npm yet. Until it is, \`npm run size\` in the repo builds \`dist/\`: the files for pages without a bundler.
 
 ## The markup
 

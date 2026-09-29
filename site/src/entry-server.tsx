@@ -14,6 +14,9 @@ import Wall from './pages/wall/Wall';
 import Reel from './pages/reel/Reel';
 import Tape from './pages/tape/Tape';
 import Phone from './pages/phone/Phone';
+import Loom from './pages/loom/Loom';
+import Wave from './pages/wave/Wave';
+import Depth from './pages/depth/Depth';
 
 type Page = {
 	/** The file of the build the page is made of, where it is another. */
@@ -31,6 +34,9 @@ export const pages: Record< string, Page > = {
 	'examples/wall/index.html': { page: () => <Wall /> },
 	'examples/reel/index.html': { page: () => <Reel /> },
 	'examples/tape/index.html': { page: () => <Tape /> },
+	'examples/loom/index.html': { page: () => <Loom /> },
+	'examples/wave/index.html': { page: () => <Wave /> },
+	'examples/depth/index.html': { page: () => <Depth /> },
 	'playground/index.html': { page: () => <Playground /> },
 	'phone/index.html': { page: () => <Phone /> },
 	...Object.fromEntries(

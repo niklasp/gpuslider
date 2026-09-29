@@ -60,6 +60,20 @@ test.describe( 'lightbox', () => {
 		expect( await box( page ) ).toBeTruthy();
 	} );
 
+	test( 'opened by a click, the focus comes back without its ring', async ( { page } ) => {
+		await open( page, { ...setup, plugins: 'gl,lightbox,keyboard' } );
+		await page.locator( '#slider .gs-slide' ).nth( 1 ).click();
+		await opened( page );
+		await page.keyboard.press( 'Escape' );
+		await opened( page, 0 );
+		expect(
+			await page.evaluate( () => [
+				document.activeElement === window.slider.root,
+				document.activeElement.matches( ':focus-visible' ),
+			] )
+		).toEqual( [ true, false ] );
+	} );
+
 	test( 'the end of a drag and a click on a link do not open it', async ( { page } ) => {
 		await open( page, setup );
 		await drag( page, -300, { pause: 150 } );
@@ -85,38 +99,38 @@ test.describe( 'lightbox', () => {
 			() => window.slider.plugins.lightbox.progress > 0
 		);
 
-		// What the canvas of the lightbox has, as a box around everything
-		// that is not transparent.
-		const drawn = () =>
-			page.evaluate( () => {
-				const layer = window.slider.plugins.lightbox;
-				const { canvas } = layer.slider.plugins.gl;
-				const w = canvas.width;
-				const h = canvas.height;
-				const pixels = window.pixels( layer.slider.plugins.gl );
-				let x0 = w;
-				let y0 = h;
-				let x1 = 0;
-				let y1 = 0;
-				for ( let y = 0; y < h; y += 2 ) {
-					for ( let x = 0; x < w; x += 2 ) {
-						if ( pixels[ 4 * ( y * w + x ) + 3 ] > 128 ) {
-							x0 = Math.min( x0, x );
-							x1 = Math.max( x1, x );
-							y0 = Math.min( y0, y );
-							y1 = Math.max( y1, y );
+		// The canvas of the slider draws the way: where it draws the
+		// image, on the screen.
+		await page.evaluate( () => {
+			const layer = window.slider.plugins.gl;
+			let hook = layer.change;
+			Object.defineProperty( layer, 'change', {
+				get: () =>
+					hook &&
+					( ( i, quad ) => {
+						hook( i, quad );
+						if ( i === 1 ) {
+							const r = window.slider.root.getBoundingClientRect();
+							window.grown = {
+								x: quad.x + r.left,
+								y: quad.y + r.top,
+								w: quad.w,
+								h: quad.h,
+							};
 						}
-					}
-				}
-				const ratio = w / canvas.clientWidth;
-				return {
-					t: layer.progress,
-					x: x0 / ratio,
-					y: y0 / ratio,
-					w: ( x1 - x0 ) / ratio,
-					h: ( y1 - y0 ) / ratio,
-				};
+					} ),
+				set: ( to ) => ( hook = to ),
 			} );
+		} );
+		const drawn = async () => {
+			await page.evaluate(
+				() => new Promise( ( done ) => requestAnimationFrame( done ) )
+			);
+			return page.evaluate( () => ( {
+				t: window.slider.plugins.lightbox.progress,
+				...window.grown,
+			} ) );
+		};
 
 		const early = await drawn();
 		expect( early.t ).toBeLessThan( 0.5 );

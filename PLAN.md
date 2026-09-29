@@ -1,6 +1,6 @@
-# gpuslider — plan
+# gpu slider — plan
 
-Working name; the folder, the package name and the `gs-` prefix are easy to rename.
+Named on 2026-09-29: gpu slider, the package `gpuslider`, the prefix `gs-`. The folder of the repo is still called `shaderslide`.
 
 A slider that draws its media on a WebGL canvas and owns its own motion, with no Swiper and no other dependency.
 The question it answers: how far can a canvas slider go and still be small, fast and usable anywhere?
@@ -133,26 +133,26 @@ slider.destroy();
 
 | Part | Budget (gzip) | Measured on 2026-09-29 |
 |---|---|---|
-| Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.5 KB |
+| Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.6 KB |
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
-| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7 KB | 6.8 KB |
+| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7 KB | 7.0 KB (7161 of 7168 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 6.75 KB | 6.6 KB (6755 of 6912 B) |
-| Canvas layer of WebGPU without effects | 9 KB | 8.5 KB |
+| Canvas layer of WebGL 2 without effects | 7 KB | 7.0 KB (7159 of 7168 B) |
+| Canvas layer of WebGPU without effects | 9 KB | 9.0 KB (9174 of 9216 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
-| `hit()`, which says what is seen at a point | 1.25 KB | 1.1 KB |
+| `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.1 KB |
-| A page in React with arrows and dots | 6 KB | 5.6 KB |
-| The same with the canvas and one effect | 12.5 KB | 12 KB |
+| A page in React with arrows and dots | 6 KB | 5.7 KB |
+| The same with the canvas and one effect | 12.75 KB | 12.5 KB |
 
 Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
 - **Canvas layer, 6 to 6.5 KB.** It got the late start, the compile on another thread, the speed of the pointer and the turn for sliders that go down (decisions 14 and 15). What a page loads first became less by it, what it loads in all became 0.6 KB more.
 - **Canvas layer, 6.5 to 6.75 KB, and `hit()`, 1 to 1.25 KB.** For the pointer in a slide as it is drawn (decision 22): 19 bytes in the layer, which had 3 left, and 0.15 KB in `hit()`. The same step of the layer is taken by the corners of the page's shape, which is work of the same day.
-- **Lightbox, 2 to 2.25 KB.** For the image that grows out of a slide as it is drawn (decision 23), 0.4 KB.
-- **A page in React, 5.5 to 6 KB, and with the canvas 12 to 12.5 KB.** The page that is measured is made of the components now (decision 24), which are 0.4 KB more than the hook; the rest is what the layer grew by (decision 22).
+- **Canvas layer, 6.75 to 7 KB; lightbox, 2 to 2.25 KB.** The canvas of a slider draws the way into the lightbox and back itself (`lift`, and `fx`, `dim` and `clip` of `change`): the image leaves its slide with the effects it has there, they fade on the way, and nothing jumps where the lightbox takes over or gives back. Before, the lightbox drew a flat image from the box around the slide, and the effects came back at once at the end. The corners of the shape the page gives with `corner-shape` are in the same layer: a squircle on the page is a squircle on the canvas, 0.1 KB.
+- **A page in React, 5.5 to 6 KB, and with the canvas 12 to 12.75 KB.** The page that is measured is made of the components now (decision 24), which are 0.4 KB more than the hook; the rest is what the layer grew by (decisions 22 and 27, and the way into the lightbox). The last quarter was taken when the two folders were put together (decision 29): each side was within 12.5 KB, both are 46 bytes over.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -336,14 +336,14 @@ Decided by the user on 2026-09-29, after the demos had been built as plain pages
 Asked for by the user on 2026-09-29: "thik of the localhost:5183 like a package landing page. it should display most important features and metrics. keep the stile. then we would have examples that show the wall of glass reel tape. but also other docs pages listing some great features of the app and more".
 
 - **Four kinds of pages.** `/` says what the library is: a slider to drag, six numbers, twelve features that each lead to a page of the docs, the transitions to choose, a ticker, the ways to use it, what the parts weigh, the two layers measured, the examples. `/docs/` has eleven pages. `/examples/` has the wall, the reel and the tape, which moved to `/examples/wall/` and so on. `/playground/` is what the first page was: every slider, with controls.
-- **The style stays**: dark, Geist, the components of shadcn, the sections with their small headings. What the pages share is `site/src/components/Frame.tsx`.
+- **The style**: a stage. The slider at the top of the first page is as large as the window, a stack whose transition is chosen on it, and what the page says lies on it (`over` of `GpuSlider`); its dots fill while a slide has its time, by `autoplay:run` and `autoplay:wait`; below it a narrow column with its headings in the middle. Black, lit by the slide that is seen in its own colour. Funnel Display, semibold, for what is large, and Funnel Sans for the text. A bar of glass that floats for the pages. Squircles of three sizes (`--stage`, `--tile`, `--knob` in `site/src/index.css`), which the canvas draws as squircles too. The components of shadcn.
 - **The docs are the README, cut into pages.** A plugin of Vite (`site/docs.ts`) reads `README.md` when the site is built or served, takes the parts that a page names by their headings, and makes HTML of them (`marked`, at build time: nothing of it is in a bundle). What is said about the library is said in one place, and a heading that the docs ask for and the README has not stops the build. Links in the README to its own headings lead to the page of the docs that has the heading. Code has four colours, from a rule of one line for each language. Considered: the docs written again as pages. They would say the same twice, and one of the two would be wrong before long.
 - **A page of the docs shows what it says.** Nine of the eleven have sliders to try it on: the effects and transitions all to be switched on, the layer to be chosen, pictures that load again, a slider that `auto.js` has made of attributes. They are loaded after the text.
 - **Every page of the docs is made of one HTML file**, `site/docs/index.html`. The server of `npm run dev` gives it for every address of the docs, the build writes it once for every page with the title and the description of the page.
 - **No number of the site is written by hand.** `npm run size` writes `site/src/lib/sizes.json`, `npm run bench -- --write` writes `bench.json` with the machine and the day, `npm run lighthouse` writes `lighthouse.json`. The README had sizes in units of 1000 and of 1024 side by side (the core was 4.5 KB and the WebGL layer 6.5); now a KB is 1024 bytes everywhere, as in the budgets, and a test holds the README to what was measured.
-- **The name is said in one place** of the site (`NAME` in `Frame.tsx`), and the site says that it is a working name and that the library is not on npm. No command to install it is shown.
+- **The name is said in one place** of the site (`NAME` in `Frame.tsx`), and the site says that the library is not on npm yet. No command to install it is shown.
 - **A stack may be said in the HTML**: `class="gs gs-stack"`. Lighthouse found that the playground shifted when the script came (0.166): the first slider is a stack since decision 19, and until `stack()` ran its slides were in a row. With the class in the HTML the slides are on top of each other from the first paint, and the slides after the first are hidden until the script is there. `stack()` leaves the class when the slider ends if the page has said it. Between the script and its first frame the slides were all seen, the last on top: a test found it in one run of many. Now the first slide is the one that is seen until the plugin says which are, and the plugin says `visible` where it left it to the page. Without the script such a slider shows its first slide and is no scroller: that is why the page says it, and the plugin does not ask for it.
-- **The font before the font is as wide as the font.** Lighthouse found the first page shifting on a phone (0.159): with Geist the three buttons under the heading no longer fit in a line. Measured with the text of a page of the docs: Geist is 1.022 (400) to 1.045 (500) times as wide as Arial, and 0.995 times at 600. So the fallback is Arial at 103.5 %, and Arial Bold at 99.5 % from 600 (`site/src/index.css`), and the buttons are narrower. Both shifts are under 0.002 now.
+- **The font before the font is as wide as the font.** Lighthouse found the first page shifting on a phone (0.159): with Geist the three buttons under the heading no longer fit in a line. Measured with the text of a page of the docs: Geist is 1.022 (400) to 1.045 (500) times as wide as Arial, and 0.995 times at 600. So the fallback is Arial at 103.5 %, and Arial Bold at 99.5 % from 600 (`site/src/index.css`), and the buttons are narrower. Measured again for Funnel Sans on 2026-09-29: 100.2 % and 94 %. Both shifts are under 0.002 now.
 - **Tailwind has a class `table`**, which makes a block a table: the block around a table that scrolls is `.scrolls`.
 - **The pictures of the examples** are taken by `npm run shots` from the site that runs, drawn by WebGPU.
 
@@ -373,6 +373,8 @@ Noticed with decision 21, and asked for by the user on 2026-09-29: "Pointer effe
 - **A test holds it**: with `spotlight()` and each of the five effects that lay out, the middle of what is lit is within 8 px of the pointer, across and downwards, on both layers (`tests/hit.spec.js`). Without the change six of the eight fail.
 
 ### 23. The image grows out of the slide as it is drawn
+
+**Replaced on 2026-09-29, when the two folders were put together (decision 29).** The other session had done the same in another way, and further: the canvas of the slider draws the way into the lightbox itself (`lift`), with the effects of the slider, which fade on the way. That is what the lightbox does now. What follows is what was: the effect of the lightbox, the corners of `hit().where()` and their test are gone.
 
 Reported by the user on 2026-09-29: "the zoom is not canvas based right? i think it should be if possible. as image lag back now into some position".
 
@@ -447,6 +449,17 @@ The user on 2026-09-29: "the film however needs some good loop", and then gave a
 - **`media/film.mp4`**: 7.6 s, 960 by 540, 30 pictures a second, H.264, 1.8 MB, no sound. The video is soft; at 1280 by 720 the film was 3.5 MB and looked the same. `bin/make-film.mjs` makes it and its poster of the video, which is not in the repo.
 - **It flashes.** The brightness of the whole picture turns by a tenth of all there is up to eight times in a second of the loop, which is four flashes; three is where WCAG 2.3.1 draws the line. It was measured roughly, of pictures of 64 by 36. `photosensitivity` of ffmpeg takes every flash out and the colour with it: grey and smeared, so it was not done. `videos()` plays films for visitors who ask for less motion too. **Open, the user's to decide before the site is public**: another part of the video, the filter, or no film for those who ask for less motion.
 - **The licence of Pexels** lets the video be used and changed without a name being said. It was not read again for this, and whether it is the same for a file in a public repo is the user's to check before the repo is public.
+
+### 29. Two folders, put together
+
+On 2026-09-29 two sessions worked in the repo at once: one in `~/code/shaderslide` on `main`, which named the library (gpu slider, `gpuslider`, `gs-`), made the first page anew, the photos, three more examples and the way into the lightbox; one in a worktree, `~/code/shaderslide-work` on `work`, with decisions 22 to 28. The user: "why not merge this to the other?"
+
+- **The work of `main` was not committed.** It was taken as it was into a commit of its own (`other-snapshot`), with an index of its own, so that nothing in that folder changed. What is done there after it is not in here.
+- **The names first**: the rename of the other side was made on `work` too, by its rules, before the two were put together. 38 files were in conflict then; in 20 of them only the way the name is written differed.
+- **The lightbox is the one of `main`** (see decision 23). **The first page is the one of `main`.**
+- **The film is the film of the photos.** The site of `main` lets a visitor choose between colour fields and photos, and had a photo in the place of every film of the photos. Now `a` is the user's film there (decision 28), `b` is a photo as before, and the colour fields keep the films that are made. The page for phones shows the film.
+- **Sizes**: the layer of WebGL had 3 bytes too many with the work of both in it. The check for an empty picture (decision 27) uses the helper that draws a picture smaller, which both layers have, and the layer is at 7159 of 7168 bytes. One budget was raised, see decision 11.
+- **Branch `together`**, in the worktree. `main` gets it when the other session has committed what it has.
 
 ## Modules
 

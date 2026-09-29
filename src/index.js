@@ -156,6 +156,10 @@ import { createDom } from './dom.js';
  * @property {boolean}                [free]     Rest anywhere, not only on
  *                                               slides.
  * @property {number}                 [duration] Time of a move, ms.
+ * @property {(u: number) => number}   [ease]     Curve of a move to a slide,
+ *                                     from 0 to 1 in `duration`: instead
+ *                                     of the spring. A drag let go is the
+ *                                     spring all the same.
  * @property {number}                 [start]    First slide shown.
  * @property {boolean}                [drag]     Pointer dragging.
  * @property {{ [K in keyof Events]?: Listener<K> } & Record<string, Function>} [on]
@@ -306,6 +310,7 @@ export function createSlider( root, options = {} ) {
 	const { motion } = engine;
 	view.motion = motion;
 	engine.duration( o.duration );
+	engine.ease( o.ease || null );
 
 	// A new target: tells it, if it is another snap.
 	const aim = ( to, before ) => {
@@ -482,6 +487,7 @@ export function createSlider( root, options = {} ) {
 			Object.assign( o, change );
 			dress();
 			engine.duration( o.duration );
+			engine.ease( o.ease || null );
 			update();
 		},
 

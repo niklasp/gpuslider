@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>gpuslider test page</title>
+<title>gpu slider test page</title>
 <script>
 	// ?from=dist tests what is built for the pages of others.
 	window.from = new URLSearchParams( location.search ).get( 'from' ) || 'src';
@@ -112,9 +112,7 @@
 		options.plugins = names.map( ( name ) =>
 			name === 'lightbox'
 				? lightbox( {
-						// Not the ones that lay out: the lightbox shows
-						// one image.
-						effects: effects.filter( ( effect ) => ! effect.place ),
+						effects,
 						duration: Number( query.get( 'open' ) ) || 500,
 						canvas: { preserve: true },
 						layer: window.lib.gl,

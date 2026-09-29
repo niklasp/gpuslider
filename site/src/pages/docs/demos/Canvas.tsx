@@ -56,7 +56,7 @@ export default function Canvas() {
 				] }
 			>
 				<Slide image={ 1 } alt="Warm colour field" className="hero" sizes="70vw" />
-				<Slide video="a" alt="Someone walking into a tunnel of coloured lights" className="hero" sizes="70vw" />
+				<Slide video="a" alt="Moving colour field" className="hero" sizes="70vw" />
 				<Slide image={ 2 } alt="Blue colour field" className="hero" sizes="70vw" />
 				<Slide image={ 4 } alt="Pink colour field" className="hero" sizes="70vw" />
 			</GpuSlider>

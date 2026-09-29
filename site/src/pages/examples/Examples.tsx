@@ -21,7 +21,7 @@ export default function Examples() {
 					</p>
 				</div>
 				<Shots all />
-				<div className="grid gap-3 rounded-xl border p-6 md:p-8">
+				<div className="sq-tile grid gap-3 bg-card p-6 md:p-8">
 					<h2 className="text-2xl font-semibold">Everything, with controls</h2>
 					<p className="max-w-2xl text-sm text-muted-foreground">
 						The playground has every layout, every effect and every

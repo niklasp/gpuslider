@@ -7,12 +7,12 @@ import {
 import { type Create, type Options, type Slider } from 'gpuslider';
 import { useSlider } from 'gpuslider/react';
 import { thumbs } from 'gpuslider/plugins';
-import { ChevronLeft, ChevronRight, Pause } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 
 // Classes that do not contradict each other need no merger.
 const cn = ( ...classes: ( string | undefined )[] ) =>
 	classes.filter( Boolean ).join( ' ' );
-import { image, video } from '@/lib/media';
+import { FILM, filmed, image, photo, useKind, video } from '@/lib/media';
 
 type Props = {
 	id: string;
@@ -34,11 +34,25 @@ type Props = {
 	/** Changes with what the slider has to measure again for. */
 	measured: string;
 	pause?: boolean;
+	/**
+	 * What lies over all slides, and stays where it is while they move:
+	 * it lets the pointer through, but for what can be pressed in it.
+	 */
+	over?: ReactNode;
+	/**
+	 * The dots, the arrows and the pause in one bar of glass, bottom
+	 * right, instead of each at its own place.
+	 */
+	dock?: boolean;
 	children: ReactNode;
 };
 
 const button =
-	'absolute top-1/2 z-10 grid size-10 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-black/50 text-white backdrop-blur transition hover:bg-black/70 disabled:opacity-20 disabled:cursor-default';
+	'sq-pill absolute top-1/2 z-10 grid size-11 -translate-y-1/2 cursor-pointer place-items-center bg-black/40 text-white backdrop-blur-md transition hover:bg-black/65 disabled:opacity-20 disabled:cursor-default';
+
+/** A button of the dock: round, and lit under the pointer. */
+const KEY =
+	'sq-pill grid size-9 cursor-pointer place-items-center text-white/85 transition hover:bg-white/15 hover:text-white disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent';
 
 /**
  * A slider of the library in React: React renders the slides, the library
@@ -57,9 +71,13 @@ export function GpuSlider( {
 	heard,
 	bare,
 	onSlider,
+	over,
+	dock,
 	children,
 }: Props ) {
 	const state = useRef< HTMLParagraphElement >( null );
+	// Other pictures are another slider: the canvas has other textures.
+	const kind = useKind();
 	// The listener of now, for a slider that was made before.
 	const hears = useRef( heard );
 	hears.current = heard;
@@ -74,7 +92,7 @@ export function GpuSlider( {
 					name !== 'frame' && hears.current?.( name, detail ),
 			},
 		},
-		[ made ]
+		[ made, kind ]
 	);
 
 	useEffect( () => {
@@ -151,51 +169,93 @@ export function GpuSlider( {
 				id={ id }
 				data-made={ made }
 				aria-label={ label }
-				className={ cn( 'gs rounded-xl', className ) }
+				className={ cn( 'gs sq-stage', className ) }
 				style={ style }
 			>
 				<div className="gs-track">{ children }</div>
-				{ ! bare && (
-					<>
+				{ over && (
+					<div className="over pointer-events-none absolute inset-0 z-10 [&_a]:pointer-events-auto [&_button]:pointer-events-auto [&_label]:pointer-events-auto">
+						{ over }
+					</div>
+				) }
+				{ dock ? (
+					<div className="dock sq-pill absolute end-4 bottom-4 z-10 flex items-center gap-1 bg-black/30 p-1 ps-3 text-white ring-1 ring-white/15 backdrop-blur-xl backdrop-saturate-150 md:end-8 md:bottom-8 lg:end-14">
+						<div data-gs-dots className="dots flex items-center" />
+						<span aria-hidden className="mx-1.5 h-5 w-px bg-white/20" />
 						<button
 							type="button"
 							data-gs-prev
 							aria-label="Previous slide"
-							className={ cn( button, 'start-3' ) }
+							className={ KEY }
 						>
-							<ChevronLeft className="size-5" />
+							<ChevronLeft className="size-[18px]" strokeWidth={ 2.25 } />
 						</button>
 						<button
 							type="button"
 							data-gs-next
 							aria-label="Next slide"
-							className={ cn( button, 'end-3' ) }
+							className={ KEY }
 						>
-							<ChevronRight className="size-5" />
+							<ChevronRight className="size-[18px]" strokeWidth={ 2.25 } />
 						</button>
+						{ pause && (
+							<button
+								type="button"
+								data-gs-pause
+								aria-label="Pause autoplay"
+								className={ `${ KEY } group` }
+							>
+								{ /* What a press does: pause while it plays, play while not. */ }
+								<Pause className="size-3.5 fill-current group-aria-pressed:hidden" />
+								<Play className="hidden size-3.5 fill-current group-aria-pressed:block" />
+							</button>
+						) }
+					</div>
+				) : (
+					<>
+						{ ! bare && (
+							<>
+								<button
+									type="button"
+									data-gs-prev
+									aria-label="Previous slide"
+									className={ cn( button, 'start-4' ) }
+								>
+									<ChevronLeft className="size-5" />
+								</button>
+								<button
+									type="button"
+									data-gs-next
+									aria-label="Next slide"
+									className={ cn( button, 'end-4' ) }
+								>
+									<ChevronRight className="size-5" />
+								</button>
+							</>
+						) }
+						{ pause && (
+							<button
+								type="button"
+								data-gs-pause
+								aria-label="Pause autoplay"
+								className="sq-pill absolute end-4 bottom-4 z-10 grid size-9 cursor-pointer place-items-center bg-black/40 text-white backdrop-blur-md aria-pressed:bg-white aria-pressed:text-black"
+							>
+								<Pause className="size-3.5" />
+							</button>
+						) }
+						{ ! bare && (
+							<div
+								data-gs-dots
+								className="dots absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2"
+							/>
+						) }
 					</>
-				) }
-				{ pause && (
-					<button
-						type="button"
-						data-gs-pause
-						aria-label="Pause autoplay"
-						className="absolute end-3 bottom-3 z-10 grid size-8 cursor-pointer place-items-center rounded-full bg-black/50 text-white backdrop-blur aria-pressed:bg-white aria-pressed:text-black"
-					>
-						<Pause className="size-3.5" />
-					</button>
-				) }
-				{ ! bare && (
-					<div
-						data-gs-dots
-						className="dots absolute inset-x-0 bottom-3 z-10 flex justify-center gap-2"
-					/>
 				) }
 			</div>
 			<p
 				ref={ state }
 				// As high as what it will say: nothing below it gives way.
-				className="mt-2 min-h-12 font-mono text-xs text-muted-foreground sm:min-h-8 xl:min-h-4"
+				className="mt-3 min-h-12 px-1 font-mono text-xs text-muted-foreground sm:min-h-8 xl:min-h-4"
 			/>
 		</div>
 	);
@@ -251,13 +311,17 @@ export function Slide( {
 	className,
 	children,
 }: SlideProps ) {
+	const kind = useKind();
 	return (
 		<div className={ cn( 'gs-slide', className ) }>
-			{ name ? (
+			{ name && filmed( name, kind ) ? (
 				<video
+					// Another film is another element: the canvas has the
+					// pictures of the one it knows.
+					key={ kind }
 					className="gs-media"
-					{ ...video( name ) }
-					aria-label={ alt }
+					{ ...video( name, kind ) }
+					aria-label={ kind === 'photos' ? FILM : alt }
 					preload="none"
 					muted
 					playsInline
@@ -267,9 +331,9 @@ export function Slide( {
 			) : (
 				<img
 					className="gs-media"
-					{ ...image( n! ) }
+					{ ...image( ( n ?? name )!, kind ) }
 					sizes={ sizes }
-					alt={ alt }
+					alt={ kind === 'photos' ? photo( ( n ?? name )! ).alt : alt }
 					draggable={ false }
 					decoding="async"
 					loading={ first ? 'eager' : 'lazy' }
@@ -277,7 +341,7 @@ export function Slide( {
 				/>
 			) }
 			{ children && (
-				<div className="gs-content flex flex-col justify-end gap-1 bg-gradient-to-b from-transparent from-40% to-black/70 p-6 pb-12 text-white md:p-10 md:pb-14">
+				<div className="gs-content flex flex-col justify-end gap-1.5 bg-gradient-to-b from-transparent from-45% to-black/65 p-6 pb-14 text-white md:p-12 md:pb-16">
 					{ children }
 				</div>
 			) }

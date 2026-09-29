@@ -1,0 +1,68 @@
+/*
+ * Loom: a dark room, and portraits that come apart at its edges.
+ */
+
+:root {
+	--ground: #0b0907;
+	--ink: #e9e1d6;
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	min-height: 100svh;
+	background: var(--ground);
+	color: var(--ink);
+	font: 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+	overflow-x: hidden;
+}
+
+#root {
+	display: contents;
+}
+
+header,
+footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px 24px;
+	padding: 18px clamp(16px, 4vw, 40px);
+	color: rgb(233 225 214 / 0.6);
+}
+
+header a,
+footer a {
+	color: var(--ink);
+}
+
+footer p {
+	max-width: 52ch;
+	margin: 0;
+}
+
+main {
+	display: grid;
+	align-items: center;
+}
+
+.loom {
+	--gs-gap: clamp(16px, 3vw, 40px);
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--ink);
+}
+
+.loom .gs-slide {
+	flex: 0 0 clamp(220px, 26vw, 420px);
+	aspect-ratio: 3 / 4;
+}
+
+.loom .gs-media {
+	border-radius: 18px;
+}

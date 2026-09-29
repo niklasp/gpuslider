@@ -45,6 +45,9 @@ export default defineConfig( {
 					'examples/wall/index',
 					'examples/reel/index',
 					'examples/tape/index',
+					'examples/loom/index',
+					'examples/wave/index',
+					'examples/depth/index',
 					'playground/index',
 					'phone/index',
 				].map( ( page ) => [

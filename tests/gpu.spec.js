@@ -118,7 +118,7 @@ test.describe( 'WebGPU draws what WebGL draws', () => {
 				n: 5,
 				o: { axis: 'y' },
 				css: '.gs { height: 400px; --gs-per-view: 1.5; --gs-gap: 10px; } .gs-slide { height: auto; }',
-				effects: 'stretch;split;magnify;spotlight;glass;parallax',
+				effects: 'stretch;split;magnify;spotlight;glass;parallax;cells',
 			},
 			90
 		);

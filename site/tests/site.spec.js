@@ -50,7 +50,7 @@ async function drawn( page, id ) {
 	// Where the controls are not.
 	await page.mouse.move(
 		box.x + box.width / 2,
-		Math.max( box.y + box.height / 2, bar.height + 10 )
+		Math.max( box.y + box.height / 2, bar.y + bar.height + 10 )
 	);
 	return page
 		.waitForFunction(
@@ -89,15 +89,16 @@ test( 'a slider that nobody uses has no canvas', async ( { page } ) => {
 	await expect( page.locator( '#ticker .gs-canvas' ) ).toHaveCount( 1 );
 } );
 
-test( 'the controls stay at the top', async ( { page } ) => {
+test( 'the controls stay at the top, under the bar of the site', async ( { page } ) => {
 	const bar = page.getByTestId( 'controls' );
 	await page.locator( '#stack' ).scrollIntoViewIfNeeded();
 	expect( await page.evaluate( () => window.scrollY ) ).toBeGreaterThan( 500 );
-	expect( ( await bar.boundingBox() ).y ).toBe( 0 );
+	expect( ( await bar.boundingBox() ).y ).toBe( 72 );
 	// And nothing of the page begins under them.
 	await page.evaluate( () => window.scrollTo( 0, 0 ) );
 	const title = await page.locator( 'h1' ).boundingBox();
-	expect( title.y ).toBeGreaterThan( ( await bar.boundingBox() ).height );
+	const { y, height } = await bar.boundingBox();
+	expect( title.y ).toBeGreaterThan( y + height );
 } );
 
 test( 'every slider is drawn by the canvas', async ( { page } ) => {
@@ -468,7 +469,7 @@ test( 'a click on a slider that moves opens the lightbox', async ( { page } ) =>
 	expect( await page.evaluate( () => window.sliders.several.resting ) ).toBe( false );
 	await page.mouse.click(
 		box.x + box.width / 2,
-		Math.max( box.y + box.height / 2, bar.height + 10 )
+		Math.max( box.y + box.height / 2, bar.y + bar.height + 10 )
 	);
 	await expect( page.locator( '.gs-lightbox' ) ).toBeVisible();
 	expect( await page.evaluate( () => window.opened.length ) ).toBe( 1 );

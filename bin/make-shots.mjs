@@ -2,7 +2,7 @@
  * Takes the pictures of the examples that the site shows on its first
  * page and on the page of the examples: `site/public/shots/<name>.avif`.
  *
- * `node bin/make-shots.mjs [http://localhost:5183]`
+ * `node bin/make-shots.mjs [http://localhost:5183] [name …]`
  *
  * The site has to run: `npm run site`. The pictures are drawn by WebGPU,
  * in a browser without a window.
@@ -33,12 +33,28 @@ const PAGES = {
 		await page.mouse.wheel( 0, 1000 );
 		await page.waitForTimeout( 1500 );
 	},
+	loom: async ( page ) => {
+		await page.waitForTimeout( 1500 );
+	},
+	wave: async ( page ) => {
+		await page.waitForTimeout( 1500 );
+	},
+	// Moved on by one: the picture is seen where it hangs back.
+	depth: async ( page ) => {
+		await page.keyboard.press( 'Tab' );
+		await page.evaluate( () => window.slider.next() );
+		await page.waitForTimeout( 350 );
+	},
 };
 
 const browser = await chromium.launch( {
 	args: [ '--enable-unsafe-webgpu', '--use-angle=metal' ],
 } );
+const only = process.argv.slice( 3 );
 for ( const [ name, ready ] of Object.entries( PAGES ) ) {
+	if ( only.length && ! only.includes( name ) ) {
+		continue;
+	}
 	const page = await browser.newPage( {
 		viewport: { width: 1280, height: 800 },
 		deviceScaleFactor: 2,

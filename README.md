@@ -1,9 +1,9 @@
-# gpuslider
+# gpu slider
 
 A slider that draws its media on a canvas and owns its own motion: with WebGPU where the browser has it, with WebGL 2 where not.
 No dependencies.
 
-Working name. The plan, with every decision and its reason, is in [PLAN.md](PLAN.md).
+The plan, with every decision and its reason, is in [PLAN.md](PLAN.md).
 
 ## Run it
 
@@ -84,7 +84,7 @@ Three ways, from the least to write to the least to load.
 | `data-gs-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
 | `data-gs-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
-`auto.js` is one file of 8.0 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
+`auto.js` is one file of 8.2 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
 
 The element tells when its slider is made: `gs:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
 
@@ -103,7 +103,7 @@ const slider = createSlider( document.querySelector( '.gs' ), {
 } );
 ```
 
-`gpuslider/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.8 KB.
+`gpuslider/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 7.0 KB.
 
 ### With what you name, and no more
 
@@ -114,7 +114,7 @@ import { controls, keyboard } from 'gpuslider/plugins';
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.5 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.6 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
@@ -191,7 +191,7 @@ const [ ref, slider ] = useSlider( { loop, plugins: [ controls() ] }, [ loop ] )
 
 Its second argument is what the slider is made again for.
 
-The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.6 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 12 KB.
+The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.7 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 12.5 KB.
 
 ### Three tiers
 
@@ -254,6 +254,7 @@ Of the core:
 | `contain` | `true` | No empty space at the ends |
 | `free` | `false` | Rest anywhere, glide on after a drag |
 | `duration` | `600` | ms of a move |
+| `ease` | | curve of a move to a slide, `u => …` from 0 to 1 in `duration`, instead of the spring; a drag let go keeps the spring |
 | `start` | `0` | First slide |
 | `drag` | `true` | |
 | `on` | | Listeners by the name of their event: `{ change: ( index ) => … }` |
@@ -278,7 +279,7 @@ From `gpuslider/plugins`. Each is 0.3 to 1 KB.
 | `controls( { prev, next, dots } )` | Arrows, dots and `data-gs-to` buttons, in the slider or anywhere |
 | `keyboard()` | Arrow keys, Home, End. Makes the slider focusable |
 | `wheel()` | The wheel and two fingers on a trackpad, along the slider |
-| `autoplay( 3500 )` | Goes on by itself. Waits for the pointer, the focus, the tab and the screen. `slider.plugins.autoplay.pause()`, `.play()`, `.paused` |
+| `autoplay( 3500 )` | Goes on by itself. Waits for the pointer, the focus, the tab and the screen; `{ delay, hover: false }` does not wait for the pointer, `{ delay, left }` gives the first slide less time, for a slider made again that goes on where it was. `slider.plugins.autoplay.pause()`, `.play()`, `.paused` |
 | `marquee( { speed, hover, scroll } )` | A ticker: runs evenly and without an end, slower under the pointer, faster while the page is scrolled. For `loop: true` |
 | `thumbs( other )` | The slides are the buttons of another slider |
 | `videos()` | Videos play while their slide is in view. One that says `preload="none"` is loaded when its slide comes into view, not before |
@@ -352,6 +353,7 @@ slider.on( '*', ( name, detail, slider ) => {} );
 | `frame` | The view, on every frame of a move |
 | `destroy` | The slider |
 | `autoplay:play`, `autoplay:pause` | |
+| `autoplay:run`, `autoplay:wait` | `{ delay, left }` when the time of a slide begins to run, `left` of `delay`; nothing when it stops before its end |
 | `marquee:play`, `marquee:pause` | |
 | `canvas:ready` | `canvas()` has chosen its layer: `'gpu'` or `'gl'` |
 | `gpu:on`, `gpu:off`, `gl:on`, `gl:off` | The canvas took over, or gave the slides back to the page |
@@ -450,7 +452,7 @@ createSlider( element, { plugins: [ canvas(), lightbox( { effects: [ stretch() ]
 
 A click on a slide lets its image grow to the screen, Escape lets it go back. `data-gs-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
 
-The image grows, and no more: the effects of the lightbox are for the moves in it. `punch: 0.4` lets the speed of the growing count as speed for them, so that an image with `stretch()` bows while it opens.
+The image grows out of its slide as the slider draws it, with the effects of the slider, which fade on the way: the canvas of the slider draws the way, out of the slider and over the page, and the lightbox takes over at the screen. The effects of the lightbox are for the moves in it. `punch: 0.4` lets the speed of the growing count as speed for them, so that an image with `stretch()` bows while it opens.
 
 ## Loading
 
@@ -556,7 +558,7 @@ Shaders are compiled on another thread where the browser can, and no frame is dr
 | Script in a frame while 6 sliders move | 0.15 ms, 0.17 ms | 0.33 ms, 0.27 ms |
 | Frames that came late while 20 sliders moved for 4 s | 0 of 241 | 0 of 241 |
 | Work of the page and of the GPU process, 6 sliders (Chromium) | 10 % and 18 % of a core | 11 % and 18 % |
-| The layer in the bundle | 6.6 KB | 8.5 KB |
+| The layer in the bundle | 7.0 KB | 9.0 KB |
 | Browsers | all | Chrome, Edge, Safari from 26, Firefox on some systems: about 87 % of visitors |
 
 What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which for six sliders is 0.3 ms of the 16.7 that a frame has.
@@ -571,9 +573,10 @@ Any number, in the order given.
 |---|---|---|
 | `stretch( { amount } )` | The middle of the image hangs back | Speed |
 | `split( { amount } )` | The colours come apart | Speed |
-| `parallax( { amount } )` | The image is slower than its slide | Position |
+| `parallax( { amount, zoom } )` | The image is slower than its slide | Position |
 | `bend( { amount, speed } )` | The row is an arc; bends the mesh | Position and speed |
 | `magnify( { size, strength } )` | A lens | Pointer |
+| `cells( { size, zoom, reach } )` | Squares in the wake of the pointer, each its part closer; as far as the pointer is fast | Speed of the pointer |
 | `spotlight( { size, dim } )` | The rest is dimmed | Pointer |
 | `reveal( { size } )` | The images lose their colours, except around the pointer | Pointer |
 | `glass( { size, lines, amount } )` | Fluted glass around the pointer | Pointer |
@@ -592,6 +595,8 @@ Effects that lay out: the slider moves as ever, the effect says where a slide is
 | `coverflow( { angle, depth, range } )` | The slides beside the active one turn away |
 | `pile( { offset, turn } )` | A pile of cards; the one on top leaves to the side |
 | `fan( { angle, radius } )` | A hand of cards, or a wheel |
+| `wave( { height, length, slope } )` | The row runs along a wave, across the view on a slope |
+| `unweave( { amount, threads } )` | Near the edges of the view the slides come apart into threads |
 | `dome( { amount, centre, size } )` | The slides as on a dome: what is far from the middle is smaller and nearer to it |
 
 The page has such a slide in one place, and the canvas draws it in another. A click is a click on the slide that is seen: on the cover at the edge, not on the slide in whose place it is drawn. And the lightbox lets the image grow out of the slide as it is drawn: a cover that is turned away turns to the front while it grows, and turns back on its way home. `canvas()` sees to that with `hit()`, which it loads when an effect lays out; with a layer by its name it is a plugin to add:
@@ -672,14 +677,14 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 
 | Part | Size |
 |---|---|
-| Core | 4.5 KB |
+| Core | 4.6 KB |
 | A plugin | 0.3 to 1 KB |
-| `gpuslider/full`: the core with all its options | 6.8 KB |
+| `gpuslider/full`: the core with all its options | 7.0 KB |
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
-| `hit()`, which says what slide is seen at a point | 1.1 KB |
-| Canvas layer of WebGPU | 8.5 KB |
-| Canvas layer of WebGL 2 | 6.6 KB |
+| `hit()`, which says what slide is seen at a point | 1.0 KB |
+| Canvas layer of WebGPU | 9.0 KB |
+| Canvas layer of WebGL 2 | 7.0 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 2.1 KB |

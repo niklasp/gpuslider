@@ -7,7 +7,8 @@
  * What the page says about a media element, read once per layout.
  *
  * @param {HTMLElement} media Media element.
- * @return {Object} `fit`, `at` (position as fractions or px) and `radius`.
+ * @return {Object} `fit`, `at` (position as fractions or px), `radius`
+ *                  and `shape`, the exponent of the corners.
  */
 export function styleOf( media ) {
 	const style = media.ownerDocument.defaultView.getComputedStyle( media );
@@ -19,15 +20,26 @@ export function styleOf( media ) {
 				: { px: parseFloat( value ) || 0 }
 		);
 	// Corners: the element's own, or those of a slide that clips it.
+	let corners = style;
 	let radius = parseFloat( style.borderTopLeftRadius ) || 0;
 	const parent = media.parentElement;
 	if ( ! radius && parent ) {
 		const around = media.ownerDocument.defaultView.getComputedStyle( parent );
 		if ( around.overflowX !== 'visible' ) {
+			corners = around;
 			radius = parseFloat( around.borderTopLeftRadius ) || 0;
 		}
 	}
-	return { fit: style.objectFit || 'fill', at, radius };
+	// Their shape: `superellipse(k)` has the exponent 2^k, so a round
+	// corner has 2 and a squircle 4. A browser without `corner-shape`
+	// draws round ones, and so does the canvas there.
+	const shape =
+		2 **
+		( Math.min(
+			parseFloat( corners.cornerTopLeftShape?.slice( 13 ) ),
+			3
+		) || 1 );
+	return { fit: style.objectFit || 'fill', at, radius, shape };
 }
 
 /**
@@ -94,15 +106,15 @@ export function fit( iw, ih, box, qw, qh, style, out ) {
 }
 
 /**
- * Whether a bitmap has nothing in it. WebKit gives such a bitmap now and
+ * Whether a picture has nothing in it. WebKit gives such a bitmap now and
  * then for an image that is loaded and decoded: seen for slides out of
- * view, on a machine that is busy. Four by four of it say so.
+ * view, on a machine that is busy.
  *
- * @param {ImageBitmap} bitmap Bitmap.
+ * @param {OffscreenCanvas} canvas The picture, drawn four by four.
  * @return {boolean} Nothing in it.
  */
-export function empty( bitmap ) {
-	const context = new OffscreenCanvas( 4, 4 ).getContext( '2d' );
-	context.drawImage( bitmap, 0, 0, 4, 4 );
-	return ! context.getImageData( 0, 0, 4, 4 ).data.some( Boolean );
-}
+export const empty = ( canvas ) =>
+	! canvas
+		.getContext( '2d' )
+		.getImageData( 0, 0, 4, 4 )
+		.data.some( ( n ) => n );

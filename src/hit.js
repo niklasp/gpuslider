@@ -237,10 +237,9 @@ export function hit( { effects = [], perspective = 1200 } = {} ) {
 
 			/**
 			 * @param {number} i Slide.
-			 * @return {{ left: number, top: number, width: number, height: number, corners: number[][] } | null}
-			 *         What is around the slide as it is drawn, on the page,
-			 *         and its four corners; null when the canvas does not
-			 *         draw it.
+			 * @return {{ left: number, top: number, width: number, height: number } | null}
+			 *         What is around the slide as it is drawn, on the page;
+			 *         null when the canvas does not draw it.
 			 */
 			where( i ) {
 				const from = page();
@@ -259,16 +258,6 @@ export function hit( { effects = [], perspective = 1200 } = {} ) {
 					top,
 					width: right - left,
 					height: bottom - top,
-					// Left and right at the top, then at the bottom: where
-					// on the page, and by how much the distance makes it
-					// smaller.
-					corners: [ 0, GRID, GRID * GRID + GRID, GRID * GRID + 2 * GRID ].map(
-						( n ) => [
-							from[ 0 ] + points[ 3 * n ] * from[ 2 ],
-							from[ 1 ] + points[ 3 * n + 1 ] * from[ 2 ],
-							1 / ( 1 - points[ 3 * n + 2 ] / perspective ),
-						]
-					),
 				};
 			},
 		};

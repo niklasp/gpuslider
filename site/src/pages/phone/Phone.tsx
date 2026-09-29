@@ -11,7 +11,7 @@ import { canvas } from 'gpuslider/canvas';
 import { coverflow, liquid, stretch, split } from 'gpuslider/effects';
 import { lightbox } from 'gpuslider/lightbox';
 import { BUTTON, FIRST, Footer, Nav, Section, WIDTH } from '@/components/Frame';
-import { image, video } from '@/lib/media';
+import { FILM, image, video } from '@/lib/media';
 import { has, many, run, type Has, type Run } from './measure';
 
 /** What a finger is to try, and what is to be seen then. */
@@ -240,8 +240,8 @@ export default function Phone() {
 						<Slide className="hero">
 							<video
 								className="gs-media"
-								{ ...video( 'a' ) }
-								aria-label="Someone walking into a tunnel of coloured lights"
+								{ ...video( 'a', 'photos' ) }
+								aria-label={ FILM }
 								preload="none"
 								muted
 								playsInline

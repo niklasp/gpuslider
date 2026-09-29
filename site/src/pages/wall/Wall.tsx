@@ -91,7 +91,7 @@ export default function Wall() {
 			</main>
 
 			<footer>
-				<a href="/examples/">gpuslider</a>
+				<a href="/examples/">gpu slider</a>
 				<span ref={ said } id="said">
 					Drag the wall
 				</span>

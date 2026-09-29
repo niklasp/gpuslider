@@ -21,6 +21,24 @@ export const EXAMPLES = [
 		text: 'Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library.',
 		made: [ 'marquee()', 'loading()', 'jelly', 'stretch', 'split' ],
 	},
+	{
+		name: 'loom',
+		title: 'Loom',
+		text: 'Portraits that run by, and come apart into threads where they leave the screen and where they come in. After Unwoven by Clément Grellier.',
+		made: [ 'marquee()', 'loading()', 'unweave', 'stretch' ],
+	},
+	{
+		name: 'wave',
+		title: 'Wave',
+		text: 'A band of pictures that runs across the screen along a wave, larger in the middle. The slides are in a row as ever: the canvas draws them on the wave.',
+		made: [ 'marquee()', 'loading()', 'wave', 'dome', 'split' ],
+	},
+	{
+		name: 'depth',
+		title: 'Depth',
+		text: 'A gallery whose pictures move slower than their frames, and a panel that changes how much while it runs: the effects read their numbers on every frame.',
+		made: [ 'controls()', 'loading()', 'parallax', 'stretch' ],
+	},
 ] as const;
 
 export function Shots( { all }: { all?: boolean } ) {
@@ -30,7 +48,7 @@ export function Shots( { all }: { all?: boolean } ) {
 			className={
 				all
 					? 'grid gap-10'
-					: 'grid gap-4 md:grid-cols-3'
+					: 'grid gap-x-6 gap-y-10 md:grid-cols-3'
 			}
 		>
 			{ EXAMPLES.map( ( { name, title, text, made } ) => (
@@ -39,13 +57,13 @@ export function Shots( { all }: { all?: boolean } ) {
 					className={
 						all
 							? 'grid items-center gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
-							: 'grid content-start gap-3'
+							: 'grid content-start gap-4'
 					}
 				>
 					<a
 						href={ `/examples/${ name }/` }
 						aria-label={ title }
-						className="block overflow-hidden rounded-xl border transition hover:border-foreground/40"
+						className="sq-tile block overflow-hidden bg-card outline-offset-4 transition hover:brightness-110"
 					>
 						<img
 							className="block aspect-[16/10] h-auto w-full object-cover"
@@ -59,11 +77,11 @@ export function Shots( { all }: { all?: boolean } ) {
 					</a>
 					<div className="grid content-start gap-2">
 						{ all ? (
-							<h2 className="text-2xl font-semibold">
+							<h2 className="font-display text-3xl font-light tracking-[-0.035em]">
 								<a href={ `/examples/${ name }/` }>{ title }</a>
 							</h2>
 						) : (
-							<h3 className="font-medium">
+							<h3 className="font-display text-xl tracking-[-0.015em]">
 								<a href={ `/examples/${ name }/` }>{ title }</a>
 							</h3>
 						) }
@@ -75,26 +93,26 @@ export function Shots( { all }: { all?: boolean } ) {
 									className="flex flex-wrap gap-1.5 font-mono text-xs text-muted-foreground"
 								>
 									{ made.map( ( part ) => (
-										<li key={ part } className="rounded-md border px-2 py-1">
+										<li key={ part } className="sq-knob bg-secondary px-2 py-1">
 											{ part }
 										</li>
 									) ) }
 								</ul>
 								<p className="mt-2 flex flex-wrap gap-2">
 									<a
-										className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition hover:bg-primary/80"
+										className="sq-knob inline-flex h-9 items-center bg-primary px-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/85"
 										href={ `/examples/${ name }/` }
 									>
 										Open it
 									</a>
 									<a
-										className="inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium transition hover:bg-accent dark:border-input dark:bg-input/30"
+										className="sq-knob inline-flex h-9 items-center bg-secondary px-3.5 text-sm font-medium transition hover:bg-accent"
 										href={ `/examples/${ name }/?layer=gpu` }
 									>
 										Drawn by WebGPU
 									</a>
 									<a
-										className="inline-flex h-8 items-center rounded-md border px-3 text-sm font-medium transition hover:bg-accent dark:border-input dark:bg-input/30"
+										className="sq-knob inline-flex h-9 items-center bg-secondary px-3.5 text-sm font-medium transition hover:bg-accent"
 										href={ `/examples/${ name }/?layer=gl` }
 									>
 										Drawn by WebGL

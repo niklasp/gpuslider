@@ -91,7 +91,7 @@ export function createTextures( gl, { maxSize, changed } ) {
 				// Nothing in it: the page goes on drawing the image, and
 				// it is asked for again, ten times at most.
 				record.tries = ( record.tries || 0 ) + 1;
-				if ( record.tries < 10 && empty( bitmap ) ) {
+				if ( record.tries < 10 && empty( shrink( bitmap, 4, 4 ) ) ) {
 					setTimeout( () => {
 						record.asked = 0;
 						if ( ! destroyed ) {

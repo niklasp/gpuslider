@@ -99,6 +99,15 @@ test.describe( 'the canvas draws what the page would', () => {
 		expect( far ).toBeLessThan( 0.01 );
 	} );
 
+	test( 'corners of the shape the page gives them', async ( { page } ) => {
+		const { mean, far } = await compare( page, {
+			n: 4,
+			css: '.gs { --gs-per-view: 2; --gs-gap: 10px; } .gs-slide { border-radius: 90px; corner-shape: squircle; overflow: hidden; } .gs-slide:nth-child(2) { border-radius: 60px; corner-shape: superellipse(3); }',
+		} );
+		expect( mean ).toBeLessThan( 2 );
+		expect( far ).toBeLessThan( 0.01 );
+	} );
+
 	test( 'object-fit: contain and object-position', async ( { page } ) => {
 		const { mean, far } = await compare( page, {
 			n: 4,

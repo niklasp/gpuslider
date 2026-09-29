@@ -6,6 +6,10 @@
  * duration, so the move looks the same at 30 and at 120 frames per second
  * and cannot overshoot or explode.
  *
+ * With an easing curve a move to a slide is not the spring but the curve,
+ * in the time of a move; a drag that is let go is the spring all the same,
+ * as it has a speed to go on with.
+ *
  * Frames are requested only while something changes. At rest the engine
  * does nothing at all.
  *
@@ -38,6 +42,10 @@ export function createEngine( win, { frame, settle, busy } ) {
 	/** @type {Motion} */
 	const motion = { pos: 0, target: 0, vel: 0, smooth: 0, dragging: false };
 	let omega = SETTLE / 0.6;
+	let time = 600;
+	let curve = null;
+	// The move along the curve: where from, and since when.
+	let eased = null;
 	let request = 0;
 	let last = 0;
 	let before = 0;
@@ -56,6 +64,17 @@ export function createEngine( win, { frame, settle, busy } ) {
 
 		if ( motion.dragging ) {
 			motion.vel = ( motion.pos - before ) / dt;
+		} else if ( eased ) {
+			eased.since ??= now - dt * 1000;
+			const u = Math.min( 1, ( now - eased.since ) / time );
+			motion.pos =
+				eased.from + ( motion.target - eased.from ) * curve( u );
+			motion.vel = ( motion.pos - before ) / dt;
+			if ( u === 1 ) {
+				motion.pos = motion.target;
+				motion.vel = 0;
+				eased = null;
+			}
 		} else if ( motion.pos !== motion.target || motion.vel !== 0 ) {
 			const a = motion.pos - motion.target;
 			const b = motion.vel + omega * a;
@@ -116,7 +135,16 @@ export function createEngine( win, { frame, settle, busy } ) {
 		 * @param {number} ms Time a move takes, in milliseconds.
 		 */
 		duration( ms ) {
-			omega = SETTLE / ( Math.max( 1, ms ) / 1000 );
+			time = Math.max( 1, ms );
+			omega = SETTLE / ( time / 1000 );
+		},
+
+		/**
+		 * @param {((u: number) => number) | null} to Easing curve of a move,
+		 *        from 0 to 1 in its time; null for the spring.
+		 */
+		ease( to ) {
+			curve = to;
 		},
 
 		/**
@@ -126,6 +154,13 @@ export function createEngine( win, { frame, settle, busy } ) {
 		 * @param {boolean} instant Jump instead of moving.
 		 */
 		to( target, instant ) {
+			// The same move, asked again: it goes on as it was.
+			if ( ! eased || instant || target !== motion.target ) {
+				eased =
+					curve && ! instant && ! motion.dragging && motion.pos !== target
+						? { from: motion.pos }
+						: null;
+			}
 			motion.target = target;
 			if ( instant ) {
 				motion.pos = target;
@@ -147,6 +182,9 @@ export function createEngine( win, { frame, settle, busy } ) {
 			motion.pos += by;
 			motion.target += by;
 			before += by;
+			if ( eased ) {
+				eased.from += by;
+			}
 			if ( push ) {
 				pushed += by;
 			}
@@ -154,6 +192,7 @@ export function createEngine( win, { frame, settle, busy } ) {
 
 		/** A pointer takes the position. */
 		grab() {
+			eased = null;
 			motion.dragging = true;
 			motion.vel = 0;
 			before = motion.pos;

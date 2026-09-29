@@ -55,7 +55,7 @@ export default function Tape() {
 	return (
 		<div ref={ page }>
 			<header>
-				<a href="/examples/">gpuslider</a>
+				<a href="/examples/">gpu slider</a>
 				<span id="said">Scroll{ by && ` · drawn by ${ by }` }</span>
 			</header>
 

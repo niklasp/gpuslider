@@ -97,13 +97,10 @@ test.describe( 'the first page', () => {
 		await expect(
 			page.getByRole( 'navigation', { name: 'Pages', exact: true } ).getByRole( 'link' )
 		).toHaveText( [ 'Docs', 'Examples', 'Playground' ] );
-		const on = page.getByRole( 'navigation', { name: 'Where to go from here' } );
-		await expect( on.getByRole( 'link' ) ).toHaveText( [
-			'Get started',
-			'Examples',
-			'Playground',
-		] );
-		await on.getByRole( 'link', { name: 'Get started' } ).click();
+		await page
+			.getByRole( 'navigation', { name: 'Pages', exact: true } )
+			.getByRole( 'link', { name: 'Docs' } )
+			.click();
 		await expect( page ).toHaveURL( /\/docs\/$/ );
 		await expect( page.getByRole( 'heading', { level: 1 } ) ).toHaveText( 'Get started' );
 	} );
@@ -134,9 +131,9 @@ test.describe( 'the first page', () => {
 
 	test( 'every feature leads to a page of the docs that is there', async ( { page } ) => {
 		const features = page.getByTestId( 'features' ).getByRole( 'listitem' );
-		await expect( features ).toHaveCount( 12 );
+		await expect( features ).toHaveCount( 8 );
 		const all = await links( page, '[data-testid="features"]' );
-		expect( all.length ).toBeGreaterThan( 8 );
+		expect( all.length ).toBeGreaterThan( 5 );
 		for ( const href of all ) {
 			expect( href ).toMatch( /^\/docs\// );
 			await leads( page, href );
@@ -165,24 +162,52 @@ test.describe( 'the first page', () => {
 
 	test( 'a transition that is chosen is the one of the stack', async ( { page } ) => {
 		const said = errors( page );
-		const choice = page.getByRole( 'group', { name: 'Transition' } );
+		const choice = page.getByRole( 'group', { name: 'Effect' } );
 		await expect( choice.getByRole( 'button', { name: 'liquid' } ) ).toHaveAttribute(
 			'aria-current',
 			'true'
 		);
 		await choice.getByRole( 'button', { name: 'burn' } ).click();
-		await expect( page.locator( '#turns' ) ).toHaveAttribute( 'data-made', 'burn' );
+		await expect( page.locator( '#first' ) ).toHaveAttribute( 'data-made', 'burn' );
 		await expect( choice.getByRole( 'button', { name: 'burn' } ) ).toHaveAttribute(
 			'aria-current',
 			'true'
 		);
 		await page.waitForFunction(
-			() => window.sliders.turns.root.dataset.made === 'burn'
+			() => window.sliders.first.root.dataset.made === 'burn'
 		);
 		expect(
-			await page.evaluate( () => Object.keys( window.sliders.turns.plugins ) )
+			await page.evaluate( () => Object.keys( window.sliders.first.plugins ) )
 		).toEqual( expect.arrayContaining( [ 'stack', 'autoplay' ] ) );
-		await drawn( page, 'turns' );
+		await drawn( page, 'first' );
+		expect( said ).toEqual( [] );
+	} );
+
+	test( 'the photos take the place of the colour fields, and stay chosen', async ( { page } ) => {
+		const said = errors( page );
+		const pictures = page.getByRole( 'group', { name: 'Pictures' } );
+		const first = page.locator( '#first .gs-slide:first-child .gs-media' );
+		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
+		await pictures.getByRole( 'button', { name: 'Photos' } ).click();
+		await expect( first ).toHaveAttribute( 'src', '/media/p1-960.avif' );
+		// The film of the photos is a film of its own.
+		await expect( page.locator( '#first video' ) ).toHaveAttribute(
+			'src',
+			'/media/film.mp4'
+		);
+		// The slider is made again, with the canvas.
+		await page.waitForFunction(
+			() => window.sliders.first.slides[ 0 ].querySelector( 'img' ).src.includes( '/p1-' )
+		);
+		await drawn( page, 'first' );
+		await page.reload();
+		await expect( first ).toHaveAttribute( 'src', '/media/p1-960.avif' );
+		await expect( pictures.getByRole( 'button', { name: 'Photos' } ) ).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		await pictures.getByRole( 'button', { name: 'Colour fields' } ).click();
+		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
 		expect( said ).toEqual( [] );
 	} );
 
@@ -197,16 +222,19 @@ test.describe( 'the first page', () => {
 } );
 
 test.describe( 'the examples', () => {
-	test( 'there are three, with a picture each, and they lead to their pages', async ( { page } ) => {
+	test( 'there are six, with a picture each, and they lead to their pages', async ( { page } ) => {
 		await page.goto( '/examples/' );
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
-		await expect( all ).toHaveCount( 3 );
+		await expect( all ).toHaveCount( 6 );
 		await expect( all.getByRole( 'heading' ) ).toHaveText( [
 			'A wall of glass',
 			'A reel',
 			'Tape',
+			'Loom',
+			'Wave',
+			'Depth',
 		] );
-		for ( const name of [ 'wall', 'reel', 'tape' ] ) {
+		for ( const name of [ 'wall', 'reel', 'tape', 'loom', 'wave', 'depth' ] ) {
 			const picture = page.locator( `img[src="/shots/${ name }.avif"]` );
 			await picture.scrollIntoViewIfNeeded();
 			await expect
@@ -227,7 +255,7 @@ test.describe( 'the examples', () => {
 	test( 'the first page shows them too', async ( { page } ) => {
 		await page.goto( '/' );
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
-		await expect( all ).toHaveCount( 3 );
+		await expect( all ).toHaveCount( 6 );
 		await all.first().getByRole( 'link' ).first().click();
 		await expect( page ).toHaveURL( /\/examples\/wall\/$/ );
 	} );
@@ -240,7 +268,7 @@ test.describe( 'the docs', () => {
 			const response = await page.goto( address );
 			expect( response.status() ).toBe( 200 );
 			await expect( page.getByRole( 'heading', { level: 1 } ) ).toHaveText( title );
-			await expect( page ).toHaveTitle( `${ title } · Docs · gpuslider` );
+			await expect( page ).toHaveTitle( `${ title } · Docs · gpu slider` );
 			await expect(
 				page
 					.getByRole( 'navigation', { name: 'Pages of the docs' } )
