@@ -13,6 +13,7 @@ import Playground from './pages/playground/Playground';
 import Wall from './pages/wall/Wall';
 import Reel from './pages/reel/Reel';
 import Tape from './pages/tape/Tape';
+import Phone from './pages/phone/Phone';
 
 type Page = {
 	/** The file of the build the page is made of, where it is another. */
@@ -31,6 +32,7 @@ export const pages: Record< string, Page > = {
 	'examples/reel/index.html': { page: () => <Reel /> },
 	'examples/tape/index.html': { page: () => <Tape /> },
 	'playground/index.html': { page: () => <Playground /> },
+	'phone/index.html': { page: () => <Phone /> },
 	...Object.fromEntries(
 		docs.map( ( { slug, address, title, lead } ) => [
 			`${ address.slice( 1 ) }index.html`,

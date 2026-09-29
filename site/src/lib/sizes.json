@@ -8,13 +8,13 @@
 		"plugin: loading": 974,
 		"plugin: marquee": 881,
 		"plugin: progress": 305,
-		"plugin: stack": 427,
+		"plugin: stack": 576,
 		"plugin: thumbs": 481,
-		"plugin: videos": 443,
+		"plugin: videos": 472,
 		"plugin: wheel": 347,
 		"react: what useSlider adds": 146,
 		"react: what <Slider> and <Slide> add": 591,
-		"full: the slider with all its options": 6817,
+		"full: the slider with all its options": 6948,
 		"canvas layer, no effects": 6672,
 		"canvas: what chooses the layer": 301,
 		"canvas: which slide is seen at a point": 1111,
@@ -63,10 +63,10 @@
 		"lightbox": 2114
 	},
 	"dist": {
-		"auto.js": 8035,
+		"auto.js": 8167,
 		"canvas.js": 319,
 		"effects.js": 5522,
-		"full.js": 9417,
+		"full.js": 9543,
 		"gl.js": 13462,
 		"gpu.js": 15270,
 		"hit.js": 1180,
@@ -74,7 +74,7 @@
 		"lightbox.css": 649,
 		"lightbox.js": 8941,
 		"loading.css": 393,
-		"plugins.js": 4619,
-		"style.css": 683
+		"plugins.js": 4744,
+		"style.css": 690
 	}
 }

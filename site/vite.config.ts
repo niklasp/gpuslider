@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
@@ -45,6 +46,7 @@ export default defineConfig( {
 					'examples/reel/index',
 					'examples/tape/index',
 					'playground/index',
+					'phone/index',
 				].map( ( page ) => [
 					page.replaceAll( '/', '-' ),
 					path.resolve( import.meta.dirname, `${ page }.html` ),
@@ -56,4 +58,15 @@ export default defineConfig( {
 		port: 5183,
 		fs: { allow: [ '..' ] },
 	},
+	// For a phone in the same network, `npm run phone`: with https, which
+	// WebGPU asks for where the address is not this machine.
+	preview: process.env.PHONE_KEY
+		? {
+				host: true,
+				https: {
+					key: readFileSync( process.env.PHONE_KEY ),
+					cert: readFileSync( process.env.PHONE_CERT! ),
+				},
+		  }
+		: {},
 } );

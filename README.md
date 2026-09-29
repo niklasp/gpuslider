@@ -36,8 +36,11 @@ npm run lighthouse # builds the site and asks Lighthouse about its pages
 | `/examples/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
 | `/examples/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
 | `/playground/` | Every layout, every effect and transition, the lightbox, the loading screen, buttons anywhere and the events, with controls for all of it. Under every slider: who draws it, and what a frame costs |
+| `/phone/` | To be opened on a phone: what it has, what a finger is to try, and a measuring of both layers. What it finds is text to copy |
 
 `?layer=gl` and `?layer=gpu` on the examples say who draws.
+
+`npm run phone` builds the site and serves it to a phone in the same network, with https (WebGPU asks for it) and a certificate that nobody has signed: the phone warns once.
 
 No number of the site is written by hand. The sizes are written by `npm run size`, the times by `npm run bench -- --write`, what Lighthouse says by `npm run lighthouse`, all into `site/src/lib/`.
 
@@ -80,7 +83,7 @@ Three ways, from the least to write to the least to load.
 | `data-ss-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
 | `data-ss-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
-`auto.js` is one file of 7.8 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
+`auto.js` is one file of 8.0 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
 
 The element tells when its slider is made: `ss:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
 
@@ -99,7 +102,7 @@ const slider = createSlider( document.querySelector( '.ss' ), {
 } );
 ```
 
-`shaderslide/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.7 KB.
+`shaderslide/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 6.8 KB.
 
 ### With what you name, and no more
 
@@ -277,9 +280,9 @@ From `shaderslide/plugins`. Each is 0.3 to 1 KB.
 | `autoplay( 3500 )` | Goes on by itself. Waits for the pointer, the focus, the tab and the screen. `slider.plugins.autoplay.pause()`, `.play()`, `.paused` |
 | `marquee( { speed, hover, scroll } )` | A ticker: runs evenly and without an end, slower under the pointer, faster while the page is scrolled. For `loop: true` |
 | `thumbs( other )` | The slides are the buttons of another slider |
-| `videos()` | Videos play while their slide is in view |
+| `videos()` | Videos play while their slide is in view. One that says `preload="none"` is loaded when its slide comes into view, not before |
 | `autoHeight()` | As high as the slides in view; the height follows the move |
-| `stack()` | The slides on top of each other, for transitions |
+| `stack()` | The slides on top of each other, for transitions. The images of the slide that is shown come first: with `loading="lazy"` the ones next to it wait for them, the others until they are next |
 | `progress()` | Tells the slides where they are, for animations in CSS |
 | `loading( { screen, min, timeout, also } )` | A screen while the media load, and events that say how far they are |
 
@@ -670,7 +673,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 |---|---|
 | Core | 4.5 KB |
 | A plugin | 0.3 to 1 KB |
-| `shaderslide/full`: the core with all its options | 6.7 KB |
+| `shaderslide/full`: the core with all its options | 6.8 KB |
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.1 KB |

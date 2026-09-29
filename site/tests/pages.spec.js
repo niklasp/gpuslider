@@ -466,3 +466,51 @@ test.describe( 'the components of React', () => {
 		await expect( slider ).toHaveClass( /ss-on/ );
 	} );
 } );
+
+test.describe( 'the page for phones', () => {
+	test.use( { viewport: { width: 412, height: 823 } } );
+
+	test( 'says what the browser has, measures, and writes it down', async ( { page } ) => {
+		test.slow();
+		await page.goto( '/phone/' );
+		await expect( page.getByTestId( 'has' ).getByRole( 'row' ) ).toHaveCount( 12 );
+		await expect(
+			page.getByTestId( 'has' ).getByRole( 'row', { name: 'WebGL 2' } )
+		).toContainText( /^WebGL 2(yes|no)/ );
+		for ( const id of [ 'row', 'turning', 'opening' ] ) {
+			await expect( page.locator( `#${ id }` ) ).toHaveClass( /ss-on/ );
+		}
+		// As wide as the screen.
+		expect(
+			await page.evaluate(
+				() => document.documentElement.scrollWidth <= innerWidth
+			)
+		).toBe( true );
+
+		// What was tried is kept, and said.
+		const tried = page.getByRole( 'group', { name: /A flick goes on/ } );
+		await tried.getByRole( 'button', { name: 'yes' } ).click();
+		const report = page.getByTestId( 'report' );
+		await expect( report ).toHaveValue( /\[yes\] A flick goes on/ );
+		await expect( report ).toHaveValue( /not measured/ );
+
+		await page.getByRole( 'button', { name: 'Measure' } ).click();
+		await expect( report ).toHaveValue( /Twelve sliders, WebGPU asked/, {
+			timeout: 60000,
+		} );
+		const said = await report.inputValue();
+		expect( said ).toMatch( /WebGL asked, (WebGL|the page) drew/ );
+		expect( said ).toMatch( /\d+ frames, [\d.]+ ms apart in the middle/ );
+		await expect( page.getByTestId( 'runs' ).getByRole( 'row' ) ).toHaveCount( 3 );
+		await expect( page.getByRole( 'button', { name: 'Measure' } ) ).toBeEnabled();
+		// Every slider that was made for it has ended.
+		await expect( page.locator( '[data-measured].ss-on' ) ).toHaveCount( 0 );
+
+		await page.reload();
+		await expect(
+			page
+				.getByRole( 'group', { name: /A flick goes on/ } )
+				.getByRole( 'button', { name: 'yes' } )
+		).toHaveAttribute( 'aria-pressed', 'true' );
+	} );
+} );

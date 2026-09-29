@@ -64,6 +64,7 @@
 		"bench": "node bin/bench.mjs",
 		"lighthouse": "node bin/lighthouse.mjs",
 		"shots": "node bin/make-shots.mjs",
+		"phone": "node bin/phone.mjs",
 		"site": "npm install --prefix site --no-audit --no-fund && npm run dev --prefix site",
 		"build": "node bin/build.mjs",
 		"size": "node bin/build.mjs --check",

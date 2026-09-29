@@ -149,6 +149,8 @@
 
 .ss-stack .ss-slide:not(:first-child) {
 	visibility: hidden;
+	/* And its images that wait for their place go on waiting. */
+	content-visibility: hidden;
 }
 
 .ss-stack .ss-media {

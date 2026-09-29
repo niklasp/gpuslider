@@ -135,7 +135,7 @@ slider.destroy();
 |---|---|---|
 | Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.5 KB |
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
-| Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.7 KB |
+| Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.8 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
 | Canvas layer of WebGL 2 without effects | 6.75 KB | 6.5 KB (6672 of 6912 B) |
@@ -403,6 +403,28 @@ Before, React had a hook and the page wrote the markup with its classes (decisio
 - **Not done**: the site's own component is still the one around the hook. It is to be made of `<Slider>`, which is when its `made` and `measured` go; it was left because other work is in that file on this day. A `<Slide>` that knows whether it is the active one (Swiper's `useSwiperSlide()`): the slider says it with `visible` and `change`.
 - **Tests**: the types of every prop are compiled (`tests/types/use.tsx`); the docs page for React has the components with state that moves the slider, a prop that changes it and arrows by the context, and a test that the slider is the same one after the prop changed (`site/tests/pages.spec.js`).
 
+### 25. In a stack the slide that is shown loads first
+
+From the list of what is open, asked for by the user on 2026-09-29: "A stack loads all its media at once. This is why the playground scores 89 on a phone instead of 96, and it affects the reel too."
+
+- **What was**: the slides of a stack are all in the place of the first, so images that wait for their place (`loading="lazy"`) did not wait, and Lighthouse took the film under the first picture of the playground for the largest paint of the page.
+- **A slide that is kept from the page lets its images wait**: `content-visibility: hidden`. Tried in Chromium, Firefox and WebKit: an image with `loading="lazy"` in such a slide, or in one with `display: none`, is not asked for, and is asked for when the slide is given back; in a slide with `visibility: hidden`, which is what a stack had, it is asked for at once. Images without `loading="lazy"`, posters and films load wherever they are.
+- **The style sheet keeps all slides but the first**, so before the script is there the first image is the only one that is asked for. **`stack()` gives back** the slides next to the one that is shown when its images are there, and the others when they are next. In a slider that goes round the last slide is next to the first.
+- **A film loads for `autoplay`, whatever `preload` says.** `videos()` takes `autoplay` away to start the films itself; now it also takes back what the browser has begun, for a film that says `preload="none"` and has no picture yet. What the browser began before the script was there, it began: on a fast line a small film is there by then.
+- **`loading()` is stronger**: it tells every image to load now, as before. The reel waits for all its media behind its screen, which is what it is for; nothing changed there.
+- **Measured** with Lighthouse as a phone on a slow line, the playground: 94 where it was 89, the largest paint at 3.1 s where it was 3.8 s, and it is the first picture of the first slider now. The machine was busy with tests of another session at the time.
+- **Tests**: what is asked for before the script, after it, after a step, and in a slider that goes round, in three browsers (`tests/core.spec.js`).
+
+### 26. A page to take to a phone
+
+From the list of what is open, asked for by the user on 2026-09-29: "A real phone. Touch feel, texture memory and video on iOS have only been reasoned about, never measured."
+
+- **No phone was measured.** There is none at this machine; a small window in a browser on a desk has no finger, no memory of a phone and no Safari of iOS. What there is now is what it takes to measure one: a page and a command.
+- **`/phone/`** says what the browser has (WebGPU and WebGL 2 with the largest texture, the pixels of the screen, memory and cores where they are said, whether the address is secure), has three sliders for the hand (a row that stretches, a stack with a film, covers that open) with twelve things to try and to say yes or no to, and measures by itself: a slider that moves for five seconds with each layer (the time to the first picture, how far the frames are apart in the middle, for 95 of 100 and at worst, how many were late, the script in a frame), then twelve sliders at once with each layer (how many the canvas draws, how many are left to the page, how often the canvas gave up). All of it is text at the end, to copy or to share.
+- **`npm run phone`** builds the site and serves it in the network with https. WebGPU is there only where the address is secure; an address in the network is not, without. The certificate is made by `openssl` and signed by nobody.
+- **Made of `<Slider>`** (decision 24), which it is the first page of the site to use beside the docs.
+- **Open until a phone has said it**: what a finger feels like, whether the film plays in its slide on iOS and is drawn by the canvas, how many sliders a phone gives a canvas to.
+
 ## Modules
 
 | File | Does |
@@ -472,7 +494,6 @@ Each phase ends with something that runs and with tests.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
 - **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.5 of 6.5 KB).
-- **A stack loads all its media at once.** Its slides are all where the first is, so images that wait for their place (`loading="lazy"`) do not wait, and a video that starts by itself starts under the slide that is shown. The playground has a stack at its top since decision 19: on a slow phone Lighthouse takes the film under the first picture for the largest paint, at 3.8 s, and says 89 where the page had 96. A visitor sees the first picture after 1.1 s. Slides of a stack that are not shown could keep their media from loading until they are next.
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
