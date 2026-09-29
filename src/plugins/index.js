@@ -21,3 +21,4 @@ export { stack } from './stack.js';
 export { progress } from './progress.js';
 export { marquee } from './marquee.js';
 export { thumbs } from './thumbs.js';
+export { loading } from './loading.js';

@@ -134,7 +134,7 @@ slider.destroy();
 | Part | Budget (gzip) | Measured on 2026-09-29 |
 |---|---|---|
 | Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.5 KB |
-| A plugin | 1 KB | 0.3 to 0.9 KB |
+| A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
 | Full: `createSlider` of `shaderslide/full`, with the plugins its options switch | 7 KB | 6.7 KB |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | Canvas layer of WebGL 2 without effects | 6.5 KB | 6.5 KB |
@@ -283,6 +283,21 @@ Budgets that I set, the user's to take back: the WebGPU layer 9 KB (8.4 measured
 
 Open, for WebGPU: videos without a copy (`importExternalTexture`, which needs a shader of its own kind); one encoder for all sliders of a frame, which would save script in a frame (how much is not measured); drawing in a worker.
 
+### 17. Loading is a plugin, and its screen is the page's
+
+Asked for by the user on 2026-09-29: media take time to load, the visitor can be shown a loading screen, and there are events for it that users can add their own to.
+
+- **`loading()`** in `shaderslide/plugins`, 0.9 KB. It counts the media of the slider: an image when it is decoded (`decode()`, so the first frame does not wait for it), a video when its first picture is there. What fails counts too.
+- **Events**: `loading:start`, `loading:progress`, `loading:done`, with the numbers. `slider.plugins.loading.ready` is a promise.
+- **The screen is an element that is told a number**: `--ss-loaded`, the text of `[data-ss-loaded]`, the class `ss-loaded`. The one that is made when there is none is the smallest that says something, a number and a line, in a style sheet of its own (0.4 KB). A logo, an animation, a page that opens like a curtain: that is the page's, with the same three things.
+- **It never waits for ever**: after `timeout` (10 s) it is done with what is there. `min` is for the other end: a screen that would be gone before it was seen.
+- **It makes lazy images load.** That is against what the lazy loading is for, and what a loading screen means: the README says where it belongs.
+- **One plugin for several sliders** counts them together. A wall of sliders has one screen.
+- **`also`**: promises that count as media. Fonts, data, whatever the page waits for.
+- **In `auto.js`**: `data-ss-loading`. The file is 7.9 KB with it (7.2 before).
+- **Not in `shaderslide/full`**: it has no option for it, and its budget no room. A plugin as the others.
+- **Not waited for: the canvas.** Until it is there the page draws the slides, which look the same.
+
 ## Modules
 
 | File | Does |
@@ -295,7 +310,8 @@ Open, for WebGPU: videos without a copy (`importExternalTexture`, which needs a 
 | `src/full.js` | The core with the plugins that options switch |
 | `src/auto.js` | Sliders from `data-ss`, without a script of one's own |
 | `src/react.js` | `useSlider` |
-| `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress` |
+| `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
+| `src/loading.css` | The screen of `loading()`, for pages that have none of their own |
 | `src/lightbox.js`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
 | `src/style.css` | Layout for all three tiers |
 | `bin/build.mjs`, `bin/glsl.mjs` | Sizes against budgets; `dist/`, with the shaders made small |
@@ -330,6 +346,7 @@ Each phase ends with something that runs and with tests.
 | 9 | Fast | The late canvas, the site at 96 to 100 in Lighthouse, `dist/` and `auto.js`, `useSlider` | Done |
 | 10 | Layouts and the pointer | Downwards, rows, pile, fan, ticker, thumbnails, seven pointer effects | Done: 16 effects, 20 transitions |
 | 11 | WebGPU | A second layer that draws what the first draws, `canvas()` to choose, the comparison | Done on 2026-09-29 |
+| 12 | Loading | `loading()`: a screen, events, several sliders together | Done on 2026-09-29 |
 
 ## Open
 
@@ -372,6 +389,7 @@ Each phase ends with something that runs and with tests.
 - All of it again with `dist/` (`npm run test:dist`).
 - All of it again drawn by WebGPU (`npm run test:gpu`), and every effect and transition drawn by both layers and compared.
 - `canvas()` takes the layer the browser can draw, or the one it is told.
+- `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).
 
 ## Risks
 

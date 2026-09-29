@@ -131,3 +131,34 @@ test( 'canvas() takes the layer the browser can draw, or the one it is told', as
 	}, from );
 	expect( made.names ).toEqual( [ made.can ? 'gpu' : 'gl', true, 'gl', true ] );
 } );
+
+test( 'a slider that asks for it has a screen while its media load', async ( { page } ) => {
+	let come;
+	const held = new Promise( ( resolve ) => {
+		come = resolve;
+	} );
+	await page.route( /held=/, async ( route ) => {
+		await held;
+		await route.continue();
+	} );
+	await page.evaluate( async ( query ) => {
+		const dir = query ? '../dist' : '../src';
+		const { auto } = await import( `${ dir }/auto.js` );
+		const later = document.getElementById( 'later' );
+		later.innerHTML = document
+			.getElementById( 'plain' )
+			.outerHTML.replace( 'id="plain"', 'id="waits"' )
+			.replace( / class="ss[^"]*"/, ' class="ss"' )
+			.replace( 'data-ss', 'data-ss data-ss-loading=\'{ "min": 1 }\'' )
+			.replaceAll( '.jpg', '.jpg?held=1' );
+		auto( later );
+	}, from );
+	const screen = page.locator( '#waits .ss-loading' );
+	await expect( screen ).toBeVisible();
+	await expect( screen ).toHaveText( '0 %' );
+	come();
+	await expect( screen ).toHaveText( '100 %' );
+	await expect( screen ).toBeHidden();
+	// The others have none.
+	await expect( page.locator( '.ss-loading' ) ).toHaveCount( 1 );
+} );

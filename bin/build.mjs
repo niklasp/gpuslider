@@ -223,7 +223,11 @@ const built = await Promise.all( [
 	} ),
 	build( {
 		...to,
-		entryPoints: { style: 'src/style.css', lightbox: 'src/lightbox.css' },
+		entryPoints: {
+			style: 'src/style.css',
+			lightbox: 'src/lightbox.css',
+			loading: 'src/loading.css',
+		},
 	} ),
 ] );
 const metafile = {

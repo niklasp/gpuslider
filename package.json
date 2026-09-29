@@ -51,7 +51,8 @@
 			"default": "./src/auto.js"
 		},
 		"./style.css": "./src/style.css",
-		"./lightbox.css": "./src/lightbox.css"
+		"./lightbox.css": "./src/lightbox.css",
+		"./loading.css": "./src/loading.css"
 	},
 	"files": [
 		"src",

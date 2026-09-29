@@ -17,6 +17,7 @@ import {
 	stack,
 	marquee,
 	thumbs,
+	loading,
 } from 'shaderslide/plugins';
 import { createSlider as createFull } from 'shaderslide/full';
 import { useSlider } from 'shaderslide/react';
@@ -99,6 +100,22 @@ const ticker = createSlider( document.body, {
 } );
 ticker.plugins.marquee.pause();
 createSlider( document.body, { plugins: [ thumbs( slider ) ] } );
+const waits = createSlider( document.body, {
+	plugins: [
+		loading( {
+			screen: document.body,
+			min: 500,
+			timeout: 0,
+			also: [ document.fonts.ready ],
+		} ),
+	],
+	on: {
+		'loading:progress': ( said: { loaded: number; total: number } ) =>
+			said.loaded / said.total,
+	},
+} );
+waits.plugins.loading.ready.then( () => {} );
+loading( { screen: false } );
 
 function Photos() {
 	const [ ref, made_ ] = useSlider( { loop: true, plugins: [ controls() ] }, [] );
@@ -139,6 +156,8 @@ createFull( document.body, { mode: 'pile' } );
 marquee( { speed: 'fast' } );
 // @ts-expect-error: thumbnails are the thumbnails of a slider.
 thumbs();
+// @ts-expect-error a screen is an element, or none
+loading( { screen: '#screen' } );
 // @ts-expect-error: no such axis.
 createSlider( document.body, { axis: 'z' } );
 // @ts-expect-error: a density is a number.

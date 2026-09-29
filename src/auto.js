@@ -19,6 +19,8 @@
  *     data-ss-gpu        the same, by WebGPU or not at all
  *     data-ss-gl         the same, by WebGL 2 or not at all
  *     data-ss-lightbox   a lightbox, with effects as above
+ *     data-ss-loading    a screen while the media load; its options as
+ *                        JSON, or nothing. Needs `loading.css`
  *
  * The canvas and the lightbox are loaded when a slider asks for them, and
  * when the page has time: a page without them never loads them, and no
@@ -29,6 +31,7 @@
  * `sliders.get( element )`.
  */
 import { createSlider } from './full.js';
+import { loading } from './plugins/loading.js';
 
 /**
  * The sliders that were made here, by their element.
@@ -54,9 +57,15 @@ export function auto( within = document ) {
 		if ( sliders.has( root ) ) {
 			return;
 		}
-		const { ss, ssCanvas, ssGpu, ssGl, ssLightbox } =
+		const { ss, ssCanvas, ssGpu, ssGl, ssLightbox, ssLoading } =
 			/** @type {HTMLElement} */ ( root ).dataset;
-		const slider = createSlider( root, ss ? JSON.parse( ss ) : {} );
+		const slider = createSlider( root, {
+			...( ss ? JSON.parse( ss ) : {} ),
+			plugins:
+				ssLoading !== undefined
+					? [ loading( ssLoading ? JSON.parse( ssLoading ) : {} ) ]
+					: [],
+		} );
 		sliders.set( root, slider );
 		slider.on( 'destroy', () => sliders.delete( root ) );
 

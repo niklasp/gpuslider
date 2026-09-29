@@ -55,8 +55,9 @@ Three ways, from the least to write to the least to load.
 | `data-ss-canvas` | The canvas, with the effects that are named: `"stretch waves"`, or with their options `'{ "stretch": { "amount": 2 } }'`. Drawn by WebGPU where the browser has it, by WebGL 2 where not |
 | `data-ss-gpu`, `data-ss-gl` | The same, by the one that is named or by the page |
 | `data-ss-lightbox` | A lightbox, with effects as above. Needs `dist/lightbox.css` |
+| `data-ss-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
-`auto.js` is one file of 7.1 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
+`auto.js` is one file of 7.9 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
 
 The element tells when its slider is made: `ss:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
 
@@ -196,7 +197,7 @@ Of `shaderslide/full`, and of `data-ss`, also:
 
 ## Plugins that come with it
 
-From `shaderslide/plugins`. Each is 0.3 to 0.9 KB.
+From `shaderslide/plugins`. Each is 0.3 to 1 KB.
 
 | Plugin | |
 |---|---|
@@ -210,6 +211,7 @@ From `shaderslide/plugins`. Each is 0.3 to 0.9 KB.
 | `autoHeight()` | As high as the slides in view; the height follows the move |
 | `stack()` | The slides on top of each other, for transitions |
 | `progress()` | Tells the slides where they are, for animations in CSS |
+| `loading( { screen, min, timeout, also } )` | A screen while the media load, and events that say how far they are |
 
 And `canvas()` from `shaderslide/canvas`, `lightbox()` from `shaderslide/lightbox`.
 
@@ -279,6 +281,7 @@ slider.on( '*', ( name, detail, slider ) => {} );
 | `marquee:play`, `marquee:pause` | |
 | `canvas:ready` | `canvas()` has chosen its layer: `'gpu'` or `'gl'` |
 | `gpu:on`, `gpu:off`, `gl:on`, `gl:off` | The canvas took over, or gave the slides back to the page |
+| `loading:start`, `loading:progress`, `loading:done` | `loading()`: how many media there are, how many of them are there, and that all are |
 | `lightbox:open`, `lightbox:close` | Index of the slide |
 
 Whether the slider is at an end: `canNext` and `canPrev`, at `change`.
@@ -372,6 +375,67 @@ createSlider( element, { plugins: [ canvas(), lightbox( { effects: [ stretch() ]
 ```
 
 A click on a slide lets its image grow to the screen, Escape lets it go back. `data-ss-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
+
+## Loading
+
+```js
+import { loading } from 'shaderslide/plugins';
+import 'shaderslide/loading.css';
+
+createSlider( element, { plugins: [ loading() ] } );
+```
+
+The slider waits for its images and for the first picture of its videos, and shows a screen meanwhile: a number and a line. `loading.css` is its look, with `--ss-loading-back` and `--ss-loading-color` for its colours.
+
+A screen of your own is an element with the class `ss-loading` in the slider, or any element of the page, given as `screen`. It is told how far the loading is, and what it makes of it is its own:
+
+```html
+<div class="ss-loading">
+	<img src="logo.svg" alt="">
+	<span data-ss-loaded></span> %
+</div>
+```
+
+| | |
+|---|---|
+| `--ss-loaded` | On the screen: 0 to 1 |
+| `[data-ss-loaded]` | Elements in the screen whose text is the number, 0 to 100 |
+| `.ss-loaded` | The class of the screen when all is there. `loading.css` lets it fade |
+| `.ss-is-loading` | The class of the slider meanwhile |
+
+Or no screen, `screen: false`, and the events:
+
+```js
+createSlider( element, {
+	plugins: [ loading( { screen: false } ) ],
+	on: {
+		'loading:start': ( { total } ) => {},
+		'loading:progress': ( { loaded, failed, total, progress, media } ) => {},
+		'loading:done': ( { loaded, failed, total, time, late } ) => {},
+	},
+} );
+```
+
+`slider.plugins.loading` has `state` (the same numbers), `done`, and `ready`: a promise that is kept when the loading is over.
+
+| Option | Default | |
+|---|---|---|
+| `screen` | | An element, or `false` for none |
+| `min` | `0` | The least time the screen is shown, ms: no screen that is gone before it was seen |
+| `timeout` | `10000` | After this time it is done with what is there, and `late` is true. `0`: it waits for ever |
+| `also` | `[]` | Promises that are waited for and counted as the media: `document.fonts.ready`, data |
+
+Media that fail count as the others, and `failed` says how many: a picture that is missing does not keep the screen. Images with `loading="lazy"` are told to load at once, and videos to load their first picture, because a slider that waits for them would wait for ever; so `loading()` is for sliders at the top of a page, or for pages that are a slider.
+
+Several sliders count together, with one screen, when they are given the same plugin:
+
+```js
+const together = loading( { screen: document.querySelector( '.intro' ) } );
+createSlider( one, { plugins: [ together ] } );
+createSlider( two, { plugins: [ together ] } );
+```
+
+A screen that is in the HTML is there before the script is. Without the script it would stay: `<noscript><style>.ss-loading { display: none }</style></noscript>`.
 
 ## Focus point
 
@@ -500,7 +564,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`:
 | Part | Size |
 |---|---|
 | Core | 4.5 KB |
-| A plugin | 0.3 to 0.9 KB |
+| A plugin | 0.3 to 1 KB |
 | `shaderslide/full`: the core with all its options | 6.7 KB |
 | `useSlider` for React | 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
@@ -510,6 +574,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`:
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 1.6 KB |
 | `style.css`, `lightbox.css` | 0.7 KB each |
+| `loading.css` | 0.4 KB |
 
 A visitor loads one of the two layers. `dist/` has the same for pages without a bundler, as modules that share what they have in common, with the shaders made small. `npm run test:dist` runs the tests with them.
 

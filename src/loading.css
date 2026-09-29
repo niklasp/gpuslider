@@ -1,0 +1,46 @@
+/**
+ * The screen of `loading()`, for pages that have none of their own. The
+ * styles of the slider are in style.css.
+ *
+ * --ss-loaded runs from 0 to 1 while the media load.
+ */
+
+.ss-loading {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	display: grid;
+	place-content: center;
+	justify-items: center;
+	gap: 12px;
+	background: var(--ss-loading-back, #111);
+	color: var(--ss-loading-color, #fff);
+	font: 500 14px/1 system-ui, sans-serif;
+	font-variant-numeric: tabular-nums;
+	transition: opacity 0.5s, visibility 0.5s;
+}
+
+/* The line under the number. */
+.ss-loading::after {
+	content: "";
+	width: 160px;
+	max-width: 40vw;
+	height: 2px;
+	background:
+		linear-gradient(currentcolor, currentcolor) no-repeat 0 0 /
+			calc(var(--ss-loaded, 0) * 100%) 100%,
+		color-mix(in srgb, currentcolor 20%, transparent);
+	transition: background-size 0.3s;
+}
+
+.ss-loading.ss-loaded {
+	opacity: 0;
+	visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ss-loading,
+	.ss-loading::after {
+		transition: none;
+	}
+}
