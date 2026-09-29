@@ -115,6 +115,36 @@ test.describe( 'events', () => {
 		] );
 	} );
 
+	test( 'a click on a slider that moves holds it, and is a click on the slide under it', async ( { page } ) => {
+		await open( page, { css: '.ss { --ss-per-view: 2; }', o: { duration: 1500 } } );
+		await page.evaluate( () => {
+			window.clicked = [];
+			window.slider.on( 'click', ( { index: at } ) => window.clicked.push( at ) );
+			// The slide the pointer came down on.
+			window.addEventListener(
+				'pointerdown',
+				( event ) => {
+					window.under = Number( event.target.closest( '.ss-slide' ).dataset.i );
+					window.moving = ! window.slider.resting;
+				},
+				true
+			);
+			window.slider.next();
+		} );
+		await page.waitForTimeout( 150 );
+		await page.mouse.click( 300, 200 );
+		const { clicked, under, moving } = await page.evaluate( () => ( {
+			clicked: window.clicked,
+			under: window.under,
+			moving: window.moving,
+		} ) );
+		expect( moving ).toBe( true );
+		expect( clicked ).toEqual( [ under ] );
+		// It goes on to a snap.
+		await settled( page );
+		expect( await leftOf( page, await index( page ) ) ).toBe( 0 );
+	} );
+
 	test( 'autoplay says when it stops and goes on; measure, destroy', async ( { page } ) => {
 		await open( page, { o: { autoplay: 5000 } } );
 		await record( page );

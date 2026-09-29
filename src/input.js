@@ -58,8 +58,12 @@ export function createInput( root, slider, signal ) {
 			samples: [],
 		};
 		// A touch on a moving slider holds it, like a finger on a wheel.
+		// The pointer is not taken yet: what it lets go of at once is a
+		// click on the slide under it.
 		if ( motion.pos !== motion.target ) {
-			lock( event );
+			pointer.held = true;
+			pointer.from = motion.pos;
+			slider.grab();
 		}
 		held = new win.AbortController();
 		const { signal: until } = held;
@@ -95,7 +99,7 @@ export function createInput( root, slider, signal ) {
 			if ( dx < SLOP && dy < SLOP ) {
 				return;
 			}
-			if ( slider.layout().y ? dx > dy : dy > dx ) {
+			if ( ! pointer.held && ( slider.layout().y ? dx > dy : dy > dx ) ) {
 				stop();
 				return;
 			}
@@ -114,9 +118,13 @@ export function createInput( root, slider, signal ) {
 		if ( ! pointer || event.pointerId !== pointer.id ) {
 			return;
 		}
-		const { locked, samples, from } = pointer;
+		const { locked, held: was, samples, from } = pointer;
 		stop();
 		if ( ! locked ) {
+			// Held and let go: to the snap that is nearest.
+			if ( was ) {
+				slider.release( 0, from );
+			}
 			return;
 		}
 		root.classList.remove( 'ss-dragging' );
