@@ -16,7 +16,7 @@
 		"full: the slider with all its options": 6817,
 		"canvas layer, no effects": 6672,
 		"canvas: what chooses the layer": 301,
-		"canvas: which slide is seen at a point": 1065,
+		"canvas: which slide is seen at a point": 1111,
 		"canvas layer of WebGPU, no effects": 8586,
 		"effect: bend": 326,
 		"effect: coverflow": 339,
@@ -59,19 +59,19 @@
 		"transition: zoom": 346,
 		"a page in React: arrows and dots": 5318,
 		"the same with the canvas and stretch": 11810,
-		"lightbox": 1716
+		"lightbox": 2114
 	},
 	"dist": {
 		"auto.js": 8035,
 		"canvas.js": 319,
 		"effects.js": 5522,
 		"full.js": 9417,
-		"gl.js": 13417,
-		"gpu.js": 15223,
-		"hit.js": 1134,
+		"gl.js": 13462,
+		"gpu.js": 15270,
+		"hit.js": 1180,
 		"index.js": 4675,
 		"lightbox.css": 649,
-		"lightbox.js": 8493,
+		"lightbox.js": 8941,
 		"loading.css": 393,
 		"plugins.js": 4619,
 		"style.css": 683

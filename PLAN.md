@@ -140,9 +140,9 @@ slider.destroy();
 | Canvas layer of WebGL 2 without effects | 6.75 KB | 6.5 KB (6672 of 6912 B) |
 | Canvas layer of WebGPU without effects | 9 KB | 8.4 KB |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
-| `hit()`, which says what is seen at a point | 1.25 KB | 1 KB |
+| `hit()`, which says what is seen at a point | 1.25 KB | 1.1 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
-| Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 1.6 KB |
+| Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.1 KB |
 | A page in React with arrows and dots | 5.5 KB | 5.2 KB |
 | The same with the canvas and one effect | 12 KB | 11.6 KB |
 
@@ -150,6 +150,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 
 - **Canvas layer, 6 to 6.5 KB.** It got the late start, the compile on another thread, the speed of the pointer and the turn for sliders that go down (decisions 14 and 15). What a page loads first became less by it, what it loads in all became 0.6 KB more.
 - **Canvas layer, 6.5 to 6.75 KB, and `hit()`, 1 to 1.25 KB.** For the pointer in a slide as it is drawn (decision 22): 19 bytes in the layer, which had 3 left, and 0.15 KB in `hit()`. The same step of the layer is taken by the corners of the page's shape, which is work of the same day.
+- **Lightbox, 2 to 2.25 KB.** For the image that grows out of a slide as it is drawn (decision 23), 0.4 KB.
 - **Full means what `createSlider` of `shaderslide/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -369,6 +370,18 @@ Noticed with decision 21, and asked for by the user on 2026-09-29: "Pointer effe
 - **The speed of the pointer is not turned**: `uPointerSpeed` is in sizes of the slide as the page has it. On a cover that is turned away `smear()` and `shift()` pull a little more than the pointer moves.
 - **A test holds it**: with `spotlight()` and each of the five effects that lay out, the middle of what is lit is within 8 px of the pointer, across and downwards, on both layers (`tests/hit.spec.js`). Without the change six of the eight fail.
 
+### 23. The image grows out of the slide as it is drawn
+
+Reported by the user on 2026-09-29: "the zoom is not canvas based right? i think it should be if possible. as image lag back now into some position".
+
+- **It was drawn by the canvas, and not as the slider draws the slide.** The image grew out of a box around the slide (decision 21): for a cover that is turned away a flat picture of the width of the cover. On the way back it came to lie on top of its neighbours as that flat picture, and was the turned cover in the next frame.
+- **`hit().where()` says the four corners of the slide as it is drawn**, each with where it is on the page and by how much its distance makes it smaller. The lightbox has an effect of its own that puts the mesh of the image between these corners, as on a plane that is seen from the side, and lets it go from there to where the image is flat. So a cover turns to the front while it grows, a card of the fan turns upright, and both go back the way they came.
+- **Only for the slide that grows**: the effect is for slides that are at their place in the lightbox, not for the ones next to it.
+- **A slide that is bent is near what is drawn, not the same.** Of a slide that `dome()` has bent the four corners say a plane. With the dome at 1.5 and three slides in view 4 of 100 points of the slide are not where they were; in the wall, where the slides are small, it is less. Considered: nine points and a curve through them, which is more to tell the shader for the one effect that bends.
+- **What the slider cuts, the lightbox does not**: a slide that is half out of the slider is whole as soon as it grows.
+- **On top of its neighbours**: the lightbox is on top of the page, so a cover that is behind another in the slider is in front of it while it grows. It is the part of a cover that another hides, a few px.
+- **A test holds it** for the five effects that lay out, across and downwards, on both layers: when the lightbox has opened by nothing yet, its canvas has drawn the slide where the slider has, in its colours (`tests/hit.spec.js`).
+
 ## Modules
 
 | File | Does |
@@ -472,7 +485,7 @@ Each phase ends with something that runs and with tests.
 - The pages of the site that are made of the library: their loading screens, the wall moved both ways by a drag, the wheel and the keys; in the playground the loading section and the three effects (`site/tests/demos.spec.js`).
 - The first page: its numbers are the ones that were measured, every feature and every link leads to a page that is there, its sliders are drawn by the canvas; the examples; every page of the docs, its links, and the sliders that show what it says; five pages on a screen as wide as a phone (`site/tests/pages.spec.js`).
 - A stack that is said in the HTML is one before the script, and nothing moves when it comes.
-- What `hit()` says is what the canvas has drawn, for every effect that lays out; a click on a cover at the edge is a click on that cover; the light of `spotlight()` is where the pointer is on slides that are turned (`tests/hit.spec.js`).
+- What `hit()` says is what the canvas has drawn, for every effect that lays out; a click on a cover at the edge is a click on that cover; the light of `spotlight()` is where the pointer is on slides that are turned; the lightbox starts with the slide as it is drawn (`tests/hit.spec.js`).
 - A click on a slider that moves holds it, and is a click on the slide under it.
 - A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).

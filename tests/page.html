@@ -112,7 +112,9 @@
 		options.plugins = names.map( ( name ) =>
 			name === 'lightbox'
 				? lightbox( {
-						effects,
+						// Not the ones that lay out: the lightbox shows
+						// one image.
+						effects: effects.filter( ( effect ) => ! effect.place ),
 						duration: Number( query.get( 'open' ) ) || 500,
 						canvas: { preserve: true },
 						layer: window.lib.gl,

@@ -97,6 +97,28 @@ export function lightbox( {
 		let from = null;
 		let wasPaused = false;
 
+		// A slide that the canvas of the slider has laid out, turned away
+		// or on a pile: the image grows out of it as it is drawn there.
+		// Its corners in the lightbox, from the middle of it, times what
+		// the distance makes them smaller by, and that: between them the
+		// image is as on a plane that is seen from the side.
+		const corners = [ 0, 1, 2, 3 ].map( () => [ 0, 0, 1 ] );
+		const turned = {
+			params: { ssOpen: [ 1 ] },
+			vertex: `
+	vec3 to = mix( mix( ss0, ss1, uv.x ), mix( ss2, ss3, uv.x ), uv.y );
+	// The slide that grows, not the ones next to it.
+	return mix(
+		vec3( to.xy + uView * 0.5 - uQuad.xy - uQuad.zw * 0.5, uDepth - to.z * uDepth ),
+		p,
+		max( ssOpen, step( 0.5, abs( uProgress ) ) )
+	);`,
+		};
+		corners.forEach( ( corner, n ) => {
+			turned.params[ 'ss' + n ] = corner;
+		} );
+		const down = inner.axis === 'y';
+
 		const numbers = new Float32Array( 13 );
 		const mixed = new Float32Array( 13 );
 		mixed[ 6 ] = 1;
@@ -144,6 +166,29 @@ export function lightbox( {
 			const drawn = slider.plugins.hit?.where( items[ item ].i ) || r;
 			const wide = drawn.width / r.width;
 			const high = drawn.height / r.height;
+			if ( drawn.corners ) {
+				const between = ( a, b, by ) =>
+					a.map( ( value, k ) => value + ( b[ k ] - value ) * by );
+				const [ a, b, c, d ] = drawn.corners.map( ( [ x, y, w ] ) => [
+					( x - around.left - around.width / 2 ) * w,
+					( y - around.top - around.height / 2 ) * w,
+					w,
+				] );
+				corners.forEach( ( corner, n ) => {
+					// Of the element the part that shows the image.
+					const u = ( seen.x + ( n % 2 ) * seen.w ) / r.width;
+					const [ x, y, w ] = between(
+						between( a, b, u ),
+						between( c, d, u ),
+						( seen.y + ( n >> 1 ) * seen.h ) / r.height
+					);
+					// Effects have the way of the slides as their x.
+					Object.assign(
+						down ? corners[ ( n >> 1 ) + 2 * ( n % 2 ) ] : corner,
+						down ? [ y, x, w ] : [ x, y, w ]
+					);
+				} );
+			}
 			seen.x = seen.x * wide + drawn.left - around.left;
 			seen.y = seen.y * high + drawn.top - around.top;
 			seen.w *= wide;
@@ -197,6 +242,7 @@ export function lightbox( {
 						speed = 0;
 					}
 				}
+				turned.params.ssOpen[ 0 ] = t;
 				dialog.style.setProperty( '--ss-open', t.toFixed( 3 ) );
 				if ( started && to === 0 && t === 0 ) {
 					// After this frame: the slider is still drawing.
@@ -307,7 +353,11 @@ export function lightbox( {
 					driver,
 					controls(),
 					keyboard(),
-					draws?.( { effects, ...canvas, eager: true } ),
+					draws?.( {
+						effects: slider.plugins.hit ? [ ...effects, turned ] : effects,
+						...canvas,
+						eager: true,
+					} ),
 				],
 			} );
 			layer = layerOf( shown );

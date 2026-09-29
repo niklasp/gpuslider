@@ -543,7 +543,7 @@ Effects that lay out: the slider moves as ever, the effect says where a slide is
 | `fan( { angle, radius } )` | A hand of cards, or a wheel |
 | `dome( { amount, centre, size } )` | The slides as on a dome: what is far from the middle is smaller and nearer to it |
 
-The page has such a slide in one place, and the canvas draws it in another. A click is a click on the slide that is seen: on the cover at the edge, not on the slide in whose place it is drawn. And the lightbox lets the image grow out of where it is drawn. `canvas()` sees to that with `hit()`, which it loads when an effect lays out; with a layer by its name it is a plugin to add:
+The page has such a slide in one place, and the canvas draws it in another. A click is a click on the slide that is seen: on the cover at the edge, not on the slide in whose place it is drawn. And the lightbox lets the image grow out of the slide as it is drawn: a cover that is turned away turns to the front while it grows, and turns back on its way home. `canvas()` sees to that with `hit()`, which it loads when an effect lays out; with a layer by its name it is a plugin to add:
 
 ```js
 import { gl, hit, coverflow } from 'shaderslide/gl';
@@ -626,12 +626,12 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `shaderslide/full`: the core with all its options | 6.7 KB |
 | `useSlider` for React | 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
-| `hit()`, which says what slide is seen at a point | 1.0 KB |
+| `hit()`, which says what slide is seen at a point | 1.1 KB |
 | Canvas layer of WebGPU | 8.4 KB |
 | Canvas layer of WebGL 2 | 6.5 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
-| Lightbox | 1.7 KB |
+| Lightbox | 2.1 KB |
 | `style.css`, `lightbox.css` | 0.7 and 0.6 KB |
 | `loading.css` | 0.4 KB |
 
