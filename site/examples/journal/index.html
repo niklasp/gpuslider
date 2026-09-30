@@ -26,6 +26,11 @@
 			// the page is shown before that has run.
 			( () => {
 				const story = ( url ) => url && url.match( /\/journal\/([^/]+)\/$/ )?.[ 1 ];
+				// A story is shown once its picture is there, or there is
+				// nothing for the one of the slider to grow into.
+				if ( story( location.pathname ) ) {
+					document.write( '<link rel="expect" href="#hero" blocking="render">' );
+				}
 				const mark = ( slug, transition ) => {
 					if ( ! transition ) {
 						return;
@@ -48,7 +53,19 @@
 					// for the picture the browser takes, the element is seen.
 					media.style.viewTransitionName = 'photo';
 					media.style.opacity = '1';
-					transition.finished.finally( () => clear( media ) );
+					// And the canvas leaves that slide out meanwhile: it would
+					// stay behind in the picture of the page.
+					const slide = media.closest( '.gs-slide' );
+					const at = [ ...slide.parentNode.children ].indexOf( slide );
+					const off = self.slider?.plugins.canvas?.draw( ( i, quad ) => {
+						if ( i === at ) {
+							quad.a = null;
+						}
+					} );
+					transition.finished.finally( () => {
+						clear( media );
+						off?.();
+					} );
 				};
 				addEventListener( 'pageswap', ( event ) =>
 					mark( story( event.activation?.entry.url ), event.viewTransition )
@@ -61,9 +78,6 @@
 	</head>
 	<body>
 		<div id="root"></div>
-		<!-- Without the build the page is made by its script: it is shown once
-		     that has run, so that the picture it has is there to grow into.
-		     The build takes this away, its pages are there without it. -->
-		<script type="module" blocking="render" src="/src/pages/journal/main.tsx"></script>
+		<script type="module" src="/src/pages/journal/main.tsx"></script>
 	</body>
 </html>

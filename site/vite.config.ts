@@ -17,14 +17,37 @@ export default defineConfig( {
 		tailwindcss(),
 		docs(),
 		{
-			// The stories of the journal are one page, as the docs are.
+			// The journal as the build has it, rendered on the server: a
+			// view transition between its pages needs the picture of the
+			// page that comes in its HTML, and its styles in the head.
 			name: 'journal',
 			configureServer( server ) {
-				server.middlewares.use( ( request, _, next ) => {
-					if ( /^\/examples\/journal\/[a-z-]+\/(\?.*)?$/.test( request.url || '' ) ) {
-						request.url = '/examples/journal/index.html';
+				server.middlewares.use( async ( request, response, next ) => {
+					const [ , slug ] =
+						( request.url || '' ).match( /^\/examples\/journal\/(?:([a-z-]+)\/)?(?:\?.*)?$/ ) || [];
+					if ( slug === undefined && ! /^\/examples\/journal\/(\?.*)?$/.test( request.url || '' ) ) {
+						return next();
 					}
-					next();
+					try {
+						const page = `examples/journal/${ slug ? `${ slug }/` : '' }index.html`;
+						const { render } = await server.ssrLoadModule( '/src/entry-server.tsx' );
+						const markup = await render( page );
+						const html = await server.transformIndexHtml(
+							request.url!,
+							readFileSync( path.resolve( import.meta.dirname, 'examples/journal/index.html' ), 'utf8' )
+						);
+						response.setHeader( 'Content-Type', 'text/html' );
+						response.end(
+							html
+								.replace(
+									'</head>',
+									`<link rel="stylesheet" href="/@fs${ library }style.css"><link rel="stylesheet" href="/src/pages/journal/journal.css"></head>`
+								)
+								.replace( '<div id="root"></div>', () => `<div id="root">${ markup }</div>` )
+						);
+					} catch ( error ) {
+						next( error );
+					}
 				} );
 			},
 		},

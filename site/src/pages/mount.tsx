@@ -1,5 +1,4 @@
 import { StrictMode, type ReactNode } from 'react';
-import { flushSync } from 'react-dom';
 import { createRoot, hydrateRoot } from 'react-dom/client';
 
 /**
@@ -12,8 +11,7 @@ export function mount( page: ReactNode ) {
 	if ( root.firstElementChild ) {
 		hydrateRoot( root, app );
 	} else {
-		// At once: a page that waits to be shown waits for this.
-		flushSync( () => createRoot( root ).render( app ) );
+		createRoot( root ).render( app );
 	}
 }
 

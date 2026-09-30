@@ -5,7 +5,7 @@ import './journal.css';
 import { createSlider } from 'gpuslider';
 import { controls, keyboard, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
-import { parallax, stretch } from 'gpuslider/effects';
+import { stretch } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
 import { STORIES } from './stories';
@@ -32,7 +32,9 @@ export function Journal() {
 				keyboard(),
 				wheel(),
 				canvas( {
-					effects: [ parallax( { amount: 0.25 } ), stretch() ],
+					// Nothing that moves the picture in a slide at rest: the
+					// picture that goes to the story is the one that is seen.
+					effects: [ stretch() ],
 					layer: layer(),
 				} ),
 			],
@@ -112,6 +114,7 @@ export function Story( { slug }: { slug: string } ) {
 			</header>
 			<main className="story" style={ lit( n ) }>
 				<img
+					id="hero"
 					className="hero"
 					{ ...picture }
 					style={ { ...style, viewTransitionName: 'photo' } }
