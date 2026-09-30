@@ -81,6 +81,7 @@ const OPTIONS = [
 	'contain',
 	'free',
 	'duration',
+	'ease',
 	'start',
 	'drag',
 ];
