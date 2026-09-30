@@ -16,7 +16,6 @@ import {
 	waves,
 	reveal,
 	glass,
-	pixels,
 	cells,
 	pile,
 	fan,
@@ -64,8 +63,7 @@ export const POINTERS = {
 	tilt: 'Tilt',
 	reveal: 'Reveal',
 	glass: 'Fluted glass',
-	pixels: 'Pixels',
-	cells: 'Cells',
+	cells: 'Pixels',
 } as const;
 
 export type PointerName = keyof typeof POINTERS;
@@ -163,7 +161,6 @@ const point = ( name: PointerName, k: number ): Effect[] =>
 		tilt: () => [ tilt( { angle: Math.min( 20, 8 * k ) } ) ],
 		reveal: () => [ reveal() ],
 		glass: () => [ glass( { amount: k } ) ],
-		pixels: () => [ pixels() ],
 		cells: () => [ cells( { zoom: 0.8 * k } ) ],
 	} )[ name ]();
 
