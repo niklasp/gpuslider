@@ -159,7 +159,7 @@ parts.push(
 	},
 	{
 		name: 'the same with the canvas and stretch',
-		budget: 13056,
+		budget: 13312,
 		size: await measure(
 			`import { Slider, Slide } from './src/react.js'; import { controls } from './src/plugins/index.js'; import { gl, stretch } from './src/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
 			[ 'react' ]

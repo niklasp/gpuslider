@@ -103,7 +103,8 @@ export function gl( {
 		// A canvas whose shader the compiler still has.
 		let making = null;
 		let near = false;
-		let wanted = eager;
+		// A hook given before the layer is there is a use of it.
+		let wanted = eager || hooks.size;
 		let destroyed = false;
 		let retry = 0;
 		let width = 0;
@@ -521,7 +522,9 @@ export function gl( {
 					begin();
 				}
 				if ( ! context ) {
-					if ( motion.dragging || motion.pos !== motion.target ) {
+					// A hook of the page is a use: it has nothing to change
+					// without the canvas.
+					if ( motion.dragging || motion.pos !== motion.target || hooks.size ) {
 						want();
 					}
 					return;

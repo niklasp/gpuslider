@@ -212,7 +212,8 @@ export function gpu( {
 		// Whether the device, or the compiler, is asked for.
 		let making = false;
 		let near = false;
-		let wanted = eager;
+		// A hook given before the layer is there is a use of it.
+		let wanted = eager || hooks.size;
 		let destroyed = false;
 		let width = 0;
 		let height = 0;
@@ -577,7 +578,9 @@ export function gpu( {
 			frame( view, dt, now ) {
 				const { layout, places, motion } = view;
 				if ( ! context ) {
-					if ( motion.dragging || motion.pos !== motion.target ) {
+					// A hook of the page is a use: it has nothing to change
+					// without the canvas.
+					if ( motion.dragging || motion.pos !== motion.target || hooks.size ) {
 						want();
 					}
 					return;

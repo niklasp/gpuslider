@@ -750,6 +750,7 @@ const off = slider.plugins.canvas.draw( ( i, quad ) => {
 | `a` | What part of the picture is where; `null` and it is not drawn |
 
 - It is called on every frame the canvas draws, for every slide in reach: it does sums, and makes no objects.
+- A hook starts the canvas, as a drag does: without one it waits for the first sign of use.
 - Frames come while the slider moves. What moves by itself asks for them: `slider.wake()`, or a plugin whose `busy()` is true while it moves.
 - The lightbox comes after the hooks: an image grows out of its slide where the hook has put it, and goes back there.
 - A quad is not turned or bent; that is the `vertex` of an effect.
