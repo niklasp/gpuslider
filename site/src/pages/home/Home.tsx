@@ -541,9 +541,6 @@ const FIRST_SLIDES = [ 1, 'a', 2, 4 ] as const;
  */
 function Stage() {
 	const [ name, setName ] = useState< Name >( 'liquid' );
-	// Until one is clicked, the next of them once a slide has arrived.
-	const pinned = useRef( false );
-	const moved = useRef( false );
 	const drawn = name;
 	// The white pill under the one that is chosen, moved to it.
 	const pills = useRef< HTMLDivElement >( null );
@@ -569,16 +566,6 @@ function Stage() {
 	const kind = useKind();
 	const heard = useCallback( ( event: string, detail: unknown ) => {
 		const root = document.getElementById( 'first' );
-		// A slider that is made settles at once: only after a move.
-		if ( event === 'change' ) {
-			moved.current = true;
-		} else if ( event === 'settle' && moved.current && ! pinned.current ) {
-			moved.current = false;
-			setName( ( now ) => {
-				const all = Object.keys( TRANSITIONS ) as Name[];
-				return all[ ( all.indexOf( now ) + 1 ) % all.length ];
-			} );
-		}
 		if ( event === 'change' ) {
 			at.current.index = detail as number;
 			setIndex( detail as number );
@@ -641,8 +628,8 @@ function Stage() {
 						</h1>
 						<p className="max-w-md text-white/75 md:text-lg">
 							By WebGPU, or by WebGL 2 where there is none. A core of{ ' ' }
-							{ kb( parts.core ) } KB, everything else a plugin. Every slide
-							turns into the next another way; choose one to keep it:
+							{ kb( parts.core ) } KB, everything else a plugin. Choose how a slide turns
+							into the next:
 						</p>
 						<div className="flex max-w-full flex-wrap items-center gap-2">
 						<div
@@ -673,10 +660,7 @@ function Stage() {
 										mark ? '' : 'aria-[current]:bg-white'
 									}` }
 									aria-current={ one === name ? 'true' : undefined }
-									onClick={ () => {
-										pinned.current = true;
-										setName( one );
-									} }
+									onClick={ () => setName( one ) }
 								>
 									{ one }
 								</button>
