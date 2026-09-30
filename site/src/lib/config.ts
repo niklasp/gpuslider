@@ -215,7 +215,7 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 		if ( kind === 'stack' && config.transition !== 'none' ) {
 			// Random: another each time the slider is made.
 			more.push(
-				( transitions as Record< string, () => Effect > )[
+				( transitions as unknown as Record< string, () => Effect > )[
 					config.transition === 'random' ? chance() : config.transition
 				]()
 			);
