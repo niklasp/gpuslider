@@ -7,10 +7,16 @@
 		<meta name="description" content="A journal whose pictures open into their stories: the picture a visitor clicks in the slider becomes the picture at the top of the story, by a view transition between the two pages." />
 		<meta name="theme-color" content="#0b0a10" />
 		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<!-- In the HTML: the page says it takes part before it is first shown.
+		     Its stylesheet may come later, by script. -->
+		<style>
+			@view-transition { navigation: auto; }
+			@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
+		</style>
 		<script>
 			// The picture that is clicked in the slider becomes the picture at
 			// the top of its story: a view transition between the two pages
-			// (`@view-transition` in journal.css). The browser takes a picture
+			// (`@view-transition` above). The browser takes a picture
 			// of the element called `photo` on the page it leaves and on the
 			// one that comes, and grows one into the other. A story has the
 			// name on its picture in its HTML; in the slider it is given as
@@ -55,6 +61,9 @@
 	</head>
 	<body>
 		<div id="root"></div>
-		<script type="module" src="/src/pages/journal/main.tsx"></script>
+		<!-- Without the build the page is made by its script: it is shown once
+		     that has run, so that the picture it has is there to grow into.
+		     The build takes this away, its pages are there without it. -->
+		<script type="module" blocking="render" src="/src/pages/journal/main.tsx"></script>
 	</body>
 </html>

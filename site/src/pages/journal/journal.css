@@ -14,11 +14,7 @@
 }
 
 /* Between the pages of the journal the picture goes with the visitor
-   (see the script in its HTML). */
-@view-transition {
-	navigation: auto;
-}
-
+   (see its HTML, which says so and has the script). */
 ::view-transition-group(photo) {
 	overflow: clip;
 	border-radius: var(--round);
@@ -31,12 +27,6 @@
 ::view-transition-new(photo) {
 	height: 100%;
 	object-fit: cover;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	@view-transition {
-		navigation: none;
-	}
 }
 
 html,

@@ -173,6 +173,8 @@ for ( const [ page, { from = page, title, description } ] of Object.entries(
 	// from the document and the first image what these need more (first paint
 	// 1.8 s with them, 1.4 s without, measured by Lighthouse).
 	html = html
+		// What waits for the script without the build: here the page is there.
+		.replace( ' blocking="render"', '' )
 		.replace(
 			'<script type="module"',
 			'<script type="module" fetchpriority="low"'
