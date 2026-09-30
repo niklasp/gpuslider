@@ -182,15 +182,17 @@ test.describe( 'the first page', () => {
 			'aria-current',
 			'true'
 		);
+		await drawn( page, 'first' );
+		const before = await page.evaluateHandle( () => window.sliders.first );
 		await choice.getByRole( 'button', { name: 'burn' } ).click();
-		await expect( page.locator( '#first' ) ).toHaveAttribute( 'data-made', 'burn' );
 		await expect( choice.getByRole( 'button', { name: 'burn' } ) ).toHaveAttribute(
 			'aria-current',
 			'true'
 		);
-		await page.waitForFunction(
-			() => window.sliders.first.root.dataset.made === 'burn'
-		);
+		// Picked in the shader that has them all: the slider stays the one it is.
+		expect(
+			await page.evaluate( ( was ) => was === window.sliders.first, before )
+		).toBe( true );
 		expect(
 			await page.evaluate( () => Object.keys( window.sliders.first.plugins ) )
 		).toEqual( expect.arrayContaining( [ 'stack', 'autoplay' ] ) );
@@ -198,31 +200,30 @@ test.describe( 'the first page', () => {
 		expect( said ).toEqual( [] );
 	} );
 
-	test( 'the photos take the place of the colour fields, and stay chosen', async ( { page } ) => {
+	test( 'the photos are the pictures, and the colour fields can take their place', async ( { page } ) => {
 		const said = errors( page );
 		const pictures = page.getByRole( 'group', { name: 'Pictures' } );
 		const first = page.locator( '#first .gs-slide:first-child .gs-media' );
-		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
-		await pictures.getByRole( 'button', { name: 'Photos' } ).click();
 		await expect( first ).toHaveAttribute( 'src', '/media/p3-960.avif' );
-		// Every field has a photo of its own, and a picture where the film was.
+		// Every field has a photo of its own, and there is no film.
 		await expect(
 			page.locator( '#first .gs-slide:nth-child(7) .gs-media' )
 		).toHaveAttribute( 'src', '/media/p8-960.avif' );
 		await expect( page.locator( '#first video' ) ).toHaveCount( 0 );
+		await pictures.getByRole( 'button', { name: 'Colour fields' } ).click();
+		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
 		// The slider is made again, with the canvas.
 		await page.waitForFunction(
-			() => window.sliders.first.slides[ 0 ].querySelector( 'img' ).src.includes( '/p3-' )
+			() => window.sliders.first.slides[ 0 ].querySelector( 'img' ).src.includes( '/1-' )
 		);
 		await drawn( page, 'first' );
 		await page.reload();
-		await expect( first ).toHaveAttribute( 'src', '/media/p3-960.avif' );
-		await expect( pictures.getByRole( 'button', { name: 'Photos' } ) ).toHaveAttribute(
-			'aria-pressed',
-			'true'
-		);
-		await pictures.getByRole( 'button', { name: 'Colour fields' } ).click();
 		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
+		await expect(
+			pictures.getByRole( 'button', { name: 'Colour fields' } )
+		).toHaveAttribute( 'aria-pressed', 'true' );
+		await pictures.getByRole( 'button', { name: 'Photos' } ).click();
+		await expect( first ).toHaveAttribute( 'src', '/media/p3-960.avif' );
 		expect( said ).toEqual( [] );
 	} );
 
