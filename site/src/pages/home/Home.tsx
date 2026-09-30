@@ -172,8 +172,8 @@ const FEATURES: {
 		icon: Spiral,
 	},
 	{
-		title: 'The best there is, and a way down',
-		text: 'WebGPU where the browser has it, WebGL 2 where not: both draw the same picture, and the tests hold them against each other. Without either, the page moves the slides, and arrows, drag and the lightbox work the same; a transition is a crossfade. Without a script it is a row that scrolls and snaps.',
+		title: 'The best there is',
+		text: 'WebGPU where the browser has it, else WebGL 2: the same picture, and tests that hold them to it. Without either, the page moves the slides and a transition is a crossfade. Without a script, a row that scrolls and snaps.',
 		to: '/docs/canvas/',
 		more: 'The canvas',
 		icon: Cpu,
@@ -861,7 +861,7 @@ export default function Home() {
 								<h3 className="font-display text-xl font-semibold tracking-[-0.02em]">
 									{ title }
 								</h3>
-								<p className="text-muted-foreground">{ text }</p>
+								<p className="text-foreground/75">{ text }</p>
 								<a
 									// The whole card leads there.
 									className="mt-1 text-sm font-medium text-foreground/80 after:absolute after:inset-0 after:rounded-[inherit] hover:text-foreground focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-ring"
