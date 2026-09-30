@@ -63,7 +63,7 @@ import {
 	type Layer,
 } from '@/lib/metrics';
 import { layer } from '../mount';
-import { LIGHT, calm, lightOf, lightOfStill, useKind, type Still } from '@/lib/media';
+import { LIGHT, calm, lightOf, useKind } from '@/lib/media';
 import {
 	ArrowsOut,
 	Atom,
@@ -529,7 +529,7 @@ function Field() {
 }
 
 /** What the slides at the top show, in their order. */
-const FIRST_SLIDES: ( number | Still )[] = [ 1, 'lava', 2, 'lagoon', 3 ];
+const FIRST_SLIDES = [ 1, 2, 3, 4, 5, 6, 7, 8 ];
 
 /**
  * The slider at the top, as large as the window: a stack that goes on by
@@ -588,8 +588,7 @@ function Stage() {
 	return (
 		<div
 			className="lit px-3 pt-[4.5rem] md:px-5"
-			style={ { '--light': ( ( at: number | Still ) =>
-				typeof at === 'number' ? lightOf( at, kind ) : lightOfStill( at ) )( FIRST_SLIDES[ index ] ) } as CSSProperties }
+			style={ { '--light': lightOf( FIRST_SLIDES[ index ], kind ) } as CSSProperties }
 		>
 			<GpuSlider
 				id="first"
@@ -699,25 +698,43 @@ function Stage() {
 						The transition follows the pointer: stop half way, go back.
 					</p>
 				</Slide>
-				<Slide still="lava" className="full" sizes="100vw">
+				<Slide image={ 2 } alt="Blue colour field" className="full" sizes="100vw">
 					<h2 className={ SAID }>Any picture</h2>
 					<p className={ SAYS }>
 						Drawn from the file the browser picks for the screen.
 					</p>
 				</Slide>
-				<Slide image={ 2 } alt="Blue colour field" className="full" sizes="100vw">
+				<Slide image={ 3 } alt="Mint colour field" className="full" sizes="100vw">
 					<h2 className={ SAID }>The text is HTML</h2>
 					<p className={ SAYS }>
 						It can be read, found and chosen, on top of the canvas.
 					</p>
 				</Slide>
-				<Slide still="lagoon" className="full" sizes="100vw">
+				<Slide image={ 4 } alt="Pink colour field" className="full" sizes="100vw">
 					<h2 className={ SAID }>Light and dark</h2>
 					<p className={ SAYS }>
 						The page around it takes the colour of the slide that is seen.
 					</p>
 				</Slide>
-				<Slide image={ 3 } alt="Green colour field" className="full" sizes="100vw">
+				<Slide image={ 5 } alt="Yellow colour field" className="full" sizes="100vw">
+					<h2 className={ SAID }>Its own motion</h2>
+					<p className={ SAYS }>
+						A spring, solved exactly on every frame, and none while it rests.
+					</p>
+				</Slide>
+				<Slide image={ 6 } alt="Violet colour field" className="full" sizes="100vw">
+					<h2 className={ SAID }>Keys, wheel and swipe</h2>
+					<p className={ SAYS }>
+						The arrow keys, the wheel and a finger move it, as the buttons do.
+					</p>
+				</Slide>
+				<Slide image={ 7 } alt="Green colour field" className="full" sizes="100vw">
+					<h2 className={ SAID }>Loaded as it comes</h2>
+					<p className={ SAYS }>
+						A picture is fetched when it is near, in the width the screen needs.
+					</p>
+				</Slide>
+				<Slide image={ 8 } alt="Rose colour field" className="full" sizes="100vw">
 					<h2 className={ SAID }>Without the canvas</h2>
 					<p className={ SAYS }>
 						A crossfade, drawn by the page, and all else the same.
