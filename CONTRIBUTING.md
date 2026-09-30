@@ -87,6 +87,12 @@ the sides of the screen, and back as it closes.
 
 The photos are from Pexels, and each is named where it is used (`site/src/lib/media.ts`). A new one goes into `media/` as a JPEG 1600 px wide; `node bin/make-variants.mjs <name>` makes its AVIF widths.
 
+## Community plugins
+
+The page of community plugins lists the packages named in `site/community.json`, and nothing else. Every day `.github/workflows/community.yml` runs `bin/community.mjs`, which opens an issue with the label `plugin review` for every package on npm with the keyword `gpuslider-plugin` or `gpuslider-effect` that is not listed and has no issue yet. `node bin/community.mjs --dry` says what it would open.
+
+To review: what the package does on install (`scripts`), what it loads, and whether it does what it says. Yes: add its name to `approved` and close the issue with that commit. No: close the issue; it is not opened again. A package that turns bad later is taken off the list the same way.
+
 ## Putting the site online
 
 It is built with `npm run build --prefix site` into `site/dist/`, and served by Cloudflare as static files at https://gpuslider.com (`site/wrangler.jsonc`). To put it online: `npm run build --prefix site`, then `npx wrangler deploy` in `site/`. What the browser may keep is in `site/public/_headers`. `SITE_URL` sets another address for the links, the sitemap and the previews.

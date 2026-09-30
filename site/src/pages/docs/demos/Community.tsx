@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { approved } from '../../../../community.json';
 
 /** A package of npm, as its search gives it. */
 type Found = {
@@ -28,9 +29,11 @@ const search = async ( keyword: string ) => {
 };
 
 /**
- * The plugins and effects of others: every package of npm with the keyword
- * `gpuslider-plugin` or `gpuslider-effect`, asked for in the browser, so
- * that a package is here as soon as npm has it.
+ * The plugins and effects of others that have been looked at: the packages
+ * of npm with the keyword `gpuslider-plugin` or `gpuslider-effect` whose
+ * names are in `community.json`. What npm says of them is asked for in the
+ * browser, so their versions are the newest. A package that is not in the
+ * list yet waits for its review (see `bin/community.mjs`).
  */
 export default function Community() {
 	const [ found, setFound ] = useState< Found[] | null >( null );
@@ -41,7 +44,10 @@ export default function Community() {
 			.then( ( lists ) => {
 				// A package with both keywords once.
 				const seen = new Map< string, Found >();
-				lists.flat().forEach( ( one ) => seen.set( one.package.name, one ) );
+				lists
+					.flat()
+					.filter( ( one ) => ( approved as string[] ).includes( one.package.name ) )
+					.forEach( ( one ) => seen.set( one.package.name, one ) );
 				setFound(
 					[ ...seen.values() ].sort(
 						( a, b ) => Date.parse( b.package.date ) - Date.parse( a.package.date )
@@ -54,11 +60,8 @@ export default function Community() {
 	if ( failed ) {
 		return (
 			<p className="note">
-				npm did not answer. The list is also at{ ' ' }
-				<a href="https://www.npmjs.com/search?q=keywords%3Agpuslider-plugin">
-					npmjs.com
-				</a>
-				.
+				npm did not answer, so the list cannot be shown. Try again in a
+				moment.
 			</p>
 		);
 	}
@@ -68,8 +71,9 @@ export default function Community() {
 	if ( ! found.length ) {
 		return (
 			<p className="note">
-				No plugins yet. Be the first: publish yours with the keyword{ ' ' }
-				<code>gpuslider-plugin</code>, as below.
+				No plugins listed yet. Be the first: publish yours with the
+				keyword <code>gpuslider-plugin</code>, as below, and it is here
+				after a short review.
 			</p>
 		);
 	}

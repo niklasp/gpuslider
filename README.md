@@ -105,7 +105,7 @@ The same docs come with the package in one file, `node_modules/gpuslider/DOCS.md
 
 ## Plugins by others
 
-Written a plugin or an effect? Publish it to npm with the keyword `gpuslider-plugin` and it shows up on [gpuslider.com/docs/community](https://gpuslider.com/docs/community/) right away, no pull request needed. [How to publish one](https://gpuslider.com/docs/community/#publish-a-plugin).
+Written a plugin or an effect? Publish it to npm with the keyword `gpuslider-plugin`. It is found automatically, gets a short review, and is then listed on [gpuslider.com/docs/community](https://gpuslider.com/docs/community/). No pull request needed. [How to publish one](https://gpuslider.com/docs/community/#publish-a-plugin).
 
 ## Contributing
 
