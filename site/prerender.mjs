@@ -32,7 +32,7 @@ const unescape = ( text ) =>
 		.replace( /&#x27;|&#39;/g, "'" )
 		.replace( /&amp;/g, '&' );
 
-const ORIGIN = ( process.env.SITE_URL || 'https://gpuslider.dev' ).replace( /\/$/, '' );
+const ORIGIN = ( process.env.SITE_URL || 'https://gpuslider.com' ).replace( /\/$/, '' );
 const NAME = 'gpu slider';
 const REPO = 'https://github.com/niklasp/gpuslider';
 

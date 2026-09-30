@@ -4,6 +4,13 @@
 	"description": "A slider that draws its media with WebGPU, or with WebGL. Small core, everything else a plugin. No dependencies.",
 	"type": "module",
 	"license": "MIT",
+	"author": "Niklas Jurij Plessing <niklas@eedee.net>",
+	"homepage": "https://gpuslider.com",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/niklasp/gpuslider.git"
+	},
+	"bugs": "https://github.com/niklasp/gpuslider/issues",
 	"sideEffects": [
 		"*.css",
 		"./src/auto.js",

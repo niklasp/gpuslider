@@ -3,7 +3,7 @@
 A slider that draws its media on a canvas and owns its own motion: with WebGPU where the browser has it, with WebGL 2 where not.
 No dependencies.
 
-The plan, with every decision and its reason, is in [PLAN.md](PLAN.md).
+The site, with the docs and the examples: https://gpuslider.com. The plan, with every decision and its reason, is in [PLAN.md](PLAN.md); how to work on it, in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Run it
 
