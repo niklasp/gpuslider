@@ -53,15 +53,15 @@ No number of the site is written by hand. The sizes are written by `npm run size
 npm install gpuslider
 ```
 
-Or from a CDN, without an install: `https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/`, as below.
+Or from a CDN, without an install: `https://cdn.jsdelivr.net/npm/gpuslider@1/dist/`, as below.
 
 Three ways, from the least to write to the least to load.
 
 ### Without a script of your own
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/style.css">
-<script type="module" src="https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/auto.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gpuslider@1/dist/style.css">
+<script type="module" src="https://cdn.jsdelivr.net/npm/gpuslider@1/dist/auto.js"></script>
 
 <div class="gs" aria-label="Photos"
 	data-gs='{ "loop": true, "autoplay": 4000 }'
