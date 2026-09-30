@@ -636,7 +636,9 @@ function Stage() {
 					autoplay( { delay: 4000, hover: false, left: left() } ),
 					calm(),
 					canvas( {
-						effects: [ turn ],
+						// The transitions, and the colours coming apart under the
+						// pointer.
+						effects: [ turn, shift() ],
 						layer: layer(),
 						// Drawn before the first move: the slides go on by
 						// themselves.
