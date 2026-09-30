@@ -20,6 +20,12 @@ const of = ( kind: string ) =>
 		.filter( ( name ) => name.startsWith( `${ kind }: ` ) )
 		.map( ( name ) => parts[ name ] );
 
+/** The names of a kind: 'plugin', 'effect', 'transition'. */
+export const names = ( kind: string ) =>
+	Object.keys( parts )
+		.filter( ( name ) => name.startsWith( `${ kind }: ` ) )
+		.map( ( name ) => name.slice( kind.length + 2 ) );
+
 /** How many there are of a kind: 'plugin', 'effect', 'transition'. */
 export const count = ( kind: string ) => of( kind ).length;
 

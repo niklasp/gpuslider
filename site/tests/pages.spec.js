@@ -109,7 +109,7 @@ test.describe( 'the first page', () => {
 	test( 'its numbers are the ones that were measured', async ( { page } ) => {
 		const { parts } = read( 'sizes.json' );
 		const [ chromium ] = read( 'bench.json' ).browsers;
-		const numbers = page.getByTestId( 'numbers' ).getByRole( 'listitem' );
+		const numbers = page.getByTestId( 'numbers' ).locator( '> li' );
 		await expect( numbers ).toHaveCount( 6 );
 		await expect( numbers.first() ).toContainText( `${ kb( parts.core ) }KB` );
 		const second = chromium.until.find(
@@ -128,7 +128,10 @@ test.describe( 'the first page', () => {
 			`Performance: ${ pages[ '/' ].desktop.performance } of 100`
 		);
 
-		await expect( page.getByTestId( 'sizes' ).getByRole( 'listitem' ).first() ).toContainText(
+		// Pointed at, the core tells what every part weighs.
+		await numbers.first().hover();
+		await expect( numbers.first().locator( '.card li' ).first() ).toBeVisible();
+		await expect( numbers.first().locator( '.card li' ).first() ).toContainText(
 			`${ kb( parts.core ) } KB`
 		);
 		const measured = page.getByTestId( 'measured' );

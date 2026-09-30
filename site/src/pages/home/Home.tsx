@@ -58,6 +58,7 @@ import {
 	files,
 	kb,
 	lighthouse,
+	names,
 	parts,
 	range,
 	type Layer,
@@ -86,19 +87,24 @@ const TINTS = [ 1, 2, 5, 4, 6, 3, 8, 7 ].map( ( n ) => LIGHT[ n ] );
 const [ chromium, webkit ] = bench.browsers;
 const ms = ( time: number ) => `${ Math.round( time ) } ms`;
 
-/** A number of the library, and what it is the number of. */
+/**
+ * A number of the library, and what it is the number of. Pointed at,
+ * focused or tapped, a card over it tells more, and its parts come in.
+ */
 function Figure( {
 	value,
 	unit,
+	card,
 	children,
 }: {
 	value: string | number;
 	unit?: string;
+	card: ReactNode;
 	children: ReactNode;
 } ) {
 	return (
-		<li className="grid content-start justify-items-center gap-2 text-center">
-			<span className="font-display text-5xl font-semibold tracking-[-0.04em] tabular-nums md:text-6xl">
+		<li className="figure relative grid content-start justify-items-center gap-2 text-center" tabIndex={ 0 }>
+			<span className="number font-display text-5xl font-semibold tracking-[-0.04em] tabular-nums md:text-6xl">
 				{ value }
 				{ unit && (
 					<span className="ml-1.5 text-lg tracking-normal text-muted-foreground">
@@ -107,7 +113,46 @@ function Figure( {
 				) }
 			</span>
 			<span className="max-w-60 text-sm text-muted-foreground">{ children }</span>
+			<div className="card frost sq-tile grid gap-3 p-5 text-start text-sm">{ card }</div>
 		</li>
+	);
+}
+
+/** Bars that grow as their card comes, each a little after the last. */
+function Bars( { rows }: { rows: [ string, number, string ][] } ) {
+	const most = Math.max( ...rows.map( ( [ , size ] ) => size ) );
+	return (
+		<ul className="grid gap-2">
+			{ rows.map( ( [ name, size, said ], i ) => (
+				<li key={ name } className="grid gap-1" style={ { '--i': i } as CSSProperties }>
+					<span className="flex justify-between gap-4">
+						<span>{ name }</span>
+						<span className="font-mono text-muted-foreground tabular-nums">{ said }</span>
+					</span>
+					<span className="bar grow" style={ { '--share': size / most } as CSSProperties } />
+				</li>
+			) ) }
+		</ul>
+	);
+}
+
+/** A line under what a card shows, and where to read more. */
+function More( { to, children }: { to?: string; children: ReactNode } ) {
+	return (
+		<p className="text-muted-foreground">
+			{ children }
+			{ to && (
+				<>
+					{ ' ' }
+					<a
+						className="underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground"
+						href={ to }
+					>
+						More
+					</a>
+				</>
+			) }
+		</p>
 	);
 }
 
@@ -223,65 +268,6 @@ function Ways() {
 			<div id="way" role="tabpanel" aria-labelledby={ `way-${ way }` }>
 				<Code html={ code[ way ] } label={ WAYS[ way ] } />
 			</div>
-		</div>
-	);
-}
-
-/** What the parts weigh, as bars: the longest is the largest. */
-function Sizes() {
-	const rows: [ string, number, string? ][] = [
-		[ 'The core', parts.core ],
-		[ 'The core with all its options', parts[ 'full: the slider with all its options' ] ],
-		[ 'useSlider, for React', parts[ 'react: what useSlider adds' ] ],
-		[ 'canvas(), which chooses the layer', parts[ 'canvas: what chooses the layer' ] ],
-		[ 'The layer of WebGPU', parts[ 'canvas layer of WebGPU, no effects' ] ],
-		[ 'The layer of WebGL 2', parts[ 'canvas layer, no effects' ] ],
-		[ 'The lightbox', parts.lightbox ],
-		[ 'auto.js, for pages without a script of their own', files[ 'auto.js' ] ],
-	];
-	const most = Math.max( ...rows.map( ( [ , size ] ) => size ) );
-	return (
-		<div className="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-			<ul data-testid="sizes" className="grid gap-2.5">
-				{ rows.map( ( [ name, size ] ) => (
-					<li key={ name } className="grid gap-1">
-						<span className="flex justify-between gap-4 text-sm">
-							<span>{ name }</span>
-							<span className="font-mono text-muted-foreground tabular-nums">
-								{ kb( size ) } KB
-							</span>
-						</span>
-						<span
-							className="bar"
-							style={ { '--share': size / most } as CSSProperties }
-						/>
-					</li>
-				) ) }
-			</ul>
-			<ul className="grid content-start gap-3 text-sm text-muted-foreground">
-				<li>
-					<strong className="font-medium text-foreground">
-						A plugin is { range( 'plugin' ) } KB
-					</strong>
-					, an effect { range( 'effect' ) }, a transition{ ' ' }
-					{ range( 'transition' ) }.
-				</li>
-				<li>
-					<strong className="font-medium text-foreground">
-						A visitor loads one of the two layers
-					</strong>
-					, and loads it when a slider is used or the page has time.
-				</li>
-				<li>
-					<strong className="font-medium text-foreground">
-						Gzipped, in the bundle of who imports it.
-					</strong>{ ' ' }
-					Every part has a budget, and the build fails over it.{ ' ' }
-					<a className="underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground" href="/docs/size/">
-						All sizes
-					</a>
-				</li>
-			</ul>
 		</div>
 	);
 }
@@ -624,9 +610,9 @@ function Stage() {
 							A slider drawn by shaders.
 						</h1>
 						<p className="max-w-md text-white/75 md:text-lg">
-							By WebGPU, or by WebGL 2 where there is none. A core of{ ' ' }
-							{ kb( parts.core ) } KB, everything else a plugin. Choose how a slide turns
-							into the next:
+							An image and video carousel for the web, drawn on the GPU with
+							WebGPU, or WebGL 2 where there is none. A { kb( parts.core ) } KB
+							core, no dependencies, everything else a plugin.
 						</p>
 						<div className="flex max-w-full flex-wrap items-center gap-2">
 						<div
@@ -752,6 +738,8 @@ function Stage() {
 export default function Home() {
 	const gl = chromium.moving( 'gl', 20 );
 	const gpu = chromium.moving( 'gpu', 20 );
+	const gl6 = chromium.moving( 'gl', 6 );
+	const gpu6 = chromium.moving( 'gpu', 6 );
 	const scores = lighthouse( '/' );
 	return (
 		<>
@@ -889,20 +877,161 @@ export default function Home() {
 						data-testid="numbers"
 						className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-3"
 					>
-						<Figure value={ kb( parts.core ) } unit="KB">
+						<Figure
+							value={ kb( parts.core ) }
+							unit="KB"
+							card={
+								<>
+									<Bars
+										rows={ (
+											[
+												[ 'The core', parts.core ],
+												[ 'With all its options', parts[ 'full: the slider with all its options' ] ],
+												[ 'useSlider, for React', parts[ 'react: what useSlider adds' ] ],
+												[ 'canvas(), which chooses', parts[ 'canvas: what chooses the layer' ] ],
+												[ 'The layer of WebGPU', parts[ 'canvas layer of WebGPU, no effects' ] ],
+												[ 'The layer of WebGL 2', parts[ 'canvas layer, no effects' ] ],
+												[ 'The lightbox', parts.lightbox ],
+												[ 'auto.js, with no script', files[ 'auto.js' ] ],
+											] as [ string, number ][]
+										).map( ( [ name, size ] ) => [ name, size, `${ kb( size ) } KB` ] ) }
+									/>
+									<More to="/docs/size/">
+										Gzipped, in the bundle of who imports it. A plugin is{ ' ' }
+										{ range( 'plugin' ) } KB, an effect { range( 'effect' ) }. A
+										visitor loads one of the two layers, and every part has a
+										budget the build holds it to.
+									</More>
+								</>
+							}
+						>
 							The core, gzipped
 						</Figure>
-						<Figure value={ 0 }>Dependencies</Figure>
-						<Figure value={ Math.round( chromium.until( 'gpu' ).second ) } unit="ms">
+						<Figure
+							value={ 0 }
+							card={
+								<>
+									<pre className="deps font-mono text-[13px]">
+										<span>"dependencies"</span>: {'{}'}
+									</pre>
+									<More>
+										Nothing is installed with it. The layers, the plugins and
+										the effects are files of the library, and a page loads
+										those it names.
+									</More>
+								</>
+							}
+						>
+							Dependencies
+						</Figure>
+						<Figure
+							value={ Math.round( chromium.until( 'gpu' ).second ) }
+							unit="ms"
+							card={
+								<>
+									<Bars
+										rows={ [
+											[ 'First slider, WebGPU', chromium.until( 'gpu' ).first, ms( chromium.until( 'gpu' ).first ) ],
+											[ 'First slider, WebGL', chromium.until( 'gl' ).first, ms( chromium.until( 'gl' ).first ) ],
+											[ 'A second, WebGPU', chromium.until( 'gpu' ).second, ms( chromium.until( 'gpu' ).second ) ],
+											[ 'A second, WebGL', chromium.until( 'gl' ).second, ms( chromium.until( 'gl' ).second ) ],
+											[ 'Four more, WebGPU', gpu6.rest || 0, ms( gpu6.rest || 0 ) ],
+											[ 'Four more, WebGL', gl6.rest || 0, ms( gl6.rest || 0 ) ],
+										] }
+									/>
+									<More to="#measured">
+										In { chromium.name } { chromium.version }. WebGPU has one
+										device for every slider of a page, and a shader is made once
+										for all of them.
+									</More>
+								</>
+							}
+						>
 							Until a second slider is drawn by WebGPU. By WebGL:{ ' ' }
 							{ ms( chromium.until( 'gl' ).second ) }
 						</Figure>
-						<Figure value={ `${ gpu.canvases } of ${ gpu.sliders }` }>
+						<Figure
+							value={ `${ gpu.canvases } of ${ gpu.sliders }` }
+							card={
+								<>
+									{ (
+										[
+											[ 'WebGPU', gpu.canvases ],
+											[ 'WebGL', gl.canvases ],
+										] as const
+									).map( ( [ name, drawn ] ) => (
+										<div key={ name } className="grid gap-2">
+											<span className="flex justify-between">
+												<span>{ name }</span>
+												<span className="font-mono text-muted-foreground">
+													{ drawn } of { gpu.sliders }
+												</span>
+											</span>
+											<span className="dots-of" aria-hidden>
+												{ Array.from( { length: gpu.sliders }, ( _, i ) => (
+													<i
+														key={ i }
+														className={ i < drawn ? 'on' : '' }
+														style={ { '--i': i } as CSSProperties }
+													/>
+												) ) }
+											</span>
+										</div>
+									) ) }
+									<More>
+										A browser gives a page a few WebGL contexts; past them the page
+										draws the slides. WebGPU draws all of them with one device.
+									</More>
+								</>
+							}
+						>
 							Sliders of one page on the canvas of WebGPU. WebGL:{ ' ' }
 							{ gl.canvases }
 						</Figure>
-						<Figure value={ 0 }>Frames drawn while nothing moves</Figure>
-						<Figure value={ count( 'effect' ) + count( 'transition' ) }>
+						<Figure
+							value={ 0 }
+							card={
+								<>
+									<span className="meter" aria-hidden>
+										{ /* Frames while a slide moves, then none. */ }
+										{ Array.from( { length: 32 }, ( _, i ) => (
+											<i
+												key={ i }
+												style={ {
+													'--i': i,
+													'--h': i < 18 ? 0.45 + 0.55 * Math.abs( Math.sin( i * 1.7 ) ) : 0.04,
+												} as CSSProperties }
+											/>
+										) ) }
+									</span>
+									<More>
+										A frame is drawn while something moves, and none once it
+										rests: the page is idle, and so is the GPU. While 6 sliders
+										move, a frame takes { gpu6.script.toFixed( 2 ) } ms of script.
+									</More>
+								</>
+							}
+						>
+							Frames drawn while nothing moves
+						</Figure>
+						<Figure
+							value={ count( 'effect' ) + count( 'transition' ) }
+							card={
+								<>
+									<ul className="chips flex flex-wrap gap-1.5">
+										{ [ ...names( 'effect' ), ...names( 'transition' ) ].map( ( name, i ) => (
+											<li key={ name } style={ { '--i': i } as CSSProperties }>
+												{ name }
+											</li>
+										) ) }
+									</ul>
+									<More to="/playground/">
+										{ count( 'effect' ) } effects and { count( 'transition' ) }{ ' ' }
+										transitions, each a few lines of GLSL. Try them all.
+									</More>
+								</>
+							}
+						>
 							Effects and transitions
 						</Figure>
 					</ul>
@@ -936,14 +1065,6 @@ export default function Home() {
 					</div>
 				</Section>
 
-				<Section
-					center
-					id="size"
-					title="What it weighs"
-					note="A page has in its bundle what it names, and no more: every entry has named exports only and no side effects."
-				>
-					<Sizes />
-				</Section>
 
 				<Section
 					center
