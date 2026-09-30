@@ -103,7 +103,7 @@ const slider = createSlider( document.querySelector( '.gs' ), {
 } );
 ```
 
-`gpuslider/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 7.0 KB.
+`gpuslider/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 7.1 KB.
 
 ### With what you name, and no more
 
@@ -115,7 +115,7 @@ import 'gpuslider/style.css';
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.6 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.7 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
@@ -813,9 +813,9 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 
 | Part | Size |
 |---|---|
-| Core | 4.6 KB |
+| Core | 4.7 KB |
 | A plugin | 0.3 to 1 KB |
-| `gpuslider/full`: the core with all its options | 7.0 KB |
+| `gpuslider/full`: the core with all its options | 7.1 KB |
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |

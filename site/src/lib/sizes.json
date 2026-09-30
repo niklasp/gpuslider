@@ -13,7 +13,7 @@
 		"plugin: videos": 483,
 		"plugin: wheel": 347,
 		"react: what useSlider adds": 150,
-		"react: what <Slider> and <Slide> add": 592,
+		"react: what <Slider> and <Slide> add": 596,
 		"full: the slider with all its options": 7228,
 		"canvas layer, no effects": 7366,
 		"canvas: what chooses the layer": 351,
@@ -63,8 +63,8 @@
 		"transition: warp": 615,
 		"transition: wind": 586,
 		"transition: zoom": 346,
-		"a page in React: arrows and dots": 5883,
-		"the same with the canvas and stretch": 13085,
+		"a page in React: arrows and dots": 5887,
+		"the same with the canvas and stretch": 13089,
 		"lightbox": 2235
 	},
 	"dist": {
