@@ -1,6 +1,7 @@
 import {
 	useEffect,
 	useRef,
+	useState,
 	type CSSProperties,
 	type ReactNode,
 } from 'react';
@@ -44,6 +45,11 @@ type Props = {
 	 * right, instead of each at its own place.
 	 */
 	dock?: boolean;
+	/**
+	 * The arrows wait for the canvas: a move before it draws is drawn by
+	 * the page, without the effects.
+	 */
+	wait?: boolean;
 	children: ReactNode;
 };
 
@@ -52,7 +58,7 @@ const button =
 
 /** A button of the dock: round, and lit under the pointer. */
 const KEY =
-	'sq-pill grid size-9 cursor-pointer place-items-center text-white/85 transition hover:bg-white/15 hover:text-white disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent';
+	'sq-pill grid size-9 cursor-pointer place-items-center text-white/85 transition hover:bg-white/15 hover:text-white disabled:cursor-default disabled:opacity-30 disabled:hover:bg-transparent inert:opacity-40 inert:delay-300';
 
 /**
  * A slider of the library in React: React renders the slides, the library
@@ -73,6 +79,7 @@ export function GpuSlider( {
 	onSlider,
 	over,
 	dock,
+	wait,
 	children,
 }: Props ) {
 	const state = useRef< HTMLParagraphElement >( null );
@@ -151,6 +158,23 @@ export function GpuSlider( {
 		};
 	}, [ slider, id ] );
 
+	// The slider whose canvas draws, of those that were made.
+	const [ drawing, setDrawing ] = useState< Slider | null >( null );
+	useEffect( () => {
+		if ( ! slider || ! wait ) {
+			return;
+		}
+		const drawn = () => setDrawing( slider );
+		const offs = [ slider.on( 'gl:on', drawn ), slider.on( 'gpu:on', drawn ) ];
+		// A browser that has neither: the page moves the slides.
+		const late = setTimeout( drawn, 4000 );
+		return () => {
+			offs.forEach( ( off ) => off() );
+			clearTimeout( late );
+		};
+	}, [ slider, wait ] );
+	const waiting = wait && drawing !== slider;
+
 	useEffect( () => {
 		onSlider?.( slider );
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,6 +211,7 @@ export function GpuSlider( {
 							data-gs-prev
 							aria-label="Previous slide"
 							className={ KEY }
+							inert={ waiting }
 						>
 							<ChevronLeft className="size-[18px]" strokeWidth={ 2.25 } />
 						</button>
@@ -195,6 +220,7 @@ export function GpuSlider( {
 							data-gs-next
 							aria-label="Next slide"
 							className={ KEY }
+							inert={ waiting }
 						>
 							<ChevronRight className="size-[18px]" strokeWidth={ 2.25 } />
 						</button>

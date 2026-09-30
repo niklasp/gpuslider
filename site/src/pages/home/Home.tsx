@@ -474,6 +474,7 @@ function Stage() {
 				measured=""
 				pause
 				dock
+				wait
 				heard={ heard }
 				plugins={ () => [
 					controls(),
@@ -486,6 +487,9 @@ function Stage() {
 					canvas( {
 						effects: [ TRANSITIONS[ drawn ]() ],
 						layer: layer(),
+						// Drawn before the first move: the slides go on by
+						// themselves, and every transition is another slider.
+						eager: true,
 					} ),
 				] }
 				over={
