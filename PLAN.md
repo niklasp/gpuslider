@@ -142,7 +142,7 @@ slider.destroy();
 | Canvas layer of WebGPU without effects | 9.25 KB | 9.2 KB (9390 of 9472 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
-| One effect or transition | 1 KB | 0.2 to 0.7 KB |
+| One effect or transition | 1 KB | 0.2 to 0.9 KB (slab: 945 B) |
 | Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.2 KB (2232 of 2304 B) |
 | A page in React with arrows and dots | 6 KB | 5.7 KB |
 | The same with the canvas and one effect | 13 KB | 12.8 KB (13059 of 13312 B) |

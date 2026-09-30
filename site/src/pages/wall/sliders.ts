@@ -102,7 +102,7 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 						effects: [
 							dome( { amount: 0.6, centre, size } ),
 							jelly( { amount: GIVE, across } ),
-							slab( { edge, bend: 0.8 } ),
+							slab( { edge, bend: 1.3 } ),
 						],
 						eager: true,
 						// The rows are larger than what is seen of them:

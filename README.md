@@ -614,7 +614,7 @@ Any number, in the order given.
 | `smear( { size, amount } )` | The pointer drags the image along | Speed of the pointer |
 | `shift( { size, amount } )` | The colours come apart along the way of the pointer | Speed of the pointer |
 | `jelly( { amount, across } )` | The slides are soft: what moves them pulls them out of shape; bends the mesh | Speed |
-| `slab( { edge, bend, spread, shine } )` | The slides are thick glass: the edge bends the image and takes its colours apart, one side has the light on it | Speed, a little |
+| `slab( { edge, bend, spread, shine } )` | The slides are thick glass with a round bevel: the image is refracted through it and its colours come apart there, the rim catches a light at the top left, and a streak of reflection lies on the flat | Speed, a little |
 
 Effects that lay out: the slider moves as ever, the effect says where a slide is drawn. For one slide per view or `align: 'center'`; give the slider padding for what leaves its place.
 
@@ -810,7 +810,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
 | Canvas layer of WebGPU | 9.2 KB |
 | Canvas layer of WebGL 2 | 7.2 KB |
-| An effect | 0.2 to 0.7 KB |
+| An effect | 0.2 to 0.9 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 2.2 KB |
 | `style.css`, `lightbox.css` | 0.7 KB, 0.8 KB |
