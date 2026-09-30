@@ -5,6 +5,7 @@ import { canvas } from 'gpuslider/canvas';
 import { stretch } from 'gpuslider/effects';
 import { BUTTON } from '@/components/Frame';
 import { image } from '@/lib/media';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const PHOTOS = [ 2, 4, 6, 8, 1, 3 ];
 
@@ -21,7 +22,8 @@ function Arrow( { to }: { to: 'prev' | 'next' } ) {
 			disabled={ ! ( to === 'prev' ? slider?.canPrev : slider?.canNext ) }
 			onClick={ () => slider?.[ to ]() }
 		>
-			{ to === 'prev' ? '‹' : '›' }
+			{ /* An icon, not a letter: a letter sits on its line, not in the middle. */ }
+			{ to === 'prev' ? <ChevronLeft className="size-5" /> : <ChevronRight className="size-5" /> }
 		</button>
 	);
 }
