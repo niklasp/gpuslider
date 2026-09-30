@@ -450,7 +450,7 @@ import 'gpuslider/lightbox.css';
 createSlider( element, { plugins: [ canvas(), lightbox() ] } );
 ```
 
-A click on a slide lets its image grow to the screen, Escape lets it go back. In the lightbox it can be dragged, and the arrows and the keys go to the next. `data-gs-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
+A click on a slide lets its image grow to the screen, Escape lets it go back. In the lightbox it can be dragged, and the arrows and the keys go to the next. Its arrows come from where the arrows of the slider are, and go back there. `data-gs-full="large.jpg"` on the image names a larger file; `slider.plugins.lightbox.open( index )` and `.close()` do it from a script.
 
 One canvas draws all of it: the one of the slider, which goes over the page while the lightbox is open. The image grows out of its slide as the slider draws it, with the effects of the slider, which fade on the way, and in the lightbox the images are drawn whole, from the file the browser picks for the screen. `punch: 0.4` lets the speed of the growing count as speed for the effects, so that an image with `stretch()` bows while it opens. Without a canvas the lightbox fades in.
 
@@ -812,7 +812,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | Canvas layer of WebGL 2 | 7.2 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
-| Lightbox | 2.0 KB |
+| Lightbox | 2.2 KB |
 | `style.css`, `lightbox.css` | 0.7 KB, 0.8 KB |
 | `loading.css` | 0.4 KB |
 

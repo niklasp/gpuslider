@@ -102,6 +102,8 @@ export function controls( given = {} ) {
 
 		return {
 			name: 'controls',
+			/** Its buttons that go back or on, or where its dots are. */
+			elements: all,
 			measure: update,
 			update,
 

@@ -91,6 +91,9 @@ export function lightbox( {
 		// screen in px of its view.
 		let outer = null;
 		let screen = null;
+		// The arrows of the slider, each with the one of the lightbox that
+		// comes from where it is.
+		let arrows = [];
 
 		const numbers = new Float32Array( 13 );
 		const mixed = new Float32Array( 13 );
@@ -243,6 +246,14 @@ export function lightbox( {
 					}
 				}
 				dialog.style.setProperty( '--gs-open', t.toFixed( 3 ) );
+				// The arrows go from the slider to the sides of the screen.
+				arrows.forEach( ( [ from, arrow ] ) => {
+					const a = from.getBoundingClientRect();
+					const u = 1 - t;
+					arrow.style.transform = `translate(${ ( a.x - arrow.offsetLeft ) * u }px,${
+						( a.y - arrow.offsetTop ) * u
+					}px) scale(${ 1 + ( a.width / arrow.offsetWidth - 1 ) * u })`;
+				} );
 				// The images of the lightbox, where no canvas draws them.
 				dialog.style.setProperty( '--gs-shown', outer ? 0 : t.toFixed( 3 ) );
 				if ( outer ) {
@@ -356,6 +367,20 @@ export function lightbox( {
 			outer = outer?.canvas ? outer : null;
 			dialog.style.setProperty( '--gs-open', 0 );
 			dialog.style.setProperty( '--gs-shown', 0 );
+			// Arrows of the slider that are seen: they are the ones of the
+			// lightbox meanwhile.
+			arrows = [ 'prev', 'next' ].flatMap( ( kind ) => {
+				const from = slider.plugins.controls
+					?.elements( kind )
+					.find( ( el ) => el.offsetWidth && ! el.disabled );
+				const arrow = box.querySelector( `.gs-${ kind }` );
+				if ( ! from ) {
+					return [];
+				}
+				from.style.visibility = 'hidden';
+				arrow.style.opacity = 1;
+				return [ [ from, arrow ] ];
+			} );
 			shown = createSlider( box, {
 				loop: slider.layout().loop && items.length > 2,
 				...inner,
@@ -407,6 +432,11 @@ export function lightbox( {
 				} );
 				return;
 			}
+			arrows.forEach( ( [ from, arrow ] ) => {
+				from.style.visibility = '';
+				arrow.removeAttribute( 'style' );
+			} );
+			arrows = [];
 			shown.destroy();
 			shown = null;
 			box.firstChild.replaceChildren();

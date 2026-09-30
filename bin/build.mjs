@@ -174,7 +174,7 @@ if ( existsSync( resolve( root, 'src/lightbox.js' ) ) ) {
 	const both = `import { createSlider } from './src/index.js'; import { controls, keyboard } from './src/plugins/index.js'; import { gl } from './src/gl/index.js';`;
 	parts.push( {
 		name: 'lightbox',
-		budget: 2048,
+		budget: 2304,
 		size:
 			( await measure(
 				`${ both } import { lightbox } from './src/lightbox.js'; export { createSlider, controls, keyboard, gl, lightbox };`

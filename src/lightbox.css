@@ -79,6 +79,8 @@ html:has(.gs-lightbox[open]) {
 
 .gs-button {
 	opacity: var(--gs-open);
+	/* Where an arrow of the slider is, as it opens: see lightbox.js. */
+	transform-origin: 0 0;
 }
 
 .gs-button {
