@@ -154,10 +154,12 @@ export const pinned = ( n: number, sizes: string ) => {
 export const FILM = 'Someone walking into a tunnel of coloured lights';
 
 /**
- * The films: `a` the one of Pexels, `b` a colour field that moves, high,
- * and `c` one that is wide, which is a film whatever the pictures are.
+ * The films: `a` the one of Pexels that is the film whatever the pictures
+ * are, `b` a colour field that moves, and two more of Pexels for the row
+ * of videos: `concert` (28551470) and `dance` (6836033). All are cut to a
+ * loop by `bin/make-film.mjs`.
  */
-export type Film = 'a' | 'b' | 'c';
+export type Film = 'a' | 'b' | 'concert' | 'dance';
 
 /**
  * Whether there is a film of that name in the pictures chosen: `b` is a
@@ -200,14 +202,12 @@ export const film = ( el: HTMLVideoElement | null ) => {
 };
 
 export const video = ( name: Film ) => {
-	const file = { a: 'film', b: 'b', c: 'a' }[ name ];
+	const file = name === 'a' ? 'film' : name;
 	return {
 		src: `/media/${ file }.mp4`,
 		poster: `/media/${ file }-poster.avif`,
-		...{
-			a: { width: 960, height: 540 },
-			b: { width: 960, height: 1200 },
-			c: { width: 1280, height: 720 },
-		}[ name ],
+		...( name === 'b'
+			? { width: 960, height: 1200 }
+			: { width: 960, height: 540 } ),
 	};
 };

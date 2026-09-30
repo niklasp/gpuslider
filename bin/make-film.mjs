@@ -1,13 +1,20 @@
 /**
- * Makes the film of the site of a video that is given: `media/film.mp4`,
+ * Makes a film of the site of a video that is given: `media/<name>.mp4`,
  * a loop without a seam, and its poster.
  *
- * The film is a video of Pexels (13794727, 1280 by 720, 15 s), which is
- * not in the repo. Its end does not meet its start, so the loop is between
- * the two moments of it that are most alike, 6.6 s and 14.2 s, and what
- * comes after the second fades into what comes after the first.
+ * The films are videos of Pexels, which are not in the repo. Their end
+ * does not meet their start, so the loop is between the two moments of
+ * them that are most alike, and what comes after the second fades into
+ * what comes after the first.
  *
- * `node bin/make-film.mjs ~/Downloads/13794727_1280_720_30fps.mp4`
+ *     node bin/make-film.mjs ~/Downloads/13794727_1280_720_30fps.mp4
+ *     node bin/make-film.mjs 12417619_1920_1080_30fps.mp4 concert 18.7 27.2
+ *     node bin/make-film.mjs 6836033-hd_1920_1080_25fps.mp4 dance 12 19.6
+ *
+ * `film` is 13794727 (1280 by 720, 15 s): someone walking into a tunnel of
+ * coloured lights, 6.6 s to 14.2 s. `concert` is 28551470 (1920 by 1080,
+ * 33 s), a crowd before a stage in blue light. `dance` is 6836033 (1920 by
+ * 1080, 24 s), a dancer with tubes of light.
  */
 import sharp from 'sharp';
 import { execFileSync } from 'node:child_process';
@@ -16,17 +23,18 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const out = resolve( fileURLToPath( import.meta.url ), '../../media' );
-const [ source ] = process.argv.slice( 2 );
+const [ source, name = 'film', from = '6.6', to = '14.2' ] =
+	process.argv.slice( 2 );
 if ( ! source ) {
-	throw new Error( 'Which video? node bin/make-film.mjs <file>' );
+	throw new Error( 'Which video? node bin/make-film.mjs <file> [name from to]' );
 }
 
 // Where the loop begins and ends in the video, and how long the fade is.
-const FROM = 6.6;
-const TO = 14.2;
+const FROM = Number( from );
+const TO = Number( to );
 const FADE = 0.6;
 
-const film = resolve( out, 'film.mp4' );
+const film = resolve( out, `${ name }.mp4` );
 execFileSync(
 	'ffmpeg',
 	[
@@ -55,8 +63,8 @@ execFileSync(
 	{ stdio: 'pipe' }
 );
 
-const frame = resolve( out, 'film-poster.png' );
-const poster = resolve( out, 'film-poster.avif' );
+const frame = resolve( out, `${ name }-poster.png` );
+const poster = resolve( out, `${ name }-poster.avif` );
 execFileSync( 'ffmpeg', [ '-y', '-i', film, '-frames:v', '1', frame ], {
 	stdio: 'pipe',
 } );
@@ -65,4 +73,4 @@ rmSync( frame );
 
 const kb = ( file ) => `${ Math.round( statSync( file ).size / 1024 ) } KB`;
 // eslint-disable-next-line no-console
-console.log( `film.mp4: ${ kb( film ) }, poster: ${ kb( poster ) }` );
+console.log( `${ name }.mp4: ${ kb( film ) }, poster: ${ kb( poster ) }` );

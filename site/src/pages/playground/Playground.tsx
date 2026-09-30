@@ -208,8 +208,8 @@ export default function Playground() {
 						{ ...shared }
 					>
 						<Slide video="a" alt="" className="card wide" sizes={ share } />
-						<Slide video="c" alt="Colour field that moves" className="card wide" sizes={ share } />
-						<Slide video="b" always alt="Colour field that moves" className="card wide" sizes={ share } />
+						<Slide video="concert" alt="A crowd before a stage in blue light" className="card wide" sizes={ share } />
+						<Slide video="dance" alt="Someone dancing with tubes of light" className="card wide" sizes={ share } />
 					</GpuSlider>
 				</Section>
 

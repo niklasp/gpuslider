@@ -366,8 +366,6 @@ type SlideProps = {
 	image?: number;
 	/** Name of a video of the site. */
 	video?: Film;
-	/** The video whatever the pictures are, not a photo in its place. */
-	always?: boolean;
 	alt: string;
 	/** How wide the slide is on the page: what `sizes` of an image says. */
 	sizes?: string;
@@ -380,7 +378,6 @@ type SlideProps = {
 export function Slide( {
 	image: n,
 	video: name,
-	always,
 	alt,
 	sizes = '100vw',
 	first,
@@ -388,11 +385,11 @@ export function Slide( {
 	children,
 }: SlideProps ) {
 	const kind = useKind();
-	// A picture in place of a film: `c` is a film always.
+	// A picture in place of a film: only `b` has one.
 	const picture = ( n ?? name ) as number | 'a' | 'b';
 	return (
 		<div className={ cn( 'gs-slide', className ) }>
-			{ name && ( always || filmed( name, kind ) ) ? (
+			{ name && filmed( name, kind ) ? (
 				<video
 					className="gs-media"
 					{ ...video( name ) }
