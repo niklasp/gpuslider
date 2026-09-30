@@ -545,8 +545,11 @@ export function gpu( {
 					const y = inner.top - ( down ? outer : around ).top;
 					boxes[ i ] = {
 						// Along the way of the slides, in the slide: the slide
-						// moves, this does not.
-						dx: ( down ? y : x ) / scale,
+						// moves, this does not. And where the track begins in
+						// the root, after its padding.
+						dx:
+							( down ? y : x ) / scale +
+							( down ? slider.track.offsetTop : slider.track.offsetLeft ),
 						// Across, in the view: that way slides do not move.
 						dy:
 							( down ? x : y ) / scale -

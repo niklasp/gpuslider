@@ -38,9 +38,7 @@ const REPO = 'https://github.com/niklasp/gpuslider';
 
 // The picture of a shared link: the page, taken by `og.mjs`.
 const picture = ( path ) =>
-	path.startsWith( '/docs/' )
-		? 'docs'
-		: path.match( /^\/(?:examples\/)?([a-z]+)\/$/ )?.[ 1 ] || 'home';
+	path.match( /^\/(?:examples\/)?([a-z]+)\// )?.[ 1 ] || 'home';
 
 /** What is in the head for search engines and shared links. */
 function head( path, title, description ) {
@@ -143,6 +141,19 @@ for ( const [ page, { from = page, title, description } ] of Object.entries(
 		'<div id="root"></div>',
 		() => `<div id="root">${ markup }</div>`
 	);
+
+	// The styles of the page itself after the ones it shares with other
+	// pages, the library's and Tailwind: as the page imports them. The
+	// build puts them first, and then the rules of the library that are
+	// as specific win over the page's.
+	const own = `/assets/${ from.replace( /\.html$/, '' ).replaceAll( '/', '-' ) }-`;
+	const sheets = html.match( /<link rel="stylesheet"[^>]*>/g ) || [];
+	const mine = sheets.find( ( sheet ) => sheet.includes( own ) );
+	if ( mine && mine !== sheets.at( -1 ) ) {
+		html = html
+			.replace( mine, '' )
+			.replace( sheets.at( -1 ), () => sheets.at( -1 ) + mine );
+	}
 
 	// Styles into the document.
 	html = html.replace(

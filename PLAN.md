@@ -138,8 +138,8 @@ slider.destroy();
 | Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.06 KB | 7.0 KB (7198 of 7232 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 7.25 KB | 7.1 KB (7316 of 7424 B) |
-| Canvas layer of WebGPU without effects | 9.25 KB | 9.1 KB (9340 of 9472 B) |
+| Canvas layer of WebGL 2 without effects | 7.25 KB | 7.2 KB (7331 of 7424 B) |
+| Canvas layer of WebGPU without effects | 9.25 KB | 9.1 KB (9358 of 9472 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
