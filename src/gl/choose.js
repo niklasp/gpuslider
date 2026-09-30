@@ -25,7 +25,7 @@ export const choose = ( transitions, start = 0 ) => {
 		transition:
 			transitions
 				.map( ( one, i ) =>
-					one.transition.replace( /\btransition(?=\s*\()/, `transition${ i }` )
+					one.transition.replace( /\bvec4\s+transition(?=\s*\()/, `vec4 transition${ i }` )
 				)
 				.join( '\n' ) +
 			'\nvec4 transition( vec2 uv ) {\n' +

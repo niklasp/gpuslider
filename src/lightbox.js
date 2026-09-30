@@ -186,8 +186,9 @@ export function lightbox( {
 				Object.assign( quad, it, { a: whole, radius: 0, fx: 0, p: 0 } );
 			} else {
 				// Open, what the lightbox does not show is not drawn: it
-				// would be over what it shows.
-				quad.dim = 1 - 0.92 * t;
+				// would be over what it shows. So it fades out all the way,
+				// and does not go at once from what the backdrop leaves.
+				quad.dim = 1 - t;
 				if ( t === 1 ) {
 					quad.a = null;
 				}

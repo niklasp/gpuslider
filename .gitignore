@@ -5,3 +5,9 @@ playwright-report
 .DS_Store
 /types
 *.tsbuildinfo
+
+# Local tools and outputs, not part of the library
+brag-output/
+.agents/
+.claude/
+skills-lock.json
