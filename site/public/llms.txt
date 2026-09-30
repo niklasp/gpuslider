@@ -15,6 +15,7 @@
 - [Effects and transitions](/docs/effects/): all of them, and how to write one in GLSL
 - [Lightbox](/docs/lightbox/)
 - [Loading](/docs/loading/): a screen while the media load, and its events
+- [Extending](/docs/extending/): plugins, effects, slides placed by a script with `draw()`, the types, and a list for agents
 - [Size, and what is not there yet](/docs/size/)
 
 ## Examples

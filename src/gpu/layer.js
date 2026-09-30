@@ -162,6 +162,12 @@ function meshOf( { device, meshes }, n ) {
  *                                         `picture`, for tests: what
  *                                         WebGPU has drawn is gone when it
  *                                         is on the screen.
+ * @param {Set<Function>} [options.hooks]  Functions that are called with
+ *                                         every quad before it is drawn,
+ *                                         before `change`: a set that the
+ *                                         page may fill and empty while the
+ *                                         layer draws. `canvas()` has
+ *                                         `draw()` for it.
  */
 export function gpu( {
 	effects = [],
@@ -170,6 +176,7 @@ export function gpu( {
 	perspective = 1200,
 	eager = false,
 	preserve = false,
+	hooks = new Set(),
 } = {} ) {
 	// The plugin, for the `plugins` of a slider.
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
@@ -454,6 +461,13 @@ export function gpu( {
 			return record ? { record, numbers: out } : null;
 		};
 
+		// What the page and the lightbox make of a quad before it is drawn:
+		// the hooks first, then `change`.
+		const moved = ( i ) => {
+			hooks.forEach( ( hook ) => hook( i, next ) );
+			layer.change?.( i, next );
+		};
+
 		const layer = {
 			name: 'gpu',
 
@@ -731,7 +745,7 @@ export function gpu( {
 						// grow out of the stack is drawn once, where it is.
 						const one = a || EMPTY;
 						Object.assign( next, { x: 0, y: 0, w: width, h: height, a: one.numbers, radius: 0, shape: 2, speed: 0, fx: 1, dim: 1, clip: true } );
-						layer.change?.( from, next );
+						moved( from );
 						quad( next.x, next.y, next.w, next.h, { record: one.record, numbers: next.a }, b || EMPTY, mix, mix, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip );
 					}
 				} else {
@@ -769,7 +783,7 @@ export function gpu( {
 							next.top = false;
 							next.media = null;
 							next.p = place.p;
-							layer.change?.( i, next );
+							moved( i );
 							// The texture for the size it is drawn at, of
 							// the element `change` gives if it has one yet.
 							const { w, h } = next;

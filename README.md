@@ -699,6 +699,102 @@ What the translation knows is the GLSL that all effects here are written in. For
 
 A shader that WebGPU does not take is said in the console, as `gpuslider: …`, and the page draws that slider.
 
+## Extending
+
+Five ways in, from the least to the most. Each works with the others and with the lightbox.
+
+| To | Take | In |
+|---|---|---|
+| Change the slides as they move, on the page | CSS on `--gs-p` of `progress()` ([Animations](#animations)) | CSS |
+| Listen, count, drive the slider, add controls | A [plugin](#plugins) | JS |
+| Bend, stretch or colour the pictures; a transition | An [effect](#your-own) | GLSL, both layers |
+| Draw the slides elsewhere than the page has them, turned or bent: a fan, a wave | An effect with `vertex`, and `place` for the clicks | GLSL, and JS |
+| Place, scale, round or dim the slides from a script: springs, the pointer, data | `draw()` of the canvas | JS |
+
+### Placing slides from a script
+
+`slider.plugins.canvas.draw( hook )` has the canvas call a function with every slide before it draws it: its index, and its quad, which the function may change. What it changes is drawn. It returns the function that takes the hook away.
+
+```js
+import { createSlider } from 'gpuslider';
+import { canvas } from 'gpuslider/canvas';
+import { lightbox } from 'gpuslider/lightbox';
+
+const slider = createSlider( element, {
+	align: 'center',
+	plugins: [ canvas(), lightbox() ],
+} );
+
+// An arc: the further a slide is from the middle, the lower and smaller.
+const off = slider.plugins.canvas.draw( ( i, quad ) => {
+	const away = Math.min( Math.abs( quad.p ), 3 );
+	const k = 1 - away * 0.12;
+	quad.x += ( quad.w * ( 1 - k ) ) / 2;
+	quad.y += away * away * 24;
+	quad.w *= k;
+	quad.h *= k;
+	quad.dim = 1 - away * 0.2;
+} );
+```
+
+| Quad | |
+|---|---|
+| `x`, `y`, `w`, `h` | Where it is drawn, px in the view of the slider |
+| `p` | Slides from its resting place: -1 is the one before the active one |
+| `radius` | Of its corners, px |
+| `dim` | Its colour is multiplied by this, 0 to 1 |
+| `fx` | How much the effects do, 0 to 1 |
+| `speed` | Added to the speed of the slider for the effects: what is thrown stretches |
+| `clip` | Whether it stays in the view; `false`, it may reach into the padding of the slider |
+| `top` | Drawn over the others |
+| `a` | What part of the picture is where; `null` and it is not drawn |
+
+- It is called on every frame the canvas draws, for every slide in reach: it does sums, and makes no objects.
+- Frames come while the slider moves. What moves by itself asks for them: `slider.wake()`, or a plugin whose `busy()` is true while it moves.
+- The lightbox comes after the hooks: an image grows out of its slide where the hook has put it, and goes back there.
+- A quad is not turned or bent; that is the `vertex` of an effect.
+- A click is a click on the slide where the page has it. For a placement that moves slides far from their place, write it as an effect with `place`, which `hit()` knows.
+- A layer by its name takes the set of hooks: `gl( { hooks: new Set( [ hook ] ) } )`.
+
+A plugin can bring a hook along, when `canvas()` is before it:
+
+```js
+// The slides beside the active one are darker.
+const focus = ( { dim = 0.5 } = {} ) => ( slider ) => ( {
+	name: 'focus',
+	destroy: slider.plugins.canvas?.draw( ( i, quad ) => {
+		quad.dim *= 1 - Math.min( Math.abs( quad.p ), 1 ) * dim;
+	} ),
+} );
+
+createSlider( element, { plugins: [ canvas(), focus(), lightbox() ] } );
+```
+
+### Types
+
+```ts
+import type { Create, Plugin, View } from 'gpuslider';
+import type { Hook, Quad } from 'gpuslider/canvas';
+import type { Effect } from 'gpuslider/effects';
+
+const focus = (): Create => ( slider ) => ( { name: 'focus' } );
+```
+
+In JS, `/** @type {import('gpuslider').Create} */` above the function gives the same.
+
+### For agents
+
+What to know to extend the slider without reading its code:
+
+- A plugin is `( slider ) => ( { name, layout, measure, slides, frame, busy, destroy } )`, every member optional; it is given in `plugins`, or later to `slider.use()`. `slider.plugins[ name ]` is what it returned.
+- Its events are `name:what`, sent with `slider.emit( 'name:what', detail )`; listeners get the detail and the slider.
+- `view.places[ i ]` in `frame( view, dt, now )` is where slide `i` is: `x` px, `p` slides from its place, `share` in view, `visible`.
+- Never move or size a `.gs-slide` from a script: the slider measures them. Transform what is in a slide (CSS), or what the canvas draws (`draw()`, effects).
+- An effect is `{ params, head, vertex, uv, color, transition, place, animated }`, GLSL function bodies; the rules for WebGPU are under [Your own](#your-own). An array in `params` is read on every frame: write into it, then `slider.wake()`.
+- A layout effect gives `place( p, about )`, the `vertex` in JS, or clicks go to the slide the page has there.
+- Where it runs: `canvas()` loads its layer when there is time; `canvas:ready` says which, and `slider.plugins.canvas.draw()` works before that.
+- Changes to the library itself: `node bin/build.mjs --check` holds every part to its budget, `npm run types` checks the types, and the tests are Playwright's, per file.
+
 ## Size
 
 Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 bytes, as in the budgets that the build holds every part to:
@@ -711,7 +807,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.1 KB |
+| Canvas layer of WebGPU | 9.2 KB |
 | Canvas layer of WebGL 2 | 7.2 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |

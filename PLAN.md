@@ -138,14 +138,14 @@ slider.destroy();
 | Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.06 KB | 7.0 KB (7198 of 7232 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 7.25 KB | 7.2 KB (7331 of 7424 B) |
-| Canvas layer of WebGPU without effects | 9.25 KB | 9.1 KB (9358 of 9472 B) |
+| Canvas layer of WebGL 2 without effects | 7.25 KB | 7.2 KB (7358 of 7424 B) |
+| Canvas layer of WebGPU without effects | 9.25 KB | 9.2 KB (9383 of 9472 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.7 KB |
 | Lightbox, on top of core, controls, keyboard and canvas | 2 KB | 2.0 KB (2048 of 2048 B) |
 | A page in React with arrows and dots | 6 KB | 5.7 KB |
-| The same with the canvas and one effect | 12.75 KB | 12.7 KB (12997 of 13056 B) |
+| The same with the canvas and one effect | 12.75 KB | 12.7 KB (13051 of 13056 B) |
 
 Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
@@ -477,6 +477,13 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **The layer draws on demand again while it is lifted**: the lightbox wakes it when its slider moves, where before a lifted layer drew every frame.
 - **It costs** 0.15 KB in each layer and saves 0.2 KB in the lightbox; a page with a lightbox no longer loads a second layer for it at run time.
 - **Tests**: the ones of the lightbox, now of the one canvas: that it grows out of the slide and back, and that open the canvas draws the image as the page would, on both layers.
+
+### 31. Slides placed by a script
+
+- **What:** `slider.plugins.canvas.draw( hook )`: a function of the page gets every quad before it is drawn, and what it changes is drawn: where, how large, how round, how dark. The layers take a set of such hooks as `hooks`; `canvas()` makes the set and hands it to the layer it loads, so a hook given before the layer is there is there when it is.
+- **Why:** to place and move slides from JS (springs, the pointer, data) there was only `change`, one slot that the lightbox takes while it is open and empties when it closes. The hooks run before it: the lightbox lets an image grow out of the slide where a hook put it.
+- **Not:** a hook turns or bends nothing (that is `vertex`), and `hit()` does not know what it did: a click is a click on the slide the page has there. For a placement that moves slides far, an effect with `place`.
+- **Sizes:** `draw()` is in `canvas()` (50 bytes), not in the layers: in them only the set and the loop, 27 bytes in WebGL and 25 in WebGPU. The page in React with the canvas has 5 bytes left.
 
 ## Modules
 

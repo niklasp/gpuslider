@@ -133,6 +133,12 @@ A slider is an element with a track in it, and the slides are the children of th
 		parts: [ { part: 'Loading', bare: true } ],
 	},
 	{
+		slug: 'extending',
+		title: 'Extending',
+		lead: 'Plugins, effects, and slides placed by a script: what to take for what, and how they go with the lightbox. With a list for agents.',
+		parts: [ { part: 'Extending', bare: true } ],
+	},
+	{
 		slug: 'size',
 		title: 'Size, and what is not there yet',
 		lead: 'What each part costs in the bundle of who imports it. And what the library does not do, said as plainly as what it does.',

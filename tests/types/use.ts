@@ -20,6 +20,7 @@ import {
 	loading,
 } from 'gpuslider/plugins';
 import { createSlider as createFull } from 'gpuslider/full';
+import { canvas as choose, type Hook, type Quad } from 'gpuslider/canvas';
 import { useSlider } from 'gpuslider/react';
 import { auto, sliders } from 'gpuslider/auto';
 
@@ -168,6 +169,16 @@ createSlider( document.body, { autoplay: 3500 } );
 autoplay( { delay: 'long' } );
 // @ts-expect-error: no such mode.
 createFull( document.body, { mode: 'pile' } );
+// Slides placed by a script: a hook gets every quad before it is drawn.
+const lower: Hook = ( i: number, quad: Quad ) => {
+	quad.y += Math.abs( quad.p ) * 30;
+	quad.dim = i % 2 ? 0.8 : 1;
+};
+const hooks = new Set< Hook >( [ lower ] );
+gl( { hooks } );
+choose();
+// @ts-expect-error: a quad has no rotation; that is an effect's `vertex`.
+const turned: Hook = ( _, quad ) => ( quad.rotation = 1 );
 // @ts-expect-error: a speed is a number.
 marquee( { speed: 'fast' } );
 // @ts-expect-error: thumbnails are the thumbnails of a slider.
@@ -181,4 +192,4 @@ gpu( { density: 'high' } );
 // @ts-expect-error: angles are numbers.
 coverflow( { angle: 'steep' } );
 
-export { position, can, Photos, found, canvas };
+export { position, can, Photos, found, canvas, turned };

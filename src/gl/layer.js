@@ -52,6 +52,12 @@ const FADE =
  *                                         not at the first sign of use.
  * @param {boolean}  [options.preserve]    Keep the drawing readable, for
  *                                         tests and screenshots.
+ * @param {Set<Function>} [options.hooks]  Functions that are called with
+ *                                         every quad before it is drawn,
+ *                                         before `change`: a set that the
+ *                                         page may fill and empty while the
+ *                                         layer draws. `canvas()` has
+ *                                         `draw()` for it.
  */
 export function gl( {
 	effects = [],
@@ -60,6 +66,7 @@ export function gl( {
 	perspective = 1200,
 	eager = false,
 	preserve = false,
+	hooks = new Set(),
 } = {} ) {
 	// The plugin, for the `plugins` of a slider.
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
@@ -399,6 +406,13 @@ export function gl( {
 			return out;
 		};
 
+		// What the page and the lightbox make of a quad before it is drawn:
+		// the hooks first, then `change`.
+		const moved = ( i ) => {
+			hooks.forEach( ( hook ) => hook( i, next ) );
+			layer.change?.( i, next );
+		};
+
 		const layer = {
 			name: 'gl',
 
@@ -647,7 +661,7 @@ export function gl( {
 						// As the other slides: one that the lightbox lets
 						// grow out of the stack is drawn once, where it is.
 						Object.assign( next, { x: 0, y: 0, w: width, h: height, a: a || EMPTY, radius: 0, shape: 2, speed: 0, fx: 1, dim: 1, clip: true } );
-						layer.change?.( from, next );
+						moved( from );
 						quad( next.x, next.y, next.w, next.h, next.a, b || EMPTY, mix, mix, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip );
 					}
 					return;
@@ -690,7 +704,7 @@ export function gl( {
 						next.top = false;
 						next.media = null;
 						next.p = place.p;
-						layer.change?.( i, next );
+						moved( i );
 						const { w, h, media: of } = next;
 						if ( ! next.a ) {
 							return;

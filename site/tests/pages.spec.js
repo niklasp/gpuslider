@@ -20,6 +20,7 @@ const DOCS = [
 	[ '/docs/effects/', 'Effects and transitions' ],
 	[ '/docs/lightbox/', 'Lightbox' ],
 	[ '/docs/loading/', 'Loading' ],
+	[ '/docs/extending/', 'Extending' ],
 	[ '/docs/size/', 'Size, and what is not there yet' ],
 ];
 
