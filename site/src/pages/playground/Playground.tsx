@@ -190,6 +190,30 @@ export default function Playground() {
 				</Section>
 
 				<Section
+					title="Videos"
+					note={ 'A film is a slide as a picture is: the canvas draws each new frame of it, with the effects that are chosen. It plays while its slide is in view and stops when it leaves, and one that says preload="none" is loaded when it comes.' }
+				>
+					<GpuSlider
+						id="films"
+						label="Videos"
+						options={ options }
+						className="cards"
+						style={
+							{
+								...look,
+								'--gs-per-view': 2,
+								'--gs-gap': `${ config.gap }px`,
+							} as CSSProperties
+						}
+						{ ...shared }
+					>
+						<Slide video="a" alt="" className="card wide" sizes={ share } />
+						<Slide video="c" alt="Colour field that moves" className="card wide" sizes={ share } />
+						<Slide video="b" always alt="Colour field that moves" className="card wide" sizes={ share } />
+					</GpuSlider>
+				</Section>
+
+				<Section
 					title="Several per view"
 					note="Slides per view and gap are CSS custom properties: set them under Slider."
 				>

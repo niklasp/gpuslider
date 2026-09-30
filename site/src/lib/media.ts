@@ -154,11 +154,17 @@ export const pinned = ( n: number, sizes: string ) => {
 export const FILM = 'Someone walking into a tunnel of coloured lights';
 
 /**
+ * The films: `a` the one of Pexels, `b` a colour field that moves, high,
+ * and `c` one that is wide, which is a film whatever the pictures are.
+ */
+export type Film = 'a' | 'b' | 'c';
+
+/**
  * Whether there is a film of that name in the pictures chosen: `b` is a
  * colour field that moves, and a photo where the pictures are photos.
  */
-export const filmed = ( name: 'a' | 'b', of: Kind = 'fields' ) =>
-	of === 'fields' || name === 'a';
+export const filmed = ( name: Film, of: Kind = 'fields' ) =>
+	of === 'fields' || name !== 'b';
 
 /** What a `<video>` needs. */
 /** Whether the visitor has asked for less motion. */
@@ -193,10 +199,15 @@ export const film = ( el: HTMLVideoElement | null ) => {
 	}
 };
 
-export const video = ( name: 'a' | 'b' ) => ( {
-	src: `/media/${ name === 'a' ? 'film' : name }.mp4`,
-	poster: `/media/${ name === 'a' ? 'film' : name }-poster.avif`,
-	...( name === 'a'
-		? { width: 960, height: 540 }
-		: { width: 960, height: 1200 } ),
-} );
+export const video = ( name: Film ) => {
+	const file = { a: 'film', b: 'b', c: 'a' }[ name ];
+	return {
+		src: `/media/${ file }.mp4`,
+		poster: `/media/${ file }-poster.avif`,
+		...{
+			a: { width: 960, height: 540 },
+			b: { width: 960, height: 1200 },
+			c: { width: 1280, height: 720 },
+		}[ name ],
+	};
+};

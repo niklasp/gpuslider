@@ -13,7 +13,7 @@ import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 // Classes that do not contradict each other need no merger.
 const cn = ( ...classes: ( string | undefined )[] ) =>
 	classes.filter( Boolean ).join( ' ' );
-import { FILM, film, filmed, image, photo, useKind, video } from '@/lib/media';
+import { FILM, film, filmed, image, photo, useKind, video, type Film } from '@/lib/media';
 
 type Props = {
 	id: string;
@@ -365,7 +365,9 @@ type SlideProps = {
 	/** Number of an image of the site. */
 	image?: number;
 	/** Name of a video of the site. */
-	video?: 'a' | 'b';
+	video?: Film;
+	/** The video whatever the pictures are, not a photo in its place. */
+	always?: boolean;
 	alt: string;
 	/** How wide the slide is on the page: what `sizes` of an image says. */
 	sizes?: string;
@@ -378,6 +380,7 @@ type SlideProps = {
 export function Slide( {
 	image: n,
 	video: name,
+	always,
 	alt,
 	sizes = '100vw',
 	first,
@@ -385,9 +388,11 @@ export function Slide( {
 	children,
 }: SlideProps ) {
 	const kind = useKind();
+	// A picture in place of a film: `c` is a film always.
+	const picture = ( n ?? name ) as number | 'a' | 'b';
 	return (
 		<div className={ cn( 'gs-slide', className ) }>
-			{ name && filmed( name, kind ) ? (
+			{ name && ( always || filmed( name, kind ) ) ? (
 				<video
 					className="gs-media"
 					{ ...video( name ) }
@@ -401,9 +406,9 @@ export function Slide( {
 			) : (
 				<img
 					className="gs-media"
-					{ ...image( ( n ?? name )!, kind ) }
+					{ ...image( picture, kind ) }
 					sizes={ sizes }
-					alt={ kind === 'photos' ? photo( ( n ?? name )! ).alt : alt }
+					alt={ kind === 'photos' ? photo( picture ).alt : alt }
 					draggable={ false }
 					decoding="async"
 					loading={ first ? 'eager' : 'lazy' }
