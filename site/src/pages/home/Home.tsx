@@ -551,6 +551,34 @@ function Stage() {
 	// The time of a move, changed on the slider that there is.
 	const [ time, setTime ] = useState( 900 );
 	const slider = useRef< Slider | null >( null );
+	const [ live, setLive ] = useState< Slider | null >( null );
+	// Frames per second, of the frames the slider draws anyway: counted
+	// on each, said twice a second. At rest it draws none, and says so.
+	const fps = useRef< HTMLSpanElement >( null );
+	useEffect( () => {
+		if ( ! live ) {
+			return;
+		}
+		let frames = 0;
+		let since = performance.now();
+		const off = live.on( 'frame', () => frames++ );
+		const tell = setInterval( () => {
+			const now = performance.now();
+			const { gpu, gl } = live.plugins;
+			const by = gpu?.canvas ? 'WebGPU' : gl?.canvas ? 'WebGL' : 'the page';
+			if ( fps.current ) {
+				fps.current.textContent = frames
+					? `${ Math.round( ( frames * 1000 ) / ( now - since ) ) } fps · ${ by }`
+					: `at rest, no frames · ${ by }`;
+			}
+			frames = 0;
+			since = now;
+		}, 500 );
+		return () => {
+			off();
+			clearInterval( tell );
+		};
+	}, [ live ] );
 	const kind = useKind();
 	const heard = useCallback( ( event: string, detail: unknown ) => {
 		const root = document.getElementById( 'first' );
@@ -586,7 +614,10 @@ function Stage() {
 				// Said in the HTML: a stack before the script is there.
 				className="stage gs-stack"
 				options={ { loop: true, duration: time, ease: SNAP, start: at.current.index } }
-				onSlider={ ( made ) => ( slider.current = made ) }
+				onSlider={ ( made ) => {
+					slider.current = made;
+					setLive( made );
+				} }
 				made="stage"
 				measured=""
 				pause
@@ -614,6 +645,12 @@ function Stage() {
 					} ),
 				] }
 				over={
+					<>
+					<span
+						ref={ fps }
+						aria-hidden
+						className="sq-pill absolute start-4 top-4 bg-black/30 px-2.5 py-1 font-mono text-[11px] text-white/60 tabular-nums ring-1 ring-white/10 backdrop-blur-md md:start-6 md:top-6"
+					/>
 					<div className="absolute inset-x-0 bottom-0 grid grid-cols-[minmax(0,1fr)] justify-items-start gap-5 bg-gradient-to-t from-black/55 via-black/20 to-transparent px-6 pt-40 pb-24 md:gap-6 md:px-14 lg:pe-72 lg:pb-8">
 						<h1 className="glow max-w-[13ch] font-display text-5xl leading-[0.95] font-semibold tracking-[-0.045em] text-balance text-white sm:text-7xl xl:text-8xl">
 							A slider drawn by shaders.
@@ -688,6 +725,7 @@ function Stage() {
 						</label>
 						</div>
 					</div>
+					</>
 				}
 			>
 				<Slide image={ 1 } alt="Warm colour field" className="full" sizes="100vw" first>
