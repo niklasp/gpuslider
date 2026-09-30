@@ -1,8 +1,8 @@
 /**
- * The docs of the site are the README of the library, cut into pages:
+ * The docs of the site are DOCS.md of the library, cut into pages:
  * what is said about the library is said in one place.
  *
- * A plugin of Vite. It reads `../README.md` when the site is built or
+ * A plugin of Vite. It reads `../DOCS.md` when the site is built or
  * served, and gives the site
  *
  *     virtual:docs          the pages: their names, what they are about,
@@ -10,19 +10,19 @@
  *                           first page
  *     virtual:docs/<page>   a page as HTML
  *
- * A page names the parts of the README it is made of by their headings.
+ * A page names the parts of DOCS.md it is made of by their headings.
  */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { Marked } from 'marked';
 import type { Plugin } from 'vite';
 
-const README = path.resolve( import.meta.dirname, '../README.md' );
+const SOURCE = path.resolve( import.meta.dirname, '../DOCS.md' );
 
 type Part =
 	| string
 	| {
-			/** The heading in the README. */
+			/** The heading in DOCS.md. */
 			part: string;
 			/** The heading on the page, where it is another. */
 			as?: string;
@@ -198,7 +198,7 @@ export function highlight( code: string, lang = '' ) {
 
 type Section = { level: number; title: string; lines: string[] };
 
-/** The README as its headings of the second and third level. */
+/** DOCS.md as its headings of the second and third level. */
 function sections( text: string ): Section[] {
 	const all: Section[] = [];
 	let fenced = false;
@@ -216,10 +216,10 @@ function sections( text: string ): Section[] {
 	return all;
 }
 
-/** Everything the site is given, made of the README as it is now. */
+/** Everything the site is given, made of DOCS.md as it is now. */
 function read() {
-	const all = sections( readFileSync( README, 'utf8' ) );
-	/** Where a heading of the README is on the site. */
+	const all = sections( readFileSync( SOURCE, 'utf8' ) );
+	/** Where a heading of DOCS.md is on the site. */
 	const places: Record< string, string > = {};
 
 	const markdown = DOCS.map( ( doc ) => {
@@ -230,7 +230,7 @@ function read() {
 			const from = all.findIndex( ( { title } ) => title === part );
 			if ( from < 0 ) {
 				throw new Error(
-					`The docs ask for "${ part }", and the README has no such heading.`
+					`The docs ask for "${ part }", and DOCS.md has no such heading.`
 				);
 			}
 			const top = all[ from ].level;
@@ -293,11 +293,11 @@ function read() {
 				},
 				link( { href, tokens } ) {
 					const inner = this.parser.parseInline( tokens );
-					// To a heading of the README: to where it is on the site.
+					// To a heading of DOCS.md: to where it is on the site.
 					let to = href.startsWith( '#' ) ? places[ href.slice( 1 ) ] : href;
 					if ( ! to ) {
 						throw new Error(
-							`The README links to "${ href }", which is on no page of the docs.`
+							`DOCS.md links to "${ href }", which is on no page of the docs.`
 						);
 					}
 					if ( doc && to.startsWith( `${ addressOf( doc ) }#` ) ) {
@@ -325,7 +325,7 @@ function read() {
 		const [ , lang, text ] =
 			/```(\w*)\n([\s\S]*?)\n```/.exec( found?.lines.join( '\n' ) || '' ) || [];
 		if ( ! text ) {
-			throw new Error( `No code under "${ title }" in the README.` );
+			throw new Error( `No code under "${ title }" in DOCS.md.` );
 		}
 		return highlight( text, lang );
 	};
@@ -353,7 +353,7 @@ export function docs(): Plugin {
 			if ( ! id.startsWith( `\0${ ID }` ) ) {
 				return null;
 			}
-			this.addWatchFile( README );
+			this.addWatchFile( SOURCE );
 			const { pages, code } = read();
 			const name = id.slice( ID.length + 2 );
 			if ( name ) {
@@ -375,9 +375,9 @@ export function docs(): Plugin {
 				`};`,
 			].join( '\n' );
 		},
-		// The README has changed: the pages that are made of it are others.
+		// DOCS.md has changed: the pages that are made of it are others.
 		handleHotUpdate( { file, server } ) {
-			if ( file === README ) {
+			if ( file === SOURCE ) {
 				for ( const [ id, module ] of server.moduleGraph.idToModuleMap ) {
 					if ( id.startsWith( `\0${ ID }` ) ) {
 						server.moduleGraph.invalidateModule( module );

@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-// The README of the library as pages: see `docs.ts`.
+// DOCS.md of the library as pages: see `docs.ts`.
 declare module 'virtual:docs' {
 	export const pages: {
 		name: string;

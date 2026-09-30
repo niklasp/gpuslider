@@ -207,10 +207,10 @@ writeFileSync(
 	resolve( dist, 'robots.txt' ),
 	`${ readFileSync( resolve( dist, 'robots.txt' ), 'utf8' ).trim() }\n\nSitemap: ${ ORIGIN }/sitemap.xml\n`
 );
-// For language models: all the docs in one file, as the README has them.
+// For language models: all the docs in one file, as DOCS.md has them.
 writeFileSync(
 	resolve( dist, 'llms-full.txt' ),
-	readFileSync( resolve( import.meta.dirname, '../README.md' ), 'utf8' )
+	readFileSync( resolve( import.meta.dirname, '../DOCS.md' ), 'utf8' )
 );
 // eslint-disable-next-line no-console
 console.log( `dist/sitemap.xml: ${ found.length } pages, for ${ ORIGIN }` );

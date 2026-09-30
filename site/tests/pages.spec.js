@@ -324,7 +324,7 @@ test.describe( 'the docs', () => {
 	} );
 
 	test( 'what they say is what the README says', async ( { page } ) => {
-		const readme = readFileSync( new URL( '../../README.md', import.meta.url ), 'utf8' );
+		const readme = readFileSync( new URL( '../../DOCS.md', import.meta.url ), 'utf8' );
 		await page.goto( '/docs/options/' );
 		const text = page.getByTestId( 'text' );
 		await expect( text.getByRole( 'heading', { level: 2 } ) ).toHaveText( [
@@ -432,7 +432,7 @@ test.describe( 'the docs', () => {
 } );
 
 test( 'the sizes of the README are the ones that were measured', () => {
-	const readme = readFileSync( new URL( '../../README.md', import.meta.url ), 'utf8' );
+	const readme = readFileSync( new URL( '../../DOCS.md', import.meta.url ), 'utf8' );
 	const { parts, dist } = read( 'sizes.json' );
 	for ( const [ row, bytes ] of [
 		[ 'Core', parts.core ],
