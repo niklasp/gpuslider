@@ -1,3 +1,7 @@
+// A component of the client: a page of Next.js that is rendered on the
+// server may have a <Slider> in it, and its slides may be of the server.
+'use client';
+
 /**
  * The slider in React: React renders the slides, the slider moves them.
  *

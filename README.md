@@ -194,6 +194,81 @@ Its second argument is what the slider is made again for.
 
 The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.7 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 12.5 KB.
 
+### Rendered on the server
+
+`gpuslider/react` says `'use client'`: in Next.js a page that is rendered on the server has a `<Slider>` in it as it is, and the slides in it may be of the server. The server renders the slider as the browser has it before the script: the element, the track, the slides and their images, and without the script it is a row that scrolls and snaps. No module of the library touches `window` or `document` when it is imported; the slider is made in an effect, and the canvas is loaded in the browser, when the page has time.
+
+What keeps the page from moving when the script comes is CSS, which the server sends too:
+
+- `gpuslider/style.css` in the page, as early as the rest of its CSS.
+- The layout in the markup: `className="gs-stack"` for a stack, `--gs-per-view` and `--gs-gap` in a class or in `style`.
+- A size for the slides, as for any image: an `aspect-ratio`, or a height of the slider.
+
+A test renders a page of sliders with `renderToString`, hydrates it in Chromium, Firefox and WebKit, and holds it to no mismatch, no slide in view that moves, and no shift of the layout while the canvas takes over.
+
+With `next/image` the image of a slide is the one of Next, with `gs-media` for its class; the first one has `priority`, the others load as they come:
+
+```jsx
+import Image from 'next/image';
+import { Slider, Slide } from 'gpuslider/react';
+import { controls } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { stretch } from 'gpuslider/effects';
+import 'gpuslider/style.css';
+
+export default function Page( { photos } ) {
+	return (
+		<Slider
+			className="photos"
+			plugins={ [ controls(), canvas( { effects: [ stretch() ] } ) ] }
+			aria-label="Photos"
+		>
+			{ photos.map( ( photo, i ) => (
+				<Slide key={ photo.src }>
+					<Image
+						className="gs-media"
+						src={ photo.src }
+						alt={ photo.alt }
+						width={ photo.width }
+						height={ photo.height }
+						sizes="(max-width: 640px) 100vw, 33vw"
+						priority={ i === 0 }
+					/>
+				</Slide>
+			) ) }
+		</Slider>
+	);
+}
+```
+
+A page of Server Components that gives its slides to `<Slider>` needs nothing more; the plugins are made where `<Slider>` is, in a component of the client, as they are functions.
+
+In Nuxt, and elsewhere with Nitro, the server renders the markup of the slider as HTML (see [Without a script of your own](#without-a-script-of-your-own) for what it is), and the slider is made once the page is mounted:
+
+```vue
+<script setup>
+import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { createSlider } from 'gpuslider';
+import { controls } from 'gpuslider/plugins';
+import 'gpuslider/style.css';
+
+const root = ref();
+let slider;
+onMounted( () => ( slider = createSlider( root.value, { plugins: [ controls() ] } ) ) );
+onBeforeUnmount( () => slider?.destroy() );
+</script>
+
+<template>
+	<div ref="root" class="gs" aria-label="Photos">
+		<div class="gs-track">
+			<div v-for="photo in photos" :key="photo.src" class="gs-slide">
+				<img class="gs-media" v-bind="photo" />
+			</div>
+		</div>
+	</div>
+</template>
+```
+
 ### Three tiers
 
 Without the script the slider is a native scroller with scroll-snap.
