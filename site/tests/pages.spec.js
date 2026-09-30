@@ -116,6 +116,17 @@ test.describe( 'the first page', () => {
 			( one ) => one.layer === 'gpu' && one.effects === 'stretch,waves'
 		).second;
 		await expect( numbers.nth( 2 ) ).toContainText( `${ Math.round( second ) }ms` );
+		// The scores of Lighthouse, for a phone and, when chosen, a desktop.
+		const { pages } = read( 'lighthouse.json' );
+		const scores = page.getByTestId( 'scores' ).getByRole( 'listitem' );
+		await expect( scores ).toHaveCount( 5 );
+		await expect( scores.first() ).toContainText(
+			`Performance: ${ pages[ '/' ].mobile.performance } of 100`
+		);
+		await page.getByRole( 'button', { name: 'Desktop' } ).click();
+		await expect( scores.first() ).toContainText(
+			`Performance: ${ pages[ '/' ].desktop.performance } of 100`
+		);
 
 		await expect( page.getByTestId( 'sizes' ).getByRole( 'listitem' ).first() ).toContainText(
 			`${ kb( parts.core ) } KB`

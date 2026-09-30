@@ -357,3 +357,68 @@
 .bleed + p {
 	text-align: center;
 }
+
+/* A score of Lighthouse: a ring that fills to it, in the colour
+   Lighthouse gives it, and its number in the middle. */
+.gauge {
+	--grade: #0cce6b;
+
+	display: grid;
+	justify-items: center;
+	gap: 14px;
+	text-align: center;
+}
+
+.gauge[data-grade="fair"] {
+	--grade: #ffa400;
+}
+
+.gauge[data-grade="poor"] {
+	--grade: #ff4e42;
+}
+
+.gauge .dial {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: clamp(92px, 11vw, 136px);
+	aspect-ratio: 1;
+}
+
+.gauge svg {
+	position: absolute;
+	inset: 0;
+	rotate: -90deg;
+	overflow: visible;
+}
+
+.gauge circle {
+	fill: none;
+	stroke-width: 6;
+}
+
+.gauge circle:first-child {
+	stroke: color-mix(in oklab, var(--grade) 16%, transparent);
+}
+
+.gauge circle + circle {
+	stroke: var(--grade);
+	stroke-linecap: round;
+	stroke-dasharray: 100;
+	filter: drop-shadow(0 0 6px color-mix(in oklab, var(--grade) 55%, transparent));
+}
+
+.gauge .value {
+	color: var(--grade);
+	font-family: var(--font-display);
+	font-size: clamp(34px, 3.4vw, 44px);
+	font-weight: 600;
+	letter-spacing: -0.04em;
+	font-variant-numeric: tabular-nums;
+}
+
+.gauge .name {
+	width: clamp(96px, 11vw, 136px);
+	color: var(--muted-foreground);
+	font-size: 14px;
+}

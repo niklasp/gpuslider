@@ -1,5 +1,6 @@
 import {
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useRef,
 	useState,
@@ -369,6 +370,147 @@ function Measured() {
 					What it says, and what it does not
 				</a>
 			</p>
+		</div>
+	);
+}
+
+/** What Lighthouse gives a score for, as it names it. */
+const AUDITS = [
+	[ 'performance', 'Performance' ],
+	[ 'accessibility', 'Accessibility' ],
+	[ 'best-practices', 'Best practices' ],
+	[ 'seo', 'SEO' ],
+	[ 'agentic-browsing', 'Agentic browsing' ],
+] as const;
+
+const DEVICES = { mobile: 'Phone', desktop: 'Desktop' } as const;
+
+/** How a ring fills: fast, and slowing to its score. */
+const FILL = ( u: number ) => 1 - ( 1 - u ) ** 3;
+
+/**
+ * The scores Lighthouse gave this page, as rings that fill and numbers
+ * that count up once they are in view, one after the other. The page
+ * that is built has them as they are: for search, for readers of the
+ * screen, and without motion.
+ */
+function Scores( { scores }: { scores: NonNullable< ReturnType< typeof lighthouse > > } ) {
+	const [ device, setDevice ] = useState< keyof typeof DEVICES >( 'mobile' );
+	const target = AUDITS.map( ( [ key ] ) => scores[ device ][ key ] ?? 0 );
+	const [ shown, setShown ] = useState( target );
+	const list = useRef< HTMLUListElement >( null );
+	const now = useRef( target );
+	const seen = useRef( false );
+	const frame = useRef( 0 );
+
+	// From what is shown to the scores, each ring a little after the last.
+	const go = useCallback( ( to: number[] ) => {
+		cancelAnimationFrame( frame.current );
+		const from = now.current.slice();
+		const start = performance.now();
+		const step = ( time: number ) => {
+			const at = to.map( ( value, i ) => {
+				const u = Math.min( 1, Math.max( 0, ( time - start - i * 140 ) / 1800 ) );
+				return from[ i ] + ( value - from[ i ] ) * FILL( u );
+			} );
+			now.current = at;
+			setShown( at );
+			if ( at.some( ( value, i ) => value !== to[ i ] ) ) {
+				frame.current = requestAnimationFrame( step );
+			}
+		};
+		frame.current = requestAnimationFrame( step );
+	}, [] );
+
+	const key = target.join();
+	useEffect( () => {
+		const el = list.current;
+		if ( ! el || matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) {
+			now.current = target;
+			setShown( target );
+			return;
+		}
+		if ( seen.current ) {
+			go( target );
+			return;
+		}
+		// Empty until they are seen.
+		now.current = target.map( () => 0 );
+		setShown( now.current );
+		const watch = new IntersectionObserver(
+			( [ entry ] ) => {
+				if ( entry.isIntersecting ) {
+					seen.current = true;
+					watch.disconnect();
+					go( target );
+				}
+			},
+			{ threshold: 0.5 }
+		);
+		watch.observe( el );
+		return () => {
+			watch.disconnect();
+			cancelAnimationFrame( frame.current );
+		};
+		// The scores of the device chosen.
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [ key, go ] );
+
+	return (
+		<div className="grid justify-items-center gap-10">
+			<div role="group" aria-label="Measured on" className="flex gap-2">
+				{ ( Object.keys( DEVICES ) as ( keyof typeof DEVICES )[] ).map( ( one ) => (
+					<button
+						key={ one }
+						type="button"
+						className={ BUTTON }
+						aria-pressed={ one === device }
+						aria-current={ one === device ? 'true' : undefined }
+						onClick={ () => setDevice( one ) }
+					>
+						{ DEVICES[ one ] }
+					</button>
+				) ) }
+			</div>
+			<ul
+				ref={ list }
+				data-testid="scores"
+				className="flex w-full flex-wrap justify-center gap-x-6 gap-y-10 md:justify-between"
+			>
+				{ AUDITS.map( ( [ key, name ], i ) => {
+					const value = shown[ i ];
+					const score = target[ i ];
+					return (
+						<li
+							key={ key }
+							className="gauge"
+							data-grade={ score >= 90 ? 'good' : score >= 50 ? 'fair' : 'poor' }
+						>
+							<span className="dial">
+								<svg viewBox="0 0 100 100" aria-hidden>
+									<circle cx="50" cy="50" r="44" pathLength={ 100 } />
+									<circle
+										cx="50"
+										cy="50"
+										r="44"
+										pathLength={ 100 }
+										style={ { strokeDashoffset: 100 - value } }
+									/>
+								</svg>
+								<span aria-hidden className="value">
+									{ Math.round( value ) }
+								</span>
+							</span>
+							<span aria-hidden className="name">
+								{ name }
+							</span>
+							<span className="sr-only">
+								{ name }: { score } of 100
+							</span>
+						</li>
+					);
+				} ) }
+			</ul>
 		</div>
 	);
 }
@@ -753,18 +895,22 @@ export default function Home() {
 							{ gl.canvases }
 						</Figure>
 						<Figure value={ 0 }>Frames drawn while nothing moves</Figure>
-						{ scores ? (
-							<Figure value={ scores.desktop.performance }>
-								Lighthouse performance of this page; { scores.mobile.performance }{ ' ' }
-								on a phone. { asked }
-							</Figure>
-						) : (
-							<Figure value={ count( 'effect' ) + count( 'transition' ) }>
-								Effects and transitions
-							</Figure>
-						) }
+						<Figure value={ count( 'effect' ) + count( 'transition' ) }>
+							Effects and transitions
+						</Figure>
 					</ul>
 				</Section>
+
+				{ scores && (
+					<Section
+						center
+						id="score"
+						title="Its score"
+						note={ `What Lighthouse says of this page, with its sliders, its films and its canvas, as it is built. Asked on ${ asked }.` }
+					>
+						<Scores scores={ scores } />
+					</Section>
+				) }
 
 				</div>
 
