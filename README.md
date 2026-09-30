@@ -572,7 +572,7 @@ import { gl, stretch } from 'gpuslider/gl';     // WebGL 2, or the page draws
 
 The canvas is made at the first sign of use: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same, and the page has loaded without a context and without a shader. A slider that moves by itself (autoplay, a ticker), or whose effects show at rest, gets its canvas when the page has time. `eager: true` makes it with the slider.
 
-Shaders are compiled on another thread where the browser can, and no frame is drawn while nothing moves.
+Shaders are compiled on another thread where the browser can, and no frame is drawn while nothing moves. While the slider rests, the textures of the images next to the slides in view are made, so the first move to a picture is as smooth as the second.
 
 ### WebGPU and WebGL, measured
 
@@ -819,8 +819,8 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.2 KB |
-| Canvas layer of WebGL 2 | 7.2 KB |
+| Canvas layer of WebGPU | 9.3 KB |
+| Canvas layer of WebGL 2 | 7.4 KB |
 | An effect | 0.2 to 0.9 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 2.2 KB |

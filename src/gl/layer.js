@@ -17,7 +17,7 @@
  */
 import { compose, build, ready } from './program.js';
 import { createTextures } from './textures.js';
-import { fit, styleOf } from './fit.js';
+import { fit, nearby, styleOf } from './fit.js';
 
 // Contexts in use. Browsers drop the oldest beyond about 16 per page.
 const MAX_LIVE = 12;
@@ -289,6 +289,7 @@ export function gl( {
 			root.classList.add( 'gs-gl' );
 			slider.wake();
 			slider.emit( 'gl:on', canvas );
+			ahead();
 		}
 
 		function detach( lost ) {
@@ -320,6 +321,16 @@ export function gl( {
 				g.getExtension( 'WEBGL_lose_context' )?.loseContext();
 			}
 		}
+
+		// The textures of the slides next to those in view, made while the
+		// slider rests.
+		const ahead = nearby( slider, media, boxes, ( element, w ) =>
+			context?.textures.get(
+				element,
+				w * Math.min( density, win.devicePixelRatio || 1 )
+			)
+		);
+		slider.on( 'settle', ahead );
 
 		const observer = new win.IntersectionObserver(
 			( entries ) => {

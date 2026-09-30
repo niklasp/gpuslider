@@ -103,7 +103,7 @@ parts.push( {
 if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 7424,
+		budget: 7680,
 		size: await measure(
 			`import { gl } from './src/gl/index.js'; export { gl };`
 		),
@@ -124,7 +124,7 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 	} );
 	parts.push( {
 		name: 'canvas layer of WebGPU, no effects',
-		budget: 9472,
+		budget: 9728,
 		size: await measure(
 			`import { gpu } from './src/gpu/index.js'; export { gpu };`
 		),

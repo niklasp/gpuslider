@@ -138,8 +138,8 @@ slider.destroy();
 | Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.06 KB | 7.0 KB (7198 of 7232 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 7.25 KB | 7.2 KB (7366 of 7424 B) |
-| Canvas layer of WebGPU without effects | 9.25 KB | 9.2 KB (9390 of 9472 B) |
+| Canvas layer of WebGL 2 without effects | 7.5 KB | 7.4 KB (7553 of 7680 B) |
+| Canvas layer of WebGPU without effects | 9.5 KB | 9.3 KB (9573 of 9728 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.9 KB (slab: 945 B) |
@@ -157,6 +157,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **Full, 7 to 7.06 KB.** The track is a polite live region, which autoplay turns off while it runs (the carousel pattern of the WAI): a reader of the screen hears the slide that the visitor brings, not every one that comes by itself. 30 bytes, with 7 left.
 - **A page in React with the canvas, 12.75 to 13 KB.** The hooks of `draw()` (decision 31) start the canvas when there is one, before the layer is there and after: a hook has nothing to change without it. 3 bytes over.
 - **Lightbox, 2 to 2.25 KB.** Its arrows come from where the arrows of the slider are and go back there, as far as it is open, instead of fading out on the page and in on the screen; `controls()` says what its buttons are (`elements`). 184 bytes over, with 2 left before.
+- **Canvas layer, 7.25 to 7.5 KB, and the one of WebGPU, 9.25 to 9.5 KB.** The textures of the slides next to those in view are made while the slider rests (decision 33): the first move to a picture had a frame of 175 to 285 ms in Chrome with the processor slowed six times, as a phone, and has one of 25 to 42 ms. 187 bytes in WebGL and 183 in WebGPU, with 58 and 82 left before.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -493,6 +494,13 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **Why:** the first page offered its transitions by making a new slider for each, whose canvas had to be made and compiled again: a move soon after was drawn by the page. And a page with one transition should have only that one in its bundle, so that the sizes it is told are the sizes it gets.
 - **Not:** a layer that swaps its shader at runtime. That is code in both layers, over their budgets, and a canvas of another kind when a mesh comes or goes.
 - **Sizes:** 282 bytes, a part of its own with a budget of 512. A shader with ten transitions is made once, and takes longer to compile than one with one.
+
+### 33. The textures of the next slides are made at rest
+
+- **What:** when the canvas starts and when the slider settles, in the page's idle time, both layers ask for the textures of the images next to the slides in view (around, in a loop), at the width they will be drawn at. Videos are not: their texture follows the film.
+- **Why:** the user on 2026-09-30, on a phone: the first time each image comes, 30 frames a second or less, the second time 60. A texture was asked for when its slide was first drawn, in the move to it: the bitmap made smaller, the copy to the GPU and the smaller copies of it held one frame of that move. Measured in Chrome, the processor slowed six times, the slider at the top, 4 s between moves: the longest frame of a first move 175 to 283 ms before, 25 to 42 ms after.
+- **Not:** all slides at once, which is memory for pictures that may never come, and work while the page loads. Nor decoding the images before (`decode()`): tried, and it changed nothing; the time is in making the texture.
+- **Sizes:** a helper in `gl/fit.js` that both use, 0.18 KB in each layer. See the budgets.
 
 ## Modules
 

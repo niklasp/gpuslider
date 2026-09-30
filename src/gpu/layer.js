@@ -14,7 +14,7 @@
  */
 import { compose } from './program.js';
 import { createTextures } from './textures.js';
-import { fit, styleOf } from '../gl/fit.js';
+import { fit, nearby, styleOf } from '../gl/fit.js';
 
 // Squares per side of a quad that bends.
 const MESH = 32;
@@ -349,6 +349,7 @@ export function gpu( {
 			root.classList.add( 'gs-gl' );
 			slider.wake();
 			slider.emit( 'gpu:on', canvas );
+			ahead();
 		}
 
 		function detach( lost ) {
@@ -372,6 +373,18 @@ export function gpu( {
 				targets?.forEach( ( target ) => target.destroy() );
 			}
 		}
+
+		// The textures of the slides next to those in view, made while the
+		// slider rests.
+		const ahead = nearby( slider, media, boxes, ( element, w ) =>
+			context?.shared.textures.get(
+				slider.wake,
+				element,
+				w * Math.min( density, win.devicePixelRatio || 1 ),
+				maxSize
+			)
+		);
+		slider.on( 'settle', ahead );
 
 		const observer = new win.IntersectionObserver(
 			( entries ) => {

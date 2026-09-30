@@ -118,3 +118,40 @@ export const empty = ( canvas ) =>
 		.getContext( '2d' )
 		.getImageData( 0, 0, 4, 4 )
 		.data.some( ( n ) => n );
+
+/**
+ * Makes the textures of the slides next to those in view, when the page
+ * has time: the first move to a picture does not wait for its texture,
+ * which on a phone costs frames. Images only: a video is uploaded while it
+ * plays.
+ *
+ * @param {import('../index.js').Slider} slider Slider.
+ * @param {HTMLElement[]} media The media of the slides.
+ * @param {Object[]}      boxes Their boxes, as the layers measure them.
+ * @param {( element: HTMLImageElement, width: number ) => void} get Asks
+ *        for the texture of an image drawn so wide, px.
+ * @return {() => void} Does it, when the page has time.
+ */
+export const nearby = ( slider, media, boxes, get ) => () =>
+	( slider.win.requestIdleCallback || setTimeout )( () => {
+		const { places } = slider.view;
+		const n = places.length;
+		const { loop } = slider.layout();
+		places.forEach( ( { visible }, i ) => {
+			const element = media[ i ];
+			const box = boxes[ i ];
+			if (
+				! visible &&
+				element?.naturalWidth &&
+				box &&
+				[ i - 1, i + 1 ].some(
+					( j ) => places[ loop ? ( j + n ) % n : j ]?.visible
+				)
+			) {
+				get(
+					element,
+					fit( element.naturalWidth, element.naturalHeight, box.at, 1, 1, box.style, [] )
+				);
+			}
+		} );
+	} );
