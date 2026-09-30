@@ -12,7 +12,23 @@ const lib = ( id: string ) =>
 	id.startsWith( library ) ? id.slice( library.length ).split( path.sep ).join( '/' ) : '';
 
 export default defineConfig( {
-	plugins: [ react(), tailwindcss(), docs() ],
+	plugins: [
+		react(),
+		tailwindcss(),
+		docs(),
+		{
+			// The stories of the journal are one page, as the docs are.
+			name: 'journal',
+			configureServer( server ) {
+				server.middlewares.use( ( request, _, next ) => {
+					if ( /^\/examples\/journal\/[a-z-]+\/(\?.*)?$/.test( request.url || '' ) ) {
+						request.url = '/examples/journal/index.html';
+					}
+					next();
+				} );
+			},
+		},
+	],
 	// The generated media of the repo: /media/1.jpg
 	publicDir: path.resolve( import.meta.dirname, 'public' ),
 	resolve: {
@@ -83,6 +99,7 @@ export default defineConfig( {
 					'examples/loom/index',
 					'examples/wave/index',
 					'examples/depth/index',
+					'examples/journal/index',
 					'playground/index',
 					'phone/index',
 				].map( ( page ) => [

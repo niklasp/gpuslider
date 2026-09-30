@@ -216,6 +216,7 @@ test.describe( 'the playground', () => {
 			'Loom',
 			'Wave',
 			'Depth',
+			'Journal',
 			'Docs',
 		] );
 		await links.getByRole( 'link', { name: 'Tape' } ).click();

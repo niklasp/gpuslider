@@ -24,6 +24,7 @@ const PAGES = {
 	loom: '/examples/loom/',
 	wave: '/examples/wave/',
 	depth: '/examples/depth/',
+	journal: '/examples/journal/',
 };
 
 const browser = await chromium.launch( { args: [ '--use-angle=metal' ] } );

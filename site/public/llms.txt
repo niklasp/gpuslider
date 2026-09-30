@@ -25,6 +25,7 @@
 - [Loom](/examples/loom/)
 - [Wave](/examples/wave/)
 - [Depth](/examples/depth/)
+- [Journal](/examples/journal/): a slider whose pictures open into stories on other pages, by a view transition between documents
 - [Playground](/playground/): every slider the library can be, with controls
 
 ## Use

@@ -454,6 +454,34 @@ A click on a slide lets its image grow to the screen, Escape lets it go back. In
 
 One canvas draws all of it: the one of the slider, which goes over the page while the lightbox is open. The image grows out of its slide as the slider draws it, with the effects of the slider, which fade on the way, and in the lightbox the images are drawn whole, from the file the browser picks for the screen. `punch: 0.4` lets the speed of the growing count as speed for the effects, so that an image with `stretch()` bows while it opens. Without a canvas the lightbox fades in.
 
+### Into another page
+
+A slide can open a page of its own instead, an article, with its image going along: a view transition between the two documents, where the browser has them (Chrome and Edge 126, Safari 18.2). Both pages opt in, and the page that opens has the name on its image:
+
+```css
+@view-transition { navigation: auto; }
+::view-transition-old(photo), ::view-transition-new(photo) { height: 100%; object-fit: cover; }
+```
+
+```html
+<img src="big.jpg" style="view-transition-name: photo" alt="…">
+```
+
+The slider gives the name as the page is left. The canvas draws the image and leaves its element clear, so for the picture the browser takes it is shown for that moment:
+
+```js
+addEventListener( 'pageswap', ( { activation, viewTransition } ) => {
+	const slug = activation?.entry.url.match( /\/stories\/([^/]+)\/$/ )?.[ 1 ];
+	const media = slug && document.querySelector( `[data-story="${ slug }"] .gs-media` );
+	if ( media && viewTransition ) {
+		media.style.viewTransitionName = 'photo';
+		media.style.opacity = '1';
+	}
+} );
+```
+
+On the way back `pagereveal` does the same for the slide of `navigation.activation.from`. It has to be listened to before the page is first shown, in a script in the `<head>`. The example [Journal](/examples/journal/) does all of it.
+
 ## Loading
 
 ```js
@@ -684,7 +712,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
 | Canvas layer of WebGPU | 9.1 KB |
-| Canvas layer of WebGL 2 | 7.1 KB |
+| Canvas layer of WebGL 2 | 7.2 KB |
 | An effect | 0.2 to 0.7 KB |
 | A transition | 0.2 to 0.7 KB |
 | Lightbox | 2.0 KB |

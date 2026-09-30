@@ -39,6 +39,12 @@ export const EXAMPLES = [
 		text: 'A gallery whose pictures move slower than their frames, and a panel that changes how much while it runs: the effects read their numbers on every frame.',
 		made: [ 'controls()', 'loading()', 'parallax', 'stretch' ],
 	},
+	{
+		name: 'journal',
+		title: 'Journal',
+		text: 'Stories in a slider whose pictures the canvas draws. Open one, and its picture leaves the slider and becomes the top of the story, on another page: a view transition between documents, where the browser has them.',
+		made: [ 'controls()', 'parallax', 'stretch', '@view-transition' ],
+	},
 ] as const;
 
 export function Shots( { all }: { all?: boolean } ) {
@@ -51,7 +57,8 @@ export function Shots( { all }: { all?: boolean } ) {
 					: 'grid gap-x-6 gap-y-10 md:grid-cols-3'
 			}
 		>
-			{ EXAMPLES.map( ( { name, title, text, made } ) => (
+			{ /* Six on the first page: two rows of three. */ }
+			{ EXAMPLES.slice( 0, all ? undefined : 6 ).map( ( { name, title, text, made } ) => (
 				<li
 					key={ name }
 					className={

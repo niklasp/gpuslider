@@ -17,6 +17,8 @@ import Phone from './pages/phone/Phone';
 import Loom from './pages/loom/Loom';
 import Wave from './pages/wave/Wave';
 import Depth from './pages/depth/Depth';
+import { Journal, Story } from './pages/journal/Journal';
+import { STORIES } from './pages/journal/stories';
 
 type Page = {
 	/** The file of the build the page is made of, where it is another. */
@@ -37,6 +39,18 @@ export const pages: Record< string, Page > = {
 	'examples/loom/index.html': { page: () => <Loom /> },
 	'examples/wave/index.html': { page: () => <Wave /> },
 	'examples/depth/index.html': { page: () => <Depth /> },
+	'examples/journal/index.html': { page: () => <Journal /> },
+	...Object.fromEntries(
+		STORIES.map( ( { slug, title, about } ) => [
+			`examples/journal/${ slug }/index.html`,
+			{
+				from: 'examples/journal/index.html',
+				title: `${ title } · Afterlight · ${ NAME }`,
+				description: about,
+				page: () => <Story slug={ slug } />,
+			},
+		] )
+	),
 	'playground/index.html': { page: () => <Playground /> },
 	'phone/index.html': { page: () => <Phone /> },
 	...Object.fromEntries(

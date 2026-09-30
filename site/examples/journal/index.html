@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en" class="dark">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Journal · gpu slider</title>
+		<meta name="description" content="A journal whose pictures open into their stories: the picture a visitor clicks in the slider becomes the picture at the top of the story, by a view transition between the two pages." />
+		<meta name="theme-color" content="#0b0a10" />
+		<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+		<script>
+			// The picture that is clicked in the slider becomes the picture at
+			// the top of its story: a view transition between the two pages
+			// (`@view-transition` in journal.css). The browser takes a picture
+			// of the element called `photo` on the page it leaves and on the
+			// one that comes, and grows one into the other. A story has the
+			// name on its picture in its HTML; in the slider it is given as
+			// the page is left, to the picture of the story that opens, and as
+			// the page comes back, to the one of the story it comes from.
+			// Here, before the page is shown, not in the script of the page:
+			// the page is shown before that has run.
+			( () => {
+				const story = ( url ) => url && url.match( /\/journal\/([^/]+)\/$/ )?.[ 1 ];
+				const mark = ( slug, transition ) => {
+					if ( ! transition ) {
+						return;
+					}
+					const clear = ( media ) => {
+						media.style.viewTransitionName = '';
+						media.style.opacity = '';
+					};
+					document
+						.querySelectorAll( '.gs-media[style*="view-transition-name"]' )
+						.forEach( clear );
+					const media =
+						slug && document.querySelector( `[data-story="${ slug }"] .gs-media` );
+					const r = media && media.getBoundingClientRect();
+					// Only one that is seen: one out of view would come from nowhere.
+					if ( ! r || r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight ) {
+						return;
+					}
+					// The canvas draws the picture and leaves the element clear;
+					// for the picture the browser takes, the element is seen.
+					media.style.viewTransitionName = 'photo';
+					media.style.opacity = '1';
+					transition.finished.finally( () => clear( media ) );
+				};
+				addEventListener( 'pageswap', ( event ) =>
+					mark( story( event.activation?.entry.url ), event.viewTransition )
+				);
+				addEventListener( 'pagereveal', ( event ) =>
+					mark( story( self.navigation?.activation?.from?.url ), event.viewTransition )
+				);
+			} )();
+		</script>
+	</head>
+	<body>
+		<div id="root"></div>
+		<script type="module" src="/src/pages/journal/main.tsx"></script>
+	</body>
+</html>

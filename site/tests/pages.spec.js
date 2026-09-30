@@ -222,10 +222,10 @@ test.describe( 'the first page', () => {
 } );
 
 test.describe( 'the examples', () => {
-	test( 'there are six, with a picture each, and they lead to their pages', async ( { page } ) => {
+	test( 'there are seven, with a picture each, and they lead to their pages', async ( { page } ) => {
 		await page.goto( '/examples/' );
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
-		await expect( all ).toHaveCount( 6 );
+		await expect( all ).toHaveCount( 7 );
 		await expect( all.getByRole( 'heading' ) ).toHaveText( [
 			'A wall of glass',
 			'A reel',
@@ -233,8 +233,9 @@ test.describe( 'the examples', () => {
 			'Loom',
 			'Wave',
 			'Depth',
+			'Journal',
 		] );
-		for ( const name of [ 'wall', 'reel', 'tape', 'loom', 'wave', 'depth' ] ) {
+		for ( const name of [ 'wall', 'reel', 'tape', 'loom', 'wave', 'depth', 'journal' ] ) {
 			const picture = page.locator( `img[src="/shots/${ name }.avif"]` );
 			await picture.scrollIntoViewIfNeeded();
 			await expect

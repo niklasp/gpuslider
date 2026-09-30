@@ -45,6 +45,9 @@ const PAGES = {
 		await page.evaluate( () => window.slider.next() );
 		await page.waitForTimeout( 350 );
 	},
+	journal: async ( page ) => {
+		await page.waitForTimeout( 500 );
+	},
 };
 
 const browser = await chromium.launch( {
