@@ -1,6 +1,6 @@
 {
 	"name": "gpuslider",
-	"version": "0.0.1",
+	"version": "0.1.0",
 	"description": "A slider that draws its media with WebGPU, or with WebGL. Small core, everything else a plugin. No dependencies.",
 	"type": "module",
 	"license": "MIT",

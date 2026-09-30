@@ -2,8 +2,8 @@
  * Sliders without a line of script of one's own: this file makes a slider
  * of every element with `data-gs` on the page.
  *
- *     <link rel="stylesheet" href="…/gpuslider/dist/style.css">
- *     <script type="module" src="…/gpuslider/dist/auto.js"></script>
+ *     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/style.css">
+ *     <script type="module" src="https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/auto.js"></script>
  *
  *     <div class="gs" data-gs='{ "loop": true, "autoplay": 4000 }'
  *          data-gs-canvas="stretch split">

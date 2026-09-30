@@ -1105,7 +1105,7 @@ export default function Home() {
 					center
 					id="use"
 					title="In a page"
-					note={ `From the least to load to the least to write. The library is not on npm yet.` }
+					note={ `From the least to load to the least to write. npm install gpuslider, or from a CDN.` }
 				>
 					<Ways />
 					<div>

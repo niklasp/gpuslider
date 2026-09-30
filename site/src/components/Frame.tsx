@@ -142,7 +142,9 @@ export function Footer() {
 				className={ `${ WIDTH } flex flex-wrap items-baseline gap-x-6 gap-y-2 py-8 text-sm text-muted-foreground` }
 			>
 				<span className="font-display font-medium text-foreground">{ NAME }</span>
-				<span>Not on npm yet.</span>
+				<a className="font-mono hover:text-foreground" href="https://www.npmjs.com/package/gpuslider">
+					npm install gpuslider
+				</a>
 				<nav aria-label="Pages, again" className="flex flex-wrap gap-x-4 md:ml-auto">
 					<a className="hover:text-foreground" href="/docs/">
 						Docs

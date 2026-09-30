@@ -49,13 +49,19 @@ No number of the site is written by hand. The sizes are written by `npm run size
 
 ## Use it
 
+```sh
+npm install gpuslider
+```
+
+Or from a CDN, without an install: `https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/`, as below.
+
 Three ways, from the least to write to the least to load.
 
 ### Without a script of your own
 
 ```html
-<link rel="stylesheet" href="…/gpuslider/dist/style.css">
-<script type="module" src="…/gpuslider/dist/auto.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/style.css">
+<script type="module" src="https://cdn.jsdelivr.net/npm/gpuslider@0.1/dist/auto.js"></script>
 
 <div class="gs" aria-label="Photos"
 	data-gs='{ "loop": true, "autoplay": 4000 }'
@@ -906,7 +912,6 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 
 ## Not yet
 
-- Published on npm, so no CDN has it yet: `…/gpuslider/dist/` in the examples is wherever you put `dist/`.
 - A file for `<script>` without `type="module"`.
 - A ticker has no slide it is at: no `change`, no dots.
 - Effects that lay out are cut at the edge of the slider.
