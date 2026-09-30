@@ -1,0 +1,7 @@
+// www.gpuslider.com goes to gpuslider.com. `npx wrangler deploy` here.
+{
+	"name": "gpuslider-www",
+	"main": "worker.js",
+	"compatibility_date": "2026-09-30",
+	"routes": [ { "pattern": "www.gpuslider.com", "custom_domain": true } ]
+}
