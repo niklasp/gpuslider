@@ -9,6 +9,10 @@
 // Distance a pointer has to travel before the direction is decided, px.
 const SLOP = 4;
 
+// What a hand does while it clicks: a drag shorter than this, px, lets go
+// with a click on the slide under it.
+const CLICK = 10;
+
 // Only the last part of a drag says how fast the pointer was let go, ms.
 const RECENT = 100;
 
@@ -82,11 +86,6 @@ export function createInput( root, slider, signal ) {
 		pointer.from = motion.pos;
 		slider.grab();
 		root.classList.add( 'gs-dragging' );
-		try {
-			root.setPointerCapture( pointer.id );
-		} catch {
-			// The pointer is gone already.
-		}
 	}
 
 	function move( event ) {
@@ -104,6 +103,16 @@ export function createInput( root, slider, signal ) {
 				return;
 			}
 			lock( event );
+		}
+		// The pointer is the slider's once it is surely a drag: before, the
+		// click it may still be goes to the slide under it.
+		if ( ! pointer.taken && Math.abs( along( event ) - pointer.at ) > CLICK ) {
+			pointer.taken = true;
+			try {
+				root.setPointerCapture( pointer.id );
+			} catch {
+				// The pointer is gone already.
+			}
 		}
 		const direction = slider.layout().rtl ? -1 : 1;
 		slider.drag( pointer.from - direction * ( along( event ) - pointer.at ) );
@@ -140,7 +149,7 @@ export function createInput( root, slider, signal ) {
 		slider.release( velocity, from );
 
 		// The click that ends a drag is not a click on what is under it.
-		if ( Math.abs( motion.pos - from ) > SLOP ) {
+		if ( Math.abs( motion.pos - from ) > CLICK ) {
 			const soon = new win.AbortController();
 			root.addEventListener( 'click', swallow, {
 				capture: true,

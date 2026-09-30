@@ -348,7 +348,7 @@ slider.on( '*', ( name, detail, slider ) => {} );
 | `settle` | Index of the snap it came to rest at. Also after the slider was measured, when it has not moved |
 | `visible` | Indexes of the slides in view, when they change |
 | `dragstart`, `dragend` | The motion; the velocity it was let go with |
-| `click` | `{ index, event }`. Not the click that ends a drag. A click on a slider that moves holds it, and is a click on the slide under it. The slide is the one that is seen: see [Effects](#effects) |
+| `click` | `{ index, event }`. Not the click that ends a drag; a drag of 10 px or less is a click, as a hand that clicks moves a little. A click on a slider that moves holds it, and is a click on the slide under it. The slide is the one that is seen: see [Effects](#effects) |
 | `measure` | The layout, after every measuring |
 | `slides` | The slides, after some were added or removed |
 | `frame` | The view, on every frame of a move |
