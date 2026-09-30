@@ -47,4 +47,4 @@ The photos are from Pexels, and each is named where it is used (`site/src/lib/me
 
 ## The site
 
-It is built with `npm run build --prefix site` into `site/dist/`, and served by Cloudflare Pages at https://gpuslider.com. `SITE_URL` sets another address for the links, the sitemap and the previews.
+It is built with `npm run build --prefix site` into `site/dist/`, and served by Cloudflare as static files at https://gpuslider.com (`site/wrangler.jsonc`). To put it online: `npm run build --prefix site`, then `npx wrangler deploy` in `site/`. What the browser may keep is in `site/public/_headers`. `SITE_URL` sets another address for the links, the sitemap and the previews.
