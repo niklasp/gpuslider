@@ -172,8 +172,8 @@ const FEATURES: {
 		icon: Spiral,
 	},
 	{
-		title: 'WebGPU first',
-		text: 'The canvas asks the browser and loads one layer: WebGPU where it is, WebGL 2 where not. Both draw the same picture, and the tests hold them against each other, effect by effect.',
+		title: 'The best there is, and a way down',
+		text: 'WebGPU where the browser has it, WebGL 2 where not: both draw the same picture, and the tests hold them against each other. Without either, the page moves the slides, and arrows, drag and the lightbox work the same; a transition is a crossfade. Without a script it is a row that scrolls and snaps.',
 		to: '/docs/canvas/',
 		more: 'The canvas',
 		icon: Cpu,
@@ -773,7 +773,7 @@ function Stage() {
 				<Slide image={ 8 } alt="Rose colour field" className="full" sizes="100vw">
 					<h2 className={ SAID }>Without the canvas</h2>
 					<p className={ SAYS }>
-						A crossfade, drawn by the page, and all else the same.
+						WebGPU, else WebGL 2, else the page: a crossfade, and all else the same.
 					</p>
 				</Slide>
 			</GpuSlider>
