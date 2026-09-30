@@ -170,6 +170,9 @@ test( 'the transition reaches the stack', async ( { page } ) => {
 } );
 
 test( 'without the canvas the page draws, with it the canvas again', async ( { page } ) => {
+	// Every slider of the page is made again, and drawn: with the films
+	// playing that takes long, in a browser without a GPU.
+	test.slow();
 	const canvas = page.getByRole( 'switch', { name: 'Canvas' } );
 	await canvas.click();
 	await expect( page.locator( '.gs-canvas' ) ).toHaveCount( 0 );
@@ -209,37 +212,38 @@ test( 'slides per view change without making the slider again', async ( { page }
 		.toBeCloseTo( await width(), 0 );
 } );
 
-test( 'the focus point moves what the slides show', async ( { page } ) => {
+test( 'the focus point of a picture moves what its slides show', async ( { page } ) => {
 	expect( await drawn( page, 'several' ) ).toBe( true );
 	const shot = () => page.locator( '#several .gs-track' ).screenshot();
+	const first = page.locator( '#several .gs-slide:first-child .gs-media' );
 	// Under the pointer there are waves, and no rest.
 	await page.mouse.move( 2, 300 );
 	await page.waitForFunction( () => window.sliders.several.resting );
 	const middle = await shot();
+	// The first slide shows picture 1.
+	await page.getByRole( 'button', { name: 'Picture 1', exact: true } ).click();
 	const pad = page.getByTestId( 'focus-pad' );
 	await pad.scrollIntoViewIfNeeded();
 	const box = await pad.boundingBox();
 	await page.mouse.click( box.x + 4, box.y + box.height - 4 );
 	await expect
 		.poll( () =>
-			page.evaluate( () =>
-				getComputedStyle( document.getElementById( 'several' ) )
-					.getPropertyValue( '--gs-focus' )
-					.trim()
-			)
+			first.evaluate( ( img ) => img.style.getPropertyValue( '--gs-focus' ) )
 		)
 		.toMatch( /^[0-3]% 9[0-9]%$/ );
+	// Only the slides of that picture: the second shows another.
+	expect(
+		await page
+			.locator( '#several .gs-slide:nth-child(2) .gs-media' )
+			.evaluate( ( img ) => img.style.getPropertyValue( '--gs-focus' ) )
+	).not.toMatch( /^[0-3]% 9[0-9]%$/ );
 	await page.keyboard.press( 'Escape' );
 	await page.waitForFunction( () => window.sliders.several.resting );
 	await page.waitForTimeout( 300 );
 	expect( Buffer.compare( middle, await shot() ) ).not.toBe( 0 );
 	// The canvas took the point from the page.
 	expect(
-		await page.evaluate(
-			() =>
-				getComputedStyle( document.querySelector( '#several .gs-media' ) )
-					.objectPosition
-		)
+		await first.evaluate( ( img ) => getComputedStyle( img ).objectPosition )
 	).toMatch( /^[0-3]% 9[0-9]%$/ );
 } );
 

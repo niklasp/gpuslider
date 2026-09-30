@@ -107,6 +107,17 @@ export const lightOf = ( n: number | 'a' | 'b', of: Kind ) =>
  * What an `<img>` needs to load the right file and keep its place; of a
  * photo, in the pictures that are photos, and of a film its photo.
  */
+/**
+ * The focus point a picture has of itself: a photo has one where what it
+ * shows is, a colour field its middle.
+ */
+export const focusOf = ( n: number, of: Kind ) => {
+	const [ x, y ] = ( of === 'photos' ? photo( n ).focus : '50% 50%' )
+		.split( ' ' )
+		.map( parseFloat );
+	return { x, y };
+};
+
 export function image( n: number | 'a' | 'b', of: Kind = 'fields' ) {
 	if ( of === 'photos' ) {
 		const name = `p${ PLACE[ n ] }`;

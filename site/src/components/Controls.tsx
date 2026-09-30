@@ -388,7 +388,6 @@ export default function Controls( { config, onChange }: Props ) {
 
 				<Part title="Focus point">
 					<FocusPad
-						image="/media/3-480.avif"
 						value={ config.focus }
 						onChange={ ( focus ) => onChange( { focus } ) }
 					/>

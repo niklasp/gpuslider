@@ -1,4 +1,6 @@
 import {
+	createContext,
+	useContext,
 	useEffect,
 	useRef,
 	useState,
@@ -361,6 +363,12 @@ export function Thumbs( {
 	);
 }
 
+/**
+ * The focus points of the pictures, by their numbers: the image of a
+ * slide of a picture that has one says it as its own `--gs-focus`.
+ */
+export const Focus = createContext< Record< number, { x: number; y: number } > >( {} );
+
 type SlideProps = {
 	/** Number of an image of the site. */
 	image?: number;
@@ -387,6 +395,7 @@ export function Slide( {
 	const kind = useKind();
 	// A picture in place of a film: only `b` has one.
 	const picture = ( n ?? name ) as number | 'a' | 'b';
+	const point = useContext( Focus )[ n as number ];
 	return (
 		<div className={ cn( 'gs-slide', className ) }>
 			{ name && filmed( name, kind ) ? (
@@ -404,6 +413,10 @@ export function Slide( {
 				<img
 					className="gs-media"
 					{ ...image( picture, kind ) }
+					// Its focus point, where one is set: over the one it has.
+					{ ...( point && {
+						style: { '--gs-focus': `${ point.x }% ${ point.y }%` } as CSSProperties,
+					} ) }
 					sizes={ sizes }
 					alt={ kind === 'photos' ? photo( picture ).alt : alt }
 					draggable={ false }

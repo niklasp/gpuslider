@@ -119,7 +119,11 @@ export type Config = {
 	/** Set without making the sliders again. */
 	perView: number;
 	gap: number;
-	focus: { x: number; y: number };
+	/**
+	 * The focus point of each picture, by its number: the point that stays
+	 * in view when it is cut. A picture without one has its middle.
+	 */
+	focus: Record< number, { x: number; y: number } >;
 };
 
 export const DEFAULTS: Config = {
@@ -136,7 +140,7 @@ export const DEFAULTS: Config = {
 	duration: 600,
 	perView: 3,
 	gap: 16,
-	focus: { x: 50, y: 50 },
+	focus: {},
 };
 
 const make = ( name: EffectName, k: number ) =>

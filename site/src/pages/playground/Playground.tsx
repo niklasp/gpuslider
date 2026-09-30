@@ -14,7 +14,7 @@ import '@/site.css';
 // The controls are most of the script of the page, and no slider waits
 // for them.
 const Controls = lazy( () => import( '@/components/Controls' ) );
-import { GpuSlider, Slide } from '@/components/GpuSlider';
+import { Focus, GpuSlider, Slide } from '@/components/GpuSlider';
 import { Events, Loads, Photos, type Tell } from '@/components/Pieces';
 import {
 	DEFAULTS,
@@ -54,9 +54,8 @@ export default function Playground() {
 	const share = `(max-width: 640px) 77vw, ${ Math.round(
 		100 / config.perView
 	) }vw`;
-	const focus = `${ config.focus.x }% ${ config.focus.y }%`;
-	const measured = `${ config.perView } ${ config.gap } ${ focus }`;
-	const look = { '--gs-focus': focus } as CSSProperties;
+	// The focus points are CSS: the sliders measure again for them.
+	const measured = `${ config.perView } ${ config.gap } ${ JSON.stringify( config.focus ) }`;
 	const options = {
 		loop: config.loop,
 		free: config.free,
@@ -118,6 +117,7 @@ export default function Playground() {
 			>
 				<Controls config={ config } onChange={ change } />
 			</Suspense>
+			<Focus.Provider value={ config.focus }>
 			<main
 				id="top"
 				className="mx-auto grid max-w-[1400px] min-w-0 flex-1 grid-cols-[minmax(0,1fr)] gap-24 px-4 pb-32 md:px-8"
@@ -153,7 +153,6 @@ export default function Playground() {
 					<GpuSlider
 						id="one"
 						label="One per view"
-						style={ look }
 						pause={ config.autoplay }
 						{ ...one }
 						{ ...rolled( 'one' ) }
@@ -200,7 +199,6 @@ export default function Playground() {
 						className="cards"
 						style={
 							{
-								...look,
 								'--gs-per-view': 2,
 								'--gs-gap': `${ config.gap }px`,
 							} as CSSProperties
@@ -224,7 +222,6 @@ export default function Playground() {
 						className="cards"
 						style={
 							{
-								...look,
 								'--gs-per-view': config.perView,
 								'--gs-gap': `${ config.gap }px`,
 							} as CSSProperties
@@ -254,7 +251,6 @@ export default function Playground() {
 						className="cards"
 						style={
 							{
-								...look,
 								'--gs-per-view': 4.5,
 								'--gs-gap': `${ config.gap }px`,
 							} as CSSProperties
@@ -281,7 +277,7 @@ export default function Playground() {
 					title="With thumbnails"
 					note="Two sliders: the slides of the small one are the buttons of the large one."
 				>
-					<Photos style={ look } { ...one } />
+					<Photos { ...one } />
 				</Section>
 
 				<Section
@@ -294,7 +290,7 @@ export default function Playground() {
 							label="Downwards"
 							options={ { ...options, axis: 'y', align: 'center', loop: true } }
 							className="down"
-							style={ { ...look, '--gs-gap': `${ config.gap }px` } as CSSProperties }
+							style={ { '--gs-gap': `${ config.gap }px` } as CSSProperties }
 							made={ made }
 							measured={ measured }
 							plugins={ () => pluginsOf( config, 'down' ) }
@@ -314,7 +310,7 @@ export default function Playground() {
 							label="Two rows"
 							options={ options }
 							className="rows"
-							style={ { ...look, '--gs-gap': `${ config.gap }px` } as CSSProperties }
+							style={ { '--gs-gap': `${ config.gap }px` } as CSSProperties }
 							{ ...shared }
 						>
 							{ [ 1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4 ].map( ( n, i ) => (
@@ -338,7 +334,6 @@ export default function Playground() {
 						label="A fan"
 						options={ { ...options, align: 'center' } }
 						className="laid wide"
-						style={ look }
 						made={ made }
 						measured={ measured }
 						plugins={ () => pluginsOf( config, 'fan' ) }
@@ -364,7 +359,7 @@ export default function Playground() {
 						label="Widths from the images"
 						options={ { ...options, perView: 'auto', align: 'center' } }
 						className="strip"
-						style={ { ...look, '--gs-gap': `${ config.gap }px` } as CSSProperties }
+						style={ { '--gs-gap': `${ config.gap }px` } as CSSProperties }
 						{ ...shared }
 					>
 						{ [
@@ -394,7 +389,6 @@ export default function Playground() {
 							id="tall"
 							label="Auto height"
 							options={ options }
-							style={ look }
 							made={ made }
 							measured={ measured }
 							plugins={ () => pluginsOf( config, 'tall' ) }
@@ -429,7 +423,6 @@ export default function Playground() {
 							duration: Math.max( 900, config.duration * 1.8 ),
 							start: at.current.stack,
 						} }
-						style={ look }
 						pause={ config.autoplay }
 						{ ...rolled( 'stack' ) }
 						measured={ measured }
@@ -469,7 +462,6 @@ export default function Playground() {
 						label="Covers"
 						options={ { ...options, align: 'center' } }
 						className="covers"
-						style={ look }
 						made={ made }
 						measured={ measured }
 						plugins={ () => pluginsOf( config, 'covers' ) }
@@ -494,7 +486,6 @@ export default function Playground() {
 						options={ options }
 						style={
 							{
-								...look,
 								'--gs-per-view': 2.5,
 								'--gs-gap': '12px',
 							} as CSSProperties
@@ -517,7 +508,6 @@ export default function Playground() {
 							className="cards"
 							style={
 								{
-									...look,
 									'--gs-per-view': 2,
 									'--gs-gap': `${ config.gap }px`,
 								} as CSSProperties
@@ -565,6 +555,7 @@ export default function Playground() {
 					</div>
 				</Section>
 			</main>
+			</Focus.Provider>
 			</div>
 			<Footer />
 		</>
