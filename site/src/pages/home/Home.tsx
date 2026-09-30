@@ -528,8 +528,12 @@ function Stage() {
 	const [ name, setName ] = useState< Name >( 'liquid' );
 	// All the transitions that can be chosen, in one shader: a click picks
 	// one, and the slider stays the one it is.
-	const turn = useRef< ReturnType< typeof choose > | null >( null );
+	// Made once: the slider has this one, whenever it is made, and a pick
+	// is written into it.
 	const all = Object.keys( TRANSITIONS ) as Name[];
+	const [ turn ] = useState( () =>
+		choose( all.map( ( one ) => TRANSITIONS[ one ]() ) )
+	);
 	// The white pill under the one that is chosen, moved to it.
 	const pills = useRef< HTMLDivElement >( null );
 	const [ mark, setMark ] = useState< { left: number; width: number } | null >( null );
@@ -632,12 +636,7 @@ function Stage() {
 					autoplay( { delay: 4000, hover: false, left: left() } ),
 					calm(),
 					canvas( {
-						effects: [
-							( turn.current = choose(
-								all.map( ( one ) => TRANSITIONS[ one ]() ),
-								all.indexOf( name )
-							) ),
-						],
+						effects: [ turn ],
 						layer: layer(),
 						// Drawn before the first move: the slides go on by
 						// themselves.
@@ -691,7 +690,8 @@ function Stage() {
 									aria-current={ one === name ? 'true' : undefined }
 									onClick={ () => {
 										setName( one );
-										turn.current?.pick( all.indexOf( one ) );
+										turn.pick( all.indexOf( one ) );
+										slider.current?.wake();
 									} }
 								>
 									{ one }
