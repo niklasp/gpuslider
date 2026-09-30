@@ -22,6 +22,7 @@ const DEMOS: Record< string, ComponentType > = {
 	effects: lazy( () => import( './demos/Effects' ) ),
 	lightbox: lazy( () => import( './demos/Lightbox' ) ),
 	loading: lazy( () => import( './demos/Loading' ) ),
+	community: lazy( () => import( './demos/Community' ) ),
 };
 
 /**

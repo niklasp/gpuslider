@@ -139,6 +139,12 @@ A slider is an element with a track in it, and the slides are the children of th
 		parts: [ { part: 'Extending', bare: true } ],
 	},
 	{
+		slug: 'community',
+		title: 'Community plugins',
+		lead: 'Plugins and effects that others have written, straight from npm. Publish yours with the keyword gpuslider-plugin, and it is here.',
+		parts: [ { part: 'Community plugins', bare: true } ],
+	},
+	{
 		slug: 'size',
 		title: 'Size, and what is not there yet',
 		lead: 'What each part costs in the bundle of who imports it. And what the library does not do, said as plainly as what it does.',

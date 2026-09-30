@@ -103,9 +103,15 @@ Everything is on [gpuslider.com/docs](https://gpuslider.com/docs/): options, plu
 
 The same docs come with the package in one file, `node_modules/gpuslider/DOCS.md`, for reading offline and for coding agents. The site has them as [`llms-full.txt`](https://gpuslider.com/llms-full.txt) too.
 
+## Plugins by others
+
+Written a plugin or an effect? Publish it to npm with the keyword `gpuslider-plugin` and it shows up on [gpuslider.com/docs/community](https://gpuslider.com/docs/community/) right away, no pull request needed. [How to publish one](https://gpuslider.com/docs/community/#publish-a-plugin).
+
 ## Contributing
 
 Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) says how to set it up and run the tests.
+
+If gpuslider is useful to you, a [star on GitHub](https://github.com/niklasp/gpuslider) helps others find it.
 
 ## License
 

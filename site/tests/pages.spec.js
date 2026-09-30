@@ -21,6 +21,7 @@ const DOCS = [
 	[ '/docs/lightbox/', 'Lightbox' ],
 	[ '/docs/loading/', 'Loading' ],
 	[ '/docs/extending/', 'Extending' ],
+	[ '/docs/community/', 'Community plugins' ],
 	[ '/docs/size/', 'Size, and what is not there yet' ],
 ];
 
