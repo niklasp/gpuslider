@@ -201,3 +201,44 @@
     @apply font-sans;
     }
 }
+/*
+ * A slider that waits for its canvas: a light goes over its first picture
+ * until it draws. Only when that takes a while, so a fast start shows
+ * nothing of it.
+ */
+.gs .shimmer {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+    background: linear-gradient(
+        100deg,
+        transparent 35%,
+        rgb(255 255 255 / 0.16) 50%,
+        transparent 65%
+    ) 0 0 / 300% 100%;
+}
+
+.gs.gs-waiting .shimmer {
+    opacity: 1;
+    transition-delay: 0.3s;
+    animation: shimmer 1.6s linear infinite;
+}
+
+@keyframes shimmer {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: 0 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gs.gs-waiting .shimmer {
+        animation: none;
+        background: rgb(255 255 255 / 0.08);
+    }
+}
