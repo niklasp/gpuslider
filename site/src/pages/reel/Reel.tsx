@@ -156,6 +156,8 @@ export default function Reel() {
 
 	return (
 		<>
+			{ /* What the page is, for who reads it without seeing it. */ }
+			<h1 style={ { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap' } }>A reel: pictures and films that turn into each other, drawn by gpu slider</h1>
 			<Intro
 				told={ told }
 				what={ what }

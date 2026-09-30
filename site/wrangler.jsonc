@@ -5,7 +5,8 @@
 	"compatibility_date": "2026-09-30",
 	"assets": {
 		"directory": "./dist",
-		"html_handling": "auto-trailing-slash"
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page"
 	},
 	"routes": [ { "pattern": "gpuslider.com", "custom_domain": true } ]
 }
