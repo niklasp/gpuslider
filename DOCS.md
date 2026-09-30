@@ -250,6 +250,20 @@ The script measures what the page lays out, so responsive settings are media que
 
 Give the slides a height, an `aspect-ratio`, or use `autoHeight()`.
 
+### Corners
+
+Round corners are `border-radius`, on the image or on a slide that clips it; `corner-shape` makes them a squircle, or any `superellipse()`. The canvas reads both and draws the same corners, through every effect and transition:
+
+```css
+.gs-slide {
+	border-radius: 24px;
+	corner-shape: squircle;
+	overflow: hidden;
+}
+```
+
+The radius of the top left corner is the one of all four. Where a browser has no `corner-shape` (so far Chrome and Edge have it), the corners are round, on the page and on the canvas alike.
+
 ### Downwards
 
 ```js
