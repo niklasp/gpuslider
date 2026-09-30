@@ -130,6 +130,42 @@ export function image( n: number | 'a' | 'b', of: Kind = 'fields' ) {
 }
 
 /**
+ * Photos that are what they are whatever the pictures chosen: of Pexels,
+ * 1600 px wide, as p8 and p9 (photos 983200 and 37127322).
+ */
+const STILLS = {
+	lava: {
+		file: 'p8',
+		alt: 'Bark of a tree beside lava that has cooled, still glowing in its cracks',
+		light: '#ff4a12',
+		height: 900,
+	},
+	lagoon: {
+		file: 'p9',
+		alt: 'A lagoon at dusk, a bare tree and the last of the sun mirrored in the water',
+		light: '#e8703a',
+		height: 1072,
+	},
+} as const;
+
+export type Still = keyof typeof STILLS;
+
+/** The light of a still. */
+export const lightOfStill = ( name: Still ) => STILLS[ name ].light;
+
+/** What an `<img>` needs for a still, and what it shows. */
+export function stillImage( name: Still ) {
+	const { file, alt, height } = STILLS[ name ];
+	return {
+		src: `/media/${ file }-960.avif`,
+		srcSet: WIDTHS.map( ( to ) => `/media/${ file }-${ to }.avif ${ to }w` ).join( ', ' ),
+		width: 1600,
+		height,
+		alt,
+	};
+}
+
+/**
  * What an `<img>` needs for picture `n` of the wall (from 0), drawn at
  * `sizes`: AVIF, 420 or 840 wide.
  */

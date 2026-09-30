@@ -202,11 +202,10 @@ test.describe( 'the first page', () => {
 		await expect( first ).toHaveAttribute( 'src', '/media/1-960.avif' );
 		await pictures.getByRole( 'button', { name: 'Photos' } ).click();
 		await expect( first ).toHaveAttribute( 'src', '/media/p3-960.avif' );
-		// The film of the photos is a film of its own.
-		await expect( page.locator( '#first video' ) ).toHaveAttribute(
-			'src',
-			'/media/film.mp4'
-		);
+		// The photos between the colour fields stay what they are.
+		await expect(
+			page.locator( '#first .gs-slide:nth-child(2) .gs-media' )
+		).toHaveAttribute( 'src', '/media/p8-960.avif' );
 		// The slider is made again, with the canvas.
 		await page.waitForFunction(
 			() => window.sliders.first.slides[ 0 ].querySelector( 'img' ).src.includes( '/p3-' )

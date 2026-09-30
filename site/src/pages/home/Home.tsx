@@ -29,7 +29,6 @@ import {
 	controls,
 	keyboard,
 	stack,
-	videos,
 	wheel,
 } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
@@ -49,7 +48,6 @@ import {
 	stretch,
 	swirl,
 	warp,
-	wind,
 	distance,
 	zoom,
 } from 'gpuslider/effects';
@@ -65,7 +63,7 @@ import {
 	type Layer,
 } from '@/lib/metrics';
 import { layer } from '../mount';
-import { LIGHT, calm, lightOf, useKind } from '@/lib/media';
+import { LIGHT, calm, lightOf, lightOfStill, useKind, type Still } from '@/lib/media';
 import {
 	ArrowsOut,
 	Atom,
@@ -179,7 +177,7 @@ const FEATURES: {
 ];
 
 /** The transitions that can be chosen here. The docs have all of them. */
-const TRANSITIONS = { liquid, push, warp, zoom, burn, glitch, swirl, mosaic, wind, distance };
+const TRANSITIONS = { liquid, push, warp, zoom, burn, glitch, swirl, mosaic, distance };
 
 /**
  * How a transition goes: quick away, slowing down, and done in its time,
@@ -531,7 +529,7 @@ function Field() {
 }
 
 /** What the slides at the top show, in their order. */
-const FIRST_SLIDES = [ 1, 'a', 2, 4 ] as const;
+const FIRST_SLIDES: ( number | Still )[] = [ 1, 'lava', 2, 'lagoon', 3 ];
 
 /**
  * The slider at the top, as large as the window: a stack that goes on by
@@ -590,7 +588,8 @@ function Stage() {
 	return (
 		<div
 			className="lit px-3 pt-[4.5rem] md:px-5"
-			style={ { '--light': lightOf( FIRST_SLIDES[ index ], kind ) } as CSSProperties }
+			style={ { '--light': ( ( at: number | Still ) =>
+				typeof at === 'number' ? lightOf( at, kind ) : lightOfStill( at ) )( FIRST_SLIDES[ index ] ) } as CSSProperties }
 		>
 			<GpuSlider
 				id="first"
@@ -608,7 +607,6 @@ function Stage() {
 				plugins={ () => [
 					controls(),
 					keyboard(),
-					videos(),
 					stack(),
 					// The pointer is always over it: it goes on all the same.
 					autoplay( { delay: 4000, hover: false, left: left() } ),
@@ -701,9 +699,11 @@ function Stage() {
 						The transition follows the pointer: stop half way, go back.
 					</p>
 				</Slide>
-				<Slide video="a" alt="Moving colour field" className="full" sizes="100vw">
-					<h2 className={ SAID }>Films too</h2>
-					<p className={ SAYS }>A transition into a film that plays.</p>
+				<Slide still="lava" className="full" sizes="100vw">
+					<h2 className={ SAID }>Any picture</h2>
+					<p className={ SAYS }>
+						Drawn from the file the browser picks for the screen.
+					</p>
 				</Slide>
 				<Slide image={ 2 } alt="Blue colour field" className="full" sizes="100vw">
 					<h2 className={ SAID }>The text is HTML</h2>
@@ -711,7 +711,13 @@ function Stage() {
 						It can be read, found and chosen, on top of the canvas.
 					</p>
 				</Slide>
-				<Slide image={ 4 } alt="Pink colour field" className="full" sizes="100vw">
+				<Slide still="lagoon" className="full" sizes="100vw">
+					<h2 className={ SAID }>Light and dark</h2>
+					<p className={ SAYS }>
+						The page around it takes the colour of the slide that is seen.
+					</p>
+				</Slide>
+				<Slide image={ 3 } alt="Green colour field" className="full" sizes="100vw">
 					<h2 className={ SAID }>Without the canvas</h2>
 					<p className={ SAYS }>
 						A crossfade, drawn by the page, and all else the same.
