@@ -110,6 +110,7 @@ const slider = createSlider( document.querySelector( '.gs' ), {
 ```js
 import { createSlider } from 'gpuslider';
 import { controls, keyboard } from 'gpuslider/plugins';
+import 'gpuslider/style.css';
 
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
