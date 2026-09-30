@@ -40,10 +40,11 @@
 						media.style.opacity = '';
 					};
 					document
-						.querySelectorAll( '.gs-media[style*="view-transition-name"]' )
+						.querySelectorAll( '[data-story] img[style*="view-transition-name"]' )
 						.forEach( clear );
+					// A slide of the slider, or the next story at the foot of one.
 					const media =
-						slug && document.querySelector( `[data-story="${ slug }"] .gs-media` );
+						slug && document.querySelector( `[data-story="${ slug }"] img` );
 					const r = media && media.getBoundingClientRect();
 					// Only one that is seen: one out of view would come from nowhere.
 					if ( ! r || r.right < 0 || r.left > innerWidth || r.bottom < 0 || r.top > innerHeight ) {
@@ -51,19 +52,30 @@
 					}
 					// The canvas draws the picture and leaves the element clear;
 					// for the picture the browser takes, the element is seen.
+					// On a story the name is the hero's, until it is given to
+					// the next one: two of a name and there is no transition.
+					const hero = document.getElementById( 'hero' );
+					if ( hero ) {
+						hero.style.viewTransitionName = '';
+					}
 					media.style.viewTransitionName = 'photo';
 					media.style.opacity = '1';
 					// And the canvas leaves that slide out meanwhile: it would
 					// stay behind in the picture of the page.
 					const slide = media.closest( '.gs-slide' );
-					const at = [ ...slide.parentNode.children ].indexOf( slide );
-					const off = self.slider?.plugins.canvas?.draw( ( i, quad ) => {
-						if ( i === at ) {
-							quad.a = null;
-						}
-					} );
+					const at = slide ? [ ...slide.parentNode.children ].indexOf( slide ) : -1;
+					const off =
+						slide &&
+						self.slider?.plugins.canvas?.draw( ( i, quad ) => {
+							if ( i === at ) {
+								quad.a = null;
+							}
+						} );
 					transition.finished.finally( () => {
 						clear( media );
+						if ( hero ) {
+							hero.style.viewTransitionName = 'photo';
+						}
 						off?.();
 					} );
 				};

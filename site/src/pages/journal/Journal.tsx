@@ -8,7 +8,7 @@ import { canvas } from 'gpuslider/canvas';
 import { stretch } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
-import { STORIES } from './stories';
+import { STORIES, minutesIn } from './stories';
 
 const address = ( slug: string ) => `/examples/journal/${ slug }/`;
 
@@ -99,12 +99,68 @@ export function Journal() {
 	);
 }
 
-/** A story: its picture over the whole width, and what it says. */
+/** The night of the stories, from eight to two: where each is in it. */
+const NIGHT = 6 * 60;
+const HOURS = [ '20:00', '22:00', '00:00', '02:00' ];
+
+function Night( { slug }: { slug: string } ) {
+	const night = [ ...STORIES ].sort(
+		( a, b ) => minutesIn( a.time ) - minutesIn( b.time )
+	);
+	return (
+		<nav className="night" aria-labelledby="night">
+			<h2 id="night">One night, seven stories</h2>
+			<ol>
+				{ night.map( ( story ) => {
+					const at = minutesIn( story.time ) / NIGHT;
+					const place = {
+						...lit( story.n ),
+						left: `${ at * 100 }%`,
+						'--at': at,
+					} as CSSProperties;
+					return (
+						<li key={ story.slug } style={ place }>
+							<a
+								href={ address( story.slug ) }
+								aria-current={ story.slug === slug ? 'page' : undefined }
+							>
+								<span>
+									<time>{ story.time }</time>
+									{ story.title }
+								</span>
+							</a>
+						</li>
+					);
+				} ) }
+			</ol>
+			<p className="hours" aria-hidden="true">
+				{ HOURS.map( ( hour ) => (
+					<span key={ hour }>{ hour }</span>
+				) ) }
+			</p>
+		</nav>
+	);
+}
+
+/**
+ * A story: its picture over the whole width, what it says beside when and
+ * where it was, its place in the night, and the next one.
+ */
 export function Story( { slug }: { slug: string } ) {
 	const at = STORIES.findIndex( ( story ) => story.slug === slug );
-	const { n, title, about, text, pexels } = STORIES[ at ];
+	const { n, title, about, text, pexels, place, time, lit: by, said } =
+		STORIES[ at ];
 	const next = STORIES[ ( at + 1 ) % STORIES.length ];
 	const { style, ...picture } = image( n, 'photos' );
+	const minutes = Math.max(
+		1,
+		Math.round( text.join( ' ' ).split( /\s+/ ).length / 200 )
+	);
+	// What was said comes in the middle of the story.
+	const middle = Math.ceil( text.length / 2 );
+	const paragraph = ( words: string ) => (
+		<p key={ words.slice( 0, 20 ) }>{ words }</p>
+	);
 
 	return (
 		<>
@@ -125,20 +181,64 @@ export function Story( { slug }: { slug: string } ) {
 				<article>
 					<h1>{ title }</h1>
 					<p className="about">{ about }</p>
-					{ text.map( ( paragraph ) => (
-						<p key={ paragraph.slice( 0, 20 ) }>{ paragraph }</p>
-					) ) }
+					<dl className="facts">
+						<div>
+							<dt>Where</dt>
+							<dd>{ place }</dd>
+						</div>
+						<div>
+							<dt>When</dt>
+							<dd>
+								<time>{ time }</time>
+							</dd>
+						</div>
+						<div>
+							<dt>What lit it</dt>
+							<dd className="swatch">{ by }</dd>
+						</div>
+						<div>
+							<dt>Reading</dt>
+							<dd>
+								{ minutes } { minutes === 1 ? 'minute' : 'minutes' }
+							</dd>
+						</div>
+					</dl>
+					<div className="text">
+						{ text.slice( 0, middle ).map( paragraph ) }
+						<figure className="said">
+							<blockquote>
+								<p>{ said.text }</p>
+							</blockquote>
+							<figcaption>{ said.by }</figcaption>
+						</figure>
+						{ text.slice( middle ).map( paragraph ) }
+					</div>
 					<p className="credit">
 						Photo:{ ' ' }
 						<a href={ `https://www.pexels.com/photo/${ pexels }/` }>Pexels</a>
 					</p>
 				</article>
-				<nav aria-label="More stories">
-					<a href="/examples/journal/">All stories</a>
-					<a href={ address( next.slug ) }>
-						<span>Next</span> { next.title }
-					</a>
-				</nav>
+				<Night slug={ slug } />
+				<a
+					className="next"
+					href={ address( next.slug ) }
+					data-story={ next.slug }
+					style={ lit( next.n ) }
+				>
+					<img
+						{ ...image( next.n, 'photos' ) }
+						sizes="(max-width: 700px) 100vw, 45vw"
+						alt=""
+						loading="lazy"
+					/>
+					<span>
+						<span className="then">
+							Next, at <time>{ next.time }</time>
+						</span>
+						<strong>{ next.title }</strong>
+						<span className="about">{ next.about }</span>
+					</span>
+				</a>
 			</main>
 		</>
 	);

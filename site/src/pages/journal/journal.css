@@ -243,10 +243,25 @@ h2 {
 	corner-shape: squircle;
 }
 
+/* The light of a story, light enough to be read on the night. */
+.story,
+.next {
+	--lit: color-mix(in oklab, var(--light) 55%, white);
+}
+
+/* The story: its text in a measure, and beside it on a wide screen when
+   and where it was, which stays in view as it is read. */
 article {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 38rem) minmax(0, 1fr);
+	column-gap: clamp(24px, 4vw, 64px);
 	width: 100%;
-	max-width: 62ch;
+	max-width: 1280px;
 	margin-inline: auto;
+}
+
+article > * {
+	grid-column: 2;
 }
 
 article h1 {
@@ -255,16 +270,109 @@ article h1 {
 	letter-spacing: -0.045em;
 }
 
-.about {
+article .about {
 	margin: 20px 0 36px;
 	color: var(--muted);
 	font-size: clamp(18px, 1.6vw, 22px);
 	line-height: 1.4;
 }
 
-article p:not(.about, .credit) {
+.facts {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 16px 24px;
+	margin: 0 0 40px;
+	padding-top: 20px;
+	border-top: 1px solid rgb(255 255 255 / 0.12);
+}
+
+.facts dt {
+	color: var(--muted);
+	font-size: 13px;
+}
+
+.facts dd {
+	margin: 2px 0 0;
+	font-size: 15px;
+}
+
+.facts time {
+	font-variant-numeric: tabular-nums;
+}
+
+/* What lit it, in its colour. */
+.swatch::before {
+	content: "";
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-inline-end: 8px;
+	border-radius: 50%;
+	background: var(--light);
+	box-shadow: 0 0 12px 2px var(--light);
+}
+
+@media (min-width: 1100px) {
+	.facts {
+		grid-column: 1;
+		grid-row: 1 / span 4;
+		grid-template-columns: none;
+		align-self: start;
+		justify-self: end;
+		position: sticky;
+		top: 32px;
+		width: min(100%, 220px);
+		margin: 0;
+		padding-top: 12px;
+	}
+}
+
+.text p {
 	margin: 0 0 1.1em;
 	font: 19px/1.7 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+	text-wrap: pretty;
+}
+
+/* The story begins with a letter in its light. */
+.text > p:first-child::first-letter {
+	float: left;
+	margin: 0.08em 0.1em 0 0;
+	color: var(--lit);
+	font: 600 4.6em/0.8 "Funnel Display Variable", ui-sans-serif, sans-serif;
+}
+
+@supports (initial-letter: 3) {
+	.text > p:first-child::first-letter {
+		float: none;
+		margin: 0 0.12em 0 0;
+		font-size: 1em;
+		line-height: inherit;
+		initial-letter: 3;
+	}
+}
+
+.said {
+	margin: 1.6em 0 1.8em;
+	padding-inline-start: clamp(16px, 2vw, 28px);
+	border-inline-start: 3px solid var(--light);
+}
+
+.said blockquote {
+	margin: 0;
+}
+
+.text .said p {
+	margin: 0;
+	color: var(--lit);
+	font: 600 clamp(24px, 2.6vw, 34px)/1.15 "Funnel Display Variable", ui-sans-serif, sans-serif;
+	letter-spacing: -0.02em;
+	text-wrap: balance;
+}
+
+.said figcaption {
+	margin-top: 12px;
+	color: var(--muted);
+	font-size: 14px;
 }
 
 .credit {
@@ -273,26 +381,171 @@ article p:not(.about, .credit) {
 	font-size: 13px;
 }
 
-.story nav {
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: space-between;
-	gap: 16px;
+/* The night of the stories, eight to two, a point for each in its light. */
+.night {
 	width: 100%;
-	max-width: 62ch;
+	max-width: 1080px;
 	margin-inline: auto;
-	padding-top: 24px;
-	border-top: 1px solid rgb(255 255 255 / 0.12);
 }
 
-.story nav a {
-	font-family: "Funnel Display Variable", ui-sans-serif, system-ui, sans-serif;
-	font-size: 20px;
+.night h2 {
+	margin-bottom: 44px;
+	font-size: clamp(22px, 2vw, 28px);
+	letter-spacing: -0.02em;
+}
+
+.night ol {
+	position: relative;
+	height: 2px;
+	margin: 0 12px;
+	padding: 0;
+	list-style: none;
+	background: linear-gradient(to right, #1d2a6b, rgb(255 255 255 / 0.25) 50%, #1d2a6b);
+}
+
+.night li {
+	position: absolute;
+	top: 1px;
+}
+
+.night a {
+	position: absolute;
+	top: -22px;
+	left: -22px;
+	width: 44px;
+	height: 44px;
+	border-radius: 50%;
 	text-decoration: none;
 }
 
-.story nav span {
-	display: block;
+.night a::before {
+	content: "";
+	position: absolute;
+	inset: 16px;
+	border-radius: 50%;
+	background: var(--light);
+	box-shadow: 0 0 14px 2px var(--light);
+	transition: inset 0.2s;
+}
+
+.night a:hover::before {
+	inset: 12px;
+}
+
+.night a[aria-current]::before {
+	inset: 11px;
+	outline: 2px solid var(--ink);
+	outline-offset: 3px;
+}
+
+/* The title of a point, over it: the one of the page always, the others
+   when pointed at. Near the ends of the night it leans inwards. */
+.night a span {
+	position: absolute;
+	bottom: 40px;
+	left: 50%;
+	translate: calc(var(--at) * -100%);
+	white-space: nowrap;
+	font-size: 14px;
+	opacity: 0;
+	transition: opacity 0.2s;
+	pointer-events: none;
+}
+
+.night a:is([aria-current], :hover, :focus-visible) span {
+	opacity: 1;
+}
+
+.night a:focus-visible {
+	outline-offset: 0;
+}
+
+.night time {
+	margin-inline-end: 6px;
 	color: var(--muted);
-	font: 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+	font-variant-numeric: tabular-nums;
+}
+
+.hours {
+	display: flex;
+	justify-content: space-between;
+	margin: 18px 0 0;
+	color: var(--muted);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+/* The next story: its picture, and what it is. */
+.next {
+	display: grid;
+	grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+	align-items: center;
+	gap: clamp(20px, 4vw, 56px);
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 1080px;
+	margin-inline: auto;
+	padding: clamp(12px, 1.4vw, 18px);
+	border-radius: calc(var(--round) + 8px);
+	corner-shape: squircle;
+	background: color-mix(in oklab, var(--light) 12%, var(--ground));
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+	text-decoration: none;
+	transition: background 0.3s;
+}
+
+.next:hover {
+	background: color-mix(in oklab, var(--light) 20%, var(--ground));
+}
+
+.next img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	object-position: var(--gs-focus, 50% 50%);
+	border-radius: var(--round);
+	corner-shape: squircle;
+}
+
+.next > span {
+	display: grid;
+	gap: 10px;
+	padding-inline-end: 16px;
+}
+
+.next .then {
+	color: var(--lit);
+	font-size: 14px;
+}
+
+.next strong {
+	font: 600 clamp(32px, 4vw, 56px)/0.95 "Funnel Display Variable", ui-sans-serif, sans-serif;
+	letter-spacing: -0.035em;
+	text-wrap: balance;
+}
+
+.next .about {
+	max-width: 36ch;
+	color: var(--muted);
+	font-size: 16px;
+}
+
+@media (max-width: 700px) {
+	.next {
+		grid-template-columns: 1fr;
+	}
+
+	.next > span {
+		padding: 0 8px 12px;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.night a::before,
+	.night a span,
+	.next {
+		transition: none;
+	}
 }
