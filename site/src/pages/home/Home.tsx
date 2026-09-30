@@ -860,7 +860,7 @@ export default function Home() {
 					center
 					id="numbers"
 					title="In numbers"
-					note="Measured, not guessed: the sizes by the build, the times by the benchmark of the repo. Below is what they were measured with."
+					note="Measured, not guessed: the sizes by the build, the times by the benchmark of the repo, the scores by Lighthouse, of this page as it is built."
 				>
 					<ul
 						data-testid="numbers"
@@ -883,18 +883,19 @@ export default function Home() {
 							Effects and transitions
 						</Figure>
 					</ul>
+					{ scores && (
+						<div className="mt-12 grid gap-6">
+							<h3 className="text-center font-display text-xl font-semibold tracking-[-0.02em]">
+								Lighthouse, on this page
+							</h3>
+							<Scores scores={ scores } />
+							<p className="text-center text-sm text-muted-foreground">
+								Asked on { asked }, on a phone and on a desktop.
+							</p>
+						</div>
+					) }
 				</Section>
 
-				{ scores && (
-					<Section
-						center
-						id="score"
-						title="Its score"
-						note={ `What Lighthouse says of this page, with its sliders, its films and its canvas, as it is built. Asked on ${ asked }.` }
-					>
-						<Scores scores={ scores } />
-					</Section>
-				) }
 
 				</div>
 

@@ -183,6 +183,8 @@
 	inset: -12rem calc(50% - 50vw);
 	overflow: hidden;
 	pointer-events: none;
+	/* The light comes and goes softly: no edge where the field ends. */
+	mask-image: linear-gradient(transparent, #000 16rem, #000 calc(100% - 20rem), transparent);
 }
 
 .blobs > span {
