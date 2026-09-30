@@ -650,6 +650,16 @@ createSlider( element, {
 } );
 ```
 
+A page that lets its visitors choose names every transition it offers, with `choose()`: they are one shader, and `pick( i )` changes the one that is drawn from the next move on, without a shader or a slider made again. A page that has one transition names that one, and has no other in its bundle.
+
+```js
+import { choose, liquid, burn, push } from 'gpuslider/effects';
+
+const turn = choose( [ liquid(), burn(), push() ] );
+createSlider( element, { plugins: [ stack(), canvas( { effects: [ turn ] } ) ] } );
+turn.pick( 1 ); // burn
+```
+
 A stack in the first view of a page says so in its HTML: `class="gs gs-stack"`. Then the slides are on top of each other before the script is there, and nothing of the page gives way when it comes. Without the script such a slider shows its first slide, and is no scroller: the slides after the first cannot be reached then. It is for a stack that starts at its first slide.
 
 ### Your own

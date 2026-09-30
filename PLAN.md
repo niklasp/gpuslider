@@ -487,6 +487,13 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **Not:** a hook turns or bends nothing (that is `vertex`), and `hit()` does not know what it did: a click is a click on the slide the page has there. For a placement that moves slides far, an effect with `place`.
 - **Sizes:** `draw()` is in `canvas()` (50 bytes), not in the layers: in them only the set and the loop, 27 bytes in WebGL and 25 in WebGPU. A hook also starts the canvas, as a drag does: it has nothing to change without it. For that the page in React with the canvas got a quarter KB more.
 
+### 32. Several transitions, one picked
+
+- **What:** `choose( [ liquid(), burn(), ... ], start )` is an effect with all the transitions in one shader and a parameter that says which is drawn; `pick( i )` writes it. Each transition keeps its code: only its `transition()` gets a number.
+- **Why:** the first page offered its transitions by making a new slider for each, whose canvas had to be made and compiled again: a move soon after was drawn by the page. And a page with one transition should have only that one in its bundle, so that the sizes it is told are the sizes it gets.
+- **Not:** a layer that swaps its shader at runtime. That is code in both layers, over their budgets, and a canvas of another kind when a mesh comes or goes.
+- **Sizes:** 282 bytes, a part of its own with a budget of 512. A shader with ten transitions is made once, and takes longer to compile than one with one.
+
 ## Modules
 
 | File | Does |

@@ -129,6 +129,11 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 			`import { gpu } from './src/gpu/index.js'; export { gpu };`
 		),
 	} );
+	parts.push( {
+		name: 'choose: several transitions, one picked',
+		budget: 512,
+		size: await measure( `export { choose } from './src/gl/choose.js';` ),
+	} );
 	for ( const kind of [ 'effects', 'transitions' ] ) {
 		const dir = resolve( root, 'src/gl', kind );
 		for ( const file of readdirSync( dir ).sort() ) {

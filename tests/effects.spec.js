@@ -61,7 +61,8 @@ test.describe( 'transitions', () => {
 		expect( faded.mean ).toBeLessThan( 3 );
 	} );
 
-	for ( const name of Object.keys( transitions ) ) {
+	// `choose` is several of them, not one.
+	for ( const name of Object.keys( transitions ).filter( ( one ) => one !== 'choose' ) ) {
 		test( name, async ( { page } ) => {
 			const logged = errors( page );
 			await open( page, {

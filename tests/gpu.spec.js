@@ -127,7 +127,8 @@ test.describe( 'WebGPU draws what WebGL draws', () => {
 		expect( seen.effect ).toBeGreaterThan( 0.3 );
 	} );
 
-	for ( const name of Object.keys( transitions ) ) {
+	// `choose` is several of them, not one.
+	for ( const name of Object.keys( transitions ).filter( ( one ) => one !== 'choose' ) ) {
 		test( `transition: ${ name }`, async ( { page } ) => {
 			const seen = await both(
 				page,

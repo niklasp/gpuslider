@@ -50,6 +50,7 @@ import {
 	warp,
 	distance,
 	zoom,
+	choose,
 } from 'gpuslider/effects';
 import {
 	asked,
@@ -525,7 +526,10 @@ const FIRST_SLIDES = [ 1, 2, 3, 4, 5, 6, 7, 8 ];
  */
 function Stage() {
 	const [ name, setName ] = useState< Name >( 'liquid' );
-	const drawn = name;
+	// All the transitions that can be chosen, in one shader: a click picks
+	// one, and the slider stays the one it is.
+	const turn = useRef< ReturnType< typeof choose > | null >( null );
+	const all = Object.keys( TRANSITIONS ) as Name[];
 	// The white pill under the one that is chosen, moved to it.
 	const pills = useRef< HTMLDivElement >( null );
 	const [ mark, setMark ] = useState< { left: number; width: number } | null >( null );
@@ -583,7 +587,7 @@ function Stage() {
 				className="stage gs-stack"
 				options={ { loop: true, duration: time, ease: SNAP, start: at.current.index } }
 				onSlider={ ( made ) => ( slider.current = made ) }
-				made={ drawn }
+				made="stage"
 				measured=""
 				pause
 				dock
@@ -597,10 +601,15 @@ function Stage() {
 					autoplay( { delay: 4000, hover: false, left: left() } ),
 					calm(),
 					canvas( {
-						effects: [ TRANSITIONS[ drawn ]() ],
+						effects: [
+							( turn.current = choose(
+								all.map( ( one ) => TRANSITIONS[ one ]() ),
+								all.indexOf( name )
+							) ),
+						],
 						layer: layer(),
 						// Drawn before the first move: the slides go on by
-						// themselves, and every transition is another slider.
+						// themselves.
 						eager: true,
 					} ),
 				] }
@@ -643,7 +652,10 @@ function Stage() {
 										mark ? '' : 'aria-[current]:bg-white'
 									}` }
 									aria-current={ one === name ? 'true' : undefined }
-									onClick={ () => setName( one ) }
+									onClick={ () => {
+										setName( one );
+										turn.current?.pick( all.indexOf( one ) );
+									} }
 								>
 									{ one }
 								</button>

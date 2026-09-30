@@ -90,12 +90,15 @@ export type Kind =
 	| 'fan'
 	| 'down';
 
+// The transitions by their names: `choose` is several of them, not one.
+const NAMED = Object.keys( transitions ).filter( ( name ) => name !== 'choose' );
+
 /** The transitions, and none: the slides move. */
-export const TRANSITIONS = [ 'none', ...Object.keys( transitions ), 'random' ];
+export const TRANSITIONS = [ 'none', ...NAMED, 'random' ];
 
 /** One of the transitions, by chance. */
 const chance = () => {
-	const all = Object.keys( transitions );
+	const all = NAMED;
 	return all[ Math.floor( Math.random() * all.length ) ];
 };
 
