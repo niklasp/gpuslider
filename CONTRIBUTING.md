@@ -93,6 +93,18 @@ The page of community plugins lists the packages named in `site/community.json`,
 
 To review: what the package does on install (`scripts`), what it loads, and whether it does what it says. Yes: add its name to `approved` and close the issue with that commit. No: close the issue; it is not opened again. A package that turns bad later is taken off the list the same way.
 
+## Putting out a version
+
+In a terminal of your own, on `main` with everything committed:
+
+```sh
+npm run release          # a fix: 1.0.2 → 1.0.3
+npm run release:minor    # something new: 1.0.2 → 1.1.0
+npm run release:major    # something that breaks: 1.0.2 → 2.0.0
+```
+
+It runs the tests (a test that fails is run again once, alone), raises the version, builds `dist/` and the types, commits and tags, publishes to npm (the browser asks for your passkey), pushes, and puts the site online. `-- --no-tests` leaves the tests out, `-- --no-site` the site. If npm did not publish, `npm run release -- --publish-only` goes on from there. What each step does is in `bin/release.mjs`.
+
 ## Putting the site online
 
 It is built with `npm run build --prefix site` into `site/dist/`, and served by Cloudflare as static files at https://gpuslider.com (`site/wrangler.jsonc`). To put it online: `npm run build --prefix site`, then `npx wrangler deploy` in `site/`. What the browser may keep is in `site/public/_headers`. `SITE_URL` sets another address for the links, the sitemap and the previews.

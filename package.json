@@ -83,7 +83,10 @@
 		"prepublishOnly": "npm run types && npm run size && npm test && npm run test:gpu && npm run test:dist",
 		"test:dist": "node bin/build.mjs && FROM=dist playwright test",
 		"prepack": "node bin/build.mjs --check && npm run types",
-		"test:gpu": "LAYER=gpu playwright test --project=chromium --project=webkit --project=site"
+		"test:gpu": "LAYER=gpu playwright test --project=chromium --project=webkit --project=site",
+		"release": "node bin/release.mjs patch",
+		"release:minor": "node bin/release.mjs minor",
+		"release:major": "node bin/release.mjs major"
 	},
 	"devDependencies": {
 		"@playwright/test": "1.63.0",
