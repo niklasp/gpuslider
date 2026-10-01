@@ -620,7 +620,7 @@ import { gpu, stretch } from 'gpuslider/gpu';   // WebGPU, or the page draws
 import { gl, stretch } from 'gpuslider/gl';     // WebGL 2, or the page draws
 ```
 
-The canvas is made at the first sign of use: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same, and the page has loaded without a context and without a shader. A slider that moves by itself (autoplay, a ticker), or whose effects show at rest, gets its canvas when the page has time. `eager: true` makes it with the slider.
+The canvas is made at the first sign of use: a pointer over the slider, a touch, the focus, a move. Until then the page draws the slides, which look the same, and the page has loaded without a context and without a shader. A slider that moves by itself (autoplay, a ticker), or whose effects show at rest, gets its canvas when the page has time. `eager: true` makes it with the slider. Off the screen it gives the canvas and its textures back three seconds later: a page scrolled back and forth keeps them.
 
 Shaders are compiled on another thread where the browser can, and no frame is drawn while nothing moves. While the slider rests, the textures of the images next to the slides in view are made, so the first move to a picture is as smooth as the second.
 
