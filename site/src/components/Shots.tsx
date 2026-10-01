@@ -30,8 +30,8 @@ export const EXAMPLES = [
 	{
 		name: 'wave',
 		title: 'Wave',
-		text: 'A band of pictures that runs across the screen along a wave, larger in the middle. The slides are in a row as ever: the canvas draws them on the wave.',
-		made: [ 'marquee()', 'loading()', 'wave', 'dome', 'split' ],
+		text: 'Bands of pictures that run against each other, on five pages, each wilder than the last: two bands, curves, a crossing, depth, and rings that turn. The canvas turns, bends and places the rows; a click opens the picture that is seen. The pictures are made by code.',
+		made: [ 'marquee()', 'lightbox()', 'bend', 'jelly', 'stretch', 'split', 'effects of its own' ],
 	},
 	{
 		name: 'depth',

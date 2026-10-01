@@ -1,10 +1,14 @@
 /*
- * Wave: a light room, and a band that runs through it.
+ * Wave: a pale room, and bands of pictures that run through it, one stage
+ * after another.
  */
 
 :root {
-	--ground: #f3f1ee;
-	--ink: #15130f;
+	/* What the rows are measured in: a hundredth of the screen's height,
+	 * less on a narrow one. */
+	--u: min(1svh, 1.1vw);
+	--ground: #f4f2f6;
+	--ink: #17141f;
 }
 
 body {
@@ -15,63 +19,199 @@ body {
 	overflow: hidden;
 }
 
-header,
-footer {
+header {
 	position: fixed;
-	inset-inline: 0;
-	z-index: 3;
+	inset: 0 0 auto;
+	z-index: 5;
 	display: flex;
-	flex-wrap: wrap;
 	justify-content: space-between;
 	gap: 8px 24px;
 	padding: 18px clamp(16px, 4vw, 40px);
 	pointer-events: none;
 }
 
-header {
-	top: 0;
-}
-
-footer {
-	bottom: 0;
-}
-
 header a,
-footer a {
+.said a {
 	color: inherit;
 	pointer-events: auto;
 }
 
-footer p {
-	max-width: 52ch;
-	margin: 0;
+/* The stages, one page each: squircle pills, the one shown white. */
+.waves {
+	position: fixed;
+	top: 56px;
+	inset-inline: 0;
+	z-index: 5;
+	width: fit-content;
+	margin-inline: auto;
+	display: flex;
+	gap: 2px;
+	max-width: calc(100vw - 24px);
+	overflow-x: auto;
+	scrollbar-width: none;
+	padding: 4px;
+	border-radius: 20px;
+	corner-shape: squircle;
+	background: color-mix(in oklab, var(--ink) 82%, transparent);
+	backdrop-filter: blur(14px) saturate(1.4);
+	-webkit-backdrop-filter: blur(14px) saturate(1.4);
 }
 
-.band {
-	--gs-gap: clamp(8px, 1vw, 14px);
+.waves a {
+	flex: none;
+	padding: 7px 14px;
+	border-radius: 16px;
+	corner-shape: squircle;
+	color: rgb(255 255 255 / 0.7);
+	font-weight: 500;
+	text-decoration: none;
+	transition: color 0.2s, background-color 0.2s;
+}
+
+.waves a:hover {
+	color: #fff;
+}
+
+.waves a[aria-current] {
+	background: #fff;
+	color: var(--ink);
+}
+
+/* A stage: as large as the screen, the bands in it larger, turned. */
+.stage {
+	position: relative;
+	height: 100svh;
+	overflow: hidden;
+}
+
+/* Until the canvas draws every row, the page has them as they lie:
+ * straight, over each other. They come when they are drawn. */
+.stage .row {
+	opacity: 0;
+	transition: opacity 0.8s ease;
+}
+
+.stage.shown .row {
+	opacity: var(--o);
+}
+
+.stage .gs-loading {
 	--gs-loading-back: var(--ground);
 	--gs-loading-color: var(--ink);
 
-	display: grid;
-	align-items: center;
-	height: 100svh;
+	z-index: 4;
 }
 
-.band .gs-slide {
-	flex: 0 0 clamp(150px, 17vw, 260px);
+/* What can be opened shows it. */
+.stage.over {
+	cursor: zoom-in;
+}
+
+/* Every row is a slider as large as the stage, a little wider, its track
+ * where its band has it: the canvas of a row needs the room to turn the
+ * row in, see `turn` in Wave.tsx. */
+.gs.row {
+	--gs-gap: calc(0.9 * var(--u));
+
+	position: absolute;
+	inset: 0 -12vw;
+	box-sizing: border-box;
+	padding-top: calc(50svh + var(--y) - var(--h) / 2);
+	/* The rows lie over each other: the stage takes the click and gives it
+	 * to the row whose picture is seen there. */
+	pointer-events: none;
+}
+
+.row .gs-track {
+	height: var(--h);
+}
+
+.row .gs-slide {
+	flex: 0 0 calc(var(--h) * 1.5);
+	height: var(--h);
+}
+
+.row .gs-media {
+	border-radius: calc(var(--h) * 0.06);
+}
+
+/* The vortex: every ring a row as wide as the stage; an effect of the
+ * canvas puts its slides on a circle. The row is longer than the stage,
+ * not much: a slide far out of view is not drawn. Until the canvas draws,
+ * the rows are hidden: they are not where they are seen. */
+.rings .gs.row {
+	inset: 0;
+}
+
+.rings .row .gs-slide {
+	flex: 0 0 calc(220vw / var(--n));
+	height: auto;
 	aspect-ratio: 3 / 2;
 }
 
-.band .gs-media {
-	border-radius: 4px;
+.rings .row .gs-track {
+	height: auto;
 }
 
-/* The band fades into the room at its ends. */
-.band::after {
+/* The bands fade into the room at the edges of the stage. */
+.stage::after {
 	content: "";
 	position: absolute;
 	inset: 0;
 	z-index: 2;
 	pointer-events: none;
-	background: radial-gradient(ellipse 62% 70% at 50% 50%, transparent 55%, var(--ground) 100%);
+	background:
+		linear-gradient(var(--ground), transparent 18%, transparent 86%, var(--ground)),
+		radial-gradient(ellipse 72% 80% at 50% 50%, transparent 55%, var(--ground) 100%);
+}
+
+/* What a stage is, at its lower left, over the bands. */
+.said {
+	position: absolute;
+	left: clamp(16px, 4vw, 40px);
+	bottom: clamp(16px, 4svh, 40px);
+	z-index: 3;
+	max-width: min(46ch, calc(100vw - 32px));
+	padding: 14px 18px 16px;
+	border-radius: 22px;
+	corner-shape: squircle;
+	background: color-mix(in oklab, var(--ground) 72%, transparent);
+	backdrop-filter: blur(14px) saturate(1.4);
+	-webkit-backdrop-filter: blur(14px) saturate(1.4);
+}
+
+.said h1 {
+	margin: 2px 0 4px;
+	font-size: clamp(22px, 3vw, 34px);
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+}
+
+.said p {
+	margin: 0;
+	color: color-mix(in oklab, var(--ink) 75%, transparent);
+}
+
+.step {
+	font-variant-numeric: tabular-nums;
+	color: color-mix(in oklab, var(--ink) 55%, transparent);
+}
+
+.said .after {
+	margin-top: 8px;
+	font-size: 12px;
+	color: color-mix(in oklab, var(--ink) 55%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.stage .row {
+		transition: none;
+	}
+}
+
+@media (max-width: 480px) {
+	.waves a {
+		padding: 6px 9px;
+		font-size: 12px;
+	}
 }

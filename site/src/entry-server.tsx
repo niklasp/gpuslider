@@ -15,7 +15,7 @@ import Reel from './pages/reel/Reel';
 import Tape from './pages/tape/Tape';
 import Phone from './pages/phone/Phone';
 import Loom from './pages/loom/Loom';
-import Wave from './pages/wave/Wave';
+import Wave, { WAVES } from './pages/wave/Wave';
 import Depth from './pages/depth/Depth';
 import { Journal, Story } from './pages/journal/Journal';
 import { STORIES } from './pages/journal/stories';
@@ -38,6 +38,17 @@ export const pages: Record< string, Page > = {
 	'examples/tape/index.html': { page: () => <Tape /> },
 	'examples/loom/index.html': { page: () => <Loom /> },
 	'examples/wave/index.html': { page: () => <Wave /> },
+	...Object.fromEntries(
+		WAVES.slice( 1 ).map( ( { id, title } ) => [
+			`examples/wave/${ id }/index.html`,
+			{
+				from: 'examples/wave/index.html',
+				title: `${ title } · Wave · ${ NAME }`,
+				description: `Bands of pictures that run against each other: ${ title.toLowerCase() }.`,
+				page: () => <Wave stage={ id } />,
+			},
+		] )
+	),
 	'examples/depth/index.html': { page: () => <Depth /> },
 	'examples/journal/index.html': { page: () => <Journal /> },
 	...Object.fromEntries(

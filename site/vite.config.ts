@@ -51,6 +51,20 @@ export default defineConfig( {
 				} );
 			},
 		},
+		{
+			// The stages of the wave are pages of one file, as the build
+			// makes them (see `entry-server.tsx`).
+			name: 'wave',
+			configureServer( server ) {
+				server.middlewares.use( ( request, _, next ) => {
+					const [ address, query ] = ( request.url || '' ).split( '?' );
+					if ( /^\/examples\/wave\/[a-z]+\/$/.test( address ) ) {
+						request.url = `/examples/wave/index.html${ query ? `?${ query }` : '' }`;
+					}
+					next();
+				} );
+			},
+		},
 	],
 	// The generated media of the repo: /media/1.jpg
 	publicDir: path.resolve( import.meta.dirname, 'public' ),

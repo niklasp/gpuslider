@@ -36,8 +36,9 @@ const PAGES = {
 	loom: async ( page ) => {
 		await page.waitForTimeout( 1500 );
 	},
+	// The first stage, its two bands running.
 	wave: async ( page ) => {
-		await page.waitForTimeout( 1500 );
+		await page.waitForTimeout( 3000 );
 	},
 	// Moved on by one: the picture is seen where it hangs back.
 	depth: async ( page ) => {
