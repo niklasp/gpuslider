@@ -167,7 +167,7 @@ main {
 }
 
 .peek .gs-track {
-	width: clamp(240px, 30vw, 480px);
+	width: clamp(288px, 36vw, 580px);
 	aspect-ratio: 4 / 3;
 }
 
@@ -184,7 +184,7 @@ main {
 }
 
 .peek.held .gs-track {
-	width: min(78vw, 420px);
+	width: min(84vw, 500px);
 	aspect-ratio: 4 / 5;
 }
 

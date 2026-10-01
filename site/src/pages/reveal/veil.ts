@@ -170,24 +170,26 @@ export const veil = () => ( {
 	if ( style < 1.5 ) {
 		// Smoke: the picture forms out of smoke that curls and rises from
 		// the pointer, and keeps curling at its edge; thick at the edge, it
-		// thins to clear in the middle and stays short of the picture's edges.
+		// thins fast to a picture that is clear but for a light haze, and
+		// stays short of the picture's edges.
 		vec2 qn = ( uv - 0.5 ) / ( vec2( 0.5 ) - vec2( pad.x, pad.y ) );
-		float rim = ( 1.0 - length( qn * vec2( 0.92, 1.0 ) ) ) * 0.4;
+		float rim = ( 1.0 - length( qn * 1.06 ) ) * 0.75;
 		float t = clock;
 		vec2 a = uv * vec2( k, 1.0 );
 		// Noise that bends noise that bends noise, all of it drifting up.
 		vec2 w1 = vec2( veilNoise_( a * 3.0 + vec2( 0.0, t * 0.35 ) ), veilNoise_( a * 3.0 + vec2( 5.2 - t * 0.25, 1.3 + t * 0.2 ) ) );
 		vec2 w2 = vec2( veilNoise_( a * 4.0 + w1 * 3.0 + vec2( t * 0.2, t * 0.3 ) ), veilNoise_( a * 4.0 + w1 * 3.0 + vec2( 8.3, 2.8 + t * 0.4 ) ) );
 		float n = veilNoise_( a * 3.5 + w2 * 4.0 + vec2( 0.0, t * 0.25 ) ) * 0.6 + veilNoise_( a * 9.0 + w2 * 3.0 + vec2( 0.0, t * 0.6 ) ) * 0.4;
-		float margin = 0.08 + ( 1.0 - o ) * 0.3;
+		float margin = 0.1 + ( 1.0 - o ) * 0.3;
 		float f = veilSmin_( o * 1.1 - 0.12 - d, rim - margin, 0.18 ) + ( n - 0.5 ) * 0.36;
-		float clear = smoothstep( 0.03, 0.2, f );
+		float clear = smoothstep( 0.02, 0.13, f );
 		float wisp = smoothstep( 0.3, 0.8, veilNoise_( a * 6.0 + w2 * 5.0 + vec2( 0.0, t * 0.5 ) ) );
 		float puff = smoothstep( -0.14, 0.06, f ) * ( 1.0 - smoothstep( 0.12, 0.3, f ) ) * ( 0.3 + 0.7 * wisp ) * smoothstep( 0.0, 0.1, rim );
 		vec2 sway = ( w2 - 0.5 ) * 0.08 * ( 1.0 - clear );
 		vec4 under = media( uv + sway );
 		vec3 haze = mix( vec3( 0.6, 0.64, 0.72 ), under.rgb * 1.2 + 0.1, 0.45 );
-		vec3 seen = under.rgb * clear * ( 1.0 - puff * 0.7 ) + haze * puff * color.a;
+		float mist = 0.1 * wisp * clear;
+		vec3 seen = mix( under.rgb, haze, mist ) * clear * ( 1.0 - puff * 0.7 ) + haze * puff * color.a;
 		return vec4( seen, ( clear + puff * ( 1.0 - clear ) * 0.9 ) * under.a * color.a );
 	}
 	if ( style < 2.5 ) {
