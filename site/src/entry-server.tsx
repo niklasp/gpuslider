@@ -10,7 +10,6 @@ import Home from './pages/home/Home';
 import Docs from './pages/docs/Docs';
 import Examples from './pages/examples/Examples';
 import Playground from './pages/playground/Playground';
-import Wall from './pages/wall/Wall';
 import Reel from './pages/reel/Reel';
 import Tape from './pages/tape/Tape';
 import Phone from './pages/phone/Phone';
@@ -38,7 +37,6 @@ type Page = {
 export const pages: Record< string, Page > = {
 	'index.html': { page: () => <Home /> },
 	'examples/index.html': { page: () => <Examples /> },
-	'examples/wall/index.html': { page: () => <Wall /> },
 	'examples/reel/index.html': { page: () => <Reel /> },
 	'examples/tape/index.html': { page: () => <Tape /> },
 	'examples/loom/index.html': { page: () => <Loom /> },

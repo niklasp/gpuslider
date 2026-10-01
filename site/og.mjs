@@ -18,7 +18,6 @@ const PAGES = {
 	docs: '/docs/',
 	examples: '/examples/',
 	playground: '/playground/',
-	wall: '/examples/wall/',
 	reel: '/examples/reel/',
 	tape: '/examples/tape/',
 	loom: '/examples/loom/',

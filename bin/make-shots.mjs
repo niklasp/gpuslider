@@ -21,12 +21,13 @@ const PAGES = {
 	orbit: async ( page ) => {
 		await page.waitForTimeout( 2500 );
 	},
-	// Scrolled into the first grid, still moving: the rows coming in are folded.
+	// Scrolled to the cascade, half way in: its pictures fold into place.
 	fold: async ( page ) => {
-		await page.evaluate( () => scrollTo( 0, document.getElementById( 'stand' ).offsetTop - 200 ) );
+		await page.evaluate( () => {
+			const r = document.querySelector( '#cascade .wall' ).getBoundingClientRect();
+			scrollTo( 0, r.top + scrollY + r.height / 2 - innerHeight / 2 - 0.55 * innerHeight );
+		} );
 		await page.waitForTimeout( 1500 );
-		await page.mouse.wheel( 0, 400 );
-		await page.waitForTimeout( 60 );
 	},
 	// The hero half resolved.
 	resolve: async ( page ) => {
@@ -44,14 +45,6 @@ const PAGES = {
 		await page.waitForTimeout( 1500 );
 		await page.evaluate( () => window.slider.to( ( window.slider.index + 3 ) % 8 ) );
 		await page.waitForTimeout( 140 );
-	},
-	// Dragged a little: the glass is seen where it bends.
-	wall: async ( page ) => {
-		await page.mouse.move( 700, 420 );
-		await page.mouse.down();
-		await page.mouse.move( 560, 330, { steps: 12 } );
-		await page.mouse.up();
-		await page.waitForTimeout( 1500 );
 	},
 	// Scrolled a part of the way, as the first film flows into the next.
 	reel: async ( page ) => {

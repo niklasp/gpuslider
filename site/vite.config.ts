@@ -130,7 +130,6 @@ export default defineConfig( {
 					'index',
 					'docs/index',
 					'examples/index',
-					'examples/wall/index',
 					'examples/reel/index',
 					'examples/tape/index',
 					'examples/loom/index',

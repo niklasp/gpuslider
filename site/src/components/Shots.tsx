@@ -32,14 +32,8 @@ export const EXAMPLES = [
 	{
 		name: 'fold',
 		title: 'Fold',
-		text: 'Walls of large pictures that fold as the page is scrolled, each its own way: pictures that stand up, pleats, a wave and a tunnel, and flat again at rest. Every wall is one slider whose track is a grid, drawn by one canvas; drag it sideways, click a picture to open it. After the staggered 3D grid animations of Manoela Ilic.',
+		text: 'Walls of small pictures that fold into place one after another as the page is scrolled, each in its own order: column by column, along a diagonal, from the middle out, or like rain; flat in the middle of the screen. Every wall is one slider whose track is a grid, drawn by one canvas; drag it sideways, click a picture to open it. After the staggered 3D grid animations of Manoela Ilic.',
 		made: [ 'lightbox()', 'loading()', 'effects of its own' ],
-	},
-	{
-		name: 'wall',
-		title: 'A wall of images',
-		text: 'A wall of pictures without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, and the page takes the pointer and moves both. Drag it, and click a picture to open it.',
-		made: [ 'marquee()', 'loading()', 'dome', 'jelly', 'slab' ],
 	},
 	{
 		name: 'reel',

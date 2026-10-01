@@ -231,17 +231,16 @@ test.describe( 'the first page', () => {
 } );
 
 test.describe( 'the examples', () => {
-	test( 'there are twelve, with a picture each, and they lead to their pages', async ( { page } ) => {
+	test( 'there are eleven, with a picture each, and they lead to their pages', async ( { page } ) => {
 		await page.goto( '/examples/' );
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
-		await expect( all ).toHaveCount( 12 );
+		await expect( all ).toHaveCount( 11 );
 		await expect( all.getByRole( 'heading' ) ).toHaveText( [
 			'Resolve',
 			'Reveal',
 			'Orbit',
 			'Echo',
 			'Fold',
-			'A wall of images',
 			'A reel',
 			'Tape',
 			'Loom',
@@ -249,7 +248,7 @@ test.describe( 'the examples', () => {
 			'Depth',
 			'Journal',
 		] );
-		for ( const name of [ 'wall', 'reel', 'tape', 'loom', 'wave', 'depth', 'journal', 'orbit', 'fold', 'resolve', 'reveal', 'echo' ] ) {
+		for ( const name of [ 'reel', 'tape', 'loom', 'wave', 'depth', 'journal', 'orbit', 'fold', 'resolve', 'reveal', 'echo' ] ) {
 			const picture = page.locator( `img[src="/shots/${ name }.avif"]` );
 			await picture.scrollIntoViewIfNeeded();
 			await expect
@@ -513,7 +512,7 @@ test.describe( 'the page for phones', () => {
 	test( 'says what the browser has, measures, and writes it down', async ( { page } ) => {
 		test.slow();
 		await page.goto( '/phone/' );
-		await expect( page.getByTestId( 'has' ).getByRole( 'row' ) ).toHaveCount( 12 );
+		await expect( page.getByTestId( 'has' ).getByRole( 'row' ) ).toHaveCount( 11 );
 		await expect(
 			page.getByTestId( 'has' ).getByRole( 'row', { name: 'WebGL 2' } )
 		).toContainText( /^WebGL 2(yes|no)/ );

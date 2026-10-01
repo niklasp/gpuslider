@@ -21,7 +21,6 @@
 
 ## Examples
 
-- [A wall of glass](/examples/wall/)
 - [A reel](/examples/reel/)
 - [Tape](/examples/tape/)
 - [Loom](/examples/loom/)

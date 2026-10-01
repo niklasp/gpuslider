@@ -42,7 +42,6 @@ npm run lighthouse # builds the site and asks Lighthouse about its pages
 | `/` | What the library is: what it does, what it weighs, how fast it is, and where to go from there |
 | `/docs/` | The docs, in eleven pages. What they say is `DOCS.md`, cut into pages when the site is built (`site/docs.ts`): it is said in one place. Most pages show what they say, with sliders to try it on |
 | `/examples/` | The three pages below, with a picture each |
-| `/examples/wall/` | A wall of glass without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, the page takes the pointer and moves both. `dome`, `jelly`, `slab`, and a screen with a mark that is drawn while the pictures load |
 | `/examples/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
 | `/examples/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
 | `/playground/` | Every layout, every effect and transition, the lightbox, the loading screen, buttons anywhere and the events, with controls for all of it. Under every slider: who draws it, and what a frame costs |
