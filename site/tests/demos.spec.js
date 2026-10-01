@@ -1,6 +1,6 @@
 /**
  * The pages of the site that are made of the library, and of little
- * else: a wall of glass, a reel, tape. And what the playground shows of
+ * else: a wall of images, a reel, tape. And what the playground shows of
  * what they are made of.
  */
 import { test, expect } from '@playwright/test';
@@ -210,7 +210,7 @@ test.describe( 'the playground', () => {
 			name: 'Pages that are made of it',
 		} );
 		await expect( links.getByRole( 'link' ) ).toHaveText( [
-			'A wall of glass',
+			'A wall of images',
 			'A reel',
 			'Tape',
 			'Loom',

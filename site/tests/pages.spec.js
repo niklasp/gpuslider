@@ -236,7 +236,7 @@ test.describe( 'the examples', () => {
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
 		await expect( all ).toHaveCount( 7 );
 		await expect( all.getByRole( 'heading' ) ).toHaveText( [
-			'A wall of glass',
+			'A wall of images',
 			'A reel',
 			'Tape',
 			'Loom',

@@ -5,8 +5,8 @@
 export const EXAMPLES = [
 	{
 		name: 'wall',
-		title: 'A wall of glass',
-		text: 'A wall of pictures behind thick glass, without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, and the page takes the pointer and moves both. Drag it. Glass after glass-effect-webgpu by jeantimex.',
+		title: 'A wall of images',
+		text: 'A wall of pictures without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, and the page takes the pointer and moves both. Drag it, and click a picture to open it.',
 		made: [ 'marquee()', 'loading()', 'dome', 'jelly', 'slab' ],
 	},
 	{

@@ -19,7 +19,7 @@ const rows = Array.from( { length: ROWS }, ( _, row ) =>
 );
 
 /**
- * A wall of pictures behind thick glass, without an end in any direction.
+ * A wall of pictures without an end in any direction.
  * React renders the rows, `wall()` makes sliders of them.
  */
 export default function Wall() {
@@ -35,7 +35,7 @@ export default function Wall() {
 	return (
 		<>
 			{ /* What the page is, for who reads it without seeing it. */ }
-			<h1 style={ { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap' } }>A wall of glass: a slider of sliders, drawn by gpu slider</h1>
+			<h1 style={ { position: 'absolute', width: 1, height: 1, overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap' } }>A wall of images: a slider of sliders, drawn by gpu slider</h1>
 			<div
 				ref={ intro }
 				id="intro"
@@ -91,11 +91,6 @@ export default function Wall() {
 
 			<footer>
 				<a href="/examples/">gpu slider</a>
-				<span>
-					Glass after{ ' ' }
-					<a href="https://jeantimex.github.io/glass-effect-webgpu/">glass-effect-webgpu</a>{ ' ' }
-					by jeantimex
-				</span>
 				<span ref={ said } id="said">
 					Drag the wall
 				</span>

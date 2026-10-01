@@ -1,5 +1,5 @@
 /**
- * A wall of glass: every row is a slider without an end, and the rows are
+ * A wall of images: every row is a slider without an end, and the rows are
  * the slides of a slider that goes down without an end. Neither takes the
  * pointer: the page does, and moves them together.
  *
