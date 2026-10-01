@@ -54,17 +54,15 @@ export default function Loom() {
 		share( 'length', long === 1 ? undefined : long );
 	};
 
-	// A way and a length that a link brings: `?way=silk&length=2`.
 	useEffect( () => {
+		// A way and a length that a link brings: `?way=silk&length=2`. The
+		// build renders the first; the slider is made with what is asked.
 		const to = shared( 'way', Object.keys( WAYS ) as Way[] ) ?? 'Loom';
 		const asked = Number( new URLSearchParams( location.search ).get( 'length' ) );
 		const long = asked >= 0.1 && asked <= 4 ? asked : 1;
 		setLength( long );
 		choose( to, long );
-		// Once, as the page starts.
-	}, [] );
 
-	useEffect( () => {
 		const made = createSlider( root.current!, {
 			loop: true,
 			free: true,

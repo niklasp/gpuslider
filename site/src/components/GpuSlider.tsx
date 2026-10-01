@@ -217,11 +217,6 @@ export function GpuSlider( {
 	}, [ slider, wait ] );
 
 	useEffect( () => {
-		onSlider?.( slider );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ slider ] );
-
-	useEffect( () => {
 		slider?.update();
 		// A new slider has measured itself.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
@@ -234,7 +229,12 @@ export function GpuSlider( {
 				plugins={ plugins() }
 				remake={ [ made, kind ] }
 				on={ every }
-				onSlider={ setSlider }
+				// The slider, here and to whoever asked for it, as it is made
+				// and as it ends.
+				onSlider={ ( made ) => {
+					setSlider( made );
+					onSlider?.( made );
+				} }
 				id={ id }
 				data-made={ made }
 				aria-label={ label }

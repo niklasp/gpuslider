@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useEffectEvent, useRef, useState } from 'react';
 import 'gpuslider/style.css';
 import './reel.css';
 import { loading, stack, videos } from 'gpuslider/plugins';
@@ -51,17 +51,18 @@ function Intro( {
 } ) {
 	const count = useRef< HTMLParagraphElement >( null );
 	const [ gone, setGone ] = useState( false );
-	const to = useRef( told );
-	to.current = told;
-	const over = useRef( onGone );
-	over.current = onGone;
+	// What is told now, and who is told when it is all there: as they are
+	// on the frame that reads them.
+	const target = useEffectEvent( () => told );
+	const over = useEffectEvent( () => onGone() );
 
 	useEffect( () => {
 		let shown = 0;
 		let frame = requestAnimationFrame( function run() {
-			shown += ( to.current - shown ) * 0.12;
-			if ( to.current - shown < 0.4 ) {
-				shown = to.current;
+			const to = target();
+			shown += ( to - shown ) * 0.12;
+			if ( to - shown < 0.4 ) {
+				shown = to;
 			}
 			// The number is written as often as a frame comes: not by React.
 			count.current!.textContent = String( Math.round( shown ) );
@@ -70,7 +71,7 @@ function Intro( {
 				return;
 			}
 			setGone( true );
-			over.current();
+			over();
 		} );
 		return () => cancelAnimationFrame( frame );
 	}, [] );

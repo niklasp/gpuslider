@@ -59,14 +59,6 @@ export default function Reveal() {
 		}
 	};
 
-	// A link can carry the way: ?way=smoke. The build renders the first.
-	useEffect( () => {
-		const start = shared( 'way', WAYS );
-		if ( start ) {
-			choose( WAYS.indexOf( start ) );
-		}
-	}, [] );
-
 	useEffect( () => {
 		const root = panel.current!;
 		const rows = [
@@ -124,6 +116,11 @@ export default function Reveal() {
 		} );
 		slider.current = made;
 		Object.assign( window, { slider: made } );
+		// A link can carry the way: ?way=smoke. The build renders the first.
+		const start = shared( 'way', WAYS );
+		if ( start ) {
+			choose( WAYS.indexOf( start ) );
+		}
 
 		// From one name to the next the picture draws in a little and opens
 		// again: down for DOWN seconds, up for UP. Over several names in a

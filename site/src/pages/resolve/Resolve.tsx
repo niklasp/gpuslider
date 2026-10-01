@@ -68,6 +68,7 @@ export default function Resolve() {
 	const [ way, setWay ] = useState( 0 );
 	// Set by the slider: shows the way chosen from the start again.
 	const again = useRef< () => void >( () => {} );
+	const ways = useRef< HTMLDivElement >( null );
 
 	const choose = ( to: number ) => {
 		MODE[ 0 ] = to;
@@ -75,14 +76,13 @@ export default function Resolve() {
 		share( 'way', to ? WAYS[ to ] : undefined );
 		setWay( to );
 		again.current();
+		// On a narrow screen the dock scrolls: the way chosen is in it.
+		ways.current?.children[ to ]?.scrollIntoView( {
+			inline: 'center',
+			block: 'nearest',
+			behavior: 'smooth',
+		} );
 	};
-
-	// On a narrow screen the dock scrolls: the way chosen is in it.
-	useEffect( () => {
-		document
-			.querySelector( '.ways [aria-pressed="true"]' )
-			?.scrollIntoView( { inline: 'center', block: 'nearest', behavior: 'smooth' } );
-	}, [ way ] );
 
 	useEffect( () => {
 		const root = page.current!;
@@ -228,7 +228,7 @@ export default function Resolve() {
 			<header>
 				<Bar code="resolve">Resolve{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
-			<div className="ways" role="group" aria-label="How the pictures come out">
+			<div ref={ ways } className="ways" role="group" aria-label="How the pictures come out">
 				{ WAYS.map( ( one, i ) => (
 					<button
 						key={ one }

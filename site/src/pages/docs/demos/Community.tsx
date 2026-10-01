@@ -40,6 +40,8 @@ export default function Community() {
 	const [ failed, setFailed ] = useState( false );
 
 	useEffect( () => {
+		// An answer that comes after the page has gone is not written.
+		let live = true;
 		Promise.all( [ search( 'gpuslider-plugin' ), search( 'gpuslider-effect' ) ] )
 			.then( ( lists ) => {
 				// A package with both keywords once.
@@ -48,13 +50,19 @@ export default function Community() {
 					.flat()
 					.filter( ( one ) => ( approved as string[] ).includes( one.package.name ) )
 					.forEach( ( one ) => seen.set( one.package.name, one ) );
+				if ( ! live ) {
+					return;
+				}
 				setFound(
 					[ ...seen.values() ].sort(
 						( a, b ) => Date.parse( b.package.date ) - Date.parse( a.package.date )
 					)
 				);
 			} )
-			.catch( () => setFailed( true ) );
+			.catch( () => live && setFailed( true ) );
+		return () => {
+			live = false;
+		};
 	}, [] );
 
 	if ( failed ) {

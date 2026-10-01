@@ -299,10 +299,14 @@ function Install() {
 			type="button"
 			className="sq-knob inline-flex h-12 cursor-pointer items-center gap-3 bg-secondary px-5 font-mono text-sm transition hover:bg-accent"
 			onClick={ () => {
-				navigator.clipboard?.writeText( command ).then( () => {
-					setCopied( true );
-					setTimeout( () => setCopied( false ), 1600 );
-				} );
+				navigator.clipboard
+					?.writeText( command )
+					.then( () => {
+						setCopied( true );
+						setTimeout( () => setCopied( false ), 1600 );
+					} )
+					// Not allowed: the command is there to be selected.
+					.catch( () => {} );
 			} }
 		>
 			<span className="text-muted-foreground">$</span>
