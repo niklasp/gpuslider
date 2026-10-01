@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>gpu slider: starter</title>
+</head>
+<body>
+	<!-- Pictures from picsum.photos, which sends the CORS header the
+	     canvas needs; with your own, keep crossorigin or serve them from
+	     your own origin. -->
+	<div class="gs" id="photos" aria-label="Photos">
+		<div class="gs-track">
+			<div class="gs-slide"><img class="gs-media" crossorigin="anonymous" src="https://picsum.photos/id/1015/1600/1000" alt="A river between mountains"></div>
+			<div class="gs-slide"><img class="gs-media" crossorigin="anonymous" src="https://picsum.photos/id/1039/1600/1000" alt="A waterfall in a forest"></div>
+			<div class="gs-slide"><img class="gs-media" crossorigin="anonymous" src="https://picsum.photos/id/1043/1600/1000" alt="Leaves in autumn"></div>
+			<div class="gs-slide"><img class="gs-media" crossorigin="anonymous" src="https://picsum.photos/id/1050/1600/1000" alt="A coast at dusk"></div>
+		</div>
+		<button data-gs-prev aria-label="Previous slide">‹</button>
+		<button data-gs-next aria-label="Next slide">›</button>
+	</div>
+	<p>Change <code>liquid</code> in <code>main.js</code> to <code>burn</code>, <code>glitch</code>, <code>swirl</code>, <code>fold</code>…</p>
+	<script type="module" src="/main.js"></script>
+</body>
+</html>

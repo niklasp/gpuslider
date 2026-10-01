@@ -2,7 +2,7 @@
 
 **An image and video carousel drawn on the GPU.** WebGPU where the browser has it, WebGL 2 where it doesn't, and a plain HTML slider underneath that works everywhere. A core under 5 KB, no dependencies, everything else a plugin.
 
-[Website](https://gpuslider.com) · [Docs](https://gpuslider.com/docs/) · [Examples](https://gpuslider.com/examples/) · [Playground](https://gpuslider.com/playground/)
+[Website](https://gpuslider.com) · [Docs](https://gpuslider.com/docs/) · [Examples](https://gpuslider.com/examples/) · [Playground](https://gpuslider.com/playground/) · [Try it on StackBlitz](https://stackblitz.com/github/niklasp/gpuslider/tree/main/examples/starter)
 
 [![gpu slider](https://gpuslider.com/og/home.jpg)](https://gpuslider.com)
 

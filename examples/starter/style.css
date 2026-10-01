@@ -1,0 +1,51 @@
+body {
+	margin: 0;
+	min-height: 100vh;
+	display: grid;
+	place-content: center;
+	gap: 16px;
+	padding: 16px;
+	background: #000;
+	color: #8e8e93;
+	font: 15px/1.4 system-ui, sans-serif;
+	text-align: center;
+}
+
+#photos {
+	width: min(900px, calc(100vw - 32px));
+	aspect-ratio: 16 / 10;
+	border-radius: 24px;
+	corner-shape: squircle;
+	overflow: hidden;
+}
+
+#photos .gs-slide {
+	height: 100%;
+}
+
+#photos button {
+	position: absolute;
+	top: 50%;
+	translate: 0 -50%;
+	z-index: 1;
+	width: 44px;
+	height: 44px;
+	border: 0;
+	border-radius: 50%;
+	background: rgb(0 0 0 / 0.45);
+	color: #fff;
+	font-size: 22px;
+	cursor: pointer;
+}
+
+[data-gs-prev] {
+	left: 12px;
+}
+
+[data-gs-next] {
+	right: 12px;
+}
+
+code {
+	color: #f5f5f7;
+}
