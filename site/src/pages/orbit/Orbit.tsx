@@ -59,9 +59,9 @@ const CHAPTERS: { title: string; line: string; shape: Shape; tall?: Partial< Sha
 	},
 	{
 		title: 'Inside',
-		line: 'Step in. The near half is gone, and the far wall curves round you: the pictures you saw from behind, the right way round.',
-		shape: { k: 2.1, tilt: 0.1, roll: 0, y: 0.0, push: 0.05, inner: 1, flat: 0, floor: 0.04 },
-		tall: { k: 3, tilt: 0.16 },
+		line: 'Step in. The near wall comes at you and is gone behind you; the far wall curves round you, the pictures you saw from behind now the right way round.',
+		shape: { k: 1.6, tilt: 0.06, roll: 0, y: 0.0, push: 1.3, inner: 1, flat: 0, floor: 0.04 },
+		tall: { k: 2.2, tilt: 0.08 },
 	},
 	{
 		title: 'Unrolled',
@@ -119,7 +119,8 @@ export default function Orbit() {
 			min: 500,
 			also: [ canvases ],
 		} );
-		const perspective = Math.round( Math.max( 1400, win.innerWidth * 1.15 ) );
+		// The eye: near enough for a wide view, from inside the cylinder.
+		const perspective = Math.round( Math.max( 1000, win.innerWidth * 0.85 ) );
 		// The reflection first: the cylinder is drawn over it.
 		const [ mirror, ring ] = [ 1, 0 ].map( ( m ) =>
 			createSlider( root.querySelector< HTMLElement >( m ? '.mirror' : '.ring' )!, {
@@ -131,7 +132,7 @@ export default function Orbit() {
 					canvas( {
 						effects: [
 							stretch( { amount: 0.45 } ),
-							cylinder( { period, shape, more, mirror: m } ),
+							cylinder( { period, shape, more, eye: perspective, mirror: m } ),
 						],
 						layer: layer(),
 						eager: true,
@@ -309,7 +310,7 @@ export default function Orbit() {
 	return (
 		<>
 			<header>
-				<Bar>Orbit{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="orbit">Orbit{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<div ref={ stage } className="stage">
 				<div className="gs-loading" role="progressbar" aria-label="Loading the pictures">
