@@ -1,51 +1,73 @@
-// Where a slide is in the view, and how far it has come apart.
+// Where on the screen a slide comes apart: by the point of the view, not
+// by the slide, so that only what is near an end of the view frays.
 const AT_EDGE = `
-float edge_() {
-	return ( uQuad.x + uQuad.z * 0.5 ) / uView.x * 2.0 - 1.0;
+float side_() {
+	return sign( uQuad.x + uQuad.z * 0.5 - uView.x * 0.5 );
 }
-float reach_( float amount ) {
-	return amount * smoothstep( 0.2, 1.0, abs( edge_() ) );
+float fray_( float x, float start ) {
+	return smoothstep( start, 1.0, ( x / uView.x * 2.0 - 1.0 ) * side_() );
 }
-float past_( vec2 uv, float amount ) {
-	float g = reach_( amount );
-	return ( edge_() > 0.0 ? uv.x : 1.0 - uv.x ) * ( 1.0 + g );
+float grow_( float amount, float start ) {
+	return amount * fray_( uQuad.x + uQuad.z * ( 0.5 + 0.5 * side_() ), start );
 }
-float thread_( vec2 uv, float threads ) {
-	return fract( sin( floor( uv.y * threads ) * 12.9898 ) * 43758.5453 );
+float along_( vec2 uv, float amount, float start ) {
+	float g = grow_( amount, start );
+	return uv.x * ( 1.0 + g ) - step( side_(), -0.5 ) * g;
+}
+float thread_( float y, float threads ) {
+	return fract( sin( floor( y * threads ) * 12.9898 ) * 43758.5453 );
 }
 `;
 
 /**
- * The slides come apart into threads near the edges of the view, as off a
- * loom: the slide reaches out, and each of its rows runs on from the edge
- * of the image for a length of its own. In the middle nothing happens.
+ * The slides come apart into threads near the two ends of the view, as off
+ * a loom: where a slide leaves the screen or comes in, each row of it runs
+ * on past the image for a length of its own. Away from the ends nothing
+ * happens.
  *
  * Moves the mesh.
  *
- * @param {Object} [options]         Options.
- * @param {number} [options.amount]  How far the threads reach at the edge
- *                                   of the view, in widths of the slide.
- * @param {number} [options.threads] Rows of threads in the height of a
- *                                   slide.
+ * @param {Object}            [options]         Options.
+ * @param {number | number[]} [options.amount]  How far the threads reach
+ *                                              at the end of the view, in
+ *                                              widths of the slide.
+ * @param {number | number[]} [options.threads] Rows of threads in the
+ *                                              height of a slide.
+ * @param {number | number[]} [options.start]   Where it begins, from the
+ *                                              middle of the view (0) to
+ *                                              its end (1).
+ * @param {number | number[]} [options.gap]     Room between the threads,
+ *                                              0 to 1.
+ * @param {number | number[]} [options.split]   How far the colours of a
+ *                                              thread come apart.
  * @return {import('../program.js').Effect} Effect.
  */
-export const unweave = ( { amount = 0.8, threads = 70 } = {} ) => ( {
+export const unweave = ( {
+	amount = 0.8,
+	threads = 70,
+	start = 0.55,
+	gap = 0.5,
+	split = 0,
+} = {} ) => ( {
 	head: AT_EDGE,
-	params: { amount, threads },
+	params: { amount, threads, start, gap, split },
 	vertex: `
-	float g = reach_( amount );
-	return vec3( p.x * ( 1.0 + g ) + sign( edge_() ) * g * uQuad.z * 0.5, p.y, p.z );`,
+	float g = grow_( amount, start );
+	return vec3( p.x * ( 1.0 + g ) + side_() * g * uQuad.z * 0.5, p.y, p.z );`,
 	uv: `
-	float g = reach_( amount );
-	float past = past_( uv, amount );
-	// Pulled out along the thread, the more the further out.
-	past -= thread_( uv, threads ) * g * 0.5 * smoothstep( 0.4, 1.0, past );
-	return vec2( edge_() > 0.0 ? past : 1.0 - past, uv.y );`,
+	float u = along_( uv, amount, start );
+	float k = fray_( uQuad.x + u * uQuad.z, start );
+	// Pulled out along its thread, the more the nearer the end.
+	return vec2( u - side_() * k * k * amount * 0.5 * thread_( uv.y, threads ), uv.y );`,
 	color: `
-	float g = reach_( amount );
-	float past = past_( uv, amount );
-	float end = 1.0 + g * ( 0.25 + 0.75 * thread_( uv, threads ) );
-	// Beyond the image, a little room between the threads.
-	float gap = step( 1.0, past ) * smoothstep( 0.4, 0.9, abs( fract( uv.y * threads ) - 0.5 ) * 2.0 );
-	return color * ( 1.0 - smoothstep( end - 0.2 * g, end, past ) ) * ( 1.0 - gap );`,
+	float g = grow_( amount, start );
+	float u = along_( uv, amount, start );
+	float k = fray_( uQuad.x + u * uQuad.z, start );
+	float e = split * k * 0.02;
+	color = vec4( media( uv + vec2( e, 0.0 ) ).r, color.g, media( uv - vec2( e, 0.0 ) ).b, color.a );
+	// Past the image every thread ends at a length of its own.
+	float past = side_() > 0.0 ? u - 1.0 : -u;
+	float end = g * ( 0.3 + 0.7 * thread_( uv.y, threads * 1.7 ) );
+	float room = gap * k * smoothstep( 0.3, 0.9, abs( fract( uv.y * threads ) - 0.5 ) * 2.0 );
+	return color * ( 1.0 - smoothstep( end - 0.15 * g, end, past ) ) * ( 1.0 - room );`,
 } );

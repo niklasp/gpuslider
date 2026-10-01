@@ -12,6 +12,22 @@ import { drawnBy, layer } from '../mount';
 // The four photos, twice: a row longer than the screen.
 const SLIDES = [ 1, 2, 3, 4, 7, 5, 6, 8 ];
 
+// Ways the threads come apart: how far they reach, how many, where it
+// begins, the room between them, and how far their colours split.
+const WAYS = {
+	Loom: { amount: 1.1, threads: 90, start: 0.55, gap: 0.5, split: 0 },
+	Silk: { amount: 1.8, threads: 300, start: 0.6, gap: 0.9, split: 0 },
+	Rope: { amount: 0.7, threads: 16, start: 0.5, gap: 0.85, split: 0 },
+	Prism: { amount: 1.2, threads: 60, start: 0.55, gap: 0.4, split: 1.4 },
+	Deep: { amount: 2.6, threads: 120, start: 0.5, gap: 0.6, split: 0.5 },
+};
+type Way = keyof typeof WAYS;
+
+// What the effect reads on every frame: written into, never replaced.
+const PARAMS = Object.fromEntries(
+	Object.entries( WAYS.Loom ).map( ( [ name, value ] ) => [ name, [ value ] ] )
+) as Record< keyof ( typeof WAYS )[ Way ], number[] >;
+
 /**
  * Loom: portraits that run by, and come apart into threads where they
  * leave the screen and where they come in. After Unwoven by Clément
@@ -20,9 +36,19 @@ const SLIDES = [ 1, 2, 3, 4, 7, 5, 6, 8 ];
 export default function Loom() {
 	const root = useRef< HTMLDivElement >( null );
 	const [ by, setBy ] = useState( '' );
+	const [ way, setWay ] = useState< Way >( 'Loom' );
+	const slider = useRef< { wake: () => void } >( null );
+
+	const choose = ( to: Way ) => {
+		for ( const [ name, value ] of Object.entries( WAYS[ to ] ) ) {
+			PARAMS[ name as keyof typeof PARAMS ][ 0 ] = value;
+		}
+		slider.current?.wake();
+		setWay( to );
+	};
 
 	useEffect( () => {
-		const slider = createSlider( root.current!, {
+		const made = createSlider( root.current!, {
 			loop: true,
 			free: true,
 			align: 'center',
@@ -32,7 +58,7 @@ export default function Loom() {
 				wheel(),
 				keyboard(),
 				canvas( {
-					effects: [ unweave( { amount: 1.1, threads: 90 } ), stretch( { amount: 0.6 } ) ],
+					effects: [ unweave( PARAMS ), stretch( { amount: 0.6 } ) ],
 					layer: layer(),
 				} ),
 			],
@@ -40,8 +66,9 @@ export default function Loom() {
 				'canvas:ready': ( name: string ) => setBy( drawnBy( name ) ),
 			},
 		} );
-		Object.assign( window, { slider } );
-		return () => slider.destroy();
+		slider.current = made;
+		Object.assign( window, { slider: made } );
+		return () => made.destroy();
 	}, [] );
 
 	return (
@@ -66,12 +93,25 @@ export default function Loom() {
 						) ) }
 					</div>
 				</div>
+				<div className="ways" role="group" aria-label="How the threads come apart">
+					{ ( Object.keys( WAYS ) as Way[] ).map( ( one ) => (
+						<button
+							key={ one }
+							type="button"
+							aria-pressed={ one === way }
+							onClick={ () => choose( one ) }
+						>
+							{ one }
+						</button>
+					) ) }
+				</div>
 			</main>
 			<footer>
 				<p>
 					The row runs by itself; drag it, or turn the wheel. At the edges
 					of the screen the pictures come apart into threads:{ ' ' }
-					<code>unweave()</code>.
+					<code>unweave()</code>. The pills above choose how: long or short
+					threads, fine or coarse, close or apart, their colours split.
 				</p>
 				<p>
 					After <a href="https://tympanus.net/Development/Unwoven/">Unwoven</a>{ ' ' }
