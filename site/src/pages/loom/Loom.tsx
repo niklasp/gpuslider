@@ -40,10 +40,14 @@ export default function Loom() {
 	const [ way, setWay ] = useState< Way >( 'Loom' );
 	const slider = useRef< { wake: () => void } >( null );
 
-	const choose = ( to: Way ) => {
+	// How long the threads are, against what the way has: 1 is its own.
+	const [ length, setLength ] = useState( 1 );
+
+	const choose = ( to: Way, long = length ) => {
 		for ( const [ name, value ] of Object.entries( WAYS[ to ] ) ) {
 			PARAMS[ name as keyof typeof PARAMS ][ 0 ] = value;
 		}
+		PARAMS.amount[ 0 ] = WAYS[ to ].amount * long;
 		slider.current?.wake();
 		setWay( to );
 	};
@@ -105,14 +109,30 @@ export default function Loom() {
 							{ one }
 						</button>
 					) ) }
+					<label className="length">
+						Length
+						<input
+							type="range"
+							min={ 0.1 }
+							max={ 2 }
+							step={ 0.05 }
+							value={ length }
+							aria-valuetext={ `${ Math.round( length * 100 ) } %` }
+							onChange={ ( event ) => {
+								const long = Number( event.target.value );
+								setLength( long );
+								choose( way, long );
+							} }
+						/>
+					</label>
 				</div>
 			</main>
 			<footer>
 				<p>
 					The row runs by itself; drag it, or turn the wheel. At the edges
 					of the screen the pictures come apart into threads:{ ' ' }
-					<code>unweave()</code>. The pills above choose how: long or short
-					threads, fine or coarse, close or apart, their colours split.
+					<code>unweave()</code>. The pills above choose how: fine or coarse,
+					close or apart, their colours split; the slider how long they are.
 				</p>
 				<p>
 					After <a href="https://tympanus.net/Development/Unwoven/">Unwoven</a>{ ' ' }
