@@ -168,3 +168,13 @@ main {
 	outline: 2px solid var(--ink);
 	outline-offset: 4px;
 }
+
+/* The bar stays at the top while the page scrolls. */
+header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	background: color-mix(in srgb, var(--ground) 72%, transparent);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+}
