@@ -127,7 +127,7 @@ slider.on( 'change', ( index ) => {} );
 slider.destroy();
 ```
 
-- Vanilla ES modules, no dependencies, plain JavaScript with JSDoc types. The type declarations are generated from the JSDoc (`npm run types`), so there is one source for both.
+- Vanilla ES modules, no dependencies, written in TypeScript. The package has JavaScript in `lib/` and the declarations in `types/`, both made from `src/` (`node bin/build.mjs`, `npm run types`), so there is one source for both. Bundlers get `lib/`, with the shaders made small and the properties a module keeps to itself (named `_…`) one letter long; what they import costs no more than the JavaScript with JSDoc did.
 - The canvas is a plugin passed in by the caller, so a slider without effects never downloads WebGL code, and unused effects are not bundled.
 - Built with esbuild. `npm run size` prints gzipped bytes and fails over budget.
 
@@ -270,7 +270,7 @@ Decided by the user on 2026-09-29: WebGPU is what the slider is built with, and 
 
 - **Two layers of the same shape**: `gpu()` in `src/gpu/`, `gl()` in `src/gl/`. Same options, same hooks, same events (`gpu:on`, `gl:on`), and `layer.again` makes another of its kind, which is how the lightbox draws with what its slider draws with. The lightbox imports no layer any more; without a canvas it fades.
 - **`canvas()` chooses** (`gpuslider/canvas`, 0.3 KB): it asks the browser for an adapter, not for `navigator.gpu`, because a browser may know WebGPU and have nothing to run it on (Firefox without a window, a machine whose GPU is on a blocklist). It loads one layer. `gpuslider/effects` has the effects without a layer. In `auto.js`: `data-gs-canvas`; `data-gs-gpu` and `data-gs-gl` name one.
-- **Effects are written once**, in GLSL, and translated to WGSL when the shader is made (`src/gpu/wgsl.js`). Rejected: every effect twice (36 shaders to keep the same by hand, and twice the bytes for who bundles both); a compiler like Naga or Tint in the page (megabytes). The translation is 1.1 KB and knows the subset that the effects are written in, which the README names. Four effects were rewritten for it (`pile`, `tilt`, `shift`, `smear`). Every name gets a `_` at its end, because WGSL keeps words for itself that GLSL does not (`from`, `filter`).
+- **Effects are written once**, in GLSL, and translated to WGSL when the shader is made (`src/gpu/wgsl.ts`). Rejected: every effect twice (36 shaders to keep the same by hand, and twice the bytes for who bundles both); a compiler like Naga or Tint in the page (megabytes). The translation is 1.1 KB and knows the subset that the effects are written in, which the README names. Four effects were rewritten for it (`pile`, `tilt`, `shift`, `smear`). Every name gets a `_` at its end, because WGSL keeps words for itself that GLSL does not (`from`, `filter`).
 - **One device for a window**, shared pipelines, meshes and textures. A texture is counted by who uses it and freed with the last of them.
 - **The same picture.** `tests/gpu.spec.js` draws every effect and every transition with both and compares. For that both layers changed: the noise is a hash without a sine, which GPUs compute differently, and the size of an image that is looked up is chosen once per pixel from how large the image is drawn, not from how far apart the lookups of neighbours are. The second is a gain for both: at the cuts of `wind`, `signal` and `datamosh` the smallest size of the image showed as a line. Transitions with noise look a little different than before.
 - **Tests**: all tests run with both layers (`npm run test:gpu`: Chromium with Metal, and WebKit), and with both of `dist/`. The Firefox of the tests gives no adapter: WebGPU in Firefox is not tested.
@@ -357,7 +357,7 @@ Asked for by the user on 2026-09-29: "thik of the localhost:5183 like a package 
 Reported by the user on 2026-09-29, with a picture of the covers in the playground: "when mouse is over the outermost slide here it should also zoom that but it zooms the slide 5. make sure zoom trigger even works when still sliding atm it only works when settled?" And of the lightbox: "when opening a zoom slide the slide gets the move left right animations shift applied. but that does not fit. either use another growing animation or just leave it". And of the wall: "the wobble used here is much too strong".
 
 - **The page has a slide in one place, the canvas draws it in another**, when an effect lays the slides out. Of the covers three have a place in view, and five are seen: the two at the edges are drawn in the places of their neighbours, and a click there opened the neighbour.
-- **`hit()` says which slide is seen at a point** (`src/hit.js`, 0.9 KB): it does in JS what the vertex shader does, for a mesh of 8 by 8 squares for every slide that the canvas draws, and takes the slide that is nearest to the eye, and of two that are as near the one that is drawn later, as the canvas does. The core asks the plugins that have `at( x, y )` when there is a click; `click` says what they say, and what the page says where they say nothing. `canvas()` loads `hit()` when an effect lays out, and a page without such an effect never loads it.
+- **`hit()` says which slide is seen at a point** (`src/hit.ts`, 0.9 KB): it does in JS what the vertex shader does, for a mesh of 8 by 8 squares for every slide that the canvas draws, and takes the slide that is nearest to the eye, and of two that are as near the one that is drawn later, as the canvas does. The core asks the plugins that have `at( x, y )` when there is a click; `click` says what they say, and what the page says where they say nothing. `canvas()` loads `hit()` when an effect lays out, and a page without such an effect never loads it.
 - **An effect that moves the mesh says so twice**: `vertex` in GLSL, `place` in JS. `coverflow`, `pile`, `fan`, `dome` and `bend` do. `jelly` and `tilt` do not: they move a slide by little, around its place. A test holds the two against each other for every one of them: at some 1500 points of the slider, where a slide is said to be the canvas has drawn, and where none is said to be it has not.
 - **Considered: asking the canvas**, by drawing the slides with their number for a colour and reading the pixel under the pointer. It needs no second telling of where a slide is, and is right for every effect there will be. It is code in both layers, of which the one of WebGL has 3 bytes left of its budget, and in WebGPU a pixel is read after the click, not with it.
 - **What is there to be used is where the page has it**: a click on a link or a button in a slide is a click on the slide it is in. The text of a slide is not moved by the canvas (Open: slide content is not distorted with the image).
@@ -438,7 +438,7 @@ From the list of what is open, asked for by the user on 2026-09-29: "The flaky W
 
 - **What it was**: WebKit gives a bitmap with nothing in it for an image that is loaded and decoded, probably because it has let go of the pixels since; why was not found out. It was seen for slides out of view on a machine that is busy: `createImageBitmap()` resolves, the bitmap has the size that was asked for, and every pixel of it is 0. The canvas took the slide over with it, so the slide stayed without its picture (the difference of 8.89 that the test of the slider that goes down saw every time). This is not the empty bitmap of an image that is not decoded yet, which `decode()` keeps away.
 - **A visitor could see it**, on a phone that is short of memory more likely than on a desk. It was a fault of the library, not of the test.
-- **Four by four pixels say whether a bitmap is empty** (`empty()` in `src/gl/fit.js`, for both layers). If it is, the canvas does not take the slide over, the page goes on drawing it, and the image is asked for again after 200 ms, ten times at most: after that the bitmap is taken as it is, because a picture may be transparent all over.
+- **Four by four pixels say whether a bitmap is empty** (`empty()` in `src/gl/fit.ts`, for both layers). If it is, the canvas does not take the slide over, the page goes on drawing it, and the image is asked for again after 200 ms, ten times at most: after that the bitmap is taken as it is, because a picture may be transparent all over.
 - **Rejected: the image itself in place of the bitmap.** At that moment WebKit has nothing to draw of it either: WebGL got a black strip, WebGPU nothing.
 - **Measured**: the test of the slider that goes down, 18 times with each layer in WebKit beside other tests. The empty bitmap came 14 times in the 36 runs, and all 36 ended with the right picture. Before, the same test failed in 10 of 16 and in 4 of 16 runs. "At rest the slides are as the page draws them", which failed now and then the same way, has not failed since; it was too rare before for that to say much.
 - **It costs** 83 bytes in the WebGL layer and 80 in the one of WebGPU.
@@ -506,29 +506,29 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 
 | File | Does |
 |---|---|
-| `src/engine.js` | `pos`, velocity, spring, frame loop on demand |
-| `src/layout.js` | Measures slides; snap points, bounds, loop wrap. Pure functions apart from `measure()` |
-| `src/input.js` | Pointer drag with direction lock, click suppression |
-| `src/dom.js` | Moves the slides; roles, `inert` |
-| `src/index.js` | `createSlider()`: options, events, plugins |
-| `src/full.js` | The core with the plugins that options switch |
-| `src/auto.js` | Sliders from `data-gs`, without a script of one's own |
-| `src/react.js` | `<Slider>`, `<Slide>`, `useSliderContext()`, `useSlider()` |
+| `src/engine.ts` | `pos`, velocity, spring, frame loop on demand |
+| `src/layout.ts` | Measures slides; snap points, bounds, loop wrap. Pure functions apart from `measure()` |
+| `src/input.ts` | Pointer drag with direction lock, click suppression |
+| `src/dom.ts` | Moves the slides; roles, `inert` |
+| `src/index.ts` | `createSlider()`: options, events, plugins |
+| `src/full.ts` | The core with the plugins that options switch |
+| `src/auto.ts` | Sliders from `data-gs`, without a script of one's own |
+| `src/react.ts` | `<Slider>`, `<Slide>`, `useSliderContext()`, `useSlider()` |
 | `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
 | `src/loading.css` | The screen of `loading()`, for pages that have none of their own |
-| `src/lightbox.js`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
+| `src/lightbox.ts`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
 | `src/style.css` | Layout for all three tiers |
 | `bin/build.mjs`, `bin/glsl.mjs` | Sizes against budgets; `dist/`, with the shaders made small |
-| `src/canvas.js` | `canvas()`: the layer that the browser can draw |
-| `src/effects.js` | The effects and transitions, without a layer |
-| `src/hit.js` | `hit()`: which slide is seen at a point, where effects lay the slides out |
-| `src/gpu/layer.js` | The canvas layer of WebGPU: one device for a window, visibility, the draw |
-| `src/gpu/program.js` | Builds one shader in WGSL from the chosen effects |
-| `src/gpu/wgsl.js` | GLSL of the effects to WGSL |
-| `src/gpu/textures.js` | Image and video textures, shared and counted; mipmaps |
-| `src/gl/layer.js` | The canvas layer of WebGL 2: context pool, visibility, the draw |
-| `src/gl/program.js` | Builds one shader from the chosen effects |
-| `src/gl/textures.js` | Image and video textures |
+| `src/canvas.ts` | `canvas()`: the layer that the browser can draw |
+| `src/effects.ts` | The effects and transitions, without a layer |
+| `src/hit.ts` | `hit()`: which slide is seen at a point, where effects lay the slides out |
+| `src/gpu/layer.ts` | The canvas layer of WebGPU: one device for a window, visibility, the draw |
+| `src/gpu/program.ts` | Builds one shader in WGSL from the chosen effects |
+| `src/gpu/wgsl.ts` | GLSL of the effects to WGSL |
+| `src/gpu/textures.ts` | Image and video textures, shared and counted; mipmaps |
+| `src/gl/layer.ts` | The canvas layer of WebGL 2: context pool, visibility, the draw |
+| `src/gl/program.ts` | Builds one shader from the chosen effects |
+| `src/gl/textures.ts` | Image and video textures |
 | `bench/`, `bin/bench.mjs` | The two layers, measured against each other |
 | `site/` | The site: everything that is to be seen. `site/src/pages/` has the first page, the docs, the examples and the playground |
 | `site/docs.ts` | The README as pages of the docs, when the site is built |
@@ -536,7 +536,7 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 | `bin/lighthouse.mjs`, `bin/make-shots.mjs` | What Lighthouse says of the pages; the pictures of the examples |
 | `media/` | Generated pictures and films, for the site and the tests |
 | `bin/make-wall.mjs` | The pictures of the wall |
-| `src/gl/fit.js` | Where `object-fit` and `object-position` put the pixels |
+| `src/gl/fit.ts` | Where `object-fit` and `object-position` put the pixels |
 | `src/gl/effects/*.js` | One effect per file |
 
 ## Phases

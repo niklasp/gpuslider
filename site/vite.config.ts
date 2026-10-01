@@ -73,19 +73,19 @@ export default defineConfig( {
 		dedupe: [ 'react', 'react-dom' ],
 		alias: {
 			'@': path.resolve( import.meta.dirname, './src' ),
-			'gpuslider/canvas': path.resolve( import.meta.dirname, '../src/canvas.js' ),
-			'gpuslider/effects': path.resolve( import.meta.dirname, '../src/effects.js' ),
-			'gpuslider/gpu': path.resolve( import.meta.dirname, '../src/gpu/index.js' ),
-			'gpuslider/gl': path.resolve( import.meta.dirname, '../src/gl/index.js' ),
-			'gpuslider/lightbox': path.resolve( import.meta.dirname, '../src/lightbox.js' ),
-			'gpuslider/react': path.resolve( import.meta.dirname, '../src/react.js' ),
-			'gpuslider/auto': path.resolve( import.meta.dirname, '../src/auto.js' ),
-			'gpuslider/full': path.resolve( import.meta.dirname, '../src/full.js' ),
-			'gpuslider/plugins': path.resolve( import.meta.dirname, '../src/plugins/index.js' ),
+			'gpuslider/canvas': path.resolve( import.meta.dirname, '../src/canvas.ts' ),
+			'gpuslider/effects': path.resolve( import.meta.dirname, '../src/effects.ts' ),
+			'gpuslider/gpu': path.resolve( import.meta.dirname, '../src/gpu/index.ts' ),
+			'gpuslider/gl': path.resolve( import.meta.dirname, '../src/gl/index.ts' ),
+			'gpuslider/lightbox': path.resolve( import.meta.dirname, '../src/lightbox.ts' ),
+			'gpuslider/react': path.resolve( import.meta.dirname, '../src/react.ts' ),
+			'gpuslider/auto': path.resolve( import.meta.dirname, '../src/auto.ts' ),
+			'gpuslider/full': path.resolve( import.meta.dirname, '../src/full.ts' ),
+			'gpuslider/plugins': path.resolve( import.meta.dirname, '../src/plugins/index.ts' ),
 			'gpuslider/style.css': path.resolve( import.meta.dirname, '../src/style.css' ),
 			'gpuslider/lightbox.css': path.resolve( import.meta.dirname, '../src/lightbox.css' ),
 			'gpuslider/loading.css': path.resolve( import.meta.dirname, '../src/loading.css' ),
-			gpuslider: path.resolve( import.meta.dirname, '../src/index.js' ),
+			gpuslider: path.resolve( import.meta.dirname, '../src/index.ts' ),
 		},
 	},
 	// Pages of their own: what is not there is not found, and is not the
@@ -105,7 +105,7 @@ export default defineConfig( {
 						{
 							name: 'slider',
 							test: ( id: string ) =>
-								/^(index|engine|layout|input|dom|react)\.js/.test( lib( id ) ),
+								/^(index|engine|layout|input|dom|react)\.ts/.test( lib( id ) ),
 						},
 						{
 							name: 'plugins',
@@ -114,7 +114,7 @@ export default defineConfig( {
 						{
 							name: 'canvas',
 							test: ( id: string ) =>
-								/^(canvas|hit|lightbox)\.js|^gl\/(fit|glsl)/.test( lib( id ) ),
+								/^(canvas|hit|lightbox)\.ts|^gl\/(fit|glsl)/.test( lib( id ) ),
 						},
 						{
 							name: 'effects',

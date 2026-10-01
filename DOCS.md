@@ -64,7 +64,7 @@ const slider = createSlider( document.querySelector( '.gs' ), {
 } );
 ```
 
-`gpuslider/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 7.1 KB.
+`gpuslider/full` is the core with arrows, dots, keys, the wheel, videos, autoplay, auto height and the stack, switched by options: 7.0 KB.
 
 ### With what you name, and no more
 
@@ -76,7 +76,7 @@ import 'gpuslider/style.css';
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.7 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.6 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
@@ -638,7 +638,7 @@ Shaders are compiled on another thread where the browser can, and no frame is dr
 | Script in a frame while 6 sliders move | 0.15 ms, 0.17 ms | 0.33 ms, 0.27 ms |
 | Frames that came late while 20 sliders moved for 4 s | 0 of 241 | 0 of 241 |
 | Work of the page and of the GPU process, 6 sliders (Chromium) | 10 % and 18 % of a core | 11 % and 18 % |
-| The layer in the bundle | 7.5 KB | 9.5 KB |
+| The layer in the bundle | 7.4 KB | 9.2 KB |
 | Browsers | all | Chrome, Edge, Safari from 26, Firefox on some systems: about 87 % of visitors |
 
 What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which for six sliders is 0.3 ms of the 16.7 that a frame has.
@@ -795,7 +795,7 @@ An effect that lays the slides out says in JS too where it moves a point to, so 
 
 `head` is GLSL the bodies need, `animated: true` says that it moves without the slider moving, `animated: 'pointer'` that it does while the pointer is over the slider.
 
-Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`, and in `color` and `uv` also `uRadius`. See `src/gl/program.js`.
+Uniforms: `uProgress`, `uVelocity`, `uPointer`, `uPointerSpeed`, `uPointerIn`, `uTime`, `uSize`, `uView`, `uQuad`, and in `color` and `uv` also `uRadius`. See `src/gl/program.ts`.
 
 What the translation knows is the GLSL that all effects here are written in. For an effect that is to run on WebGPU too:
 
@@ -952,16 +952,16 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 
 | Part | Size |
 |---|---|
-| Core | 4.7 KB |
+| Core | 4.6 KB |
 | A plugin | 0.3 to 1 KB |
-| `gpuslider/full`: the core with all its options | 7.1 KB |
+| `gpuslider/full`: the core with all its options | 7.0 KB |
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.5 KB |
-| Canvas layer of WebGL 2 | 7.5 KB |
-| An effect | 0.2 to 0.9 KB |
-| A transition | 0.2 to 1.0 KB |
+| Canvas layer of WebGPU | 9.2 KB |
+| Canvas layer of WebGL 2 | 7.4 KB |
+| An effect | 0.2 to 0.8 KB |
+| A transition | 0.2 to 0.8 KB |
 | Lightbox | 2.2 KB |
 | `style.css`, `lightbox.css` | 0.7 KB, 0.8 KB |
 | `loading.css` | 0.4 KB |

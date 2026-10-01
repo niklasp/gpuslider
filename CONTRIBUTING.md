@@ -25,7 +25,8 @@ npm run bench      # WebGPU and WebGL, measured against each other
 npm run site       # the site with everything in it, http://localhost:5183/
 npm run size       # gzipped sizes, fails over budget; builds dist/
 npm run test:dist  # the tests, with what is built
-npm run types      # type declarations from the JSDoc, and a file that uses them
+npm run check      # the library type-checks, strict
+npm run types      # type declarations from the source, and a file that uses them
 npm run media      # generates the images and videos in media/ again
 node bin/make-film.mjs <video>  # the film of the site: a loop of a video of Pexels
 npm run media:wall # generates the pictures of the wall again
@@ -58,14 +59,14 @@ No number of the site is written by hand. The sizes are written by `npm run size
 
 - **Tests.** Run the ones of what you changed: `npx playwright test tests/lightbox.spec.js`, or `--project=site site/tests/pages.spec.js` for the site. `npm test` runs all of them in Chromium, Firefox and WebKit; `npm run test:gpu` the same drawn by WebGPU.
 - **Sizes.** `npm run size` fails when a part is over its budget. A budget is changed on purpose only, with the reason in PLAN.md. A change that makes something smaller is always welcome.
-- **Types.** `npm run types` makes the declarations from the JSDoc and compiles a file that uses them. A new option or method has its JSDoc.
+- **Types.** The library is TypeScript, strict: `npm run check`. `npm run types` makes the declarations and compiles a file that uses them. A new option or method has its type and a doc comment.
 - **Both layers.** An effect, or a change to what the canvas draws, is in `src/gl/` and in `src/gpu/`, and the tests hold them against each other.
 - **The docs.** `DOCS.md` is the docs: the site cuts it into its pages when it is built, and it is in the package. A change that people see is in it, and a size in it is the one that was measured (a test checks). `README.md` is what npm and GitHub show: what the library is and how to start, not every detail.
 - **The numbers of the site** are never written by hand: `npm run size`, `npm run bench -- --write` and `npm run lighthouse` write them into `site/src/lib/`.
 
 ## How the code is written
 
-- Plain JavaScript modules with JSDoc in the library, no build to run it; TypeScript and React only on the site.
+- TypeScript modules in the library, built to `lib/` (`node bin/build.mjs`); the tests and the site use `src/` as it is (`bin/serve.mjs` and Vite make it JavaScript). React only on the site and in `src/react.ts`.
 - Tabs, and spaces inside parentheses and brackets: `fn( a, [ b ] )`. There is no formatter; write like the code around it.
 - Names and comments say what a thing is or does, in plain words. A comment says why, when the code cannot.
 - No dependencies in the library.
