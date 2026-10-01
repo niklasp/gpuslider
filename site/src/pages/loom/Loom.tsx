@@ -7,7 +7,7 @@ import { keyboard, loading, marquee, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { stretch, unweave } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
-import { drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer } from '../mount';
 
 // The four photos, twice: a row longer than the screen.
 const SLIDES = [ 1, 2, 3, 4, 7, 5, 6, 8 ];
@@ -79,8 +79,7 @@ export default function Loom() {
 	return (
 		<>
 			<header>
-				<a href="/examples/">gpu slider</a>
-				<span>Loom{ by && ` · drawn by ${ by }` }</span>
+				<Bar>Loom{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<main>
 				<div ref={ root } className="gs loom" aria-label="Portraits">

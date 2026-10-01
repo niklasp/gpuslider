@@ -8,7 +8,7 @@ import { loading, marquee } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { bend, jelly, split, stretch, type Effect } from 'gpuslider/effects';
 import { lightbox } from 'gpuslider/lightbox';
-import { drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer } from '../mount';
 
 /**
  * Wave: bands of pictures that run against each other, in five stages,
@@ -423,8 +423,7 @@ export default function Wave( { stage: id = STAGES[ 0 ].id }: { stage?: string }
 	return (
 		<>
 			<header>
-				<a href="/examples/">gpu slider</a>
-				<span>Wave{ by && ` · drawn by ${ by }` }</span>
+				<Bar>Wave{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<nav className="waves" aria-label="Stages">
 				{ WAVES.map( ( one ) => (

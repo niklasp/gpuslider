@@ -7,7 +7,7 @@ import { controls, keyboard, loading, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { parallax, stretch } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
-import { drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer } from '../mount';
 
 const SLIDES = [ 1, 2, 3, 4, 7, 5, 6, 8 ];
 
@@ -67,8 +67,7 @@ export default function Depth() {
 	return (
 		<>
 			<header>
-				<a href="/examples/">gpu slider</a>
-				<span>Depth{ by && ` · drawn by ${ by }` }</span>
+				<Bar>Depth{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 
 			<form className="panel" aria-label="Depth" onSubmit={ ( event ) => event.preventDefault() }>

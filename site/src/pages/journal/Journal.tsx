@@ -7,7 +7,7 @@ import { autoplay, controls, keyboard, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { stretch } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
-import { drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer } from '../mount';
 import { STORIES, minutesIn } from './stories';
 
 const address = ( slug: string ) => `/examples/journal/${ slug }/`;
@@ -52,8 +52,7 @@ export function Journal() {
 	return (
 		<>
 			<header>
-				<a href="/examples/">gpu slider</a>
-				<span>Journal{ by && ` · drawn by ${ by }` }</span>
+				<Bar>Journal{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<main>
 				<div className="masthead">
@@ -169,8 +168,10 @@ export function Story( { slug }: { slug: string } ) {
 	return (
 		<>
 			<header>
-				<a href="/examples/journal/">Afterlight</a>
-				<a href="/examples/">gpu slider</a>
+				<a href="/examples/journal/">← Afterlight</a>
+				<span>
+					Made with <a href="/">gpu slider</a>
+				</span>
 			</header>
 			<main className="story" style={ lit( n ) }>
 				<img

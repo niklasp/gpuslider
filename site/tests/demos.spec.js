@@ -223,7 +223,7 @@ test.describe( 'the playground', () => {
 		await expect( page ).toHaveURL( /\/examples\/tape\/$/ );
 		await expect( page.locator( '.tape' ) ).toHaveCount( 4 );
 		// An example leads back to the examples.
-		await page.getByRole( 'link', { name: 'gpu slider' } ).click();
+		await page.getByRole( 'link', { name: '← Examples' } ).click();
 		await expect( page ).toHaveURL( /\/examples\/$/ );
 		await expect(
 			page.getByTestId( 'examples' ).getByRole( 'listitem' ).first()

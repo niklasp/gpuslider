@@ -28,3 +28,19 @@ export function layer(): 'gl' | 'gpu' | undefined {
 /** The name of a layer, as people say it. */
 export const drawnBy = ( name: unknown ) =>
 	name === 'gpu' ? 'WebGPU' : 'WebGL';
+
+/**
+ * What the bar at the top of an example says: the way back to the
+ * examples at the left; at the right what the page is, and what it is
+ * made with, for those who come to it from elsewhere.
+ */
+export function Bar( { children }: { children: ReactNode } ) {
+	return (
+		<>
+			<a href="/examples/">← Examples</a>
+			<span>
+				{ children } · Made with <a href="/">gpu slider</a>
+			</span>
+		</>
+	);
+}

@@ -8,7 +8,7 @@ import { canvas } from 'gpuslider/canvas';
 import { stretch, split, jelly } from 'gpuslider/effects';
 import pictures from '@/lib/wall.json';
 import { pinned } from '@/lib/media';
-import { drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer } from '../mount';
 
 const WORDS = [ 'Film', 'Field', 'Sound', 'Print' ];
 const IN_A_ROW = 8;
@@ -57,8 +57,9 @@ export default function Tape() {
 	return (
 		<div ref={ page }>
 			<header>
-				<a href="/examples/">gpu slider</a>
-				<span id="said">Scroll{ by && ` · drawn by ${ by }` }</span>
+				<Bar>
+					<span id="said">Scroll{ by && ` · drawn by ${ by }` }</span>
+				</Bar>
 			</header>
 
 			<h1>

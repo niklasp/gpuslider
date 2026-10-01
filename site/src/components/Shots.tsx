@@ -63,7 +63,7 @@ export function Shots( { all }: { all?: boolean } ) {
 					key={ name }
 					className={
 						all
-							? 'grid items-center gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
+							? 'grid items-start gap-6 md:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]'
 							: 'grid content-start gap-4'
 					}
 				>
@@ -82,7 +82,7 @@ export function Shots( { all }: { all?: boolean } ) {
 							decoding="async"
 						/>
 					</a>
-					<div className="grid content-start gap-2">
+					<div className={ `grid content-start gap-2 ${ all ? 'md:sticky md:top-28' : '' }` }>
 						{ all ? (
 							<h2 className="font-display text-3xl font-light tracking-[-0.035em]">
 								<a href={ `/examples/${ name }/` }>{ title }</a>

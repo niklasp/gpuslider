@@ -5,6 +5,7 @@ import './wall.css';
 import pictures from '@/lib/wall.json';
 import { pinned } from '@/lib/media';
 import { wall } from './sliders';
+import { Bar } from '../mount';
 
 const ROWS = 7;
 const IN_A_ROW = 8;
@@ -90,10 +91,11 @@ export default function Wall() {
 			</main>
 
 			<footer>
-				<a href="/examples/">gpu slider</a>
-				<span ref={ said } id="said">
-					Drag the wall
-				</span>
+				<Bar>
+					<span ref={ said } id="said">
+						Drag the wall
+					</span>
+				</Bar>
 			</footer>
 		</>
 	);

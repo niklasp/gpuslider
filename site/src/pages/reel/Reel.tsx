@@ -13,7 +13,7 @@ import { canvas } from 'gpuslider/canvas';
 import { split, waves, warp } from 'gpuslider/effects';
 import { useSlider } from 'gpuslider/react';
 import { calm, film, video } from '@/lib/media';
-import { drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer } from '../mount';
 
 // A picture made by `bin/make-dream.mjs`, as large as the screen.
 const dream = ( n: number ) => {
@@ -229,10 +229,11 @@ export default function Reel() {
 			</main>
 
 			<footer>
-				<a href="/examples/">gpu slider</a>
-				<span id="said">
-					Arrows, keys, a drag{ by && ` · drawn by ${ by }` }
-				</span>
+				<Bar>
+					<span id="said">
+						Arrows, keys, a drag{ by && ` · drawn by ${ by }` }
+					</span>
+				</Bar>
 			</footer>
 		</>
 	);
