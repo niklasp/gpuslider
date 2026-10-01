@@ -18,6 +18,8 @@ const PARAMS = Object.fromEntries(
 ) as Record< keyof ( typeof WAYS )[ Way ], number[] >;
 // How fast the reel has moved of late: written by `linger()`.
 const TRAIL = [ 0 ];
+// From a slide to the next, px: measured by the page.
+const PITCH = [ 1e5 ];
 
 /**
  * Echo: a reel whose pictures leave frames of themselves behind as they
@@ -55,7 +57,7 @@ export default function Echo() {
 				autoplay( 3600 ),
 				keyboard(),
 				linger( TRAIL ),
-				canvas( { effects: [ echo( { ...PARAMS, trail: TRAIL } ) ], layer: layer() } ),
+				canvas( { effects: [ echo( { ...PARAMS, trail: TRAIL, pitch: PITCH } ) ], layer: layer() } ),
 			],
 			on: {
 				change: ( index: number ) => setAt( index ),
@@ -66,9 +68,20 @@ export default function Echo() {
 			align: 'center',
 			plugins: [ thumbs( made ) ],
 		} );
+		// Where the next slide is: the frames are not drawn over it.
+		const track = stage.current!.querySelector< HTMLElement >( '.gs-track' )!;
+		const measure = () => {
+			const slide = track.firstElementChild as HTMLElement;
+			PITCH[ 0 ] = slide.offsetWidth + parseFloat( getComputedStyle( track ).columnGap || '0' );
+			made.wake();
+		};
+		measure();
+		const sizes = new ResizeObserver( measure );
+		sizes.observe( stage.current! );
 		reel.current = made;
 		Object.assign( window, { slider: made } );
 		return () => {
+			sizes.disconnect();
 			strips.destroy();
 			made.destroy();
 		};
