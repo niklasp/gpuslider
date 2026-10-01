@@ -20,10 +20,10 @@ float echoCover_( vec2 q, vec2 size, float r, float shape ) {
 // speed, as frames of a film taken at a fixed rate are farther apart the
 // faster what they show moves; `b` is the side the slide comes from.
 const REACH = `
-	float v = uVelocity;
-	float m = smoothstep( 0.02, 0.35, abs( v ) );
+	float v = trail;
+	float m = smoothstep( 0.02, 0.45, abs( v ) );
 	float D = min( abs( v ) * uView.x * lag, reach * uQuad.z ) * m;
-	float b = v < 0.0 ? 1.0 : -1.0;
+	float b = v < 0.0 ? -1.0 : 1.0;
 	float A = abs( curve ) * uQuad.w * m;`;
 
 /**
@@ -35,7 +35,10 @@ const REACH = `
  * Every parameter is an array of one: the page writes into it and the next
  * frame has it.
  *
- * - `frames`: how many copies, 0 to 8
+ * - `frames`: how many copies, 0 to 12
+ * - `trail`: how fast the reel has moved of late, in views per second,
+ *   held and let go slowly by `linger()`: the frames follow it, not the
+ *   speed of the moment, and so stay a while after the move
  * - `lag`: seconds of movement between the slide and its last frame
  * - `reach`: the longest echo, in widths of the slide
  * - `shrink`: how much smaller each frame is than the one before
@@ -60,7 +63,7 @@ export const echo = ( params: Record< string, number[] > ): Effect => ( {
 	vec2 q = vec2( left + uv.x * ( size.x + D ), -size.y * 0.5 - A + uv.y * ( size.y + 2.0 * A ) );
 	vec4 sum = media( q / size + 0.5 ) * echoCover_( q, size, uRadius, uShape );
 	float n = max( frames, 1.0 );
-	for ( int k = 1; k <= 8; k++ ) {
+	for ( int k = 1; k <= 12; k++ ) {
 		float f = float( k );
 		if ( f <= frames ) {
 			float s = max( 1.0 - shrink * f, 0.2 );
@@ -82,9 +85,35 @@ export const echo = ( params: Record< string, number[] > ): Effect => ( {
 
 /** Ways the frames fall: the parameters of `echo()`, each a number. */
 export const WAYS = {
-	Frames: { frames: 6, lag: 0.2, reach: 1.4, shrink: 0.06, curve: 0, turns: 1, fade: 0.9, tint: 0.55 },
-	Ghost: { frames: 8, lag: 0.08, reach: 0.8, shrink: 0.015, curve: 0, turns: 1, fade: 1.8, tint: 0 },
-	Arc: { frames: 7, lag: 0.14, reach: 1.2, shrink: 0.08, curve: 0.16, turns: 1, fade: 1.1, tint: 0.3 },
-	Spiral: { frames: 8, lag: 0.16, reach: 1.3, shrink: 0.085, curve: 0.2, turns: 2.5, fade: 1, tint: 0.2 },
+	Frames: { frames: 10, lag: 0.55, reach: 3.2, shrink: 0.045, curve: 0, turns: 1, fade: 0.8, tint: 0.55 },
+	Ghost: { frames: 12, lag: 0.4, reach: 2.4, shrink: 0.012, curve: 0, turns: 1, fade: 1.4, tint: 0 },
+	Arc: { frames: 10, lag: 0.55, reach: 3, shrink: 0.05, curve: 0.32, turns: 1, fade: 0.9, tint: 0.3 },
+	Spiral: { frames: 12, lag: 0.6, reach: 3.4, shrink: 0.055, curve: 0.4, turns: 3, fade: 0.85, tint: 0.2 },
 };
 export type Way = keyof typeof WAYS;
+
+/**
+ * Holds the speed of the reel for the frames: it rises with the move at
+ * once and falls slowly after it, `fall` seconds to a third. While it falls
+ * the slider is asked for frames, so the trail draws in as it goes.
+ */
+export const linger = ( trail: number[], fall = 0.6 ) => ( slider: { wake: () => void } ) => {
+	let held = 0;
+	return {
+		name: 'linger',
+		frame( view: { velocity: number }, dt: number ) {
+			const v = view.velocity;
+			const kept = held * Math.exp( -dt / fall );
+			held = Math.abs( v ) >= Math.abs( kept ) ? v : kept;
+			if ( Math.abs( held ) < 0.004 ) {
+				held = 0;
+			}
+			trail[ 0 ] = held;
+		},
+		busy: () => held !== 0,
+		destroy() {
+			trail[ 0 ] = 0;
+			slider.wake();
+		},
+	};
+};

@@ -62,11 +62,11 @@ main {
 	--gs-gap: clamp(48px, 14vw, 240px);
 	--gs-loading-back: var(--ground);
 	--gs-loading-color: var(--ink);
-	padding-block: clamp(16px, 5svh, 56px);
+	padding-block: clamp(48px, 15svh, 150px);
 }
 
 .reel .gs-slide {
-	flex: 0 0 min(60vw, 980px, 72svh);
+	flex: 0 0 min(56vw, 900px, 62svh);
 	aspect-ratio: 16 / 10;
 }
 

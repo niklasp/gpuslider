@@ -7,7 +7,7 @@ import { autoplay, keyboard, loading, thumbs } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { image, photo } from '@/lib/media';
 import { Bar, drawnBy, layer } from '../mount';
-import { echo, WAYS, type Way } from './echo-effect';
+import { echo, linger, WAYS, type Way } from './echo-effect';
 
 // The eight photos, each once.
 const SLIDES = [ 1, 2, 3, 4, 5, 6, 7, 8 ];
@@ -16,6 +16,8 @@ const SLIDES = [ 1, 2, 3, 4, 5, 6, 7, 8 ];
 const PARAMS = Object.fromEntries(
 	Object.entries( WAYS.Frames ).map( ( [ name, value ] ) => [ name, [ value ] ] )
 ) as Record< keyof ( typeof WAYS )[ Way ], number[] >;
+// How fast the reel has moved of late: written by `linger()`.
+const TRAIL = [ 0 ];
 
 /**
  * Echo: a reel whose pictures leave frames of themselves behind as they
@@ -46,11 +48,14 @@ export default function Echo() {
 		const made = createSlider( stage.current!, {
 			loop: true,
 			align: 'center',
+			// Long enough to read the stream of frames.
+			duration: 1100,
 			plugins: [
 				loading( { min: 500 } ),
 				autoplay( 3600 ),
 				keyboard(),
-				canvas( { effects: [ echo( PARAMS ) ], layer: layer() } ),
+				linger( TRAIL ),
+				canvas( { effects: [ echo( { ...PARAMS, trail: TRAIL } ) ], layer: layer() } ),
 			],
 			on: {
 				change: ( index: number ) => setAt( index ),
@@ -72,7 +77,7 @@ export default function Echo() {
 	return (
 		<>
 			<header>
-				<Bar>Echo{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="echo">Echo{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<main>
 				<div ref={ stage } className="gs reel" aria-label="Photos">
@@ -130,7 +135,7 @@ export default function Echo() {
 						<input
 							type="range"
 							min={ 1 }
-							max={ 8 }
+							max={ 12 }
 							step={ 1 }
 							value={ frames }
 							onChange={ ( event ) => {
