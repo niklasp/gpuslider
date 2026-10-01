@@ -83,7 +83,7 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 	// The glass is as thick as its pictures are large.
 	const edge =
 		( outer.slides[ 0 ].querySelector( '.gs-slide' ) as HTMLElement )
-			.offsetWidth * 0.055;
+			.offsetWidth * 0.085;
 
 	const rows = outer.slides.map( ( slide: HTMLElement, i: number ) => {
 		// What the effects of this row are told on every frame.

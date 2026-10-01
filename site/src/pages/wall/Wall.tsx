@@ -90,6 +90,11 @@ export default function Wall() {
 
 			<footer>
 				<a href="/examples/">gpu slider</a>
+				<span>
+					Glass after{ ' ' }
+					<a href="https://jeantimex.github.io/glass-effect-webgpu/">glass-effect-webgpu</a>{ ' ' }
+					by jeantimex
+				</span>
 				<span ref={ said } id="said">
 					Drag the wall
 				</span>

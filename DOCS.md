@@ -665,7 +665,7 @@ Any number, in the order given.
 | `smear( { size, amount } )` | The pointer drags the image along | Speed of the pointer |
 | `shift( { size, amount } )` | The colours come apart along the way of the pointer | Speed of the pointer |
 | `jelly( { amount, across } )` | The slides are soft: what moves them pulls them out of shape; bends the mesh | Speed |
-| `slab( { edge, bend, spread, shine } )` | The slides are thick glass with a round bevel: the image is refracted through it and its colours come apart there, the rim catches a light at the top left, and a streak of reflection lies on the flat | Speed, a little |
+| `slab( { edge, bend, spread, shine, zoom } )` | The slides are thick glass with a round bevel: the flat magnifies a little (`zoom`), the image is refracted through the bevel and its colours come apart most at the rim, the rim and the bevel catch a light at the top left, and a gloss with a streak of reflection lies on the flat | Speed, a little |
 
 Effects that lay out: the slider moves as ever, the effect says where a slide is drawn. For one slide per view or `align: 'center'`; give the slider padding for what leaves its place.
 

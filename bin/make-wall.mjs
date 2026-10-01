@@ -3,12 +3,13 @@
  * nothing is downloaded. What is written on them is in
  * `site/src/lib/wall.json`.
  *
- * Each picture is a page rendered by Chromium: a scene of gradients, noise
- * and shapes, with its title on it. The title is in the picture because
- * the glass of the wall bends what it shows, and what is written on the
- * page would not bend with it.
+ * Each picture is drawn by a shader in Chrome: ribbons of silk that twist
+ * through a dark room, lit from the top left, glossy, so that the glass of
+ * the wall has something to bend. The title is in the picture because the
+ * glass bends what it shows, and what is written on the page would not
+ * bend with it.
  *
- * `node bin/make-wall.mjs`
+ * `node bin/make-wall.mjs`, then `node bin/make-variants.mjs`.
  */
 import { chromium } from '@playwright/test';
 import { readFileSync, mkdirSync } from 'node:fs';
@@ -26,129 +27,152 @@ const H = 560;
 const TITLES = JSON.parse(
 	readFileSync( resolve( site, 'src/lib/wall.json' ), 'utf8' )
 ).map( ( { title, line } ) => [ title, line ] );
-const KINDS = [ 'Film', 'Field', 'Sound', 'Print', 'Light', 'Space' ];
 
+// The face of the site, in the picture. What is written keeps away from
+// the edges, where the bevel of the glass bends it beyond reading.
+const FONT = readFileSync(
+	resolve(
+		site,
+		'node_modules/@fontsource-variable/funnel-display/files/funnel-display-latin-wght-normal.woff2'
+	)
+).toString( 'base64' );
+
+// The room, the light in it, the two colours of the silk and its sheen.
 const PALETTES = [
-	[ '#ff5f6d', '#ffc371', '#2b1055' ],
-	[ '#00c6ff', '#0072ff', '#070b24' ],
-	[ '#a8ff78', '#1de9b6', '#03282a' ],
-	[ '#f953c6', '#7b2ff7', '#14031f' ],
-	[ '#fdc830', '#f37335', '#240a02' ],
-	[ '#c471ed', '#12c2e9', '#080d2c' ],
-	[ '#f6f1e7', '#9fb8c8', '#1c2a38' ],
-	[ '#ee9ca7', '#ff6a88', '#2a0f1c' ],
-];
+	'04090d,0b3440,ff5a1f,0e7c86,ffb46b',
+	'07040f,24104a,7a2cff,ff4fa0,4fd6ff',
+	'020c10,06343b,0bbfae,f0603a,a0fff0',
+	'0d0503,3a1205,ff7a18,b3122e,ffd27a',
+	'03060d,0f1f52,2f6bff,9b3cff,7ee8ff',
+	'0a0309,330a2e,ff3d7f,ff9a3c,ffd1f0',
+	'02080a,0a2a2a,14a38b,203aa8,8affd8',
+	'08030a,2a0b2f,c21f6a,ff8c42,f7b2ff',
+].map( ( one ) =>
+	one.split( ',' ).map( ( hex ) => [ 0, 2, 4 ].map( ( i ) => parseInt( hex.slice( i, i + 2 ), 16 ) / 255 ) )
+);
 
-// A number that follows from another, between 0 and 1.
-const chance = ( n, k ) => {
-	const x = Math.sin( n * 127.1 + k * 311.7 ) * 43758.5453;
-	return x - Math.floor( x );
-};
-
-const SCENES = [
-	// Lights in the dark.
-	( [ a, b, c ], n ) => `
-		<div style="position:absolute;inset:0;background:
-			radial-gradient( 70% 90% at ${ 10 + chance( n, 1 ) * 50 }% 10%, ${ a } 0, transparent 65% ),
-			radial-gradient( 80% 80% at ${ 90 - chance( n, 2 ) * 40 }% 95%, ${ b } 0, transparent 70% ),
-			${ c }"></div>
-		<div style="position:absolute;inset:-20%;filter:blur(50px);background:
-			radial-gradient( 25% 35% at ${ 30 + chance( n, 3 ) * 40 }% 50%, #fff9 0, transparent 70% )"></div>`,
-	// A sun over lines.
-	( [ a, b, c ], n ) => `
-		<div style="position:absolute;inset:0;background:linear-gradient( ${ c } 0, ${ b } 55%, ${ a } 78%, ${ c } 78% )"></div>
-		<div style="position:absolute;left:${ 38 + chance( n, 1 ) * 30 }%;top:20%;width:${ H * 0.62 }px;height:${ H * 0.62 }px;border-radius:50%;
-			background:linear-gradient( #fff, ${ a } 70% );
-			-webkit-mask:repeating-linear-gradient( #000 0 22px, transparent 22px 30px ),linear-gradient( #000 0 55%, transparent 55% );
-			-webkit-mask-composite:source-over"></div>
-		<div style="position:absolute;inset:78% 0 0;background:
-			repeating-linear-gradient( 90deg, #fff5 0 2px, transparent 2px 70px ),
-			repeating-linear-gradient( 0deg, #fff5 0 2px, transparent 2px 34px ), ${ c };
-			transform:perspective( 300px ) rotateX( 55deg );transform-origin:50% 0"></div>`,
-	// Rings.
-	( [ a, b, c ], n ) => `
-		<div style="position:absolute;inset:0;background:
-			repeating-radial-gradient( circle at ${ 20 + chance( n, 1 ) * 60 }% ${ 25 + chance( n, 2 ) * 40 }%, ${ a } 0 14px, ${ c } 14px 30px, ${ b } 30px 38px, ${ c } 38px 64px )"></div>
-		<div style="position:absolute;inset:0;background:linear-gradient( 120deg, transparent 30%, ${ c }cc 90% )"></div>`,
-	// Clouds.
-	( [ a, b, c ], n ) => `
-		<svg width="${ W }" height="${ H }" style="position:absolute;inset:0">
-			<filter id="f" x="0" y="0" width="100%" height="100%">
-				<feTurbulence type="fractalNoise" baseFrequency="${ 0.004 + chance( n, 1 ) * 0.004 } 0.012" numOctaves="5" seed="${ n }"/>
-				<feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  2.6 0 0 0 -1.05"/>
-			</filter>
-			<rect width="100%" height="100%" fill="${ b }"/>
-			<rect width="100%" height="100%" fill="url(#g)"/>
-			<linearGradient id="g" x2="0" y2="1"><stop stop-color="${ c }"/><stop offset="1" stop-color="${ a }" stop-opacity="0.6"/></linearGradient>
-			<rect width="100%" height="100%" filter="url(#f)"/>
-		</svg>`,
-	// Dunes.
-	( [ a, b, c ], n ) => {
-		let paths = '';
-		for ( let i = 0; i < 6; i++ ) {
-			const y = H * ( 0.3 + i * 0.12 );
-			const bow = 30 + chance( n, i ) * 60;
-			const lean = chance( n, i + 9 ) * W;
-			paths += `<path d="M0 ${ y } C ${ lean * 0.5 } ${ y - bow }, ${ lean } ${ y + bow }, ${ W } ${ y - bow * 0.4 } V ${ H } H 0 Z"
-				fill="${ i % 2 ? a : b }" opacity="${ 0.25 + i * 0.12 }"/>`;
-		}
-		return `<svg width="${ W }" height="${ H }" style="position:absolute;inset:0;background:linear-gradient( ${ c }, ${ b } )">
-			<circle cx="${ W * ( 0.2 + chance( n, 20 ) * 0.6 ) }" cy="${ H * 0.26 }" r="${ H * 0.11 }" fill="#fff" opacity="0.9"/>
-			${ paths }</svg>`;
-	},
-	// A town at night, from above.
-	( [ a, b, c ], n ) => `
-		<svg width="${ W }" height="${ H }" style="position:absolute;inset:0;background:${ c }">
-			<filter id="f" x="0" y="0" width="100%" height="100%">
-				<feTurbulence type="turbulence" baseFrequency="0.035 0.05" numOctaves="3" seed="${ n }"/>
-				<feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  -9 0 0 0 2.2"/>
-			</filter>
-			<pattern id="p" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(${ 20 + chance( n, 1 ) * 40 })">
-				<circle cx="3" cy="3" r="1.4" fill="${ a }"/><circle cx="7" cy="7" r="1" fill="${ b }"/>
-			</pattern>
-			<mask id="m"><rect width="100%" height="100%" filter="url(#f)"/></mask>
-			<rect width="100%" height="100%" fill="url(#p)" mask="url(#m)"/>
-			<rect width="100%" height="100%" fill="${ a }" opacity="0.12"/>
-		</svg>`,
-];
+const FRAGMENT = `#version 300 es
+precision highp float;
+in vec2 uv; out vec4 o;
+uniform float seed; uniform vec3 bg, deep, a, b, accent; uniform vec2 res;
+float h1( float n ){ return fract( sin( n * 127.1 + seed * 311.7 ) * 43758.5453 ); }
+float noise( vec2 p ){ return fract( sin( dot( p, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 ); }
+void main(){
+	float asp = res.x / res.y;
+	vec2 q = vec2( uv.x * asp, uv.y );
+	// Background: deep, lit from one corner.
+	vec3 col = mix( bg, deep, smoothstep( 1.4, 0.0, length( q - vec2( asp * ( 0.2 + 0.6 * h1( 1.0 ) ), 0.9 ) ) ) );
+	col *= 0.9;
+	vec3 L = normalize( vec3( -0.5, 0.7, 0.8 ) );
+	vec3 V = vec3( 0, 0, 1 );
+	float tilt = ( h1( 2.0 ) - 0.5 ) * 1.6;
+	for ( int k = 0; k < 4; k++ ) {
+		float fk = float( k );
+		float s1 = h1( 10.0 + fk ), s2 = h1( 20.0 + fk ), s3 = h1( 30.0 + fk ), s4 = h1( 40.0 + fk );
+		// Along the ribbon: x turned by the tilt.
+		vec2 r = mat2( cos( tilt ), -sin( tilt ), sin( tilt ), cos( tilt ) ) * ( q - vec2( asp * 0.5, 0.5 ) );
+		float x = r.x;
+		float yc = ( fk - 1.5 ) * 0.22 + ( s1 - 0.5 ) * 0.3
+			+ 0.22 * sin( x * ( 2.0 + 2.5 * s2 ) + s3 * 6.28 )
+			+ 0.08 * sin( x * ( 5.0 + 4.0 * s4 ) + s1 * 6.28 );
+		float dyc = 0.22 * ( 2.0 + 2.5 * s2 ) * cos( x * ( 2.0 + 2.5 * s2 ) + s3 * 6.28 )
+			+ 0.08 * ( 5.0 + 4.0 * s4 ) * cos( x * ( 5.0 + 4.0 * s4 ) + s1 * 6.28 );
+		float th = x * ( 0.8 + 1.6 * s3 ) + s4 * 6.28;
+		float w = ( 0.11 + 0.13 * s2 ) * ( 0.7 + 0.3 * sin( x * 3.0 + s1 * 9.0 ) );
+		float ww = w * ( 0.45 + 0.55 * abs( cos( th ) ) );
+		float d = ( r.y - yc ) / sqrt( 1.0 + dyc * dyc );
+		float s = d / ww;
+		// The shadow it casts on what is behind.
+		col *= 1.0 - 0.55 * smoothstep( 2.2, 0.6, abs( ( r.y + 0.035 - yc ) / ww ) );
+		if ( abs( s ) > 1.0 ) continue;
+		// The surface: a twisted band of silk, soft folds across it.
+		float folds = 2.0 + floor( 3.0 * s1 );
+		float fold = sin( s * 3.14159 * folds + x * ( 3.0 + 6.0 * s2 ) + s3 * 6.0 );
+		vec3 N = normalize( vec3(
+			-dyc * 0.35 + fold * 0.25,
+			sin( 2.0 * th ) * 0.45 + s * 0.8 + fold * 0.55,
+			abs( cos( th ) ) * 0.8 + 0.45 ) );
+		float diff = max( dot( N, L ), 0.0 );
+		float spec = pow( max( dot( reflect( -L, N ), V ), 0.0 ), 60.0 );
+		float soft = pow( max( dot( reflect( -L, N ), V ), 0.0 ), 8.0 );
+		float sheen = pow( 1.0 - abs( N.z ), 2.5 );
+		float m = smoothstep( -1.0, 1.0, sin( x * 1.8 + fk * 2.1 + s4 * 6.0 ) );
+		vec3 base = mix( a, b, m );
+		vec3 rib = base * ( 0.06 + 1.25 * diff * diff )
+			+ mix( base, vec3( 1.0 ), 0.5 ) * soft * 0.35
+			+ vec3( 1.0, 0.97, 0.92 ) * spec * 1.1
+			+ accent * sheen * 0.6;
+		float edge = smoothstep( 1.0, 0.94, abs( s ) );
+		col = mix( col, rib, edge );
+	}
+	// Grain and vignette.
+	col *= 1.0 - 0.35 * pow( length( uv - 0.5 ) * 1.3, 2.0 );
+	col += ( noise( gl_FragCoord.xy + seed ) - 0.5 ) * 0.035;
+	o = vec4( pow( col, vec3( 0.9 ) ), 1.0 );
+}`;
 
 const page = ( i ) => {
 	const [ title, line ] = TITLES[ i ];
-	const colors = PALETTES[ ( i * 3 ) % PALETTES.length ];
-	const number = String( i + 1 ).padStart( 2, '0' );
 	return `<!doctype html>
 <style>
+	@font-face { font-family: Display; src: url(data:font/woff2;base64,${ FONT }); font-weight: 100 900; }
 	html, body { margin: 0; }
-	body {
-		width: ${ W }px; height: ${ H }px; overflow: hidden; position: relative;
-		background: ${ colors[ 2 ] }; color: #fff;
-		font: 600 68px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
-	}
-	.shade { position: absolute; inset: 0; background: linear-gradient( transparent 35%, #000a ); }
-	.grain { position: absolute; inset: 0; opacity: 0.16; mix-blend-mode: overlay; }
-	.top, .line { position: absolute; font: 500 12px/1 ui-monospace, Menlo, monospace; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.85; }
-	.top { inset: 62px 84px auto; display: flex; justify-content: space-between; }
-	.rule { position: absolute; inset: 58% 84px auto; border-top: 1px solid #fff9; }
-	h1 { position: absolute; left: 82px; top: 63%; margin: 0; font: inherit; letter-spacing: -0.035em; text-shadow: 0 2px 30px #0007; }
-	.line { left: 84px; bottom: 78px; text-transform: none; letter-spacing: 0.02em; font: 400 15px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; }
+	body { width: ${ W }px; height: ${ H }px; overflow: hidden; position: relative; background: #000; color: #fff; }
+	canvas { position: absolute; inset: 0; }
+	.shade { position: absolute; inset: 0; background: linear-gradient( 10deg, #000b 0, #0000 48% ); }
+	h1 { position: absolute; left: 118px; bottom: 140px; margin: 0; font: 600 68px/0.95 Display; letter-spacing: -0.04em; text-shadow: 0 4px 40px #0008; }
+	p { position: absolute; left: 121px; bottom: 104px; margin: 0; font: 400 21px/1.2 Display; letter-spacing: 0.005em; opacity: 0.8; }
 </style>
-${ SCENES[ i % SCENES.length ]( colors, i + 1 ) }
+<canvas width="${ W }" height="${ H }"></canvas>
 <div class="shade"></div>
-<svg class="grain" width="${ W }" height="${ H }"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${ i }"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
-<div class="top"><span>N° ${ number } · ${ KINDS[ i % KINDS.length ] }</span><span>Selected · 2026</span></div>
-<div class="rule"></div>
 <h1>${ title }</h1>
-<div class="line">${ line }</div>`;
+<p>${ line }</p>`;
 };
 
-const browser = await chromium.launch();
+// Draws the silk of picture `i` on the canvas of the page.
+function draw( { fragment, seed, colors } ) {
+	const canvas = document.querySelector( 'canvas' );
+	const gl = canvas.getContext( 'webgl2', { preserveDrawingBuffer: true, antialias: true } );
+	const shader = ( type, source ) => {
+		const one = gl.createShader( type );
+		gl.shaderSource( one, source );
+		gl.compileShader( one );
+		if ( ! gl.getShaderParameter( one, gl.COMPILE_STATUS ) ) {
+			throw new Error( gl.getShaderInfoLog( one ) );
+		}
+		return one;
+	};
+	const program = gl.createProgram();
+	gl.attachShader( program, shader( gl.VERTEX_SHADER, `#version 300 es
+		in vec2 p; out vec2 uv; void main() { uv = p * 0.5 + 0.5; gl_Position = vec4( p, 0, 1 ); }` ) );
+	gl.attachShader( program, shader( gl.FRAGMENT_SHADER, fragment ) );
+	gl.linkProgram( program );
+	gl.useProgram( program );
+	gl.bindBuffer( gl.ARRAY_BUFFER, gl.createBuffer() );
+	gl.bufferData( gl.ARRAY_BUFFER, new Float32Array( [ -1, -1, 3, -1, -1, 3 ] ), gl.STATIC_DRAW );
+	gl.enableVertexAttribArray( 0 );
+	gl.vertexAttribPointer( 0, 2, gl.FLOAT, false, 0, 0 );
+	const at = ( name ) => gl.getUniformLocation( program, name );
+	gl.uniform1f( at( 'seed' ), seed );
+	gl.uniform2f( at( 'res' ), canvas.width, canvas.height );
+	[ 'bg', 'deep', 'a', 'b', 'accent' ].forEach( ( name, i ) => gl.uniform3fv( at( name ), colors[ i ] ) );
+	gl.drawArrays( gl.TRIANGLES, 0, 3 );
+}
+
+const browser = await chromium.launch( { channel: 'chrome', args: [ '--use-angle=metal', '--enable-gpu' ] } );
 const tab = await browser.newPage( { viewport: { width: W, height: H } } );
 for ( let i = 0; i < TITLES.length; i++ ) {
 	await tab.setContent( page( i ) );
+	await tab.evaluate( draw, {
+		fragment: FRAGMENT,
+		seed: i + 1,
+		colors: PALETTES[ ( i * 3 ) % PALETTES.length ],
+	} );
+	await tab.evaluate( () => document.fonts.ready );
 	await tab.screenshot( {
 		path: resolve( out, `${ String( i + 1 ).padStart( 2, '0' ) }.jpg` ),
 		type: 'jpeg',
-		quality: 80,
+		quality: 85,
 	} );
 }
 await browser.close();
