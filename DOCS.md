@@ -661,7 +661,6 @@ Any number, in the order given.
 | `glass( { size, lines, amount } )` | Fluted glass around the pointer | Pointer |
 | `pixels( { size, cells } )` | Coarse pixels around the pointer | Pointer |
 | `ascii( { size, cells } )` | ASCII art around the pointer: characters as light as the image, made of shapes, no font | Pointer |
-| `threads( { size, threads, amount } )` | The image is woven around the pointer: threads down and across, over and under, each pulled along itself | Pointer |
 | `tilt( { angle } )` | The slide leans to the pointer; turns the mesh | Pointer |
 | `waves( { size, amount, speed } )` | Rings run away from the pointer, while it is over the slider | Pointer and time |
 | `smear( { size, amount } )` | The pointer drags the image along | Speed of the pointer |

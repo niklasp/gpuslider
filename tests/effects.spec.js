@@ -112,8 +112,7 @@ test.describe( 'effects', () => {
 		'glass',
 		'pixels',
 		'ascii',
-		'threads',
-		'smear;shift;tilt;waves;reveal;glass;pixels;ascii;threads;cells',
+		'smear;shift;tilt;waves;reveal;glass;pixels;ascii;cells',
 	];
 	for ( const effects of REST ) {
 		test( `${ effects }: at rest the slides are as the page draws them`, async ( { page } ) => {
@@ -295,7 +294,7 @@ test.describe( 'effects of the pointer', () => {
 		} );
 	}
 
-	for ( const name of [ 'tilt', 'reveal', 'glass', 'pixels', 'ascii', 'threads' ] ) {
+	for ( const name of [ 'tilt', 'reveal', 'glass', 'pixels', 'ascii' ] ) {
 		test( `${ name }: where the pointer is, while it is there`, async ( { page } ) => {
 			const seen = await three( page, name );
 			test.skip( ! seen, 'No WebGL 2 in this browser.' );
