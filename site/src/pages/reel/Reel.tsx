@@ -1,18 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useRef, useState } from 'react';
 import 'gpuslider/style.css';
 import './reel.css';
-import {
-	autoplay,
-	controls,
-	keyboard,
-	loading,
-	stack,
-	videos,
-} from 'gpuslider/plugins';
+import { loading, stack, videos } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
-import { split, waves, warp } from 'gpuslider/effects';
+import { liquid, split, waves } from 'gpuslider/effects';
 import { useSlider } from 'gpuslider/react';
-import { calm, film, video } from '@/lib/media';
+import { film, video } from '@/lib/media';
 import { Bar, drawnBy, layer } from '../mount';
 
 // A picture made by `bin/make-dream.mjs`, as large as the screen.
@@ -103,7 +96,11 @@ function Intro( {
 }
 
 /**
- * A reel: a stack whose pictures and films turn into each other.
+ * A reel: a stack whose pictures and films turn into each other as the
+ * page is scrolled down. The stage stays on the screen while the page
+ * goes by under it, a screen of page for every slide; where the page is
+ * says where the slider is, and the transitions go as far as the page
+ * has. The page comes to rest on a slide, never between two.
  */
 export default function Reel() {
 	const [ told, setTold ] = useState( 0 );
@@ -112,21 +109,20 @@ export default function Reel() {
 	// The slide whose words are shown: none before the curtain is up.
 	const [ shown, setShown ] = useState( -1 );
 	const up = useRef( false );
+	const rail = useRef< HTMLSpanElement >( null );
+	// How high the screen of page of one slide is: read when it changes.
+	const high = useRef( 0 );
 
 	const [ root, slider ] = useSlider(
 		{
-			loop: true,
-			duration: 1500,
+			// The page moves it: not a drag, and no round.
+			drag: false,
 			plugins: [
-				controls(),
-				keyboard(),
 				videos(),
 				stack(),
-				autoplay( 5000 ),
-				calm(),
 				loading( { screen: false } ),
 				canvas( {
-					effects: [ split(), waves( { amount: 0.6 } ), warp() ],
+					effects: [ split(), waves( { amount: 0.6 } ), liquid() ],
 					eager: true,
 					layer: typeof location === 'undefined' ? undefined : layer(),
 				} ),
@@ -159,11 +155,71 @@ export default function Reel() {
 		[]
 	);
 
-	// It waits for the curtain.
+	// The page begins at the top, where the first slide is, and stays
+	// there until the curtain is up.
 	useEffect( () => {
-		slider?.plugins.autoplay.pause();
+		history.scrollRestoration = 'manual';
+		scrollTo( 0, 0 );
+		document.documentElement.classList.add( 'held' );
+	}, [] );
+
+	// Where the page is, is where the reel is.
+	useEffect( () => {
+		if ( ! slider ) {
+			return;
+		}
 		Object.assign( window, { reel: slider } );
+		const last = SLIDES.length - 1;
+		let frame = 0;
+		const follow = () => {
+			frame = 0;
+			const at = Math.min( last, Math.max( 0, scrollY / ( high.current || 1 ) ) );
+			// The slide that is nearest is the one the slider is at.
+			const near = Math.round( at );
+			if ( near !== slider.index ) {
+				slider.to( near, { instant: true } );
+			}
+			const { snaps } = slider.layout();
+			const from = Math.floor( at );
+			const to = Math.min( last, from + 1 );
+			const want = snaps[ from ] + ( snaps[ to ] - snaps[ from ] ) * ( at - from );
+			// As speed: the effects see how fast the page goes.
+			slider.shift( want - slider.motion.pos, true );
+			slider.slides.forEach( ( { style }, i ) => {
+				style.setProperty( '--from', ( at - i ).toFixed( 4 ) );
+				// The words of one slide are gone before the next come.
+				style.setProperty( '--seen', Math.max( 0, 1 - Math.abs( at - i ) * 2.2 ).toFixed( 3 ) );
+			} );
+			rail.current!.style.transform = `scaleY(${ at / last })`;
+		};
+		const ask = () => {
+			frame ||= requestAnimationFrame( follow );
+		};
+		const measure = () => {
+			const way = document.documentElement.scrollHeight - innerHeight;
+			const stop = document.querySelector< HTMLElement >( '.stop' )!.offsetHeight;
+			// Where the screen is taller than the page of a slide, as on a
+			// phone whose bar has gone, the last slide is at the end.
+			high.current = Math.min( stop, way / last );
+			ask();
+		};
+		measure();
+		addEventListener( 'scroll', ask, { passive: true } );
+		addEventListener( 'resize', measure );
+		return () => {
+			cancelAnimationFrame( frame );
+			removeEventListener( 'scroll', ask );
+			removeEventListener( 'resize', measure );
+		};
 	}, [ slider ] );
+
+	const go = ( i: number ) =>
+		scrollTo( {
+			top: Math.min( SLIDES.length - 1, Math.max( 0, i ) ) * high.current,
+			behavior: matchMedia( '(prefers-reduced-motion: reduce)' ).matches
+				? 'instant'
+				: 'smooth',
+		} );
 
 	return (
 		<>
@@ -175,63 +231,94 @@ export default function Reel() {
 				onGone={ () => {
 					up.current = true;
 					setShown( slider?.index ?? 0 );
-					slider?.plugins.autoplay.play();
+					document.documentElement.classList.remove( 'held' );
 				} }
 			/>
 
-			<main ref={ root } id="reel" className="gs reel" aria-label="A reel">
-				<div className="gs-track">
-					{ SLIDES.map( ( slide, i ) => (
-						<div
-							key={ slide.title }
-							className="gs-slide"
-							// The classes of a slide are the slider's.
-							data-shown={ i === shown ? '' : undefined }
-						>
-							{ slide.video ? (
-								<video
-									className="gs-media"
-									{ ...video( slide.video ) }
-									aria-label={ slide.alt }
-									muted
-									playsInline
-									loop
-									ref={ film }
-								/>
-							) : (
-								<img
-									className="gs-media"
-									{ ...dream( slide.image! ) }
-									sizes="100vw"
-									alt={ slide.alt }
-									draggable={ false }
-								/>
-							) }
-							<div className="gs-content">
-								<p>
-									{ String( i + 1 ).padStart( 2, '0' ) } · { slide.kind }
-								</p>
-								<h2>{ slide.title }</h2>
+			<div className="way" style={ { '--slides': SLIDES.length } as CSSProperties }>
+				<main
+					ref={ root }
+					id="reel"
+					className="gs reel"
+					// Not a class: the classes of the root are the slider's.
+					data-up={ shown < 0 ? undefined : '' }
+					aria-label="A reel"
+				>
+					<div className="gs-track">
+						{ SLIDES.map( ( slide, i ) => (
+							<div
+								key={ slide.title }
+								className="gs-slide"
+								// The classes of a slide are the slider's.
+								data-shown={ i === shown ? '' : undefined }
+							>
+								{ slide.video ? (
+									<video
+										className="gs-media"
+										{ ...video( slide.video ) }
+										aria-label={ slide.alt }
+										muted
+										playsInline
+										loop
+										ref={ film }
+									/>
+								) : (
+									<img
+										className="gs-media"
+										{ ...dream( slide.image! ) }
+										sizes="100vw"
+										alt={ slide.alt }
+										draggable={ false }
+									/>
+								) }
+								<div className="gs-content">
+									<div className="words">
+										<p>
+											{ String( i + 1 ).padStart( 2, '0' ) } · { slide.kind }
+										</p>
+										<h2>{ slide.title }</h2>
+									</div>
+								</div>
 							</div>
-						</div>
+						) ) }
+					</div>
+					<button type="button" className="prev" aria-label="Previous" onClick={ () => go( shown - 1 ) }>
+						↑
+					</button>
+					<button type="button" className="next" aria-label="Next" onClick={ () => go( shown + 1 ) }>
+						↓
+					</button>
+				</main>
+				{ /* A screen of page for every slide, for the page to rest on. */ }
+				<div className="stops" aria-hidden="true">
+					{ SLIDES.map( ( slide ) => (
+						<div key={ slide.title } className="stop" />
 					) ) }
 				</div>
-				<button type="button" data-gs-prev aria-label="Previous">
-					←
-				</button>
-				<button type="button" data-gs-next aria-label="Next">
-					→
-				</button>
-				<button type="button" data-gs-pause aria-label="Pause">
-					Ⅱ
-				</button>
-				<div data-gs-dots />
-			</main>
+			</div>
+
+			{ /* How far down the reel is, and a way to every slide. */ }
+			<nav className="rail" aria-label="Slides">
+				<span className="line">
+					<span ref={ rail } className="fill" />
+				</span>
+				{ SLIDES.map( ( slide, i ) => (
+					<button
+						key={ slide.title }
+						type="button"
+						aria-label={ slide.title }
+						aria-current={ i === shown ? 'true' : undefined }
+						onClick={ () => go( i ) }
+					>
+						{ String( i + 1 ).padStart( 2, '0' ) }
+					</button>
+				) ) }
+			</nav>
 
 			<footer>
 				<Bar code="reel">
 					<span id="said">
-						Arrows, keys, a drag{ by && ` · drawn by ${ by }` }
+						Scroll down{ by && ` · drawn by ${ by }` }
 					</span>
 				</Bar>
 			</footer>

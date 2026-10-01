@@ -7,52 +7,57 @@ import { createSlider, type Slider } from 'gpuslider';
 import { loading } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { lightbox } from 'gpuslider/lightbox';
-import { Bar, drawnBy, layer } from '../mount';
+import { image, photo } from '@/lib/media';
+import { Bar, drawnBy, layer, share, shared } from '../mount';
 import { resolve, WAYS } from './effect';
 
 /**
- * Resolve: rows of pictures that come out of their pixels as they come
- * into view, block by block, and break up again when the page or a row
- * moves fast. After the scroll-revealed gallery of Chakib Mazouni.
- *
- * The pictures are made by `bin/make-dream.mjs`: nothing of them is
- * downloaded.
+ * Resolve: rows of photos that come out as they come into view, part by
+ * part, in one of nine ways, and break up again when the page or a row
+ * moves fast. Opened, a trace of the way stays. After the scroll-revealed
+ * gallery of Chakib Mazouni.
  */
 
-/** What each of the 24 pictures shows, by the kind of its scene. */
-const KINDS = [
-	'Blobs of chrome that melt into each other',
-	'A sea of liquid metal under a pale sky',
-	'Glass spheres over a holographic field',
-	'A ring of chrome that twists',
-	'Pills of chrome, scattered in the air',
-	'Folds of holographic foil',
+type Photo = number | 'b';
+
+/** The rows, from the top: a name, how they look, which photos. */
+const ROWS: { name: string; look: string; sizes: string; pictures: Photo[] }[] = [
+	{ name: 'Selected', look: 'hero', sizes: 'min(84vw, 1100px)', pictures: [ 2, 5, 8, 1, 6, 4 ] },
+	{ name: 'Faces', look: 'tall', sizes: 'clamp(200px, 26vw, 400px)', pictures: [ 1, 3, 5, 8, 4, 6, 2 ] },
+	{ name: 'Neon', look: 'card', sizes: 'clamp(240px, 36vw, 540px)', pictures: [ 6, 2, 4, 1, 3, 5 ] },
+	{ name: 'Fire and water', look: 'wide', sizes: 'min(88vw, 1200px)', pictures: [ 7, 'b', 2, 5 ] },
+	{ name: 'All of them', look: 'small', sizes: '180px', pictures: [ 1, 2, 3, 4, 5, 6, 7, 8, 'b' ] },
 ];
 
-const dream = ( n: number, sizes: string ) => {
-	const name = `/media/dream/${ String( n + 1 ).padStart( 2, '0' ) }`;
-	return {
-		src: `${ name }-840.avif`,
-		srcSet: `${ name }-420.avif 420w, ${ name }-840.avif 840w, ${ name }.jpg 1600w`,
-		sizes,
-		width: 1600,
-		height: 1067,
-		alt: KINDS[ n % KINDS.length ],
-		'data-gs-full': `${ name }.jpg`,
+/**
+ * The lightbox lets the effects of a slide fade, after the hooks of the
+ * page: it says so in `fx` of the quad, through `change` of the layer.
+ * The page keeps the effects there, and tells them how far the lightbox
+ * is open by what is left of `fx`: `resolve()` reads it from `uFx`, and
+ * draws a trace of its way.
+ */
+const traced = new WeakSet< object >();
+type Layer = { change: ( ( i: number, quad: { fx: number } ) => void ) | null };
+const trace = ( layer: Layer | undefined ) => {
+	if ( ! layer || traced.has( layer ) ) {
+		return;
+	}
+	traced.add( layer );
+	let inner = layer.change;
+	const keep: NonNullable< Layer[ 'change' ] > = ( i, quad ) => {
+		inner?.( i, quad );
+		if ( quad.fx < 1 ) {
+			quad.fx = 1 - ( 1 - quad.fx ) * 0.01;
+		}
 	};
+	Object.defineProperty( layer, 'change', {
+		configurable: true,
+		get: () => ( inner ? keep : null ),
+		set: ( to ) => {
+			inner = to;
+		},
+	} );
 };
-
-const ALL = Array.from( { length: 24 }, ( _, n ) => n );
-const of = ( ...kinds: number[] ) => ALL.filter( ( n ) => kinds.includes( n % 6 ) );
-
-/** The rows, from the top: a name, how they look, which pictures. */
-const ROWS = [
-	{ name: 'Selected', look: 'hero', sizes: 'min(80vw, 1100px)', pictures: [ 0, 2, 3, 5, 1, 4, 8 ] },
-	{ name: 'Chrome', look: 'tall', sizes: 'clamp(220px, 28vw, 420px)', pictures: of( 0, 3, 4 ) },
-	{ name: 'Glass and foil', look: 'card', sizes: 'clamp(260px, 38vw, 560px)', pictures: of( 2, 5 ) },
-	{ name: 'Metal seas', look: 'wide', sizes: 'min(88vw, 1200px)', pictures: of( 1 ) },
-	{ name: 'All of them', look: 'small', sizes: '180px', pictures: ALL },
-];
 
 // Which way the pictures come out: read by the effect on every frame.
 const MODE = [ 0 ];
@@ -66,9 +71,18 @@ export default function Resolve() {
 
 	const choose = ( to: number ) => {
 		MODE[ 0 ] = to;
+		// In the address, to be shared; the first way is the page as it is.
+		share( 'way', to ? WAYS[ to ] : undefined );
 		setWay( to );
 		again.current();
 	};
+
+	// On a narrow screen the dock scrolls: the way chosen is in it.
+	useEffect( () => {
+		document
+			.querySelector( '.ways [aria-pressed="true"]' )
+			?.scrollIntoView( { inline: 'center', block: 'nearest', behavior: 'smooth' } );
+	}, [ way ] );
 
 	useEffect( () => {
 		const root = page.current!;
@@ -125,6 +139,7 @@ export default function Resolve() {
 				on: {
 					'canvas:ready': ( name: string ) => {
 						setBy( drawnBy( name ) );
+						trace( ( sliders[ i ].plugins as Record< string, Layer > )[ name ] );
 						element.classList.add( 'drawn' );
 						clearTimeout( fallback );
 						if ( ! i ) {
@@ -189,6 +204,12 @@ export default function Resolve() {
 			come.forEach( ( one ) => ( one[ 0 ] = 0 ) );
 			run();
 		};
+		// A way in the address: as if its pill were chosen. The page is
+		// rendered with the first.
+		const linked = shared( 'way', WAYS );
+		if ( linked && linked !== WAYS[ 0 ] ) {
+			choose( WAYS.indexOf( linked ) );
+		}
 		addEventListener( 'scroll', run, { passive: true } );
 		addEventListener( 'resize', run );
 		Object.assign( window, { sliders } );
@@ -228,7 +249,7 @@ export default function Resolve() {
 					<p>
 						Every picture comes out as its row comes into view, part by part, each
 						part in its own time. Scroll fast and they break up again; throw a row
-						and it does too. The pills at the bottom choose one of five ways. Click a picture to
+						and it does too. The pills at the bottom choose one of nine ways. Click a picture to
 						open it.
 					</p>
 				</section>
@@ -236,7 +257,7 @@ export default function Resolve() {
 					<section key={ row.name } className={ `set ${ row.look }` }>
 						<p className="label">
 							<span>{ row.name }</span>
-							<span>{ row.pictures.length } pictures</span>
+							<span>{ row.pictures.length } photos</span>
 						</p>
 						<div className="gs row" aria-label={ `${ row.name }: a row of pictures` }>
 							<div className="gs-track">
@@ -244,7 +265,9 @@ export default function Resolve() {
 									<div className="gs-slide" key={ `${ r }-${ i }` }>
 										<img
 											className="gs-media"
-											{ ...dream( n, row.sizes ) }
+											{ ...image( n, 'photos' ) }
+											sizes={ row.sizes }
+											alt={ photo( n ).alt }
 											draggable={ false }
 										/>
 									</div>
@@ -255,9 +278,10 @@ export default function Resolve() {
 				) ) }
 				<footer>
 					<p>
-						One effect, <code>resolve()</code>, one shader for all five ways: the
+						One effect, <code>resolve()</code>, one shader for all nine ways: the
 						page tells it which way, how far each row has come out and how fast the
-						page is scrolled, the slider how fast the row moves. Pictures made by code.
+						page is scrolled, the slider how fast the row moves. Opened, a trace of
+						the way stays. Photos from Pexels.
 					</p>
 					<p>
 						After the{ ' ' }

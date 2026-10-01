@@ -222,10 +222,29 @@ footer code {
 	outline-offset: 2px;
 }
 
-@media (max-width: 600px) {
+.ways button {
+	flex: none;
+	scroll-snap-align: center;
+}
+
+/* Too many for a narrow screen: one line that scrolls sideways, and
+ * stops at a pill. */
+@media (max-width: 860px) {
+	.ways {
+		flex-wrap: nowrap;
+		justify-content: flex-start;
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+	}
+
+	.ways::-webkit-scrollbar {
+		display: none;
+	}
+
 	.ways button {
-		height: 32px;
-		padding: 0 10px;
-		font-size: 12px;
+		height: 34px;
+		padding: 0 12px;
 	}
 }

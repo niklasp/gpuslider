@@ -8,8 +8,8 @@ import { loading, stack } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { lightbox } from 'gpuslider/lightbox';
 import { image, photo } from '@/lib/media';
-import { Bar, drawnBy, layer } from '../mount';
-import { VEIL, dissolve, veil } from './veil';
+import { Bar, drawnBy, layer, share, shared } from '../mount';
+import { STYLE, VEIL, WAYS, turn, veil } from './veil';
 
 // The work of a studio: a name, what it was, the year, and its picture.
 const WORK = [
@@ -28,8 +28,8 @@ const WORK = [
 const ROOM = 48;
 
 /**
- * Reveal: an index of work, whose pictures grow out of the pointer
- * through a burning hole, and burn into each other from name to name.
+ * Reveal: an index of work, whose pictures open out of the pointer and
+ * turn into each other from name to name, in eleven ways to choose from.
  * After the reveal effect of Colin Demouge on Codrops.
  */
 export default function Reveal() {
@@ -38,6 +38,34 @@ export default function Reveal() {
 	const [ by, setBy ] = useState( '' );
 	const [ active, setActive ] = useState( -1 );
 	const [ state, setState ] = useState( 'Loading the pictures' );
+	const [ way, setWay ] = useState( 0 );
+	const slider = useRef< Slider | null >( null );
+
+	// The way the pictures come: read by the effects on every frame.
+	const ways = useRef< HTMLDivElement >( null );
+	const choose = ( to: number ) => {
+		STYLE[ 0 ] = to;
+		setWay( to );
+		share( 'way', WAYS[ to ] );
+		slider.current?.wake();
+		// On a phone the dock is a strip: bring the chosen one into it.
+		const strip = ways.current;
+		const pill = strip?.children[ to ] as HTMLElement | undefined;
+		if ( strip && pill && strip.scrollWidth > strip.clientWidth ) {
+			strip.scrollTo( {
+				left: pill.offsetLeft - ( strip.clientWidth - pill.offsetWidth ) / 2,
+				behavior: 'smooth',
+			} );
+		}
+	};
+
+	// A link can carry the way: ?way=smoke. The build renders the first.
+	useEffect( () => {
+		const start = shared( 'way', WAYS );
+		if ( start ) {
+			choose( WAYS.indexOf( start ) );
+		}
+	}, [] );
 
 	useEffect( () => {
 		const root = panel.current!;
@@ -62,14 +90,14 @@ export default function Reveal() {
 		let scrolled = scrollY;
 		let pace = 0;
 
-		const slider: Slider = createSlider( root, {
+		const made: Slider = createSlider( root, {
 			loop: true,
 			duration: 1100,
 			plugins: [
 				stack(),
 				loading( { screen: false } ),
 				canvas( {
-					effects: [ dissolve(), veil() ],
+					effects: [ turn(), veil() ],
 					layer: layer(),
 				} ),
 				lightbox(),
@@ -94,16 +122,34 @@ export default function Reveal() {
 				'lightbox:close': () => ( frozen = false ),
 			},
 		} );
-		Object.assign( window, { slider } );
+		slider.current = made;
+		Object.assign( window, { slider: made } );
+
+		// From one name to the next the picture draws in a little and opens
+		// again: down for DOWN seconds, up for UP. Over several names in a
+		// row it stays drawn in, and does not close.
+		const DIP = 0.38;
+		const DOWN = 0.18;
+		const UP = 0.24;
+		let since = 1;
+		const dip = () =>
+			since < DOWN
+				? DIP * Math.sin( ( since / DOWN ) * Math.PI * 0.5 )
+				: DIP * Math.max( 0, 1 - ( since - DOWN ) / UP ) ** 2;
 
 		const show = ( i: number ) => {
 			if ( i === shown ) {
 				return;
 			}
+			if ( i >= 0 && shown >= 0 && open > 0.2 ) {
+				// Already on its way up: down again from where it is.
+				const now = dip();
+				since = since < DOWN ? since : ( Math.asin( Math.min( 1, now / DIP ) ) / ( Math.PI * 0.5 ) ) * DOWN;
+			}
 			shown = i;
 			setActive( i );
-			if ( i >= 0 && slider.index !== i ) {
-				slider.to( i );
+			if ( i >= 0 && made.index !== i ) {
+				made.to( i );
 			}
 		};
 
@@ -163,7 +209,7 @@ export default function Reveal() {
 				'click',
 				() => {
 					show( i );
-					slider.plugins.lightbox?.open( i );
+					made.plugins.lightbox?.open( i );
 				},
 				{ signal }
 			);
@@ -236,20 +282,26 @@ export default function Reveal() {
 			const cy = pointing ? ( at.y - box.top ) / box.height : 0.5;
 			const moved =
 				before !== open ||
+				since < DOWN + UP ||
 				Math.abs( VEIL.drift[ 0 ] - dx * cut ) > 0.05 ||
 				Math.abs( VEIL.drift[ 1 ] - dy * cut ) > 0.05;
-			VEIL.open[ 0 ] = open;
+			since += dt;
+			const breath = calm ? 0 : dip();
+			VEIL.open[ 0 ] = open * ( 1 - breath );
 			VEIL.centre[ 0 ] = Math.min( 1.2, Math.max( -0.2, cx ) );
 			VEIL.centre[ 1 ] = Math.min( 1.2, Math.max( -0.2, cy ) );
 			VEIL.drift[ 0 ] = dx * cut;
 			VEIL.drift[ 1 ] = dy * cut;
-			if ( open > 0 && open < 1 ) {
+			VEIL.pad[ 0 ] = ROOM / box.width;
+			VEIL.pad[ 1 ] = ROOM / box.height;
+			// While a picture is shown its edge lives.
+			if ( open > 0 ) {
 				VEIL.clock[ 0 ] += dt;
 			}
 			if ( drawn ) {
 				root.style.clipPath = '';
-				if ( moved || ( open > 0 && open < 1 ) ) {
-					slider.wake();
+				if ( moved || open > 0 ) {
+					made.wake();
 				}
 			} else {
 				// Without a canvas the page shows the picture through a
@@ -263,14 +315,14 @@ export default function Reveal() {
 		return () => {
 			cancelAnimationFrame( frame );
 			off.abort();
-			slider.destroy();
+			made.destroy();
 		};
 	}, [] );
 
 	return (
 		<>
 			<header>
-				<Bar>Reveal{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="reveal">Reveal{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<main>
 				<div className="lede">
@@ -315,14 +367,26 @@ export default function Reveal() {
 						) ) }
 					</div>
 				</div>
+				<div ref={ ways } className="ways" role="group" aria-label="How the pictures come">
+					{ WAYS.map( ( one, i ) => (
+						<button
+							key={ one }
+							type="button"
+							aria-pressed={ i === way }
+							onClick={ () => choose( i ) }
+						>
+							{ one }
+						</button>
+					) ) }
+				</div>
 			</main>
 			<footer>
 				<p>
-					Each picture grows out of the pointer through a hole that burns
-					open, and burns into the next as you move to another name. The
-					names are a slider of their own pictures: a stack with a
-					transition of its own and an effect that writes where the pointer
-					is, every frame.
+					Each picture opens out of the pointer, and turns into the next
+					as you move to another name, in the way chosen in the dock. The names
+					are a slider of their own pictures: a stack with a transition of
+					its own and an effect that the page tells, every frame, where the
+					pointer is.
 				</p>
 				<p>
 					After{ ' ' }

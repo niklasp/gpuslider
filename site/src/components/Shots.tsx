@@ -8,13 +8,13 @@ export const EXAMPLES = [
 	{
 		name: 'resolve',
 		title: 'Resolve',
-		text: 'Rows of pictures that come out, part by part, as they come into view: in pixels, halftone dots, slices, shards or dither, as you choose. They break up again when the page is scrolled fast or a row is thrown. Click one to open it. After the scroll-revealed gallery of Chakib Mazouni.',
+		text: 'Rows of pictures that come out, part by part, as they come into view: in pixels, halftone dots, slices, shards, dither, scanlines, glyphs, threads or ink, as you choose. They break up again when the page is scrolled fast or a row is thrown. Click one to open it. After the scroll-revealed gallery of Chakib Mazouni.',
 		made: [ 'loading()', 'lightbox()', 'an effect of its own' ],
 	},
 	{
 		name: 'reveal',
 		title: 'Reveal',
-		text: 'An index of work: each picture grows out of the pointer through a hole that burns open, and burns into the next as you move down the names. Click one to open it. After the shader reveal of Colin Demouge.',
+		text: 'An index of work: each picture opens out of the pointer and turns into the next as you move down the names, in eleven ways: burnt, out of smoke, as a drop, shattered, in blocks, through blinds, struck by lightning, out of frost, in dots, through a heat camera or a whirl. Click one to open it. After the shader reveal of Colin Demouge.',
 		made: [ 'stack()', 'loading()', 'lightbox()', 'effects of its own' ],
 	},
 	{
@@ -32,8 +32,8 @@ export const EXAMPLES = [
 	{
 		name: 'fold',
 		title: 'Fold',
-		text: 'Grids of pictures that fold in 3D as they come into the screen, column after column, and ripple with how fast the page is scrolled: four ways, from cards that stand up to a tunnel. Every row is a slider that can be dragged and opens its pictures. After the staggered 3D grid animations of Manoela Ilic.',
-		made: [ 'marquee()', 'lightbox()', 'loading()', 'stretch', 'effects of its own' ],
+		text: 'Walls of large pictures that fold as the page is scrolled, each its own way: pictures that stand up, pleats, a wave and a tunnel, and flat again at rest. Every wall is one slider whose track is a grid, drawn by one canvas; drag it sideways, click a picture to open it. After the staggered 3D grid animations of Manoela Ilic.',
+		made: [ 'lightbox()', 'loading()', 'effects of its own' ],
 	},
 	{
 		name: 'wall',
@@ -44,8 +44,8 @@ export const EXAMPLES = [
 	{
 		name: 'reel',
 		title: 'A reel',
-		text: 'One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of loading(): a number that runs, a curtain that goes up.',
-		made: [ 'stack()', 'autoplay()', 'videos()', 'loading()', 'warp', 'split', 'waves' ],
+		text: 'Pictures and films as large as the screen, that the page scrolls down through: each flows into the next as far as the page has gone, backwards when it goes back, and the page comes to rest on one. The screen before it is made of the events of loading(): a number that runs, a curtain that goes up.',
+		made: [ 'stack()', 'videos()', 'loading()', 'liquid', 'split', 'waves' ],
 	},
 	{
 		name: 'tape',

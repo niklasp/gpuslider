@@ -131,24 +131,28 @@ test.describe( 'the reel', () => {
 		// Four of six are there, and the number runs to them.
 		await expect( page.locator( '#count' ) ).toHaveText( '67', { timeout: 15000 } );
 		await expect( page.locator( '[data-shown]' ) ).toHaveCount( 0 );
-		expect(
-			await page.evaluate( () => window.reel.plugins.autoplay.paused )
-		).toBe( true );
+		// The page does not scroll while it waits.
+		await expect( page.locator( 'html' ) ).toHaveClass( /held/ );
 		come();
 		await expect( page.locator( '#count' ) ).toHaveText( '100', { timeout: 15000 } );
 		await expect( intro ).toBeHidden( { timeout: 15000 } );
 		await expect( page.locator( '[data-shown] h2' ) ).toHaveText( 'Quiet Engine' );
-		expect(
-			await page.evaluate( () => window.reel.plugins.autoplay.paused )
-		).toBe( false );
+		await expect( page.locator( 'html' ) ).not.toHaveClass( /held/ );
 	} );
 
-	test( 'the next picture brings its words', async ( { page } ) => {
+	test( 'the page goes down the reel, and the next picture brings its words', async ( { page } ) => {
 		await page.goto( '/examples/reel/' );
 		await expect( page.locator( '#intro' ) ).toBeHidden( { timeout: 30000 } );
 		await page.getByRole( 'button', { name: 'Next' } ).click();
 		await expect( page.locator( '[data-shown] h2' ) ).toHaveText( 'Salt Hour' );
 		await expect( page.locator( '[data-shown]' ) ).toHaveCount( 1 );
+		// The page is where the reel is, and the wheel takes both further.
+		await expect
+			.poll( () => page.evaluate( () => scrollY / innerHeight ) )
+			.toBeCloseTo( 1, 1 );
+		await page.mouse.move( 700, 400 );
+		await page.mouse.wheel( 0, 900 );
+		await expect( page.locator( '[data-shown] h2' ) ).toHaveText( 'Paper Weather' );
 	} );
 } );
 

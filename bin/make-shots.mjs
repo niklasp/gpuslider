@@ -23,7 +23,7 @@ const PAGES = {
 	},
 	// Scrolled into the first grid, still moving: the rows coming in are folded.
 	fold: async ( page ) => {
-		await page.evaluate( () => scrollTo( 0, document.getElementById( 'rise' ).offsetTop - 200 ) );
+		await page.evaluate( () => scrollTo( 0, document.getElementById( 'stand' ).offsetTop - 200 ) );
 		await page.waitForTimeout( 1500 );
 		await page.mouse.wheel( 0, 400 );
 		await page.waitForTimeout( 60 );
@@ -53,8 +53,14 @@ const PAGES = {
 		await page.mouse.up();
 		await page.waitForTimeout( 1500 );
 	},
+	// Scrolled a part of the way, as the first film flows into the next.
 	reel: async ( page ) => {
 		await page.waitForTimeout( 1500 );
+		await page.evaluate( () => {
+			document.documentElement.style.scrollSnapType = 'none';
+			scrollTo( 0, innerHeight * 0.18 );
+		} );
+		await page.waitForTimeout( 800 );
 	},
 	// The second row is in the middle of the picture.
 	tape: async ( page ) => {
