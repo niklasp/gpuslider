@@ -1,2 +1,5 @@
 User-agent: *
+# What the site may be used for (contentsignals.org): all of it. The
+# library is MIT, and agents that know it can use it.
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
 Allow: /

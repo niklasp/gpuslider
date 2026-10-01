@@ -46,7 +46,11 @@ export const DOCS: Doc[] = [
 		slug: '',
 		title: 'Get started',
 		lead: 'A slider in a page: what to import, what to write, and what a visitor gets who has no script or no canvas.',
-		before: `gpu slider is not on npm yet. Until it is, \`npm run size\` in the repo builds \`dist/\`: the files for pages without a bundler.
+		before: `\`\`\`sh
+npm install gpuslider
+\`\`\`
+
+Or try it first in the browser, nothing to install: [JavaScript](https://stackblitz.com/github/niklasp/gpuslider/tree/main/examples/starter?file=main.js) or [React](https://stackblitz.com/github/niklasp/gpuslider/tree/main/examples/react-starter?file=src/App.jsx) on StackBlitz.
 
 ## The markup
 
@@ -318,6 +322,12 @@ function read() {
 
 	const pages = DOCS.map( ( doc, i ) => ( {
 		...html( markdown[ i ], doc ),
+		// For agents that ask for Markdown: the page as it is written, its
+		// links to headings of DOCS.md made links to where they are.
+		markdown: `# ${ doc.title }\n\n${ doc.lead }\n\n${ markdown[ i ].trim() }\n`.replace(
+			/\]\(#([^)]+)\)/g,
+			( _, id ) => `](${ places[ id ] || `#${ id }` })`
+		),
 		name: nameOf( doc ),
 		slug: doc.slug,
 		address: addressOf( doc ),
@@ -368,7 +378,7 @@ export function docs(): Plugin {
 			}
 			return [
 				`export const pages = ${ JSON.stringify(
-					pages.map( ( { html: _, ...page } ) => page )
+					pages.map( ( { html: _, markdown: __, ...page } ) => page )
 				) };`,
 				`export const code = ${ JSON.stringify( code ) };`,
 				`export const load = {`,
@@ -380,6 +390,20 @@ export function docs(): Plugin {
 				),
 				`};`,
 			].join( '\n' );
+		},
+		// Every page of the docs as Markdown too, beside its HTML: what the
+		// Worker gives a request that accepts text/markdown.
+		generateBundle( options ) {
+			if ( options.dir?.endsWith( 'server' ) ) {
+				return;
+			}
+			for ( const page of read().pages ) {
+				this.emitFile( {
+					type: 'asset',
+					fileName: `${ page.address.slice( 1 ) }index.md`,
+					source: page.markdown,
+				} );
+			}
 		},
 		// DOCS.md has changed: the pages that are made of it are others.
 		handleHotUpdate( { file, server } ) {

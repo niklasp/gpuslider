@@ -3,8 +3,12 @@
 {
 	"name": "gpuslider",
 	"compatibility_date": "2026-09-30",
+	// Pages go through it, for Markdown and Link headers; files do not.
+	"main": "worker.js",
 	"assets": {
 		"directory": "./dist",
+		"binding": "ASSETS",
+		"run_worker_first": [ "/*", "!/assets/*", "!/media/*", "!/og/*", "!/shots/*", "!/*.*" ],
 		"html_handling": "auto-trailing-slash",
 		"not_found_handling": "404-page"
 	},

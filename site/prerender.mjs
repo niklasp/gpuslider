@@ -14,7 +14,8 @@
  *
  * `npm run build` does this.
  */
-import { mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -103,6 +104,8 @@ function head( path, title, description ) {
 }
 // The pages that are to be found: in the sitemap.
 const found = [];
+// What each of them says of itself: for its Markdown.
+const said = {};
 
 // What Vite has built, before anything is written into it: some files
 // are what several pages are made of.
@@ -127,12 +130,13 @@ for ( const [ page, { from = page, title, description } ] of Object.entries(
 	const path = `/${ page.replace( /index\.html$/, '' ) }`;
 	const hidden = html.includes( 'content="noindex"' );
 	if ( ! hidden ) {
-		const said = unescape( html.match( /<title>([^<]*)<\/title>/ )[ 1 ] );
+		const title = unescape( html.match( /<title>([^<]*)<\/title>/ )[ 1 ] );
 		const about = unescape(
 			html.match( /<meta\s+name="description"\s+content="([^"]*)"/ )[ 1 ]
 		);
-		html = html.replace( '</head>', () => `\t${ head( path, said, about ) }\n\t</head>` );
+		html = html.replace( '</head>', () => `\t${ head( path, title, about ) }\n\t</head>` );
 		found.push( path );
+		said[ path ] = { title, about };
 	}
 
 	const markup = await render( page );
@@ -211,6 +215,48 @@ writeFileSync(
 writeFileSync(
 	resolve( dist, 'llms-full.txt' ),
 	readFileSync( resolve( import.meta.dirname, '../DOCS.md' ), 'utf8' )
+);
+// For agents that ask for Markdown (the Worker gives it to them): the docs
+// have theirs from the docs plugin; the first page is llms.txt, the others
+// what they say of themselves and where the docs are.
+const llms = readFileSync( resolve( dist, 'llms.txt' ), 'utf8' );
+for ( const path of found ) {
+	const file = resolve( dist, `${ path.slice( 1 ) }index.md` );
+	if ( existsSync( file ) ) {
+		continue;
+	}
+	const { title, about } = said[ path ];
+	writeFileSync(
+		file,
+		path === '/'
+			? llms
+			: `# ${ title }\n\n${ about }\n\nThe page is interactive; what it shows is in the docs: ${ ORIGIN }/llms.txt\n`
+	);
+}
+
+// For agents: the skill of the repo, and the index that finds it.
+const skill = readFileSync( resolve( import.meta.dirname, '../skills/gpuslider/SKILL.md' ), 'utf8' );
+const skills = resolve( dist, '.well-known/agent-skills' );
+mkdirSync( resolve( skills, 'gpuslider' ), { recursive: true } );
+writeFileSync( resolve( skills, 'gpuslider/SKILL.md' ), skill );
+writeFileSync(
+	resolve( skills, 'index.json' ),
+	`${ JSON.stringify(
+		{
+			$schema: 'https://schemas.agentskills.io/discovery/0.2.0/schema.json',
+			skills: [
+				{
+					name: 'gpuslider',
+					type: 'skill-md',
+					description: skill.match( /^description: (.+)$/m )[ 1 ],
+					url: '/.well-known/agent-skills/gpuslider/SKILL.md',
+					digest: `sha256:${ createHash( 'sha256' ).update( skill ).digest( 'hex' ) }`,
+				},
+			],
+		},
+		null,
+		'\t'
+	) }\n`
 );
 // eslint-disable-next-line no-console
 console.log( `dist/sitemap.xml: ${ found.length } pages, for ${ ORIGIN }` );
