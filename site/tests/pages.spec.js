@@ -256,11 +256,8 @@ test.describe( 'the examples', () => {
 				.poll( () => picture.evaluate( ( img ) => img.naturalWidth ) )
 				.toBe( 1280 );
 		}
-		await all
-			.nth( 6 )
-			.getByRole( 'link', { name: 'Drawn by WebGL' } )
-			.click();
-		await expect( page ).toHaveURL( /\/examples\/reel\/\?layer=gl$/ );
+		// Each can be drawn by either layer: the address says which.
+		await page.goto( '/examples/reel/?layer=gl' );
 		await expect( page.locator( '#said, header' ).first() ).toContainText(
 			'WebGL',
 			{ timeout: 20000 }

@@ -146,18 +146,6 @@ export function Shots( { all }: { all?: boolean } ) {
 									</a>
 									<a
 										className="sq-knob inline-flex h-9 items-center bg-secondary px-3.5 text-sm font-medium transition hover:bg-accent"
-										href={ `/examples/${ name }/?layer=gpu` }
-									>
-										Drawn by WebGPU
-									</a>
-									<a
-										className="sq-knob inline-flex h-9 items-center bg-secondary px-3.5 text-sm font-medium transition hover:bg-accent"
-										href={ `/examples/${ name }/?layer=gl` }
-									>
-										Drawn by WebGL
-									</a>
-									<a
-										className="sq-knob inline-flex h-9 items-center bg-secondary px-3.5 text-sm font-medium transition hover:bg-accent"
 										href={ codeOf( name ) }
 									>
 										Code

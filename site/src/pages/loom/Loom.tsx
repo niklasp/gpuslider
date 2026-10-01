@@ -7,7 +7,7 @@ import { keyboard, loading, marquee, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { stretch, unweave } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
-import { Bar, drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer, share, shared } from '../mount';
 
 // The four photos, twice: a row longer than the screen.
 const SLIDES = [ 1, 2, 3, 4, 7, 5, 6, 8 ];
@@ -50,7 +50,19 @@ export default function Loom() {
 		PARAMS.amount[ 0 ] = WAYS[ to ].amount * long;
 		slider.current?.wake();
 		setWay( to );
+		share( 'way', to === 'Loom' ? undefined : to );
+		share( 'length', long === 1 ? undefined : long );
 	};
+
+	// A way and a length that a link brings: `?way=silk&length=2`.
+	useEffect( () => {
+		const to = shared( 'way', Object.keys( WAYS ) as Way[] ) ?? 'Loom';
+		const asked = Number( new URLSearchParams( location.search ).get( 'length' ) );
+		const long = asked >= 0.1 && asked <= 4 ? asked : 1;
+		setLength( long );
+		choose( to, long );
+		// Once, as the page starts.
+	}, [] );
 
 	useEffect( () => {
 		const made = createSlider( root.current!, {

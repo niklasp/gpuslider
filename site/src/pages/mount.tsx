@@ -54,3 +54,27 @@ export function Bar( { children, code }: { children: ReactNode; code?: string } 
 		</>
 	);
 }
+
+/**
+ * A choice of the page that a link can carry, as `?<name>=<value>`: read
+ * once the page runs (the build renders the default), and written back
+ * as it changes, so the address in the bar shows what is seen.
+ */
+export function shared< T extends string >( name: string, values: readonly T[] ): T | undefined {
+	if ( typeof location === 'undefined' ) {
+		return undefined;
+	}
+	const value = new URLSearchParams( location.search ).get( name )?.toLowerCase();
+	return values.find( ( one ) => one.toLowerCase() === value );
+}
+
+/** Writes a choice into the address, without a new entry in the history. */
+export function share( name: string, value: string | number | undefined ) {
+	const url = new URL( location.href );
+	if ( value === undefined || value === '' ) {
+		url.searchParams.delete( name );
+	} else {
+		url.searchParams.set( name, String( value ).toLowerCase() );
+	}
+	history.replaceState( history.state, '', url );
+}
