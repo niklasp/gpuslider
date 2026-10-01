@@ -79,7 +79,7 @@ export default function Loom() {
 	return (
 		<>
 			<header>
-				<Bar>Loom{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="loom">Loom{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<main>
 				<div ref={ root } className="gs loom" aria-label="Portraits">

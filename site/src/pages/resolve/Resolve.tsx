@@ -8,7 +8,7 @@ import { loading } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { lightbox } from 'gpuslider/lightbox';
 import { Bar, drawnBy, layer } from '../mount';
-import { resolve } from './effect';
+import { resolve, WAYS } from './effect';
 
 /**
  * Resolve: rows of pictures that come out of their pixels as they come
@@ -54,9 +54,21 @@ const ROWS = [
 	{ name: 'All of them', look: 'small', sizes: '180px', pictures: ALL },
 ];
 
+// Which way the pictures come out: read by the effect on every frame.
+const MODE = [ 0 ];
+
 export default function Resolve() {
 	const page = useRef< HTMLElement >( null );
 	const [ by, setBy ] = useState( '' );
+	const [ way, setWay ] = useState( 0 );
+	// Set by the slider: shows the way chosen from the start again.
+	const again = useRef< () => void >( () => {} );
+
+	const choose = ( to: number ) => {
+		MODE[ 0 ] = to;
+		setWay( to );
+		again.current();
+	};
 
 	useEffect( () => {
 		const root = page.current!;
@@ -104,7 +116,7 @@ export default function Resolve() {
 				plugins: [
 					together,
 					canvas( {
-						effects: [ resolve( { come: come[ i ], speed } ) ],
+						effects: [ resolve( { come: come[ i ], speed, mode: MODE } ) ],
 						layer: layer(),
 						eager: true,
 					} ),
@@ -172,10 +184,16 @@ export default function Resolve() {
 				frame = requestAnimationFrame( tick );
 			}
 		};
+		// Another way: the rows in view come out again, the new way.
+		again.current = () => {
+			come.forEach( ( one ) => ( one[ 0 ] = 0 ) );
+			run();
+		};
 		addEventListener( 'scroll', run, { passive: true } );
 		addEventListener( 'resize', run );
 		Object.assign( window, { sliders } );
 		return () => {
+			again.current = () => {};
 			removeEventListener( 'scroll', run );
 			removeEventListener( 'resize', run );
 			cancelAnimationFrame( frame );
@@ -187,8 +205,20 @@ export default function Resolve() {
 	return (
 		<>
 			<header>
-				<Bar>Resolve{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="resolve">Resolve{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
+			<div className="ways" role="group" aria-label="How the pictures come out">
+				{ WAYS.map( ( one, i ) => (
+					<button
+						key={ one }
+						type="button"
+						aria-pressed={ i === way }
+						onClick={ () => choose( i ) }
+					>
+						{ one }
+					</button>
+				) ) }
+			</div>
 			<main ref={ page }>
 				<div className="gs-loading" role="progressbar" aria-label="Loading the pictures">
 					<span data-gs-loaded>0</span>
@@ -196,9 +226,10 @@ export default function Resolve() {
 				<section className="intro">
 					<h1>Resolve</h1>
 					<p>
-						Every picture comes out of its pixels as its row comes into view, block
-						by block, each block in its own time. Scroll fast and they break up
-						again; throw a row and it does too. Click one to open it.
+						Every picture comes out as its row comes into view, part by part, each
+						part in its own time. Scroll fast and they break up again; throw a row
+						and it does too. The pills at the bottom choose one of five ways. Click a picture to
+						open it.
 					</p>
 				</section>
 				{ ROWS.map( ( row, r ) => (
@@ -224,8 +255,8 @@ export default function Resolve() {
 				) ) }
 				<footer>
 					<p>
-						One effect, <code>resolve()</code>, about forty lines of GLSL: the page
-						tells it how far each row has come out of its pixels and how fast the
+						One effect, <code>resolve()</code>, one shader for all five ways: the
+						page tells it which way, how far each row has come out and how fast the
 						page is scrolled, the slider how fast the row moves. Pictures made by code.
 					</p>
 					<p>

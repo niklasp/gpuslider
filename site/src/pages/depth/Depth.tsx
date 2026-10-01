@@ -67,7 +67,7 @@ export default function Depth() {
 	return (
 		<>
 			<header>
-				<Bar>Depth{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="depth">Depth{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 
 			<form className="panel" aria-label="Depth" onSubmit={ ( event ) => event.preventDefault() }>

@@ -200,7 +200,7 @@ export default function Fold() {
 	return (
 		<div ref={ page }>
 			<header>
-				<Bar>Fold{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="fold">Fold{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 
 			<div className="intro">

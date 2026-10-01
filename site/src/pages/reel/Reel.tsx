@@ -229,7 +229,7 @@ export default function Reel() {
 			</main>
 
 			<footer>
-				<Bar>
+				<Bar code="reel">
 					<span id="said">
 						Arrows, keys, a drag{ by && ` · drawn by ${ by }` }
 					</span>

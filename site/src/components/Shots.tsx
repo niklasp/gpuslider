@@ -1,3 +1,5 @@
+import { codeOf } from '@/pages/mount';
+
 /**
  * The examples, as pictures of them that lead to them.
  */
@@ -60,7 +62,7 @@ export const EXAMPLES = [
 	{
 		name: 'resolve',
 		title: 'Resolve',
-		text: 'Rows of pictures that come out of their pixels as they come into view, block by block, and break up again when the page is scrolled fast or a row is thrown. Click one to open it. After the scroll-revealed gallery of Chakib Mazouni.',
+		text: 'Rows of pictures that come out, part by part, as they come into view: in pixels, halftone dots, slices, shards or dither, as you choose. They break up again when the page is scrolled fast or a row is thrown. Click one to open it. After the scroll-revealed gallery of Chakib Mazouni.',
 		made: [ 'loading()', 'lightbox()', 'an effect of its own' ],
 	},
 	{
@@ -153,6 +155,12 @@ export function Shots( { all }: { all?: boolean } ) {
 										href={ `/examples/${ name }/?layer=gl` }
 									>
 										Drawn by WebGL
+									</a>
+									<a
+										className="sq-knob inline-flex h-9 items-center bg-secondary px-3.5 text-sm font-medium transition hover:bg-accent"
+										href={ codeOf( name ) }
+									>
+										Code
 									</a>
 								</p>
 							</>

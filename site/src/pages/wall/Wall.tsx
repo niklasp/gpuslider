@@ -91,7 +91,7 @@ export default function Wall() {
 			</main>
 
 			<footer>
-				<Bar>
+				<Bar code="wall">
 					<span ref={ said } id="said">
 						Drag the wall
 					</span>

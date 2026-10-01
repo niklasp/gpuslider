@@ -423,7 +423,7 @@ export default function Wave( { stage: id = STAGES[ 0 ].id }: { stage?: string }
 	return (
 		<>
 			<header>
-				<Bar>Wave{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="wave">Wave{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<nav className="waves" aria-label="Stages">
 				{ WAVES.map( ( one ) => (

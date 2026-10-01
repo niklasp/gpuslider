@@ -52,7 +52,7 @@ export function Journal() {
 	return (
 		<>
 			<header>
-				<Bar>Journal{ by && ` · drawn by ${ by }` }</Bar>
+				<Bar code="journal">Journal{ by && ` · drawn by ${ by }` }</Bar>
 			</header>
 			<main>
 				<div className="masthead">

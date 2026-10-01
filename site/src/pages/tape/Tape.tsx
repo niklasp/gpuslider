@@ -57,7 +57,7 @@ export default function Tape() {
 	return (
 		<div ref={ page }>
 			<header>
-				<Bar>
+				<Bar code="tape">
 					<span id="said">Scroll{ by && ` · drawn by ${ by }` }</span>
 				</Bar>
 			</header>

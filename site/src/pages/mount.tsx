@@ -29,17 +29,27 @@ export function layer(): 'gl' | 'gpu' | undefined {
 export const drawnBy = ( name: unknown ) =>
 	name === 'gpu' ? 'WebGPU' : 'WebGL';
 
+/** Where the code of an example is: its folder in the repository. */
+export const codeOf = ( name: string ) =>
+	`https://github.com/niklasp/gpuslider/tree/main/site/src/pages/${ name }`;
+
 /**
  * What the bar at the top of an example says: the way back to the
- * examples at the left; at the right what the page is, and what it is
- * made with, for those who come to it from elsewhere.
+ * examples at the left; at the right what the page is, what it is made
+ * with, for those who come to it from elsewhere, and where its code is.
  */
-export function Bar( { children }: { children: ReactNode } ) {
+export function Bar( { children, code }: { children: ReactNode; code?: string } ) {
 	return (
 		<>
 			<a href="/examples/">← Examples</a>
 			<span>
 				{ children } · Made with <a href="/">gpu slider</a>
+				{ code && (
+					<>
+						{ ' · ' }
+						<a href={ codeOf( code ) }>Code</a>
+					</>
+				) }
 			</span>
 		</>
 	);
