@@ -115,6 +115,13 @@ h2 {
 	padding-inline: var(--gutter);
 }
 
+.hint {
+	margin: 0;
+	padding: 14px var(--gutter) 0;
+	color: var(--muted);
+	font-size: clamp(14px, 1.1vw, 16px);
+}
+
 @media (max-width: 900px) {
 	.shelf {
 		--gs-per-view: 2.2;
@@ -241,6 +248,23 @@ h2 {
 	object-position: var(--gs-focus, 50% 50%);
 	border-radius: var(--round);
 	corner-shape: squircle;
+}
+
+/* Where no view transition brings the picture (a browser without them, or
+   a story opened by its address), it grows into place by itself. The HTML
+   of the journal says which, with `grow` on the document. */
+@media (prefers-reduced-motion: no-preference) {
+	.grow .hero {
+		animation: grow 0.7s cubic-bezier(0.3, 0.9, 0.2, 1) both;
+	}
+}
+
+@keyframes grow {
+	from {
+		opacity: 0;
+		scale: 0.94;
+		translate: 0 24px;
+	}
 }
 
 /* The light of a story, light enough to be read on the night. */

@@ -3,7 +3,7 @@ import '@fontsource-variable/funnel-display';
 import 'gpuslider/style.css';
 import './journal.css';
 import { createSlider } from 'gpuslider';
-import { controls, keyboard, wheel } from 'gpuslider/plugins';
+import { autoplay, controls, keyboard, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { stretch } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
@@ -31,6 +31,9 @@ export function Journal() {
 				controls(),
 				keyboard(),
 				wheel(),
+				// It goes on by itself, so that the stretch is seen; and waits
+				// under the pointer, where a story is about to be opened.
+				autoplay( 4000 ),
 				canvas( {
 					// Nothing that moves the picture in a slide at rest: the
 					// picture that goes to the story is the one that is seen.
@@ -87,6 +90,7 @@ export function Journal() {
 					<button type="button" className="arrow" data-gs-prev aria-label="Previous stories" />
 					<button type="button" className="arrow" data-gs-next aria-label="Next stories" />
 				</div>
+				<p className="hint">Pick a picture to open its story.</p>
 			</main>
 			<footer>
 				<p>

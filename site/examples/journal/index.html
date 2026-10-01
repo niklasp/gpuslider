@@ -30,6 +30,11 @@
 				// nothing for the one of the slider to grow into.
 				if ( story( location.pathname ) ) {
 					document.write( '<link rel="expect" href="#hero" blocking="render">' );
+					// Without view transitions between pages, the picture of a
+					// story grows into place by itself (`.grow` in journal.css).
+					if ( ! ( 'onpagereveal' in self ) ) {
+						document.documentElement.classList.add( 'grow' );
+					}
 				}
 				const mark = ( slug, transition ) => {
 					if ( ! transition ) {
@@ -82,9 +87,14 @@
 				addEventListener( 'pageswap', ( event ) =>
 					mark( story( event.activation?.entry.url ), event.viewTransition )
 				);
-				addEventListener( 'pagereveal', ( event ) =>
-					mark( story( self.navigation?.activation?.from?.url ), event.viewTransition )
-				);
+				addEventListener( 'pagereveal', ( event ) => {
+					// A story not entered by a view transition: its picture
+					// grows by itself, as where there are none.
+					if ( story( location.pathname ) && ! event.viewTransition ) {
+						document.documentElement.classList.add( 'grow' );
+					}
+					mark( story( self.navigation?.activation?.from?.url ), event.viewTransition );
+				} );
 			} )();
 		</script>
 	</head>
