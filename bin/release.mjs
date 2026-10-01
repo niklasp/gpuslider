@@ -15,7 +15,8 @@
  * fail them for time; a test that fails is run again once, alone, and
  * only one that fails again stops the release.
  *
- * `--no-tests` leaves the tests out (for a change of the README, say).
+ * `--no-tests` leaves the browser tests out; the types and sizes are
+ * still checked.
  * `--no-site` does not put the site online. `--publish-only` goes on
  * from a release whose publishing failed: it publishes the version that
  * is committed, then pushes and puts the site online.
@@ -121,16 +122,17 @@ if ( has( '--publish-only' ) ) {
 	process.exit( 0 );
 }
 
+// The types and the sizes take seconds: they are checked always.
+say( 'Types and sizes' );
+if ( ! run( 'npm', [ 'run', 'check' ] ) ) {
+	fail( 'The library does not type-check. Nothing is released.' );
+}
+if ( ! run( 'npm', [ 'run', 'types' ] ) || ! run( 'npm', [ 'run', 'size' ] ) ) {
+	fail( 'Types or sizes fail. Nothing is released.' );
+}
 if ( has( '--no-tests' ) ) {
 	say( 'Tests: left out, as asked' );
 } else {
-	say( 'Types and sizes' );
-	if ( ! run( 'npm', [ 'run', 'check' ] ) ) {
-		fail( 'The library does not type-check. Nothing is released.' );
-	}
-	if ( ! run( 'npm', [ 'run', 'types' ] ) || ! run( 'npm', [ 'run', 'size' ] ) ) {
-		fail( 'Types or sizes fail. Nothing is released.' );
-	}
 	tests( 'Chromium, Firefox, WebKit and the site', [] );
 	tests( 'drawn by WebGPU', [ '--project=chromium', '--project=webkit', '--project=site' ], { LAYER: 'gpu' } );
 	if ( ! run( 'node', [ 'bin/build.mjs' ] ) ) {
