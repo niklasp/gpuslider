@@ -27,7 +27,7 @@ export const EXAMPLES = [
 		name: 'echo',
 		title: 'Echo',
 		text: 'A reel of photos that leave frames of themselves behind as they move, the farther apart the faster. Pick a photo below and it arrives as a stream of frames, all drawn by one pass of the canvas. After Animating in Frames by Manoela Ilic.',
-		made: [ 'thumbs()', 'autoplay()', 'loading()', 'an effect of its own' ],
+		made: [ 'thumbs()', 'autoplay()', 'keyboard()', 'loading()', 'an effect of its own' ],
 	},
 	{
 		name: 'fold',
@@ -39,7 +39,7 @@ export const EXAMPLES = [
 		name: 'reel',
 		title: 'A reel',
 		text: 'Pictures and films as large as the screen, that the page scrolls down through: each flows into the next as far as the page has gone, backwards when it goes back, and the page comes to rest on one. The screen before it is made of the events of loading(): a number that runs, a curtain that goes up.',
-		made: [ 'stack()', 'videos()', 'loading()', 'liquid', 'split', 'waves' ],
+		made: [ 'useSlider()', 'stack()', 'videos()', 'loading()', 'liquid', 'split', 'waves' ],
 	},
 	{
 		name: 'tape',
@@ -51,25 +51,25 @@ export const EXAMPLES = [
 		name: 'loom',
 		title: 'Loom',
 		text: 'Portraits that run by, and come apart into threads where they leave the screen and where they come in. After Unwoven by Clément Grellier.',
-		made: [ 'marquee()', 'loading()', 'unweave', 'stretch' ],
+		made: [ 'marquee()', 'keyboard()', 'wheel()', 'loading()', 'unweave', 'stretch' ],
 	},
 	{
 		name: 'wave',
 		title: 'Wave',
 		text: 'Bands of pictures that run against each other, on five pages, each wilder than the last: two bands, curves, a crossing, depth, and rings that turn. The canvas turns, bends and places the rows; a click opens the picture that is seen. The pictures are made by code.',
-		made: [ 'marquee()', 'lightbox()', 'bend', 'jelly', 'stretch', 'split', 'effects of its own' ],
+		made: [ 'marquee()', 'loading()', 'lightbox()', 'bend', 'jelly', 'stretch', 'split', 'effects of its own' ],
 	},
 	{
 		name: 'depth',
 		title: 'Depth',
 		text: 'A gallery whose pictures move slower than their frames, and a panel that changes how much while it runs: the effects read their numbers on every frame.',
-		made: [ 'controls()', 'loading()', 'parallax', 'stretch' ],
+		made: [ 'controls()', 'keyboard()', 'wheel()', 'loading()', 'parallax', 'stretch' ],
 	},
 	{
 		name: 'journal',
 		title: 'Journal',
 		text: 'Stories in a slider whose pictures the canvas draws. Open one, and its picture leaves the slider and becomes the top of the story, on another page: a view transition between documents, where the browser has them.',
-		made: [ 'controls()', 'parallax', 'stretch', '@view-transition' ],
+		made: [ 'controls()', 'autoplay()', 'keyboard()', 'wheel()', 'stretch', '@view-transition' ],
 	},
 ] as const;
 
