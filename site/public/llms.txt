@@ -21,11 +21,17 @@
 
 ## Examples
 
-- [A reel](/examples/reel/)
-- [Tape](/examples/tape/)
-- [Loom](/examples/loom/)
-- [Wave](/examples/wave/)
-- [Depth](/examples/depth/)
+- [All of them](/examples/): each with what it is made of and its code
+- [Resolve](/examples/resolve/): rows of photos that come out part by part as they come into view, in nine ways
+- [Reveal](/examples/reveal/): an index whose pictures open out of the pointer and turn into each other, in eleven ways
+- [Orbit](/examples/orbit/): a row rolled up into a cylinder that the page turns as it is scrolled
+- [Echo](/examples/echo/): a reel whose photos leave frames of themselves behind as they move
+- [Fold](/examples/fold/): walls of small pictures that fold into place one after another as the page is scrolled
+- [A reel](/examples/reel/): pictures and films as large as the screen, that the page scrolls down through
+- [Tape](/examples/tape/): rows that run against each other, pushed by the scrolling
+- [Loom](/examples/loom/): portraits that come apart into threads at the edges
+- [Wave](/examples/wave/): bands of pictures on five pages, each wilder than the last
+- [Depth](/examples/depth/): parallax, with a panel that changes it while it runs
 - [Journal](/examples/journal/): a slider whose pictures open into stories on other pages, by a view transition between documents
 - [Playground](/playground/): every slider the library can be, with controls
 

@@ -16,8 +16,8 @@ export default function Examples() {
 					</h1>
 					<p className="mt-4 max-w-2xl text-lg text-muted-foreground">
 						Pages that are made of the library, and of little else. Each
-						waits for its pictures behind a screen of its own kind, and
-						each can be drawn by either layer.
+						can be drawn by either layer, and leads to its code; most wait
+						for their pictures behind a screen of their own kind.
 					</p>
 				</div>
 				<Shots all />

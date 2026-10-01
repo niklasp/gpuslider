@@ -40,10 +40,9 @@ npm run lighthouse # builds the site and asks Lighthouse about its pages
 | | |
 |---|---|
 | `/` | What the library is: what it does, what it weighs, how fast it is, and where to go from there |
-| `/docs/` | The docs, in eleven pages. What they say is `DOCS.md`, cut into pages when the site is built (`site/docs.ts`): it is said in one place. Most pages show what they say, with sliders to try it on |
-| `/examples/` | The three pages below, with a picture each |
-| `/examples/reel/` | One picture or film at a time, as large as the screen, that turn into each other. The screen before it is made of the events of `loading()`: a number that runs, a curtain that goes up |
-| `/examples/tape/` | Rows that run against each other on a page that scrolls. The scrolling pushes them, and what is pushed gives way. The loading screen is the one of the library |
+| `/docs/` | The docs, in thirteen pages. What they say is `DOCS.md`, cut into pages when the site is built (`site/docs.ts`): it is said in one place. Most pages show what they say, with sliders to try it on |
+| `/examples/` | The examples, eleven, each with a picture, what it is made of and a link to its code. They are listed in `site/src/components/Shots.tsx` |
+| `/examples/<name>/` | An example: a page of its own, in `site/src/pages/<name>/`, with a link back to the examples and to its code |
 | `/playground/` | Every layout, every effect and transition, the lightbox, the loading screen, buttons anywhere and the events, with controls for all of it. Under every slider: who draws it, and what a frame costs |
 | `/phone/` | To be opened on a phone: what it has, what a finger is to try, and a measuring of both layers. What it finds is text to copy |
 

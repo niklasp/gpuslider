@@ -153,7 +153,7 @@ const [ ref, slider ] = useSlider( { loop, plugins: [ controls() ] }, [ loop ] )
 
 Its second argument is what the slider is made again for.
 
-The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.7 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 12.5 KB.
+The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.7 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 13.0 KB.
 
 ### Rendered on the server
 
@@ -637,7 +637,7 @@ Shaders are compiled on another thread where the browser can, and no frame is dr
 | Script in a frame while 6 sliders move | 0.15 ms, 0.17 ms | 0.33 ms, 0.27 ms |
 | Frames that came late while 20 sliders moved for 4 s | 0 of 241 | 0 of 241 |
 | Work of the page and of the GPU process, 6 sliders (Chromium) | 10 % and 18 % of a core | 11 % and 18 % |
-| The layer in the bundle | 7.0 KB | 9.0 KB |
+| The layer in the bundle | 7.4 KB | 9.4 KB |
 | Browsers | all | Chrome, Edge, Safari from 26, Firefox on some systems: about 87 % of visitors |
 
 What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which for six sliders is 0.3 ms of the 16.7 that a frame has.
@@ -760,6 +760,7 @@ What the translation knows is the GLSL that all effects here are written in. For
 - Functions, `if`, `for`, `a ? b : c`, and the functions GLSL comes with. No `out` and `inout` parameters, no structs, no arrays, no `#define`.
 - What `max`, `min`, `clamp` and `smoothstep` are given is of one kind: `max( v, vec2( 0.0 ) )`, not `max( v, 0.0 )`.
 - One component is assigned at a time, or the whole vector: `p = vec3( q, p.z )`, not `p.xy = q`.
+- No variable has the name of a parameter: of the effect, or of `choose()`, which is `which`, for a transition it holds.
 
 A shader that WebGPU does not take is said in the console, as `gpuslider: …`, and the page draws that slider.
 
@@ -918,7 +919,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | Canvas layer of WebGPU | 9.4 KB |
 | Canvas layer of WebGL 2 | 7.4 KB |
 | An effect | 0.2 to 0.9 KB |
-| A transition | 0.2 to 0.7 KB |
+| A transition | 0.2 to 1.0 KB |
 | Lightbox | 2.2 KB |
 | `style.css`, `lightbox.css` | 0.7 KB, 0.8 KB |
 | `loading.css` | 0.4 KB |

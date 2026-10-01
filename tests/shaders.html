@@ -27,7 +27,22 @@
 			[ 'all effects', Object.values( effects ).map( ( make ) => make() ), null ],
 			[ 'all effects, down', Object.values( effects ).map( ( make ) => make() ), null, true ],
 			...Object.entries( effects ).map( ( [ name, make ] ) => [ name, [ make() ], null ] ),
-			...Object.entries( transitions ).map( ( [ name, make ] ) => [ name, [ make() ], FADE ] ),
+			...Object.entries( transitions )
+				.filter( ( [ name ] ) => name !== 'choose' )
+				.map( ( [ name, make ] ) => [ name, [ make() ], FADE ] ),
+			// Every transition in one shader, as a page that lets its
+			// visitors choose has them.
+			[
+				'choose',
+				[
+					transitions.choose(
+						Object.entries( transitions )
+							.filter( ( [ name ] ) => name !== 'choose' )
+							.map( ( [ , make ] ) => make() )
+					),
+				],
+				FADE,
+			],
 		];
 		for ( const [ name, list, transition, y ] of tries ) {
 			let code = '';
