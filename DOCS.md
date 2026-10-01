@@ -912,7 +912,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.3 KB |
+| Canvas layer of WebGPU | 9.4 KB |
 | Canvas layer of WebGL 2 | 7.4 KB |
 | An effect | 0.2 to 0.9 KB |
 | A transition | 0.2 to 0.7 KB |
