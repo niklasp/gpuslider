@@ -109,8 +109,11 @@ export type Config = {
 	layer: LayerName;
 	effects: EffectName[];
 	pointer: PointerName;
-	/** Strength of the effects, 1 is as they come. */
-	intensity: number;
+	/**
+	 * The strength of each effect, and of what the pointer does, by its
+	 * name: 1, as it comes, where none is set.
+	 */
+	strengths: Partial< Record< EffectName | PointerName, number > >;
 	transition: string;
 	loop: boolean;
 	autoplay: boolean;
@@ -133,7 +136,7 @@ export const DEFAULTS: Config = {
 	layer: 'best',
 	effects: [ 'split' ],
 	pointer: 'waves',
-	intensity: 1,
+	strengths: {},
 	transition: 'liquid',
 	loop: true,
 	autoplay: true,
@@ -144,6 +147,10 @@ export const DEFAULTS: Config = {
 	gap: 16,
 	focus: {},
 };
+
+/** How strong an effect is: 1, as it comes, where none is set. */
+export const strengthOf = ( config: Config, name: EffectName | PointerName ) =>
+	config.strengths[ name ] ?? 1;
 
 const make = ( name: EffectName, k: number ) =>
 	( {
@@ -192,10 +199,10 @@ export function pluginsOf( config: Config, kind: Kind = 'row' ) {
 			! ( name === 'parallax' && ( laid || kind === 'stack' ) )
 	);
 	const effects = (): Effect[] => [
-		...names.map( ( name ) => make( name, config.intensity ) ),
+		...names.map( ( name ) => make( name, strengthOf( config, name ) ) ),
 		...point(
 			laid && config.pointer === 'tilt' ? 'none' : config.pointer,
-			config.intensity
+			strengthOf( config, config.pointer )
 		),
 	];
 	// The core moves the slides. All else is asked for.
@@ -265,7 +272,7 @@ export const keyOf = ( config: Config ) =>
 		config.layer,
 		config.effects,
 		config.pointer,
-		config.intensity,
+		config.strengths,
 		config.transition,
 		config.loop,
 		config.autoplay,

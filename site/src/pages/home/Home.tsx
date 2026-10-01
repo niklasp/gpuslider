@@ -43,7 +43,7 @@ import {
 	shift,
 	glitch,
 	liquid,
-	mosaic,
+	weave,
 	push,
 	smear,
 	split,
@@ -229,7 +229,7 @@ const FEATURES: {
 ];
 
 /** The transitions that can be chosen here. The docs have all of them. */
-const TRANSITIONS = { liquid, push, warp, zoom, burn, glitch, swirl, mosaic, distance };
+const TRANSITIONS = { liquid, push, warp, zoom, burn, glitch, swirl, weave, distance };
 
 /**
  * How a transition goes: quick away, slowing down, and done in its time,

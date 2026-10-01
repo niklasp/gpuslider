@@ -139,6 +139,21 @@ export default function Controls( { config, onChange }: Props ) {
 	const as = ( opened: string, folded: string, screen: string ) =>
 		open === null ? screen : open ? opened : folded;
 	const off = ! config.canvas;
+	// How strong one effect is, by its name.
+	const strength = ( name: EffectName | PointerName, label: string ) => (
+		<Range
+			key={ name }
+			id={ `strength-${ name }` }
+			label={ label }
+			value={ config.strengths[ name ] ?? 1 }
+			min={ 0 }
+			max={ 3 }
+			step={ 0.1 }
+			onCommit={ ( to ) =>
+				onChange( { strengths: { ...config.strengths, [ name ]: to } } )
+			}
+		/>
+	);
 
 	return (
 		<div
@@ -263,15 +278,9 @@ export default function Controls( { config, onChange }: Props ) {
 							);
 						} ) }
 					</div>
-					<Range
-						id="intensity"
-						label="Strength"
-						value={ config.intensity }
-						min={ 0 }
-						max={ 3 }
-						step={ 0.1 }
-						onCommit={ ( intensity ) => onChange( { intensity } ) }
-					/>
+					{ config.effects.map( ( name ) => (
+						strength( name, EFFECTS[ name ].label )
+					) ) }
 				</Part>
 
 				<Part title="Under the pointer">
@@ -294,6 +303,9 @@ export default function Controls( { config, onChange }: Props ) {
 							</button>
 						) ) }
 					</div>
+					{ config.pointer !== 'none' && config.pointer !== 'reveal' && (
+						strength( config.pointer, POINTERS[ config.pointer ] )
+					) }
 				</Part>
 
 				<Part title="One slide at a time">
