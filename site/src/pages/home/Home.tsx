@@ -44,6 +44,7 @@ import {
 	liquid,
 	mosaic,
 	push,
+	smear,
 	split,
 	stretch,
 	swirl,
@@ -556,27 +557,40 @@ function Stage() {
 	const [ time, setTime ] = useState( 900 );
 	const slider = useRef< Slider | null >( null );
 	const [ live, setLive ] = useState< Slider | null >( null );
-	// Frames per second, of the frames the slider draws anyway: counted
-	// on each, said twice a second. At rest it draws none, and says so.
+	// Frames per second, of the frames the slider draws anyway, said twice
+	// a second. Only the time between frames that follow each other
+	// counts: a move that starts or ends within the half second would
+	// otherwise read as a few frames a second, when they came at full
+	// rate. At rest it draws none, and says so.
 	const fps = useRef< HTMLSpanElement >( null );
 	useEffect( () => {
 		if ( ! live ) {
 			return;
 		}
-		let frames = 0;
-		let since = performance.now();
-		const off = live.on( 'frame', () => frames++ );
-		const tell = setInterval( () => {
+		let gaps = 0;
+		let between = 0;
+		let last = 0;
+		const off = live.on( 'frame', () => {
 			const now = performance.now();
+			if ( last && now - last < 100 ) {
+				gaps++;
+				between += now - last;
+			}
+			last = now;
+		} );
+		const tell = setInterval( () => {
 			const { gpu, gl } = live.plugins;
 			const by = gpu?.canvas ? 'WebGPU' : gl?.canvas ? 'WebGL' : 'the page';
 			if ( fps.current ) {
-				fps.current.textContent = frames
-					? `${ Math.round( ( frames * 1000 ) / ( now - since ) ) } fps · ${ by }`
-					: `at rest, no frames · ${ by }`;
+				if ( gaps >= 3 ) {
+					fps.current.textContent = `${ Math.round( ( gaps * 1000 ) / between ) } fps · ${ by }`;
+				} else if ( performance.now() - last > 500 ) {
+					fps.current.textContent = `at rest, no frames · ${ by }`;
+				}
+				// Too few frames to tell: what it said stays.
 			}
-			frames = 0;
-			since = now;
+			gaps = 0;
+			between = 0;
 		}, 500 );
 		return () => {
 			off();
@@ -804,7 +818,7 @@ export default function Home() {
 					center
 					id="several"
 					title="Several at a time"
-					note="Drag it, swipe it, or turn the wheel. The faster it goes, the more the pictures give way, and their colours come apart. A click lets one grow to the screen."
+					note="Drag it, swipe it, or turn the wheel. The faster it goes, the more the pictures give way, and their colours come apart; under the pointer they smear like wet paint. A click lets one grow to the screen."
 				>
 					<GpuSlider
 						id="row"
@@ -818,7 +832,7 @@ export default function Home() {
 							keyboard(),
 							wheel(),
 							canvas( {
-								effects: [ stretch( { amount: 2 } ), split( { amount: 2.5 } ) ],
+								effects: [ stretch( { amount: 2 } ), split( { amount: 2.5 } ), smear() ],
 								layer: layer(),
 							} ),
 							lightbox(),
