@@ -514,7 +514,7 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 | `src/full.ts` | The core with the plugins that options switch |
 | `src/auto.ts` | Sliders from `data-gs`, without a script of one's own |
 | `src/react.ts` | `<Slider>`, `<Slide>`, `useSliderContext()`, `useSlider()` |
-| `src/plugins/*.js` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
+| `src/plugins/*.ts` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
 | `src/loading.css` | The screen of `loading()`, for pages that have none of their own |
 | `src/lightbox.ts`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
 | `src/style.css` | Layout for all three tiers |
@@ -537,7 +537,7 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 | `media/` | Generated pictures and films, for the site and the tests |
 | `bin/make-wall.mjs` | The pictures of the wall |
 | `src/gl/fit.ts` | Where `object-fit` and `object-position` put the pixels |
-| `src/gl/effects/*.js` | One effect per file |
+| `src/gl/effects/*.ts` | One effect per file |
 
 ## Phases
 

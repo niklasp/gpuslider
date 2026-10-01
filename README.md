@@ -23,6 +23,8 @@
 npm install gpuslider
 ```
 
+Written in TypeScript; the types come with it.
+
 Or without a build, from a CDN:
 
 ```html
