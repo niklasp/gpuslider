@@ -20,6 +20,7 @@ import {
 	Code,
 	Footer,
 	Nav,
+	FIRST,
 	SECOND,
 	Section,
 } from '@/components/Frame';
@@ -63,7 +64,6 @@ import {
 	names,
 	parts,
 	range,
-	type Layer,
 } from '@/lib/metrics';
 import { layer } from '../mount';
 import { LIGHT, calm, lightOf, useKind } from '@/lib/media';
@@ -81,12 +81,17 @@ import type { Icon } from '@/components/icons';
 
 /** What a slide of the stage says: small, beside what the page says. */
 const SAID = 'font-display text-lg font-semibold tracking-[-0.02em]';
+
+// The starter of the repository, opened in the browser: an install and a
+// slider, with nothing to set up.
+const TRY = 'https://stackblitz.com/github/niklasp/gpuslider/tree/main/examples/starter?file=main.js';
+const TRY_REACT = 'https://stackblitz.com/github/niklasp/gpuslider/tree/main/examples/react-starter?file=src/App.jsx';
 const SAYS = 'max-w-64 text-sm text-white/70';
 
 /** The colours of the pictures, one for each card in turn. */
 const TINTS = [ 1, 2, 5, 4, 6, 3, 8, 7 ].map( ( n ) => LIGHT[ n ] );
 
-const [ chromium, webkit ] = bench.browsers;
+const [ chromium ] = bench.browsers;
 const ms = ( time: number ) => `${ Math.round( time ) } ms`;
 
 /**
@@ -249,23 +254,34 @@ const WAYS = {
 function Ways() {
 	const [ way, setWay ] = useState< keyof typeof WAYS >( 'script' );
 	return (
-		<div className="grid grid-cols-[minmax(0,1fr)] gap-3">
-			<div role="tablist" aria-label="Ways to use it" className="flex flex-wrap justify-center gap-2">
-				{ ( Object.keys( WAYS ) as ( keyof typeof WAYS )[] ).map( ( one ) => (
-					<button
-						key={ one }
-						type="button"
-						role="tab"
-						id={ `way-${ one }` }
-						aria-selected={ one === way }
-						aria-controls="way"
-						aria-current={ one === way ? 'true' : undefined }
-						className={ BUTTON }
-						onClick={ () => setWay( one ) }
-					>
-						{ WAYS[ one ] }
-					</button>
-				) ) }
+		<div className="ways">
+			<div className="flex flex-wrap items-center justify-between gap-2 p-2">
+				<div role="tablist" aria-label="Ways to use it" className="flex min-w-0 flex-wrap gap-1">
+					{ ( Object.keys( WAYS ) as ( keyof typeof WAYS )[] ).map( ( one ) => (
+						<button
+							key={ one }
+							type="button"
+							role="tab"
+							id={ `way-${ one }` }
+							aria-selected={ one === way }
+							aria-controls="way"
+							aria-current={ one === way ? 'true' : undefined }
+							className="sq-pill h-8 shrink-0 cursor-pointer px-3 text-sm font-medium text-white/60 transition hover:text-white aria-[current]:bg-white aria-[current]:text-black"
+							onClick={ () => setWay( one ) }
+						>
+							{ WAYS[ one ] }
+						</button>
+					) ) }
+				</div>
+				<a
+					className="sq-pill inline-flex h-8 shrink-0 items-center gap-2 bg-white/8 px-3 text-sm font-medium text-white/80 ring-1 ring-white/10 transition hover:bg-white/14 hover:text-white"
+					href={ way === 'react' ? TRY_REACT : TRY }
+					target="_blank"
+					rel="noreferrer"
+				>
+					<span aria-hidden className="size-1.5 rounded-full bg-emerald-400" />
+					Run it on StackBlitz
+				</a>
 			</div>
 			<div id="way" role="tabpanel" aria-labelledby={ `way-${ way }` }>
 				<Code html={ code[ way ] } label={ WAYS[ way ] } />
@@ -274,89 +290,27 @@ function Ways() {
 	);
 }
 
-/** The two layers, measured against each other. */
-function Measured() {
-	const both = ( say: ( browser: typeof chromium, layer: Layer ) => string ) =>
-		( [ 'gl', 'gpu' ] as Layer[] ).map( ( name ) => (
-			<td key={ name }>
-				<span className="block">{ say( chromium, name ) }</span>
-				<span className="block text-muted-foreground">
-					{ say( webkit, name ) }
-				</span>
-			</td>
-		) );
+/** The command to install it, copied with a click. */
+function Install() {
+	const [ copied, setCopied ] = useState( false );
+	const command = 'npm install gpuslider';
 	return (
-		<div className="grid grid-cols-[minmax(0,1fr)] gap-3">
-			<div className="scrolls" tabIndex={ 0 } role="group" aria-label="What was measured">
-				<table data-testid="measured">
-					<thead>
-						<tr>
-							<th />
-							<th>WebGL 2</th>
-							<th>WebGPU</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<th>The first slider of a page is drawn after</th>
-							{ both( ( browser, name ) => ms( browser.until( name ).first ) ) }
-						</tr>
-						<tr>
-							<th>A slider after it</th>
-							{ both( ( browser, name ) => ms( browser.until( name ).second ) ) }
-						</tr>
-						<tr>
-							<th>Four more, made together</th>
-							{ both( ( browser, name ) =>
-								ms( browser.moving( name, 6 ).rest || 0 )
-							) }
-						</tr>
-						<tr>
-							<th>Of 20 sliders on a page, the canvas draws</th>
-							{ both( ( browser, name ) =>
-								String( browser.moving( name, 20 ).canvases )
-							) }
-						</tr>
-						<tr>
-							<th>Script in a frame while 6 sliders move</th>
-							{ both(
-								( browser, name ) =>
-									`${ browser.moving( name, 6 ).script.toFixed( 2 ) } ms`
-							) }
-						</tr>
-						<tr>
-							<th>Frames that came late while 20 sliders moved for 4 s</th>
-							{ both( ( browser, name ) => {
-								const { late, frames } = browser.moving( name, 20 );
-								return `${ late } of ${ frames }`;
-							} ) }
-						</tr>
-						<tr>
-							<th>The layer in the bundle</th>
-							<td>{ kb( parts[ 'canvas layer, no effects' ] ) } KB</td>
-							<td>{ kb( parts[ 'canvas layer of WebGPU, no effects' ] ) } KB</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<p className="max-w-3xl text-sm text-muted-foreground">
-				In { chromium.name } { chromium.version }
-				<span> · { webkit.name } { webkit.version }</span>, both without a
-				window, on { bench.machine } with { bench.density } device pixels
-				per pixel, { bench.date }. Sliders with two effects. The first two
-				lines are the middle of { bench.runs } runs. WebGPU has one device
-				for all sliders of a page, and a shader is made once for all of
-				them: so the second slider is there in two frames, and a page has
-				as many sliders on the canvas as it likes. While they move there is
-				no difference to see.{ ' ' }
-				<a
-					className="underline decoration-foreground/30 underline-offset-4 hover:decoration-foreground"
-					href="/docs/canvas/#webgpu-and-webgl-measured"
-				>
-					What it says, and what it does not
-				</a>
-			</p>
-		</div>
+		<button
+			type="button"
+			className="sq-knob inline-flex h-12 cursor-pointer items-center gap-3 bg-secondary px-5 font-mono text-sm transition hover:bg-accent"
+			onClick={ () => {
+				navigator.clipboard?.writeText( command ).then( () => {
+					setCopied( true );
+					setTimeout( () => setCopied( false ), 1600 );
+				} );
+			} }
+		>
+			<span className="text-muted-foreground">$</span>
+			{ command }
+			<span className="font-sans text-xs text-muted-foreground" aria-live="polite">
+				{ copied ? 'Copied' : 'Copy' }
+			</span>
+		</button>
 	);
 }
 
@@ -675,6 +629,14 @@ function Stage() {
 							WebGPU, or WebGL 2 where there is none. A { kb( parts.core ) } KB
 							core, no dependencies, everything else a plugin.
 						</p>
+						<a
+							className="sq-pill inline-flex h-9 items-center bg-white px-4 text-sm font-medium text-black transition hover:bg-white/85"
+							href={ TRY }
+							target="_blank"
+							rel="noreferrer"
+						>
+							Try it in your browser
+						</a>
 						<div className="flex max-w-full flex-wrap items-center gap-2">
 						<div
 							ref={ pills }
@@ -1005,7 +967,7 @@ export default function Home() {
 											[ 'Four more, WebGL', gl6.rest || 0, ms( gl6.rest || 0 ) ],
 										] }
 									/>
-									<More to="#measured">
+									<More to="/docs/canvas/#webgpu-and-webgl-measured">
 										In { chromium.name } { chromium.version }. WebGPU has one
 										device for every slider of a page, and a shader is made once
 										for all of them.
@@ -1121,25 +1083,18 @@ export default function Home() {
 					center
 					id="use"
 					title="In a page"
-					note={ `From the least to load to the least to write. npm install gpuslider, or from a CDN.` }
+					note="From the least to load to the least to write. Or run it in your browser first, nothing to install."
 				>
 					<Ways />
-					<div>
-						<a className={ SECOND } href="/docs/">
+					<div className="flex flex-wrap justify-center gap-3">
+						<Install />
+						<a className={ FIRST } href="/docs/">
 							Get started
 						</a>
 					</div>
 				</Section>
 
 
-				<Section
-					center
-					id="measured"
-					title="WebGPU and WebGL, measured"
-					note="The same sliders, made with each layer, in the same browser with the same GPU. In every cell: Chromium, and under it WebKit."
-				>
-					<Measured />
-				</Section>
 
 				<Section
 					center

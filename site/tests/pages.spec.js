@@ -135,14 +135,6 @@ test.describe( 'the first page', () => {
 		await expect( numbers.first().locator( '.card li' ).first() ).toContainText(
 			`${ kb( parts.core ) } KB`
 		);
-		const measured = page.getByTestId( 'measured' );
-		await expect( measured.getByRole( 'row' ) ).toHaveCount( 8 );
-		await expect(
-			measured.getByRole( 'row', { name: /the canvas draws/ } )
-		).toContainText( '12' );
-		await expect(
-			measured.getByRole( 'row', { name: /The layer in the bundle/ } )
-		).toContainText( `${ kb( parts[ 'canvas layer of WebGPU, no effects' ] ) } KB` );
 	} );
 
 	test( 'every feature leads to a page of the docs that is there', async ( { page } ) => {

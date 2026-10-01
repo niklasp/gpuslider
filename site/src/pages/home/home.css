@@ -581,3 +581,22 @@
 		transition: none;
 	}
 }
+
+/* The ways to use it: the tabs are the head of the code. */
+.ways {
+	overflow: hidden;
+	border-radius: var(--tile);
+	corner-shape: squircle;
+	background: var(--card);
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+	text-align: start;
+}
+
+.ways > div:first-child {
+	border-bottom: 1px solid rgb(255 255 255 / 0.06);
+}
+
+.ways .code {
+	border-radius: 0;
+	background: none;
+}
