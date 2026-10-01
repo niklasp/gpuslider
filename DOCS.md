@@ -675,7 +675,7 @@ Effects that lay out: the slider moves as ever, the effect says where a slide is
 | `pile( { offset, turn } )` | A pile of cards; the one on top leaves to the side |
 | `fan( { angle, radius } )` | A hand of cards, or a wheel |
 | `wave( { height, length, slope } )` | The row runs along a wave, across the view on a slope |
-| `unweave( { amount, threads, start, gap, split } )` | Near the two ends of the view the slides come apart into threads; `start` says where that begins, from the middle (0) to the end (1). In the middle nothing happens |
+| `unweave( { amount, threads, start, gap, split, lift } )` | Near the two ends of the view the slides come apart into threads; `start` says where that begins, from the middle (0) to the end (1), `lift` how far the threads bend up and down. In the middle nothing happens |
 | `dome( { amount, centre, size } )` | The slides as on a dome: what is far from the middle is smaller and nearer to it |
 
 The page has such a slide in one place, and the canvas draws it in another. A click is a click on the slide that is seen: on the cover at the edge, not on the slide in whose place it is drawn. And the lightbox lets the image grow out of the slide as it is drawn: a cover that is turned away turns to the front while it grows, and turns back on its way home. `canvas()` sees to that with `hit()`, which it loads when an effect lays out; with a layer by its name it is a plugin to add:

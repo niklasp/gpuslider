@@ -40,6 +40,9 @@ float thread_( float y, float threads ) {
  *                                              0 to 1.
  * @param {number | number[]} [options.split]   How far the colours of a
  *                                              thread come apart.
+ * @param {number | number[]} [options.lift]    How far a thread bends up
+ *                                              or down as it comes apart,
+ *                                              in heights of the slide.
  * @return {import('../program.js').Effect} Effect.
  */
 export const unweave = ( {
@@ -48,17 +51,23 @@ export const unweave = ( {
 	start = 0.55,
 	gap = 0.5,
 	split = 0,
+	lift = 0,
 } = {} ) => ( {
 	head: AT_EDGE,
-	params: { amount, threads, start, gap, split },
+	params: { amount, threads, start, gap, split, lift },
 	vertex: `
 	float g = grow_( amount, start );
 	return vec3( p.x * ( 1.0 + g ) + side_() * g * uQuad.z * 0.5, p.y, p.z );`,
 	uv: `
 	float u = along_( uv, amount, start );
 	float k = fray_( uQuad.x + u * uQuad.z, start );
-	// Pulled out along its thread, the more the nearer the end.
-	return vec2( u - side_() * k * k * amount * 0.5 * thread_( uv.y, threads ), uv.y );`,
+	float t = thread_( uv.y, threads );
+	// Pulled out along its thread, the more the nearer the end, and bent
+	// up or down, each thread its own way.
+	return vec2(
+		u - side_() * k * k * amount * 0.5 * t,
+		uv.y + k * k * lift * ( t - 0.5 ) * sin( u * 9.0 + t * 6.3 )
+	);`,
 	color: `
 	float g = grow_( amount, start );
 	float u = along_( uv, amount, start );
