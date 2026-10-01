@@ -117,7 +117,7 @@ function Toggle( {
 function Part( { title, children }: { title: string; children: ReactNode } ) {
 	return (
 		<section className="grid gap-3 border-t border-white/8 px-5 py-5">
-			<h2 className="text-xs font-medium text-white/55">{ title }</h2>
+			<h2 className="font-display text-[0.95rem] font-semibold tracking-[-0.015em] text-white">{ title }</h2>
 			{ children }
 		</section>
 	);
