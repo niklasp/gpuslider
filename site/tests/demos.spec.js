@@ -107,6 +107,7 @@ test.describe( 'the playground', () => {
 			name: 'Pages that are made of it',
 		} );
 		await expect( links.getByRole( 'link' ) ).toHaveText( [
+			'Panes',
 			'Resolve',
 			'Reveal',
 			'Orbit',

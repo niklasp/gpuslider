@@ -62,7 +62,7 @@ test.describe( 'transitions', () => {
 	} );
 
 	// `choose` is several of them, not one.
-	for ( const name of Object.keys( transitions ).filter( ( one ) => one !== 'choose' ) ) {
+	for ( const name of Object.keys( transitions ).filter( ( one ) => one !== 'choose' && one !== 'sweep' ) ) {
 		test( name, async ( { page } ) => {
 			const logged = errors( page );
 			await open( page, {

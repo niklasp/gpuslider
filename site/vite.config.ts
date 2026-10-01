@@ -140,6 +140,7 @@ export default defineConfig( {
 					'examples/fold/index',
 					'examples/resolve/index',
 					'examples/reveal/index',
+					'examples/panes/index',
 					'examples/echo/index',
 					'playground/index',
 					'phone/index',

@@ -134,6 +134,11 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 		budget: 512,
 		size: await measure( `export { choose } from './src/gl/choose.js';` ),
 	} );
+	parts.push( {
+		name: 'sweep: a transition over the whole view',
+		budget: 512,
+		size: await measure( `export { sweep } from './src/gl/sweep.js';` ),
+	} );
 	for ( const kind of [ 'effects', 'transitions' ] ) {
 		const dir = resolve( root, 'src/gl', kind );
 		for ( const file of readdirSync( dir ).sort() ) {
@@ -164,7 +169,7 @@ parts.push(
 	},
 	{
 		name: 'the same with the canvas and stretch',
-		budget: 13312,
+		budget: 13440,
 		size: await measure(
 			`import { Slider, Slide } from './src/react.js'; import { controls } from './src/plugins/index.js'; import { gl, stretch } from './src/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
 			[ 'react' ]

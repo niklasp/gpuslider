@@ -6,6 +6,12 @@ import { codeOf } from '@/pages/mount';
 
 export const EXAMPLES = [
 	{
+		name: 'panes',
+		title: 'Panes',
+		text: 'A gallery of four pictures that turn into the next four by any transition of the canvas, in three ways to switch between: place by place, from the left, from the middle or at random; all at once in one sweep, across the gaps; or at the edges of a row that moves, where its pictures come and go. Below it, three that burn into the next. Click one to open it.',
+		made: [ 'panes()', 'sweep()', 'edges()', 'autoplay()', 'keyboard()', 'loading()', 'lightbox()', 'choose()', 'burn' ],
+	},
+	{
 		name: 'resolve',
 		title: 'Resolve',
 		text: 'Rows of pictures that come out, part by part, as they come into view: in pixels, halftone dots, slices, shards, dither, scanlines, glyphs, threads or ink, as you choose. They break up again when the page is scrolled fast or a row is thrown. Click one to open it. After the scroll-revealed gallery of Chakib Mazouni.',

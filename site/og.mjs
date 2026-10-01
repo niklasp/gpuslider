@@ -28,6 +28,7 @@ const PAGES = {
 	fold: '/examples/fold/',
 	resolve: '/examples/resolve/',
 	reveal: '/examples/reveal/',
+	panes: '/examples/panes/',
 	echo: '/examples/echo/',
 };
 // The stages of the wave and the stories of the journal: each its own.

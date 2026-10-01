@@ -28,7 +28,7 @@
 			[ 'all effects, down', Object.values( effects ).map( ( make ) => make() ), null, true ],
 			...Object.entries( effects ).map( ( [ name, make ] ) => [ name, [ make() ], null ] ),
 			...Object.entries( transitions )
-				.filter( ( [ name ] ) => name !== 'choose' )
+				.filter( ( [ name ] ) => name !== 'choose' && name !== 'sweep' )
 				.map( ( [ name, make ] ) => [ name, [ make() ], FADE ] ),
 			// Every transition in one shader, as a page that lets its
 			// visitors choose has them.
@@ -37,12 +37,28 @@
 				[
 					transitions.choose(
 						Object.entries( transitions )
-							.filter( ( [ name ] ) => name !== 'choose' )
+							.filter( ( [ name ] ) => name !== 'choose' && name !== 'sweep' )
 							.map( ( [ , make ] ) => make() )
 					),
 				],
 				FADE,
 			],
+			// The same over the whole view, and at the ends of a row.
+			...[ [ 'sweep, choose', ( all ) => transitions.sweep( all ), FADE ], [ 'edges, choose', ( all ) => effects.edges( all ), null ] ].map(
+				( [ name, wrap, transition ] ) => [
+					name,
+					[
+						wrap(
+							transitions.choose(
+								Object.entries( transitions )
+									.filter( ( [ one ] ) => one !== 'choose' && one !== 'sweep' )
+									.map( ( [ , make ] ) => make() )
+							)
+						),
+					],
+					transition,
+				]
+			),
 		];
 		for ( const [ name, list, transition, y ] of tries ) {
 			let code = '';

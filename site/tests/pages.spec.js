@@ -231,11 +231,12 @@ test.describe( 'the first page', () => {
 } );
 
 test.describe( 'the examples', () => {
-	test( 'there are eleven, with a picture each, and they lead to their pages', async ( { page } ) => {
+	test( 'there are twelve, with a picture each, and they lead to their pages', async ( { page } ) => {
 		await page.goto( '/examples/' );
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
-		await expect( all ).toHaveCount( 11 );
+		await expect( all ).toHaveCount( 12 );
 		await expect( all.getByRole( 'heading' ) ).toHaveText( [
+			'Panes',
 			'Resolve',
 			'Reveal',
 			'Orbit',
@@ -248,7 +249,7 @@ test.describe( 'the examples', () => {
 			'Depth',
 			'Journal',
 		] );
-		for ( const name of [ 'reel', 'tape', 'loom', 'wave', 'depth', 'journal', 'orbit', 'fold', 'resolve', 'reveal', 'echo' ] ) {
+		for ( const name of [ 'panes', 'reel', 'tape', 'loom', 'wave', 'depth', 'journal', 'orbit', 'fold', 'resolve', 'reveal', 'echo' ] ) {
 			const picture = page.locator( `img[src="/shots/${ name }.avif"]` );
 			await picture.scrollIntoViewIfNeeded();
 			await expect
@@ -268,7 +269,7 @@ test.describe( 'the examples', () => {
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
 		await expect( all ).toHaveCount( 6 );
 		await all.first().getByRole( 'link' ).first().click();
-		await expect( page ).toHaveURL( /\/examples\/resolve\/$/ );
+		await expect( page ).toHaveURL( /\/examples\/panes\/$/ );
 	} );
 } );
 

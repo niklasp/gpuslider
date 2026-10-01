@@ -91,7 +91,7 @@ export function Photos( { photos } ) {
 }
 ```
 
-Layout is CSS: `--gs-per-view` and `--gs-gap` say how many slides are in view and how far apart, `gs-stack` with `stack()` puts them on top of each other for transitions.
+Layout is CSS: `--gs-per-view` and `--gs-gap` say how many slides are in view and how far apart, `gs-stack` with `stack()` puts them on top of each other for transitions, `panes()` keeps several in view while each place turns into its next with a transition, or all of them at once with `sweep()`, and the effect `edges()` has a moving row's slides come and go by a transition.
 
 ## Browsers
 

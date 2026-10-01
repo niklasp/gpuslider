@@ -128,7 +128,7 @@ test.describe( 'WebGPU draws what WebGL draws', () => {
 	} );
 
 	// `choose` is several of them, not one.
-	for ( const name of Object.keys( transitions ).filter( ( one ) => one !== 'choose' ) ) {
+	for ( const name of Object.keys( transitions ).filter( ( one ) => one !== 'choose' && one !== 'sweep' ) ) {
 		test( `transition: ${ name }`, async ( { page } ) => {
 			const seen = await both(
 				page,

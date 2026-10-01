@@ -22,6 +22,7 @@ import Orbit from './pages/orbit/Orbit';
 import Fold from './pages/fold/Fold';
 import Resolve from './pages/resolve/Resolve';
 import Reveal from './pages/reveal/Reveal';
+import Panes from './pages/panes/Panes';
 import Echo from './pages/echo/Echo';
 
 type Page = {
@@ -58,6 +59,7 @@ export const pages: Record< string, Page > = {
 	'examples/fold/index.html': { page: () => <Fold /> },
 	'examples/resolve/index.html': { page: () => <Resolve /> },
 	'examples/reveal/index.html': { page: () => <Reveal /> },
+	'examples/panes/index.html': { page: () => <Panes /> },
 	'examples/echo/index.html': { page: () => <Echo /> },
 	...Object.fromEntries(
 		STORIES.map( ( { slug, title, about } ) => [

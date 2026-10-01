@@ -28,3 +28,4 @@ export { lightning } from './lightning.js';
 
 // Several of them, and one picked.
 export { choose } from '../choose.js';
+export { sweep } from '../sweep.js';

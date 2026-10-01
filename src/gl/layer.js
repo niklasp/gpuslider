@@ -655,6 +655,7 @@ export function gl( {
 				};
 
 				// Lifted, every slide is drawn where `change` says.
+				const panes = slider.plugins.panes;
 				if ( stack && ! lifted ) {
 					// The slide the position has passed, and the one it
 					// moves to.
@@ -669,20 +670,25 @@ export function gl( {
 							upcoming = i;
 						}
 					} );
-					const [ a, b ] = [ from, upcoming ].map( ( i, unit ) =>
-						turn(
-							( x, y ) => bind( i, unit, x, y, width, height ),
-							boxes[ i ]?.dx || 0,
-							boxes[ i ]?.dy || 0
-						)
-					);
-					if ( a || b ) {
-						// As the other slides: one that the lightbox lets
-						// grow out of the stack is drawn once, where it is.
-						Object.assign( next, { x: 0, y: 0, w: width, h: height, a: a || EMPTY, radius: 0, shape: 2, speed: 0, fx: 1, dim: 1, clip: true } );
-						moved( from );
-						quad( next.x, next.y, next.w, next.h, next.a, b || EMPTY, mix, mix, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip );
-					}
+					// The view is one quad; with `panes()` each place is
+					// one, of the media of its slides where the place is.
+					( panes?.ends() || [ [ from, upcoming, mix ] ] ).forEach( ( [ out, into, turned, x, i = out ] ) => {
+						const box = panes && boxes[ i ];
+						const { w, h } = box ? box.at : { w: width, h: height };
+						const [ a, b ] = [ out, into ].map( ( k, unit, { dx = 0, dy = 0 } = box ? {} : boxes[ k ] || {} ) =>
+							turn( ( u, v ) => bind( k, unit, u, v, w, h ), dx, dy )
+						);
+						if ( a || b ) {
+							// As the other slides: one that the lightbox lets
+							// grow out of the stack is drawn once, where it is.
+							Object.assign( next, { x: 0, y: 0, w, h, a: a || EMPTY, radius: 0, shape: 2, speed: 0, fx: 1, dim: 1, clip: true }, box?.style );
+							if ( box ) {
+								turn( ( u, v ) => Object.assign( next, { x: u, y: v } ), x + box.dx, box.dy );
+							}
+							moved( i );
+							quad( next.x, next.y, next.w, next.h, next.a, b || EMPTY, turned, turned, next.radius, next.speed, next.shape, next.fx, next.dim, next.clip );
+						}
+					} );
 					return;
 				}
 
@@ -699,7 +705,9 @@ export function gl( {
 						return;
 					}
 					const along =
-						( rtl ? span - place.x - size[ i ] : place.x ) + box.dx;
+						( rtl ? span - place.x - size[ i ] : place.x ) +
+						( panes?.x( i ) || 0 ) +
+						box.dx;
 					next.a = bind( i, 0, 0, 0, box.at.w, box.at.h );
 					// Lifted, `change` may have a picture where the page
 					// has none yet.

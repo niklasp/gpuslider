@@ -1,0 +1,369 @@
+/*
+ * Panes: a dark gallery of tall pictures that stay in their places, and a
+ * deck under it to move them and to choose how they turn.
+ */
+
+:root {
+	--ground: #0b0b10;
+	--ink: #f3f1f7;
+	--dim: rgb(243 241 247 / 0.56);
+	--line: rgb(243 241 247 / 0.12);
+	--glass: rgb(20 19 28 / 0.72);
+}
+
+html,
+body {
+	margin: 0;
+}
+
+body {
+	min-height: 100svh;
+	background: var(--ground);
+	color: var(--ink);
+	font: 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+	overflow-x: hidden;
+}
+
+#root {
+	display: flex;
+	flex-direction: column;
+	min-height: 100svh;
+}
+
+header,
+footer {
+	padding: 18px clamp(16px, 4vw, 40px);
+	color: var(--dim);
+}
+
+/* The bar stays at the top, over the pictures, which pass under it in a
+   blur. */
+header {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px 24px;
+	background: color-mix(in srgb, var(--ground) 72%, transparent);
+	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(12px);
+}
+
+header a,
+footer a {
+	color: var(--ink);
+}
+
+main {
+	flex: 1;
+	padding: 0 clamp(16px, 4vw, 40px) clamp(48px, 10vh, 96px);
+}
+
+.intro,
+.second {
+	max-width: 46rem;
+	margin: clamp(28px, 7vh, 80px) 0 clamp(20px, 4vh, 36px);
+}
+
+.intro h1,
+.second h2 {
+	margin: 0 0 10px;
+	font: 600 clamp(56px, 11vw, 168px) / 0.9 'Funnel Display Variable', ui-sans-serif, system-ui, sans-serif;
+	letter-spacing: -0.05em;
+}
+
+.second h2 {
+	font-size: clamp(32px, 5vw, 64px);
+	letter-spacing: -0.04em;
+}
+
+.intro p,
+.second p {
+	margin: 0;
+	max-width: 40rem;
+	color: var(--dim);
+	font-size: clamp(15px, 1.4vw, 18px);
+}
+
+/* The gallery: four tall pictures, two on a phone. */
+.gallery {
+	--gs-per-view: 4;
+	--gs-gap: clamp(8px, 1.2vw, 16px);
+}
+
+.gallery .gs-slide {
+	aspect-ratio: 3 / 4;
+}
+
+.row {
+	--gs-per-view: 3;
+	--gs-gap: clamp(8px, 1.2vw, 16px);
+}
+
+.row .gs-slide {
+	aspect-ratio: 4 / 3;
+}
+
+/* At the edges: a row that moves, with pictures cut by both ends of the
+   view, where they come and go. */
+.gallery[data-mode="edges"] {
+	--gs-per-view: 3.4;
+}
+
+.gallery[data-mode="edges"] .gs-content {
+	opacity: var(--gs-near, 1);
+}
+
+@media (max-width: 760px) {
+	.gallery,
+	.row {
+		--gs-per-view: 2;
+	}
+
+	.gallery[data-mode="edges"] {
+		--gs-per-view: 1.6;
+	}
+}
+
+.gallery .gs-media,
+.row .gs-media {
+	border-radius: 18px;
+	corner-shape: squircle;
+	background: #15141c;
+}
+
+/* The arrows, at the sides of the gallery, in the middle of its height:
+   round glass over the pictures. */
+.stage {
+	position: relative;
+}
+
+.side {
+	position: absolute;
+	top: 50%;
+	z-index: 2;
+	display: grid;
+	place-items: center;
+	width: 48px;
+	height: 48px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgb(20 19 28 / 0.42);
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.16), 0 8px 30px rgb(0 0 0 / 0.35);
+	-webkit-backdrop-filter: blur(16px) saturate(1.4);
+	backdrop-filter: blur(16px) saturate(1.4);
+	color: #fff;
+	cursor: pointer;
+	transform: translateY(-50%);
+	transition: background 0.2s, transform 0.2s;
+}
+
+.side:hover {
+	background: rgb(20 19 28 / 0.62);
+}
+
+.side:active {
+	transform: translateY(-50%) scale(0.94);
+}
+
+.side:focus-visible {
+	outline: 2px solid var(--ink);
+	outline-offset: 3px;
+}
+
+.prev {
+	left: 14px;
+}
+
+.next {
+	right: 14px;
+}
+
+/* A chevron, of two borders. */
+.side span {
+	width: 10px;
+	height: 10px;
+	border-top: 2px solid currentcolor;
+	border-left: 2px solid currentcolor;
+	transform: translateX(2px) rotate(-45deg);
+}
+
+.next span {
+	transform: translateX(-2px) rotate(135deg);
+}
+
+@media (max-width: 760px) {
+	.side {
+		width: 40px;
+		height: 40px;
+	}
+
+	.prev {
+		left: 8px;
+	}
+
+	.next {
+		right: 8px;
+	}
+}
+
+/* The name of a picture, on it: it comes and goes with it. */
+.gallery .gs-content {
+	inset: auto 0 0;
+	display: flex;
+	gap: 10px;
+	align-items: baseline;
+	padding: 16px 18px;
+	/* The corners of the picture, which the canvas draws as the page does. */
+	border-radius: 0 0 18px 18px;
+	corner-shape: squircle;
+	background: linear-gradient(transparent, rgb(0 0 0 / 0.55));
+	color: #fff;
+	font: 600 clamp(14px, 1.3vw, 18px) / 1.2 'Funnel Display Variable', ui-sans-serif, system-ui, sans-serif;
+	letter-spacing: -0.01em;
+	pointer-events: none;
+}
+
+.gallery .gs-content span {
+	font: 500 12px/1 ui-monospace, monospace;
+	opacity: 0.7;
+}
+
+.gs-loading {
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--dim);
+	border-radius: 18px;
+}
+
+/* Under the gallery: how many are in view, and how they turn. */
+.deck {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 16px;
+	margin-top: 18px;
+}
+
+.per,
+.pills {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 5px;
+	border-radius: 999px;
+	corner-shape: squircle;
+	background: var(--glass);
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+.pills[hidden] {
+	display: none;
+}
+
+.dock {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	min-width: 0;
+}
+
+.deck button {
+	height: 36px;
+	padding: 0 14px;
+	border: 0;
+	border-radius: 999px;
+	corner-shape: squircle;
+	background: none;
+	color: var(--dim);
+	font: 500 13px/1 ui-sans-serif, system-ui, sans-serif;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+
+.deck button:hover {
+	color: var(--ink);
+}
+
+.deck button[aria-pressed="true"] {
+	background: var(--ink);
+	color: var(--ground);
+}
+
+.deck button:focus-visible {
+	outline: 2px solid var(--ink);
+	outline-offset: 2px;
+}
+
+/* Slides per view: a range, and the number. */
+.per {
+	gap: 12px;
+	padding: 5px 16px;
+	height: 36px;
+	color: var(--dim);
+	font: 500 13px/1 ui-sans-serif, system-ui, sans-serif;
+	white-space: nowrap;
+}
+
+.per input {
+	width: 112px;
+	margin: 0;
+	accent-color: var(--ink);
+	cursor: pointer;
+}
+
+.per output {
+	min-width: 1ch;
+	color: var(--ink);
+	font: 500 13px/1 ui-monospace, monospace;
+}
+
+footer {
+	display: grid;
+	gap: 10px;
+	border-top: 1px solid var(--line);
+}
+
+footer p {
+	max-width: 62ch;
+	margin: 0;
+}
+
+code {
+	color: var(--ink);
+	font: 13px ui-monospace, monospace;
+}
+
+/* On a phone the transitions are a strip to swipe along. */
+@media (max-width: 760px) {
+	.deck,
+	.dock {
+		display: grid;
+		justify-items: start;
+	}
+
+	.dock,
+	.pills {
+		max-width: 100%;
+	}
+
+	.pills {
+		overflow-x: auto;
+		overscroll-behavior-x: contain;
+		scroll-snap-type: x mandatory;
+		scrollbar-width: none;
+		border-radius: 24px;
+	}
+
+	.pills::-webkit-scrollbar {
+		display: none;
+	}
+
+	.pills button {
+		flex: none;
+		scroll-snap-align: start;
+	}
+}

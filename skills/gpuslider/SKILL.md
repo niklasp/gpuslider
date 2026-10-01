@@ -62,6 +62,9 @@ Options of the core are props. `plugins` is read once, when the slider is made; 
 ## What to pick
 
 - **One slide at a time with a transition:** `stack()` plus one transition in the effects: `liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`, `distance`, `glyphs`, `weave`, `lightning`.
+- **Several in view, each place with a transition:** `panes( { order: 'start' | 'end' | 'center' | 'random', stagger } )` instead of `stack()`, with `perView` (a whole number) and one transition in the effects; each place turns into its next slide, one after another. `slider.plugins.panes.order` can change while it runs. `ease: ( u ) => u` gives every place the same time.
+- **Several in view, all turning at once as one picture:** `panes( { stagger: 0 } )` with `sweep( transition )` in the effects; the transition goes across the gaps from place to place, each place keeps its corners.
+- **A moving row with the transition where slides come and go:** the effect `edges( transition, { from, to } )`, no `stack()` or `panes()`; `from` and `to` are widths of the slide past the end of the view (default 0 and 1). A fraction in `perView` keeps slides cut at both ends.
 - **A row of slides:** no `stack()`; slides per view and gap are CSS (`--gs-per-view: 2.5; --gs-gap: 12px;`, in media queries for responsive) or `perView` / `gap`. Effects that move with speed: `stretch`, `split`, `jelly`, `bend`, `parallax`, `slab`. Layouts: `coverflow`, `fan`, `pile`, `wave`, `dome`, `unweave` (with `align: 'center'`).
 - **Under the pointer:** `glass`, `waves`, `spotlight`, `magnify`, `pixels`, `ascii`, `reveal`, `tilt`, `smear`, `shift`, `cells`. Any number of effects combine, in the order given.
 - **Lightbox:** `lightbox()` from `gpuslider/lightbox`.

@@ -95,7 +95,7 @@ export function compose( effects, transition, y ) {
 			told[ 4 - all.length ].push( own[ name ] );
 			params[ own[ name ] ] = all;
 		}
-		if ( effect.transition && transition !== null ) {
+		if ( effect.transition ) {
 			base = named( rename( effect.transition, own ) );
 		}
 		for ( const hook in hooks ) {

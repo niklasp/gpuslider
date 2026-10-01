@@ -6,7 +6,8 @@
  * With the pointer: `magnify`, `cells`, `spotlight`, `smear`, `shift`,
  * `tilt`, `waves`, `reveal`, `glass`, `pixels`, `ascii`.
  * With the place of the slide, which makes them layouts: `bend`,
- * `coverflow`, `pile`, `fan`, `parallax`, `dome`, `wave`, `unweave`.
+ * `coverflow`, `pile`, `fan`, `parallax`, `dome`, `wave`, `unweave`, and
+ * `edges`, which is any transition at the two ends of the view.
  */
 export { stretch } from './stretch.js';
 export { split } from './split.js';
@@ -29,5 +30,6 @@ export { parallax } from './parallax.js';
 export { dome } from './dome.js';
 export { wave } from './wave.js';
 export { unweave } from './unweave.js';
+export { edges } from './edges.js';
 export { jelly } from './jelly.js';
 export { slab } from './slab.js';

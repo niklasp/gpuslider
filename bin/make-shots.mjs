@@ -17,6 +17,21 @@ mkdirSync( to, { recursive: true } );
 
 /** What is done to a page before its picture is taken. */
 const PAGES = {
+	// Half way from one view to the next: the places turn one after
+	// another.
+	panes: async ( page ) => {
+		await page.waitForTimeout( 1500 );
+		await page.evaluate( () => window.slider.plugins.autoplay?.pause() );
+		await page.waitForTimeout( 1700 );
+		await page.getByRole( 'button', { name: 'Glyphs', exact: true } ).click();
+		await page.getByRole( 'button', { name: 'From the middle', exact: true } ).click();
+		await page.evaluate( () => {
+			const r = document.querySelector( '.gallery' ).getBoundingClientRect();
+			scrollTo( 0, r.top + scrollY - ( innerHeight - r.height ) / 2 );
+			window.slider.next();
+		} );
+		await page.waitForTimeout( 420 );
+	},
 	// The first chapter, the cylinder turning.
 	orbit: async ( page ) => {
 		await page.waitForTimeout( 2500 );

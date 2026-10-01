@@ -217,7 +217,7 @@ export function compose( effects, transition, y ) {
 			undefine += `#undef ${ name }\n`;
 			params[ `e${ k }_${ name }` ] = all;
 		}
-		if ( effect.transition && transition !== null ) {
+		if ( effect.transition ) {
 			base = named( define + effect.transition + '\n' + undefine );
 		}
 		for ( const hook in hooks ) {

@@ -22,6 +22,7 @@
 ## Examples
 
 - [All of them](/examples/): each with what it is made of and its code
+- [Panes](/examples/panes/): four pictures in view that turn into the next ones by a transition in three ways: place by place (`panes()`), all at once in one sweep (`sweep()`), or at the edges of a row that moves (`edges()`)
 - [Resolve](/examples/resolve/): rows of photos that come out part by part as they come into view, in nine ways
 - [Reveal](/examples/reveal/): an index whose pictures open out of the pointer and turn into each other, in eleven ways
 - [Orbit](/examples/orbit/): a row rolled up into a cylinder that the page turns as it is scrolled
@@ -38,7 +39,7 @@
 ## Use
 
 - `import { createSlider } from 'gpuslider'`: the core
-- `import { controls, keyboard, wheel, autoplay, marquee, thumbs, videos, autoHeight, stack, progress, loading } from 'gpuslider/plugins'`
+- `import { controls, keyboard, wheel, autoplay, marquee, thumbs, videos, autoHeight, stack, panes, progress, loading } from 'gpuslider/plugins'`
 - `import { canvas } from 'gpuslider/canvas'`: the canvas, which chooses its layer
 - `import { stretch, split, waves, liquid } from 'gpuslider/effects'`: effects and transitions
 - `import { gpu } from 'gpuslider/gpu'`, `import { gl } from 'gpuslider/gl'`: a layer by name

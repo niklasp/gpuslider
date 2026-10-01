@@ -91,7 +91,7 @@ export type Kind =
 	| 'down';
 
 // The transitions by their names: `choose` is several of them, not one.
-const NAMED = Object.keys( transitions ).filter( ( name ) => name !== 'choose' );
+const NAMED = Object.keys( transitions ).filter( ( name ) => name !== 'choose' && name !== 'sweep' );
 
 /** The transitions, and none: the slides move. */
 export const TRANSITIONS = [ 'none', ...NAMED, 'random' ];

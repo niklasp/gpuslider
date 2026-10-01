@@ -153,7 +153,7 @@ const [ ref, slider ] = useSlider( { loop, plugins: [ controls() ] }, [ loop ] )
 
 Its second argument is what the slider is made again for.
 
-The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.7 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 13.0 KB.
+The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.7 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 13.1 KB.
 
 ### Rendered on the server
 
@@ -336,6 +336,7 @@ From `gpuslider/plugins`. Each is 0.3 to 1 KB.
 | `videos()` | Videos play while their slide is in view. One that says `preload="none"` is loaded when its slide comes into view, not before |
 | `autoHeight()` | As high as the slides in view; the height follows the move |
 | `stack()` | The slides on top of each other, for transitions. The images of the slide that is shown come first: with `loading="lazy"` the ones next to it wait for them, the others until they are next |
+| `panes( { order, stagger } )` | Several slides in view that stay where they are: a move turns each place into the next slide of that place, with the transition of the canvas, one place after another. `order`: `'start'`, `'end'`, `'center'` or `'random'` |
 | `progress()` | Tells the slides where they are, for animations in CSS |
 | `loading( { screen, min, timeout, also } )` | A screen while the media load, and events that say how far they are |
 
@@ -637,7 +638,7 @@ Shaders are compiled on another thread where the browser can, and no frame is dr
 | Script in a frame while 6 sliders move | 0.15 ms, 0.17 ms | 0.33 ms, 0.27 ms |
 | Frames that came late while 20 sliders moved for 4 s | 0 of 241 | 0 of 241 |
 | Work of the page and of the GPU process, 6 sliders (Chromium) | 10 % and 18 % of a core | 11 % and 18 % |
-| The layer in the bundle | 7.4 KB | 9.4 KB |
+| The layer in the bundle | 7.5 KB | 9.5 KB |
 | Browsers | all | Chrome, Edge, Safari from 26, Firefox on some systems: about 87 % of visitors |
 
 What it says: WebGPU has one device for all sliders of a page, and a shader is made once for all of them. So the second slider is there in two frames, a page has as many sliders on the canvas as it likes, and nothing is taken away from one slider to give it to another. While the sliders move there is no difference to see: both draw every frame. WebGPU needs about twice the script for a frame, which for six sliders is 0.3 ms of the 16.7 that a frame has.
@@ -711,6 +712,47 @@ import { choose, liquid, burn, push } from 'gpuslider/effects';
 const turn = choose( [ liquid(), burn(), push() ] );
 createSlider( element, { plugins: [ stack(), canvas( { effects: [ turn ] } ) ] } );
 turn.pick( 1 ); // burn
+```
+
+Several in view, each place with a transition of its own: `panes()` instead of `stack()`. The slides stay in their places, the first `--gs-per-view` of them are the first view, the next that many the next. A move turns every place into its next slide with the transition, one place after another: from the first on (`order: 'start'`), from the last, from the middle out (`'center'`) or in another order on every move (`'random'`). `stagger` is how much of the move lies between the first place and the last, 0 to 1. Both can change while it runs: `slider.plugins.panes.order = 'random'`. With `ease: ( u ) => u` every place has as long to turn as the others. Without a canvas the places fade, one after another. Each place is drawn with the corners of its pictures.
+
+```js
+import { panes } from 'gpuslider/plugins';
+
+createSlider( element, {
+	perView: 4,
+	loop: true,
+	duration: 1500,
+	ease: ( u ) => u,
+	plugins: [ panes( { order: 'center' } ), canvas( { effects: [ glyphs() ] } ) ],
+} );
+```
+
+A whole number of slides per view makes whole views; the places of a last view that has fewer slides are empty. Every transition works in a place, and `choose()` too.
+
+Or all of them at once, as one picture: `sweep()` lays a transition over the whole view, and with `panes( { stagger: 0 } )` every place draws the part of it that is there, with its own pictures. A burn, the cells of glyphs or a front of lightning go on across the gaps from one place into the next, and each place keeps its corners. What a transition takes from elsewhere in the picture, a push or a warp, it takes from the edge of its place. Any transition, and `choose()` too: `sweep( choose( [ … ] ) )`.
+
+```js
+import { sweep } from 'gpuslider/effects';
+
+createSlider( element, {
+	perView: 4,
+	loop: true,
+	plugins: [ panes( { stagger: 0 } ), canvas( { effects: [ sweep( burn() ) ] } ) ],
+} );
+```
+
+A row that moves as ever, with the transition where it comes and goes: `edges()` is an effect, for a slider without `stack()` or `panes()`. A slide that moves out of the view goes as the transition takes its picture away, and one that comes in comes as it brings one; a slide that rests inside is as it is. `from` and `to` say where that begins and ends, in widths of the slide past the end of the view: 0 for one that touches it, 1 for one that has left it. Any transition, or several in `choose()`; without one the slides fade. A fraction in `--gs-per-view` keeps slides at both ends, cut by them.
+
+```js
+import { edges } from 'gpuslider/effects';
+
+createSlider( element, {
+	perView: 3.4,
+	loop: true,
+	align: 'center',
+	plugins: [ canvas( { effects: [ edges( glyphs(), { from: 0, to: 1 } ) ] } ) ],
+} );
 ```
 
 A stack in the first view of a page says so in its HTML: `class="gs gs-stack"`. Then the slides are on top of each other before the script is there, and nothing of the page gives way when it comes. Without the script such a slider shows its first slide, and is no scroller: the slides after the first cannot be reached then. It is for a stack that starts at its first slide.
@@ -916,8 +958,8 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.4 KB |
-| Canvas layer of WebGL 2 | 7.4 KB |
+| Canvas layer of WebGPU | 9.5 KB |
+| Canvas layer of WebGL 2 | 7.5 KB |
 | An effect | 0.2 to 0.9 KB |
 | A transition | 0.2 to 1.0 KB |
 | Lightbox | 2.2 KB |

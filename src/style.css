@@ -161,6 +161,25 @@
 	opacity: var(--gs-near, 1);
 }
 
+/* Panes: several in view that stay, each turns into the next of its
+   place. Shown are the slides that the plugin says. */
+
+.gs-panes > .gs-track {
+	will-change: auto;
+}
+
+.gs-panes .gs-slide {
+	visibility: hidden;
+}
+
+.gs-panes .gs-media {
+	opacity: var(--gs-cover, 1);
+}
+
+.gs-panes .gs-content {
+	opacity: var(--gs-near, 1);
+}
+
 /* Tier 3: the canvas draws the media. */
 
 .gs-canvas {
