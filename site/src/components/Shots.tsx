@@ -6,6 +6,36 @@ import { codeOf } from '@/pages/mount';
 
 export const EXAMPLES = [
 	{
+		name: 'resolve',
+		title: 'Resolve',
+		text: 'Rows of pictures that come out, part by part, as they come into view: in pixels, halftone dots, slices, shards or dither, as you choose. They break up again when the page is scrolled fast or a row is thrown. Click one to open it. After the scroll-revealed gallery of Chakib Mazouni.',
+		made: [ 'loading()', 'lightbox()', 'an effect of its own' ],
+	},
+	{
+		name: 'reveal',
+		title: 'Reveal',
+		text: 'An index of work: each picture grows out of the pointer through a hole that burns open, and burns into the next as you move down the names. Click one to open it. After the shader reveal of Colin Demouge.',
+		made: [ 'stack()', 'loading()', 'lightbox()', 'effects of its own' ],
+	},
+	{
+		name: 'orbit',
+		title: 'Orbit',
+		text: 'One row of pictures rolled up into a cylinder that the page turns as it is scrolled, and a drag throws round. Scrolled on, it tips, takes you inside, and unrolls into the slider it always was. Below it, a second slider is its reflection. After the On-Scroll 3D Carousel of Manoela Ilic.',
+		made: [ 'loading()', 'lightbox()', 'stretch', 'effects of its own' ],
+	},
+	{
+		name: 'echo',
+		title: 'Echo',
+		text: 'A reel of photos that leave frames of themselves behind as they move, the farther apart the faster. Pick a photo below and it arrives as a stream of frames, all drawn by one pass of the canvas. After Animating in Frames by Manoela Ilic.',
+		made: [ 'thumbs()', 'autoplay()', 'loading()', 'an effect of its own' ],
+	},
+	{
+		name: 'fold',
+		title: 'Fold',
+		text: 'Grids of pictures that fold in 3D as they come into the screen, column after column, and ripple with how fast the page is scrolled: four ways, from cards that stand up to a tunnel. Every row is a slider that can be dragged and opens its pictures. After the staggered 3D grid animations of Manoela Ilic.',
+		made: [ 'marquee()', 'lightbox()', 'loading()', 'stretch', 'effects of its own' ],
+	},
+	{
 		name: 'wall',
 		title: 'A wall of images',
 		text: 'A wall of pictures without an end in any direction. Every row is a slider, the rows are the slides of a slider that goes down, and the page takes the pointer and moves both. Drag it, and click a picture to open it.',
@@ -46,36 +76,6 @@ export const EXAMPLES = [
 		title: 'Journal',
 		text: 'Stories in a slider whose pictures the canvas draws. Open one, and its picture leaves the slider and becomes the top of the story, on another page: a view transition between documents, where the browser has them.',
 		made: [ 'controls()', 'parallax', 'stretch', '@view-transition' ],
-	},
-	{
-		name: 'orbit',
-		title: 'Orbit',
-		text: 'One row of pictures rolled up into a cylinder that the page turns as it is scrolled, and a drag throws round. Scrolled on, it tips, takes you inside, and unrolls into the slider it always was. Below it, a second slider is its reflection. After the On-Scroll 3D Carousel of Manoela Ilic.',
-		made: [ 'loading()', 'lightbox()', 'stretch', 'effects of its own' ],
-	},
-	{
-		name: 'fold',
-		title: 'Fold',
-		text: 'Grids of pictures that fold in 3D as they come into the screen, column after column, and ripple with how fast the page is scrolled: four ways, from cards that stand up to a tunnel. Every row is a slider that can be dragged and opens its pictures. After the staggered 3D grid animations of Manoela Ilic.',
-		made: [ 'marquee()', 'lightbox()', 'loading()', 'stretch', 'effects of its own' ],
-	},
-	{
-		name: 'resolve',
-		title: 'Resolve',
-		text: 'Rows of pictures that come out, part by part, as they come into view: in pixels, halftone dots, slices, shards or dither, as you choose. They break up again when the page is scrolled fast or a row is thrown. Click one to open it. After the scroll-revealed gallery of Chakib Mazouni.',
-		made: [ 'loading()', 'lightbox()', 'an effect of its own' ],
-	},
-	{
-		name: 'reveal',
-		title: 'Reveal',
-		text: 'An index of work: each picture grows out of the pointer through a hole that burns open, and burns into the next as you move down the names. Click one to open it. After the shader reveal of Colin Demouge.',
-		made: [ 'stack()', 'loading()', 'lightbox()', 'effects of its own' ],
-	},
-	{
-		name: 'echo',
-		title: 'Echo',
-		text: 'A reel of photos that leave frames of themselves behind as they move, the farther apart the faster. Pick a photo below and it arrives as a stream of frames, all drawn by one pass of the canvas. After Animating in Frames by Manoela Ilic.',
-		made: [ 'thumbs()', 'autoplay()', 'loading()', 'an effect of its own' ],
 	},
 ] as const;
 

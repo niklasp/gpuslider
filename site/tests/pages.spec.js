@@ -231,11 +231,16 @@ test.describe( 'the first page', () => {
 } );
 
 test.describe( 'the examples', () => {
-	test( 'there are seven, with a picture each, and they lead to their pages', async ( { page } ) => {
+	test( 'there are twelve, with a picture each, and they lead to their pages', async ( { page } ) => {
 		await page.goto( '/examples/' );
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
 		await expect( all ).toHaveCount( 12 );
 		await expect( all.getByRole( 'heading' ) ).toHaveText( [
+			'Resolve',
+			'Reveal',
+			'Orbit',
+			'Echo',
+			'Fold',
 			'A wall of images',
 			'A reel',
 			'Tape',
@@ -243,11 +248,6 @@ test.describe( 'the examples', () => {
 			'Wave',
 			'Depth',
 			'Journal',
-			'Orbit',
-			'Fold',
-			'Resolve',
-			'Reveal',
-			'Echo',
 		] );
 		for ( const name of [ 'wall', 'reel', 'tape', 'loom', 'wave', 'depth', 'journal', 'orbit', 'fold', 'resolve', 'reveal', 'echo' ] ) {
 			const picture = page.locator( `img[src="/shots/${ name }.avif"]` );
@@ -257,7 +257,7 @@ test.describe( 'the examples', () => {
 				.toBe( 1280 );
 		}
 		await all
-			.nth( 1 )
+			.nth( 6 )
 			.getByRole( 'link', { name: 'Drawn by WebGL' } )
 			.click();
 		await expect( page ).toHaveURL( /\/examples\/reel\/\?layer=gl$/ );
@@ -272,7 +272,7 @@ test.describe( 'the examples', () => {
 		const all = page.getByTestId( 'examples' ).locator( '> li' );
 		await expect( all ).toHaveCount( 6 );
 		await all.first().getByRole( 'link' ).first().click();
-		await expect( page ).toHaveURL( /\/examples\/wall\/$/ );
+		await expect( page ).toHaveURL( /\/examples\/resolve\/$/ );
 	} );
 } );
 
