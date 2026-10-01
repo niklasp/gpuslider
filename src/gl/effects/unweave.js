@@ -14,6 +14,10 @@ float along_( vec2 uv, float amount, float start ) {
 	float g = grow_( amount, start );
 	return uv.x * ( 1.0 + g ) - step( side_(), -0.5 ) * g;
 }
+// How far a thread is lifted where it is: a curve along it, that sways.
+float drift_( float u, float y, float k, float lift ) {
+	return k * k * lift * sin( u * 7.0 + y * 5.0 + uTime * 1.5 );
+}
 float thread_( float y, float threads ) {
 	return fract( sin( floor( y * threads ) * 12.9898 ) * 43758.5453 );
 }
@@ -40,9 +44,10 @@ float thread_( float y, float threads ) {
  *                                              0 to 1.
  * @param {number | number[]} [options.split]   How far the colours of a
  *                                              thread come apart.
- * @param {number | number[]} [options.lift]    How far a thread bends up
- *                                              or down as it comes apart,
- *                                              in heights of the slide.
+ * @param {number | number[]} [options.lift]    How far the threads curve
+ *                                              and sway up and down as
+ *                                              they come apart, in heights
+ *                                              of the slide.
  * @return {import('../program.js').Effect} Effect.
  */
 export const unweave = ( {
@@ -61,13 +66,10 @@ export const unweave = ( {
 	uv: `
 	float u = along_( uv, amount, start );
 	float k = fray_( uQuad.x + u * uQuad.z, start );
-	float t = thread_( uv.y, threads );
-	// Pulled out along its thread, the more the nearer the end, and bent
-	// up or down, each thread its own way.
-	return vec2(
-		u - side_() * k * k * amount * 0.5 * t,
-		uv.y + k * k * lift * ( t - 0.5 ) * sin( u * 9.0 + t * 6.3 )
-	);`,
+	float y = uv.y + drift_( u, uv.y, k, lift );
+	// Pulled out along its thread, the more the nearer the end; the thread
+	// curves up and down as a rope does.
+	return vec2( u - side_() * k * k * amount * 0.5 * thread_( y, threads ), y );`,
 	color: `
 	float g = grow_( amount, start );
 	float u = along_( uv, amount, start );
@@ -76,7 +78,8 @@ export const unweave = ( {
 	color = vec4( media( uv + vec2( e, 0.0 ) ).r, color.g, media( uv - vec2( e, 0.0 ) ).b, color.a );
 	// Past the image every thread ends at a length of its own.
 	float past = side_() > 0.0 ? u - 1.0 : -u;
-	float end = g * ( 0.3 + 0.7 * thread_( uv.y, threads * 1.7 ) );
-	float room = gap * k * smoothstep( 0.3, 0.9, abs( fract( uv.y * threads ) - 0.5 ) * 2.0 );
+	float y = uv.y + drift_( u, uv.y, k, lift );
+	float end = g * ( 0.3 + 0.7 * thread_( y, threads * 1.7 ) );
+	float room = gap * k * smoothstep( 0.3, 0.9, abs( fract( y * threads ) - 0.5 ) * 2.0 );
 	return color * ( 1.0 - smoothstep( end - 0.15 * g, end, past ) ) * ( 1.0 - room );`,
 } );

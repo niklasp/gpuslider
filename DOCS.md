@@ -331,7 +331,7 @@ From `gpuslider/plugins`. Each is 0.3 to 1 KB.
 | `keyboard()` | Arrow keys, Home, End. Makes the slider focusable |
 | `wheel()` | The wheel and two fingers on a trackpad, along the slider |
 | `autoplay( 3500 )` | Goes on by itself. Waits for the pointer, the focus, the tab and the screen; `{ delay, hover: false }` does not wait for the pointer, `{ delay, left }` gives the first slide less time, for a slider made again that goes on where it was. `slider.plugins.autoplay.pause()`, `.play()`, `.paused` |
-| `marquee( { speed, hover, scroll } )` | A ticker: runs evenly and without an end, slower under the pointer, faster while the page is scrolled. For `loop: true` |
+| `marquee( { speed, hover, scroll, turn } )` | A ticker: runs evenly and without an end, slower under the pointer, faster while the page is scrolled, eased in and out; with `turn` it runs the other way after the page is scrolled up. For `loop: true` |
 | `thumbs( other )` | The slides are the buttons of another slider |
 | `videos()` | Videos play while their slide is in view. One that says `preload="none"` is loaded when its slide comes into view, not before |
 | `autoHeight()` | As high as the slides in view; the height follows the move |
@@ -675,7 +675,7 @@ Effects that lay out: the slider moves as ever, the effect says where a slide is
 | `pile( { offset, turn } )` | A pile of cards; the one on top leaves to the side |
 | `fan( { angle, radius } )` | A hand of cards, or a wheel |
 | `wave( { height, length, slope } )` | The row runs along a wave, across the view on a slope |
-| `unweave( { amount, threads, start, gap, split, lift } )` | Near the two ends of the view the slides come apart into threads; `start` says where that begins, from the middle (0) to the end (1), `lift` how far the threads bend up and down. In the middle nothing happens |
+| `unweave( { amount, threads, start, gap, split, lift } )` | Near the two ends of the view the slides come apart into threads; `start` says where that begins, from the middle (0) to the end (1), `lift` how far the threads curve and sway up and down. In the middle nothing happens |
 | `dome( { amount, centre, size } )` | The slides as on a dome: what is far from the middle is smaller and nearer to it |
 
 The page has such a slide in one place, and the canvas draws it in another. A click is a click on the slide that is seen: on the cover at the edge, not on the slide in whose place it is drawn. And the lightbox lets the image grow out of the slide as it is drawn: a cover that is turned away turns to the front while it grows, and turns back on its way home. `canvas()` sees to that with `hit()`, which it loads when an effect lays out; with a layer by its name it is a plugin to add:

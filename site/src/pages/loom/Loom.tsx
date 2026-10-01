@@ -5,7 +5,7 @@ import './loom.css';
 import { createSlider } from 'gpuslider';
 import { keyboard, loading, marquee, wheel } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
-import { stretch, unweave, wave } from 'gpuslider/effects';
+import { stretch, unweave } from 'gpuslider/effects';
 import { image, photo } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
 
@@ -16,11 +16,11 @@ const SLIDES = [ 1, 2, 3, 4, 7, 5, 6, 8 ];
 // begins, the room between them, how far their colours split, and how
 // far they bend up and down.
 const WAYS = {
-	Loom: { amount: 1.1, threads: 90, start: 0.55, gap: 0.5, split: 0, lift: 0.12 },
-	Silk: { amount: 1.8, threads: 300, start: 0.6, gap: 0.9, split: 0, lift: 0.25 },
-	Rope: { amount: 0.7, threads: 16, start: 0.5, gap: 0.85, split: 0, lift: 0.08 },
-	Prism: { amount: 1.2, threads: 60, start: 0.55, gap: 0.4, split: 1.4, lift: 0.15 },
-	Deep: { amount: 2.6, threads: 120, start: 0.5, gap: 0.6, split: 0.5, lift: 0.35 },
+	Loom: { amount: 1.1, threads: 90, start: 0.55, gap: 0.5, split: 0, lift: 0.04 },
+	Silk: { amount: 1.8, threads: 300, start: 0.6, gap: 0.9, split: 0, lift: 0.06 },
+	Rope: { amount: 0.7, threads: 16, start: 0.5, gap: 0.85, split: 0, lift: 0.03 },
+	Prism: { amount: 1.2, threads: 60, start: 0.55, gap: 0.4, split: 1.4, lift: 0.05 },
+	Deep: { amount: 2.6, threads: 120, start: 0.5, gap: 0.6, split: 0.5, lift: 0.09 },
 };
 type Way = keyof typeof WAYS;
 
@@ -59,8 +59,7 @@ export default function Loom() {
 				wheel(),
 				keyboard(),
 				canvas( {
-					// A wave the row runs along: the pictures rise and fall as they pass.
-					effects: [ wave( { height: 0.05, length: 2.4, slope: 0 } ), unweave( PARAMS ), stretch( { amount: 0.6 } ) ],
+					effects: [ unweave( PARAMS ), stretch( { amount: 0.6 } ) ],
 					layer: layer(),
 				} ),
 			],
