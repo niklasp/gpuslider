@@ -8,7 +8,8 @@
  *
  * With `scroll` it runs faster while the page is scrolled, and the effects
  * of the canvas see that as speed of the slider: pictures that stretch
- * with the scrolling.
+ * with the scrolling. With `turn` it runs the other way while the page is
+ * scrolled up, until it is scrolled down again.
  *
  * While it runs the slider is at no slide: its `index` is the one it was
  * at last, and it tells no `change`.
@@ -32,10 +33,12 @@ import { onScreen } from './screen.js';
  * @param {number} [options.scroll] How much of the speed the page is
  *                                  scrolled with is added, whichever way
  *                                  it is scrolled. 0 for none.
+ * @param {boolean} [options.turn]  Runs the other way after the page is
+ *                                  scrolled up.
  * @param {import('./elements.js').Elements} [options.pause] Buttons that
  *                                  stop it.
  */
-export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
+export function marquee( { speed = 40, hover = 1, scroll = 0, turn, pause } = {} ) {
 	// The plugin, for the `plugins` of a slider.
 	return ( /** @type {import('../index.js').Slider} */ slider ) => {
 		const { root, win, motion, signal } = slider;
@@ -48,9 +51,11 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 		// stays in view.
 		let held = false;
 		let paused = false;
-		// Where the page was scrolled to, and how fast it is scrolled.
+		// Where the page was scrolled to, how fast and which way it is
+		// scrolled, and which way it runs: 1, or -1 after up with `turn`.
 		let was = win.scrollY;
 		let pace = 0;
+		let way = 1;
 		// What is left of the speed: eased, for the pointer over the slider.
 		let rate = 1;
 
@@ -117,14 +122,18 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, pause } = {} ) {
 			frame( view, dt ) {
 				const now = win.scrollY;
 				const ease = 1 - Math.exp( -8 * dt );
-				pace += ( Math.abs( now - was ) / dt - pace ) * ease;
+				// The scrolling eased in and out: it glides, as a hand does.
+				pace += ( ( now - was ) / dt - pace ) * ( 1 - Math.exp( -4 * dt ) );
 				was = now;
+				if ( turn && Math.abs( pace ) > 30 ) {
+					way = Math.sign( pace );
+				}
 				if ( running() && ! motion.dragging ) {
-					const way = Math.sign( speed );
-					rate += ( ( over ? hover : 1 ) - rate ) * ease;
+					// Through a stop when it turns, not at once.
+					rate += ( ( over ? hover : 1 ) * way - rate ) * ease;
 					slider.shift( speed * rate * dt );
-					if ( pace * scroll > 1 ) {
-						slider.shift( way * pace * scroll * dt, true );
+					if ( Math.abs( pace ) * scroll > 1 ) {
+						slider.shift( Math.sign( speed ) * way * Math.abs( pace ) * scroll * dt, true );
 					}
 				}
 			},

@@ -38,6 +38,7 @@ export default function Tape() {
 						speed: i % 2 ? -46 : 46,
 						hover: 0.25,
 						scroll: 0.7,
+						turn: true,
 					} ),
 					canvas( {
 						effects: [ jelly( { amount: 0.7 } ), stretch(), split() ],
@@ -95,7 +96,8 @@ export default function Tape() {
 
 			<p className="end">
 				The rows run by themselves, slower under the pointer. The page that
-				is scrolled pushes them, and what is pushed gives way.
+				is scrolled pushes them, and what is pushed gives way. Scroll up,
+				and they all turn round.
 			</p>
 		</div>
 	);
