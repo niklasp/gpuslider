@@ -131,7 +131,7 @@ export type Config = {
 export const DEFAULTS: Config = {
 	canvas: true,
 	layer: 'best',
-	effects: [ 'stretch', 'split' ],
+	effects: [ 'split' ],
 	pointer: 'waves',
 	intensity: 1,
 	transition: 'liquid',
