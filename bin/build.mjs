@@ -1,6 +1,8 @@
 /**
- * Prints what each part costs in the bundle of somebody who imports it,
- * gzipped, and builds `dist/`: the files for pages without a bundler.
+ * Builds `lib/`, what the package gives bundlers: every module of `src/` as
+ * JavaScript, with its shaders small. Prints what each part costs in the
+ * bundle of somebody who imports it from there, gzipped, and builds
+ * `dist/`: the files for pages without a bundler.
  *
  * `node bin/build.mjs`          build and report
  * `node bin/build.mjs --check`  also fail when a part is over its budget
@@ -9,9 +11,11 @@
  * `site/src/lib/sizes.json` too: the site says them, and says what is
  * measured.
  */
-import { build } from 'esbuild';
+import { build, transformSync } from 'esbuild';
+import { execFileSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
 import {
+	cpSync,
 	existsSync,
 	readdirSync,
 	readFileSync,
@@ -32,6 +36,70 @@ const common = {
 	target: 'es2022',
 	legalComments: 'none',
 };
+
+// lib/: each module on its own, as `src/` has it, without its types: what
+// TypeScript makes of it. The shaders are text, which no bundler of a page
+// makes smaller, so they are made small here.
+const lib = resolve( root, 'lib' );
+rmSync( lib, { recursive: true, force: true } );
+execFileSync(
+	process.execPath,
+	[
+		resolve( root, 'node_modules/typescript/bin/tsc' ),
+		'-p',
+		'tsconfig.json',
+		'--emitDeclarationOnly',
+		'false',
+		'--declaration',
+		'false',
+		'--outDir',
+		'lib',
+	],
+	{ cwd: root, stdio: 'inherit' }
+);
+// Properties that are a module's own begin with `_`, and get one letter
+// here. Which letter is set: each changes the size a little, gzipped, and
+// these are the ones that cost least.
+const PRIVATE = {
+	_from: 'p',
+	_since: 'q',
+	_at: 'g',
+	_locked: 'k',
+	_held: 'j',
+	_taken: 'v',
+	_samples: 'z',
+	_media: 'u',
+	_box: 'b',
+};
+for ( const file of readdirSync( lib, { recursive: true } ) ) {
+	const path = resolve( lib, file );
+	let code = file.endsWith( '.js' ) && readFileSync( path, 'utf8' );
+	if ( ! code ) {
+		continue;
+	}
+	if ( /^(gl|gpu)\//.test( file ) ) {
+		code = compactIn( code );
+	}
+	if ( /\._[a-z]|\b_[a-z]\w*:/i.test( code ) ) {
+		// A letter that is a property there already would be two in one.
+		for ( const [ name, letter ] of Object.entries( PRIVATE ) ) {
+			if (
+				code.includes( name ) &&
+				new RegExp( `\\.${ letter }\\b|[{,]\\s*${ letter }\\s*[:,}]` ).test( code )
+			) {
+				throw new Error( `${ file }: ${ name } cannot be ${ letter }, which is there` );
+			}
+		}
+		code = transformSync( code, {
+			mangleProps: /^_[a-z]/i,
+			mangleCache: { ...PRIVATE },
+		} ).code;
+	}
+	writeFileSync( path, code );
+}
+for ( const file of [ 'style.css', 'lightbox.css', 'loading.css' ] ) {
+	cpSync( resolve( root, 'src', file ), resolve( lib, file ) );
+}
 
 /**
  * Bundles a piece of code and measures it.
@@ -56,10 +124,10 @@ const parts = [];
 parts.push( {
 	name: 'core',
 	budget: 5120,
-	size: await measure( `export * from './src/index.js';` ),
+	size: await measure( `export * from './lib/index.js';` ),
 } );
 
-for ( const file of readdirSync( resolve( root, 'src/plugins' ) ).sort() ) {
+for ( const file of readdirSync( resolve( lib, 'plugins' ) ).sort() ) {
 	// Helpers have no plugin of their name.
 	if ( [ 'index.js', 'elements.js', 'screen.js' ].includes( file ) ) {
 		continue;
@@ -67,7 +135,7 @@ for ( const file of readdirSync( resolve( root, 'src/plugins' ) ).sort() ) {
 	parts.push( {
 		name: `plugin: ${ file.replace( '.js', '' ) }`,
 		budget: 1024,
-		size: await measure( `export * from './src/plugins/${ file }';` ),
+		size: await measure( `export * from './lib/plugins/${ file }';` ),
 	} );
 }
 
@@ -77,7 +145,7 @@ parts.push(
 		budget: 512,
 		size:
 			( await measure(
-				`export { useSlider } from './src/react.js';`,
+				`export { useSlider } from './lib/react.js';`,
 				[ 'react' ]
 			) ) - parts[ 0 ].size,
 	},
@@ -86,7 +154,7 @@ parts.push(
 		budget: 1024,
 		size:
 			( await measure(
-				`export * from './src/react.js';`,
+				`export * from './lib/react.js';`,
 				[ 'react' ]
 			) ) - parts[ 0 ].size,
 	}
@@ -96,16 +164,16 @@ parts.push( {
 	name: 'full: the slider with all its options',
 	budget: 7232,
 	size: await measure(
-		`import { createSlider } from './src/full.js'; export { createSlider };`
+		`import { createSlider } from './lib/full.js'; export { createSlider };`
 	),
 } );
 
-if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
+if ( existsSync( resolve( lib, 'gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
 		budget: 7680,
 		size: await measure(
-			`import { gl } from './src/gl/index.js'; export { gl };`
+			`import { gl } from './lib/gl/index.js'; export { gl };`
 		),
 	} );
 	parts.push( {
@@ -113,34 +181,34 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 		budget: 512,
 		size:
 			( await measure(
-				`export * from './src/canvas.js';`,
-				[ './src/gpu/layer.js', './src/gl/layer.js', './src/hit.js' ]
+				`export * from './lib/canvas.js';`,
+				[ './lib/gpu/layer.js', './lib/gl/layer.js', './lib/hit.js' ]
 			) ),
 	} );
 	parts.push( {
 		name: 'canvas: which slide is seen at a point',
 		budget: 1280,
-		size: await measure( `export * from './src/hit.js';` ),
+		size: await measure( `export * from './lib/hit.js';` ),
 	} );
 	parts.push( {
 		name: 'canvas layer of WebGPU, no effects',
 		budget: 9728,
 		size: await measure(
-			`import { gpu } from './src/gpu/index.js'; export { gpu };`
+			`import { gpu } from './lib/gpu/index.js'; export { gpu };`
 		),
 	} );
 	parts.push( {
 		name: 'choose: several transitions, one picked',
 		budget: 512,
-		size: await measure( `export { choose } from './src/gl/choose.js';` ),
+		size: await measure( `export { choose } from './lib/gl/choose.js';` ),
 	} );
 	parts.push( {
 		name: 'sweep: a transition over the whole view',
 		budget: 512,
-		size: await measure( `export { sweep } from './src/gl/sweep.js';` ),
+		size: await measure( `export { sweep } from './lib/gl/sweep.js';` ),
 	} );
 	for ( const kind of [ 'effects', 'transitions' ] ) {
-		const dir = resolve( root, 'src/gl', kind );
+		const dir = resolve( lib, 'gl', kind );
 		for ( const file of readdirSync( dir ).sort() ) {
 			if ( ! file.endsWith( '.js' ) || file === 'index.js' ) {
 				continue;
@@ -149,7 +217,7 @@ if ( existsSync( resolve( root, 'src/gl/index.js' ) ) ) {
 				name: `${ kind.slice( 0, -1 ) }: ${ file.replace( '.js', '' ) }`,
 				budget: 1024,
 				size: await measure(
-					`export * from './src/gl/${ kind }/${ file }';`
+					`export * from './lib/gl/${ kind }/${ file }';`
 				),
 			} );
 		}
@@ -163,7 +231,7 @@ parts.push(
 		name: 'a page in React: arrows and dots',
 		budget: 6144,
 		size: await measure(
-			`import { Slider, Slide } from './src/react.js'; import { controls } from './src/plugins/index.js'; export { Slider, Slide, controls };`,
+			`import { Slider, Slide } from './lib/react.js'; import { controls } from './lib/plugins/index.js'; export { Slider, Slide, controls };`,
 			[ 'react' ]
 		),
 	},
@@ -171,23 +239,23 @@ parts.push(
 		name: 'the same with the canvas and stretch',
 		budget: 13440,
 		size: await measure(
-			`import { Slider, Slide } from './src/react.js'; import { controls } from './src/plugins/index.js'; import { gl, stretch } from './src/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
+			`import { Slider, Slide } from './lib/react.js'; import { controls } from './lib/plugins/index.js'; import { gl, stretch } from './lib/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
 			[ 'react' ]
 		),
 	}
 );
 
 // What the lightbox adds to a page that has the slider and the canvas.
-if ( existsSync( resolve( root, 'src/lightbox.js' ) ) ) {
+if ( existsSync( resolve( lib, 'lightbox.js' ) ) ) {
 	// It has arrows and keys of its own, so a page with them is what it
 	// is added to.
-	const both = `import { createSlider } from './src/index.js'; import { controls, keyboard } from './src/plugins/index.js'; import { gl } from './src/gl/index.js';`;
+	const both = `import { createSlider } from './lib/index.js'; import { controls, keyboard } from './lib/plugins/index.js'; import { gl } from './lib/gl/index.js';`;
 	parts.push( {
 		name: 'lightbox',
 		budget: 2304,
 		size:
 			( await measure(
-				`${ both } import { lightbox } from './src/lightbox.js'; export { createSlider, controls, keyboard, gl, lightbox };`
+				`${ both } import { lightbox } from './lib/lightbox.js'; export { createSlider, controls, keyboard, gl, lightbox };`
 			) ) - ( await measure( `${ both } export { createSlider, controls, keyboard, gl };` ) ),
 	} );
 }
@@ -212,34 +280,24 @@ const built = await Promise.all( [
 	build( {
 		...to,
 		entryPoints: {
-			index: 'src/index.js',
-			full: 'src/full.js',
-			plugins: 'src/plugins/index.js',
-			gl: 'src/gl/index.js',
-			gpu: 'src/gpu/index.js',
-			canvas: 'src/canvas.js',
-			hit: 'src/hit.js',
-			effects: 'src/effects.js',
-			lightbox: 'src/lightbox.js',
+			index: 'lib/index.js',
+			full: 'lib/full.js',
+			plugins: 'lib/plugins/index.js',
+			gl: 'lib/gl/index.js',
+			gpu: 'lib/gpu/index.js',
+			canvas: 'lib/canvas.js',
+			hit: 'lib/hit.js',
+			effects: 'lib/effects.js',
+			lightbox: 'lib/lightbox.js',
 		},
 		splitting: true,
 		chunkNames: 'chunks/[hash]',
-		plugins: [
-			{
-				name: 'glsl',
-				setup( { onLoad } ) {
-					onLoad( { filter: /\/src\/(gl|gpu)\/.*\.js$/ }, ( { path } ) => ( {
-						contents: compactIn( readFileSync( path, 'utf8' ) ),
-					} ) );
-				},
-			},
-		],
 	} ),
 	// One file, for one request. The canvas and the lightbox are the files
 	// above, which it loads when a slider asks for them.
 	build( {
 		...to,
-		entryPoints: { auto: 'src/auto.js' },
+		entryPoints: { auto: 'lib/auto.js' },
 		plugins: [
 			{
 				name: 'later',

@@ -30,56 +30,56 @@
 	"bugs": "https://github.com/niklasp/gpuslider/issues",
 	"sideEffects": [
 		"*.css",
-		"./src/auto.js",
+		"./lib/auto.js",
 		"./dist/auto.js"
 	],
 	"exports": {
 		".": {
 			"types": "./types/index.d.ts",
-			"default": "./src/index.js"
+			"default": "./lib/index.js"
 		},
 		"./full": {
 			"types": "./types/full.d.ts",
-			"default": "./src/full.js"
+			"default": "./lib/full.js"
 		},
 		"./canvas": {
 			"types": "./types/canvas.d.ts",
-			"default": "./src/canvas.js"
+			"default": "./lib/canvas.js"
 		},
 		"./effects": {
 			"types": "./types/effects.d.ts",
-			"default": "./src/effects.js"
+			"default": "./lib/effects.js"
 		},
 		"./gpu": {
 			"types": "./types/gpu/index.d.ts",
-			"default": "./src/gpu/index.js"
+			"default": "./lib/gpu/index.js"
 		},
 		"./gl": {
 			"types": "./types/gl/index.d.ts",
-			"default": "./src/gl/index.js"
+			"default": "./lib/gl/index.js"
 		},
 		"./lightbox": {
 			"types": "./types/lightbox.d.ts",
-			"default": "./src/lightbox.js"
+			"default": "./lib/lightbox.js"
 		},
 		"./plugins": {
 			"types": "./types/plugins/index.d.ts",
-			"default": "./src/plugins/index.js"
+			"default": "./lib/plugins/index.js"
 		},
 		"./react": {
 			"types": "./types/react.d.ts",
-			"default": "./src/react.js"
+			"default": "./lib/react.js"
 		},
 		"./auto": {
 			"types": "./types/auto.d.ts",
-			"default": "./src/auto.js"
+			"default": "./lib/auto.js"
 		},
-		"./style.css": "./src/style.css",
-		"./lightbox.css": "./src/lightbox.css",
-		"./loading.css": "./src/loading.css"
+		"./style.css": "./lib/style.css",
+		"./lightbox.css": "./lib/lightbox.css",
+		"./loading.css": "./lib/loading.css"
 	},
 	"files": [
-		"src",
+		"lib",
 		"types",
 		"dist",
 		"DOCS.md"
@@ -97,8 +97,9 @@
 		"media:wall": "node bin/make-wall.mjs",
 		"media:dream": "node bin/make-dream.mjs",
 		"test": "playwright test",
+		"check": "tsc -p tsconfig.json --noEmit",
 		"types": "rm -rf types && tsc -p tsconfig.json && tsc -p tests/types/tsconfig.json",
-		"prepublishOnly": "npm run types && npm run size && npm test && npm run test:gpu && npm run test:dist",
+		"prepublishOnly": "npm run check && npm run types && npm run size && npm test && npm run test:gpu && npm run test:dist",
 		"test:dist": "node bin/build.mjs && FROM=dist playwright test",
 		"prepack": "node bin/build.mjs --check && npm run types",
 		"test:gpu": "LAYER=gpu playwright test --project=chromium --project=webkit --project=site",

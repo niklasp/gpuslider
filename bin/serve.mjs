@@ -1,10 +1,13 @@
 /**
- * Static server for the tests and for `bench/`: serves the repo root.
+ * Static server for the tests and for `bench/`: serves the repo root. The
+ * library is TypeScript: `src/x.js` is `src/x.ts` made JavaScript, as it is
+ * asked for.
  *
  * `node bin/serve.mjs [port]`
  */
 import { createServer } from 'node:http';
-import { createReadStream, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
+import { transform } from 'esbuild';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,11 +28,26 @@ const TYPES = {
 	'.webm': 'video/webm',
 };
 
-createServer( ( request, response ) => {
+createServer( async ( request, response ) => {
 	const { pathname } = new URL( request.url, 'http://localhost' );
 	let file = join( root, normalize( decodeURIComponent( pathname ) ) );
 	if ( ! file.startsWith( root ) ) {
 		response.writeHead( 403 ).end();
+		return;
+	}
+	const ts = file.replace( /\.js$/, '.ts' );
+	if ( ts !== file && ! existsSync( file ) && existsSync( ts ) ) {
+		const { code } = await transform( readFileSync( ts, 'utf8' ), {
+			loader: 'ts',
+			format: 'esm',
+			target: 'es2022',
+		} );
+		response
+			.writeHead( 200, {
+				'Content-Type': TYPES[ '.js' ],
+				'Cache-Control': 'no-store',
+			} )
+			.end( code );
 		return;
 	}
 	let stat;

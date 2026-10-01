@@ -112,7 +112,7 @@ if ( has( '--publish-only' ) ) {
 	if ( ! out( 'git', 'tag', '-l', `v${ version() }` ) ) {
 		out( 'git', 'tag', '-a', `v${ version() }`, '-m', `gpuslider ${ version() }` );
 	}
-	say( 'dist/ and the types' );
+	say( 'lib/, dist/ and the types' );
 	if ( ! run( 'node', [ 'bin/build.mjs', '--check' ] ) || ! run( 'npm', [ 'run', 'types' ] ) ) {
 		fail( 'The build failed.' );
 	}
@@ -125,6 +125,9 @@ if ( has( '--no-tests' ) ) {
 	say( 'Tests: left out, as asked' );
 } else {
 	say( 'Types and sizes' );
+	if ( ! run( 'npm', [ 'run', 'check' ] ) ) {
+		fail( 'The library does not type-check. Nothing is released.' );
+	}
 	if ( ! run( 'npm', [ 'run', 'types' ] ) || ! run( 'npm', [ 'run', 'size' ] ) ) {
 		fail( 'Types or sizes fail. Nothing is released.' );
 	}
@@ -145,7 +148,7 @@ console.log( `  ${ before } → ${ after }` );
 const [ was, is ] = [ before, after ].map( ( one ) => one.split( '.' )[ 0 ] );
 if ( was !== is ) {
 	// The CDN paths take the newest of a major version.
-	for ( const file of [ 'README.md', 'DOCS.md', 'src/auto.js' ] ) {
+	for ( const file of [ 'README.md', 'DOCS.md', 'src/auto.ts' ] ) {
 		writeFileSync(
 			file,
 			readFileSync( file, 'utf8' ).replaceAll( `gpuslider@${ was }/`, `gpuslider@${ is }/` )
@@ -153,13 +156,13 @@ if ( was !== is ) {
 	}
 }
 
-say( 'dist/ and the types' );
+say( 'lib/, dist/ and the types' );
 if ( ! run( 'node', [ 'bin/build.mjs', '--check' ] ) || ! run( 'npm', [ 'run', 'types' ] ) ) {
 	fail( 'The build failed. The version is changed here and nothing else: git checkout . to go back.' );
 }
 
 say( `Commit and tag: v${ after }` );
-out( 'git', 'add', 'package.json', 'package-lock.json', 'README.md', 'DOCS.md', 'src/auto.js', 'site/src/lib/sizes.json' );
+out( 'git', 'add', 'package.json', 'package-lock.json', 'README.md', 'DOCS.md', 'src/auto.ts', 'site/src/lib/sizes.json' );
 out( 'git', 'commit', '-m', `gpuslider ${ after }` );
 out( 'git', 'tag', '-a', `v${ after }`, '-m', `gpuslider ${ after }` );
 
