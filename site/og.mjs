@@ -26,6 +26,21 @@ const PAGES = {
 	depth: '/examples/depth/',
 	journal: '/examples/journal/',
 };
+// The stages of the wave and the stories of the journal: each its own.
+for ( const stage of [ 'curves', 'crossing', 'depth', 'vortex' ] ) {
+	PAGES[ `wave-${ stage }` ] = `/examples/wave/${ stage }/`;
+}
+for ( const story of [
+	'between-the-letters',
+	'blue-hour',
+	'laser-set',
+	'last-credit',
+	'lost-in-red',
+	'sound-check',
+	'storm-indoors',
+] ) {
+	PAGES[ `journal-${ story }` ] = `/examples/journal/${ story }/`;
+}
 
 const browser = await chromium.launch( { args: [ '--use-angle=metal' ] } );
 const page = await browser.newPage( {

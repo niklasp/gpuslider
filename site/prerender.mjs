@@ -37,9 +37,14 @@ const ORIGIN = ( process.env.SITE_URL || 'https://gpuslider.com' ).replace( /\/$
 const NAME = 'gpu slider';
 const REPO = 'https://github.com/niklasp/gpuslider';
 
-// The picture of a shared link: the page, taken by `og.mjs`.
-const picture = ( path ) =>
-	path.match( /^\/(?:examples\/)?([a-z]+)\// )?.[ 1 ] || 'home';
+// The picture of a shared link: the page, taken by `og.mjs`. A page
+// without one of its own, the one of the page it is in.
+const picture = ( path ) => {
+	const own = path.replace( /^\/(?:examples\/)?|\/$/g, '' ).replace( /\//g, '-' );
+	return existsSync( resolve( dist, `og/${ own }.jpg` ) )
+		? own
+		: path.match( /^\/(?:examples\/)?([a-z]+)\// )?.[ 1 ] || 'home';
+};
 
 /** What is in the head for search engines and shared links. */
 function head( path, title, description ) {
