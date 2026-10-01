@@ -76,7 +76,11 @@ export const echo = ( params: Record< string, number[] > ): Effect => ( {
 			float s = max( 1.0 - shrink * f, 0.2 );
 			// A frame swings up and down no farther than it has shrunk: it
 			// stays within the height of the row.
-			float swing = curve * sin( PI * turns * f / n ) * ( 1.0 - s ) * size.y * 0.5 * m;
+			// It swings by as much as the echo is long: as the trail draws
+			// in, its curve flattens with it, the whole of it smaller and
+			// fainter, and no frame is left standing out of line.
+			float k = clamp( D / max( reach * size.x, 1.0 ), 0.0, 1.0 );
+			float swing = curve * sin( PI * turns * f / n ) * ( 1.0 - s ) * size.y * 0.5 * k;
 			vec2 at = vec2( b * D * f / n, swing );
 			vec2 r = ( q - at ) / s;
 			float cover = echoCover_( r, size, uRadius, uShape );
@@ -86,6 +90,8 @@ export const echo = ( params: Record< string, number[] > ): Effect => ( {
 				float t = tint * f / n;
 				c = vec4( mix( c.rgb, grey * vec3( 1.0, 0.86, 0.7 ) * c.a, t ) * ( 1.0 - 0.05 * f ), c.a );
 				float a = m * pow( 1.0 - f / ( n + 1.0 ), fade );
+				// Swung frames fade before they meet the slide.
+				a *= curve > 0.0 ? smoothstep( 0.0, 0.3, k ) : 1.0;
 				sum += c * cover * a * open * ( 1.0 - sum.a );
 			}
 		}

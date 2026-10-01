@@ -6,7 +6,7 @@ import { createSlider, type Slider } from 'gpuslider';
 import { autoplay, keyboard, loading, thumbs } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { image, photo } from '@/lib/media';
-import { Bar, drawnBy, layer } from '../mount';
+import { Bar, drawnBy, layer, share, shared } from '../mount';
 import { echo, linger, WAYS, type Way } from './echo-effect';
 
 // The eight photos, each once.
@@ -44,6 +44,15 @@ export default function Echo() {
 		setFrames( WAYS[ to ].frames );
 		reel.current?.wake();
 		setWay( to );
+		share( 'way', to );
+		share( 'frames', undefined );
+	};
+
+	const count = ( n: number ) => {
+		setFrames( n );
+		PARAMS.frames[ 0 ] = n;
+		reel.current?.wake();
+		share( 'frames', n );
 	};
 
 	useEffect( () => {
@@ -79,7 +88,16 @@ export default function Echo() {
 		const sizes = new ResizeObserver( measure );
 		sizes.observe( stage.current! );
 		reel.current = made;
-		Object.assign( window, { slider: made } );
+		// A link can say how the frames fall: ?way=arc&frames=12.
+		const n = Number( new URLSearchParams( location.search ).get( 'frames' ) );
+		const linked = shared( 'way', Object.keys( WAYS ) as Way[] );
+		if ( linked ) {
+			choose( linked );
+		}
+		if ( n ) {
+			count( Math.min( 12, Math.max( 1, Math.round( n ) ) ) );
+		}
+		Object.assign( window, { slider: made, trail: TRAIL } );
 		return () => {
 			sizes.disconnect();
 			strips.destroy();
@@ -151,12 +169,7 @@ export default function Echo() {
 							max={ 12 }
 							step={ 1 }
 							value={ frames }
-							onChange={ ( event ) => {
-								const n = Number( event.target.value );
-								setFrames( n );
-								PARAMS.frames[ 0 ] = n;
-								reel.current?.wake();
-							} }
+							onChange={ ( event ) => count( Number( event.target.value ) ) }
 						/>
 					</label>
 				</div>
