@@ -1,0 +1,22 @@
+{
+	"name": "gpuslider",
+	"owner": {
+		"name": "Niklas Jurij Plessing"
+	},
+	"metadata": {
+		"description": "The skill for gpuslider, an image slider drawn on the GPU"
+	},
+	"plugins": [
+		{
+			"name": "gpuslider",
+			"description": "Add an image slider, carousel or gallery with GPU shader transitions, pointer effects or a lightbox, in plain JS, React or Next.js",
+			"source": "./",
+			"strict": false,
+			"skills": [ "./skills/gpuslider" ],
+			"homepage": "https://gpuslider.com",
+			"license": "MIT",
+			"category": "development",
+			"keywords": [ "slider", "carousel", "gallery", "lightbox", "webgl", "webgpu", "shader", "react" ]
+		}
+	]
+}

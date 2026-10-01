@@ -101,7 +101,7 @@ Every current browser. WebGPU in Chrome, Edge and Safari 26; WebGL 2 in the othe
 
 Everything is on [gpuslider.com/docs](https://gpuslider.com/docs/): options, plugins, events, the API, the lightbox, effects and how to write your own, layout, loading screens and server rendering.
 
-The same docs come with the package in one file, `node_modules/gpuslider/DOCS.md`, for reading offline and for coding agents. The site has them as [`llms-full.txt`](https://gpuslider.com/llms-full.txt) too. Agents that take skills can have one: `npx skills add niklasp/gpuslider --skill gpuslider`.
+The same docs come with the package in one file, `node_modules/gpuslider/DOCS.md`, for reading offline and for coding agents. The site has them as [`llms-full.txt`](https://gpuslider.com/llms-full.txt) too. Agents that take skills can have one: `npx skills add niklasp/gpuslider --skill gpuslider`, or in Claude Code `/plugin marketplace add niklasp/gpuslider`.
 
 ## Plugins by others
 
