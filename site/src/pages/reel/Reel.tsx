@@ -12,8 +12,19 @@ import {
 import { canvas } from 'gpuslider/canvas';
 import { split, waves, warp } from 'gpuslider/effects';
 import { useSlider } from 'gpuslider/react';
-import { calm, film, image, video } from '@/lib/media';
+import { calm, film, video } from '@/lib/media';
 import { drawnBy, layer } from '../mount';
+
+// A picture made by `bin/make-dream.mjs`, as large as the screen.
+const dream = ( n: number ) => {
+	const name = `/media/dream/${ String( n ).padStart( 2, '0' ) }`;
+	return {
+		src: `${ name }-840.avif`,
+		srcSet: `${ name }-420.avif 420w, ${ name }-840.avif 840w, ${ name }.jpg 1600w`,
+		width: 1600,
+		height: 1067,
+	};
+};
 
 const SLIDES: {
 	image?: number;
@@ -22,12 +33,12 @@ const SLIDES: {
 	kind: string;
 	title: string;
 }[] = [
-	{ image: 4, alt: 'A pink colour field', kind: 'Film', title: 'Quiet Engine' },
+	{ image: 1, alt: 'A blob of chrome in pink light', kind: 'Film', title: 'Quiet Engine' },
 	{ video: 'a', alt: 'Someone walking into a tunnel of coloured lights', kind: 'Field', title: 'Salt Hour' },
-	{ image: 2, alt: 'A blue colour field', kind: 'Sound', title: 'Paper Weather' },
-	{ image: 6, alt: 'A violet colour field', kind: 'Print', title: 'Low Orbit' },
+	{ image: 3, alt: 'Spheres of glass on a pale sky', kind: 'Sound', title: 'Paper Weather' },
+	{ image: 4, alt: 'A ring of chrome that twists', kind: 'Print', title: 'Low Orbit' },
 	{ video: 'b', alt: 'Another colour field that moves', kind: 'Light', title: 'Second Light' },
-	{ image: 1, alt: 'A warm colour field', kind: 'Space', title: 'Glass Season' },
+	{ image: 6, alt: 'Folds of holographic foil', kind: 'Space', title: 'Glass Season' },
 ];
 
 /**
@@ -190,7 +201,7 @@ export default function Reel() {
 							) : (
 								<img
 									className="gs-media"
-									{ ...image( slide.image! ) }
+									{ ...dream( slide.image! ) }
 									sizes="100vw"
 									alt={ slide.alt }
 									draggable={ false }
