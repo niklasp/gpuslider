@@ -120,7 +120,7 @@ test.describe( 'the reel', () => {
 		const held = new Promise( ( resolve ) => {
 			come = resolve;
 		} );
-		await page.route( /media\/(2|6)-1600/, async ( route ) => {
+		await page.route( /media\/dream\/(03|06)/, async ( route ) => {
 			await held;
 			await route.continue();
 		} );
@@ -217,6 +217,11 @@ test.describe( 'the playground', () => {
 			'Wave',
 			'Depth',
 			'Journal',
+			'Orbit',
+			'Fold',
+			'Resolve',
+			'Reveal',
+			'Echo',
 			'Docs',
 		] );
 		await links.getByRole( 'link', { name: 'Tape' } ).click();

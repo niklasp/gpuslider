@@ -25,6 +25,11 @@ const PAGES = {
 	wave: '/examples/wave/',
 	depth: '/examples/depth/',
 	journal: '/examples/journal/',
+	orbit: '/examples/orbit/',
+	fold: '/examples/fold/',
+	resolve: '/examples/resolve/',
+	reveal: '/examples/reveal/',
+	echo: '/examples/echo/',
 };
 // The stages of the wave and the stories of the journal: each its own.
 for ( const stage of [ 'curves', 'crossing', 'depth', 'vortex' ] ) {

@@ -137,6 +137,11 @@ export default defineConfig( {
 					'examples/wave/index',
 					'examples/depth/index',
 					'examples/journal/index',
+					'examples/orbit/index',
+					'examples/fold/index',
+					'examples/resolve/index',
+					'examples/reveal/index',
+					'examples/echo/index',
 					'playground/index',
 					'phone/index',
 				].map( ( page ) => [

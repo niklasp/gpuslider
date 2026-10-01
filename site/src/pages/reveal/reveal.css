@@ -1,0 +1,200 @@
+/*
+ * Reveal: a dark index of work set large, and a picture that burns open
+ * under the pointer. The names are drawn over the picture by difference,
+ * so they read on it whatever its colours.
+ */
+
+:root {
+	--ground: #0d0c0b;
+	--ink: #f1ece4;
+	--dim: rgb(241 236 228 / 0.5);
+	--line: rgb(241 236 228 / 0.14);
+	--fire: #ff7a2e;
+	--room: 48px;
+}
+
+html,
+body {
+	margin: 0;
+}
+
+body {
+	min-height: 100svh;
+	background: var(--ground);
+	color: var(--ink);
+	font: 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+	overflow-x: hidden;
+}
+
+#root {
+	display: flex;
+	flex-direction: column;
+	min-height: 100svh;
+}
+
+header,
+footer {
+	position: relative;
+	z-index: 3;
+	padding: 18px clamp(16px, 4vw, 40px);
+	color: var(--dim);
+}
+
+header {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px 24px;
+}
+
+header a,
+footer a {
+	color: var(--ink);
+}
+
+footer {
+	display: grid;
+	gap: 10px;
+	margin-top: auto;
+}
+
+footer p {
+	max-width: 60ch;
+	margin: 0;
+}
+
+main {
+	flex: 1;
+	padding: clamp(24px, 6vh, 72px) clamp(16px, 4vw, 40px) clamp(48px, 10vh, 120px);
+}
+
+.lede {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: baseline;
+	gap: 8px 24px;
+	margin-bottom: clamp(16px, 3vh, 32px);
+	color: var(--dim);
+}
+
+.lede h1 {
+	margin: 0;
+	font: 500 15px/1.3 ui-sans-serif, system-ui, sans-serif;
+	color: var(--ink);
+}
+
+.lede .state {
+	margin: 0;
+}
+
+/* The names: over the picture, by difference. */
+.index {
+	position: relative;
+	z-index: 2;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	mix-blend-mode: difference;
+	border-bottom: 1px solid var(--line);
+}
+
+.index li {
+	border-top: 1px solid var(--line);
+	transition: opacity 0.35s;
+}
+
+.index[data-active] li:not([data-on]) {
+	opacity: 0.32;
+}
+
+.row {
+	display: grid;
+	grid-template-columns: 3.2em minmax(0, 1fr) auto;
+	align-items: baseline;
+	gap: 0 clamp(12px, 2vw, 32px);
+	width: 100%;
+	padding: clamp(6px, 1.2vh, 14px) 0;
+	border: 0;
+	background: none;
+	color: #fff;
+	font: inherit;
+	text-align: left;
+	cursor: zoom-in;
+}
+
+.row:focus-visible {
+	outline: 2px solid var(--fire);
+	outline-offset: 4px;
+}
+
+.no,
+.what {
+	font-variant-numeric: tabular-nums;
+	font-size: 13px;
+}
+
+.name {
+	font: 600 clamp(38px, 7.4vw, 124px) / 0.98 'Funnel Display Variable', ui-sans-serif, system-ui, sans-serif;
+	letter-spacing: -0.045em;
+	transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.index li[data-on] .name {
+	transform: translateX(0.12em);
+}
+
+/* The picture: a stack that follows the pointer, with room around it to
+   bend into. It takes no pointer: the names under it do. */
+.peek {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 1;
+	padding: var(--room);
+	pointer-events: none;
+	will-change: transform;
+}
+
+.peek .gs-track {
+	width: clamp(240px, 30vw, 480px);
+	aspect-ratio: 4 / 3;
+}
+
+.peek .gs-media {
+	border-radius: 14px;
+}
+
+/* Without a pointer: in the middle of the screen, the names scroll over
+   it. */
+.peek.held {
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.peek.held .gs-track {
+	width: min(78vw, 420px);
+	aspect-ratio: 4 / 5;
+}
+
+@media (max-width: 700px) {
+	.row {
+		grid-template-columns: 2.4em minmax(0, 1fr);
+		padding: 14px 0;
+	}
+
+	.what {
+		grid-column: 2;
+	}
+
+	.index {
+		margin-bottom: 40vh;
+	}
+
+	.lede {
+		margin-bottom: 16vh;
+	}
+}

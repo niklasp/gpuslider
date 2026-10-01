@@ -1,0 +1,172 @@
+/*
+ * Orbit: a dark room, a cylinder of pictures in the middle of it that
+ * stands on a floor that shines, and the chapters of the page scrolled
+ * over it.
+ */
+
+:root {
+	--ground: #07060c;
+	--ink: #f1eef8;
+	--glow: #6a4fd8;
+}
+
+body {
+	margin: 0;
+	background: var(--ground);
+	color: var(--ink);
+	font: 14px/1.55 ui-sans-serif, system-ui, sans-serif;
+}
+
+header {
+	position: fixed;
+	inset: 0 0 auto;
+	z-index: 5;
+	display: flex;
+	justify-content: space-between;
+	gap: 8px 24px;
+	padding: 18px clamp(16px, 4vw, 40px);
+	pointer-events: none;
+}
+
+header a,
+.said a {
+	color: inherit;
+	pointer-events: auto;
+}
+
+/* The room: as large as the screen, under the chapters, its floor lit. */
+.stage {
+	position: fixed;
+	inset: 0;
+	overflow: hidden;
+	touch-action: pan-y;
+	background:
+		radial-gradient(ellipse 60% 26% at 50% 74%, color-mix(in oklab, var(--glow) 34%, transparent), transparent 70%),
+		radial-gradient(ellipse 90% 60% at 50% 40%, #15112a, transparent 75%),
+		var(--ground);
+}
+
+.stage.over {
+	cursor: zoom-in;
+}
+
+.stage .gs-loading {
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--ink);
+
+	z-index: 4;
+}
+
+/* Both rows are sliders as large as the room, their slides in a line
+ * through its middle: an effect of the canvas puts them on the cylinder.
+ * The row is a little more than two screens long, not more: a slide far
+ * out of view is not drawn. Until the canvas draws, the rows are hidden:
+ * they are not where they are seen. */
+.stage .gs {
+	--gs-gap: 1.1vw;
+
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 1s ease;
+}
+
+.stage.shown .gs {
+	opacity: 1;
+}
+
+.stage .gs-track {
+	width: 100%;
+}
+
+.stage .gs-slide {
+	flex: 0 0 calc(220vw / 12 - 1.1vw);
+	aspect-ratio: 3 / 2;
+}
+
+.stage .gs-media {
+	border-radius: 1.1vw;
+}
+
+/* The far end of the room is dark. */
+.stage::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	background:
+		linear-gradient(var(--ground), transparent 16%, transparent 84%, var(--ground)),
+		radial-gradient(ellipse 80% 90% at 50% 50%, transparent 60%, var(--ground) 100%);
+}
+
+/* The chapters, scrolled over the room: each a screen, its words at the
+ * lower left. */
+main {
+	position: relative;
+	z-index: 3;
+	pointer-events: none;
+}
+
+.chapter {
+	min-height: 100svh;
+	display: flex;
+	align-items: flex-end;
+	box-sizing: border-box;
+	padding: 0 clamp(16px, 4vw, 40px) clamp(16px, 5svh, 48px);
+}
+
+.said {
+	max-width: min(40ch, calc(100vw - 32px));
+	padding: 14px 18px 16px;
+	border-radius: 22px;
+	corner-shape: squircle;
+	background: color-mix(in oklab, var(--ground) 62%, transparent);
+	backdrop-filter: blur(14px) saturate(1.4);
+	-webkit-backdrop-filter: blur(14px) saturate(1.4);
+	pointer-events: auto;
+}
+
+.said h1,
+.said h2 {
+	margin: 2px 0 4px;
+	font-size: clamp(24px, 3.2vw, 38px);
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+}
+
+.said p {
+	margin: 0;
+	color: color-mix(in oklab, var(--ink) 78%, transparent);
+}
+
+.step {
+	font-variant-numeric: tabular-nums;
+	color: color-mix(in oklab, var(--ink) 55%, transparent);
+}
+
+.said .after {
+	margin-top: 8px;
+	font-size: 12px;
+	color: color-mix(in oklab, var(--ink) 58%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.stage .gs {
+		transition: none;
+	}
+}
+
+/* On a narrow screen the bar stays on one line each side. */
+header > a {
+	white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+	header {
+		font-size: 12px;
+	}
+}

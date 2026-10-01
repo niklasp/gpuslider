@@ -1,0 +1,149 @@
+/*
+ * Fold: grids of pictures on a dark page, folded by the canvas as the page
+ * scrolls.
+ */
+
+:root {
+	--ground: #111015;
+	--ink: #ece9f2;
+	--soft: rgb(236 233 242 / 0.6);
+	/* The room a row keeps above and below its pictures, for what folds
+	   out of it, and how close the rows of a grid are. */
+	--room: 44px;
+	--between: clamp(8px, 1.2vw, 16px);
+}
+
+body {
+	margin: 0;
+	background: var(--ground);
+	color: var(--ink);
+	font: 14px/1.55 ui-sans-serif, system-ui, -apple-system, sans-serif;
+	overflow-x: hidden;
+}
+
+header {
+	position: fixed;
+	inset: 0 0 auto;
+	z-index: 4;
+	display: flex;
+	justify-content: space-between;
+	gap: 8px 24px;
+	padding: 18px clamp(16px, 4vw, 48px);
+	color: var(--soft);
+	mix-blend-mode: difference;
+}
+
+header a {
+	color: var(--ink);
+}
+
+.intro {
+	display: grid;
+	align-content: end;
+	gap: 18px;
+	min-height: 78svh;
+	padding: 0 clamp(16px, 4vw, 48px) 6svh;
+	box-sizing: border-box;
+}
+
+h1 {
+	margin: 0;
+	font: 700 clamp(96px, 24vw, 380px) / 0.8 "Helvetica Neue", Helvetica, Arial, sans-serif;
+	letter-spacing: -0.06em;
+}
+
+.intro p {
+	max-width: 46ch;
+	margin: 0;
+	font-size: 16px;
+	color: var(--soft);
+}
+
+.intro .hint {
+	font-size: 12px;
+	letter-spacing: 0.18em;
+	text-transform: uppercase;
+}
+
+section {
+	padding-block: 16svh 4svh;
+}
+
+.said {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	align-items: baseline;
+	gap: 6px 20px;
+	max-width: 760px;
+	padding: 0 clamp(16px, 4vw, 48px) 3svh;
+}
+
+.said .step {
+	font: 12px ui-monospace, Menlo, monospace;
+	color: var(--soft);
+	font-variant-numeric: tabular-nums;
+}
+
+.said h2 {
+	margin: 0;
+	font: 700 clamp(40px, 7vw, 96px) / 0.9 "Helvetica Neue", Helvetica, Arial, sans-serif;
+	letter-spacing: -0.045em;
+}
+
+.said p {
+	grid-column: 2;
+	max-width: 48ch;
+	margin: 0;
+	color: var(--soft);
+}
+
+.row {
+	--gs-gap: var(--between);
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--ink);
+	padding-block: var(--room);
+}
+
+.row + .row {
+	margin-top: calc(var(--between) - 2 * var(--room));
+}
+
+.row .gs-slide {
+	flex: 0 0 clamp(150px, 22vw, 340px);
+	aspect-ratio: 3 / 2;
+}
+
+.row .gs-media {
+	border-radius: 10px;
+}
+
+footer {
+	display: grid;
+	gap: 10px;
+	padding: 18svh clamp(16px, 4vw, 48px) 10svh;
+	color: var(--soft);
+}
+
+footer p {
+	max-width: 56ch;
+	margin: 0;
+}
+
+footer a {
+	color: var(--ink);
+}
+
+footer code {
+	font: 0.92em ui-monospace, Menlo, monospace;
+	color: var(--ink);
+}
+
+@media (max-width: 600px) {
+	.said {
+		grid-template-columns: 1fr;
+	}
+
+	.said p {
+		grid-column: 1;
+	}
+}

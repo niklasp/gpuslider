@@ -19,6 +19,11 @@ import Wave, { WAVES } from './pages/wave/Wave';
 import Depth from './pages/depth/Depth';
 import { Journal, Story } from './pages/journal/Journal';
 import { STORIES } from './pages/journal/stories';
+import Orbit from './pages/orbit/Orbit';
+import Fold from './pages/fold/Fold';
+import Resolve from './pages/resolve/Resolve';
+import Reveal from './pages/reveal/Reveal';
+import Echo from './pages/echo/Echo';
 
 type Page = {
 	/** The file of the build the page is made of, where it is another. */
@@ -51,6 +56,11 @@ export const pages: Record< string, Page > = {
 	),
 	'examples/depth/index.html': { page: () => <Depth /> },
 	'examples/journal/index.html': { page: () => <Journal /> },
+	'examples/orbit/index.html': { page: () => <Orbit /> },
+	'examples/fold/index.html': { page: () => <Fold /> },
+	'examples/resolve/index.html': { page: () => <Resolve /> },
+	'examples/reveal/index.html': { page: () => <Reveal /> },
+	'examples/echo/index.html': { page: () => <Echo /> },
 	...Object.fromEntries(
 		STORIES.map( ( { slug, title, about } ) => [
 			`examples/journal/${ slug }/index.html`,

@@ -17,6 +17,34 @@ mkdirSync( to, { recursive: true } );
 
 /** What is done to a page before its picture is taken. */
 const PAGES = {
+	// The first chapter, the cylinder turning.
+	orbit: async ( page ) => {
+		await page.waitForTimeout( 2500 );
+	},
+	// Scrolled into the first grid, still moving: the rows coming in are folded.
+	fold: async ( page ) => {
+		await page.evaluate( () => scrollTo( 0, document.getElementById( 'rise' ).offsetTop - 200 ) );
+		await page.waitForTimeout( 1500 );
+		await page.mouse.wheel( 0, 400 );
+		await page.waitForTimeout( 60 );
+	},
+	// The hero half resolved.
+	resolve: async ( page ) => {
+		await page.waitForTimeout( 1100 );
+	},
+	// A name pointed at, its picture half burnt open.
+	reveal: async ( page ) => {
+		const row = page.locator( '.row' ).nth( 2 );
+		const r = await row.boundingBox();
+		await page.mouse.move( r.x + r.width * 0.6, r.y + r.height / 2, { steps: 8 } );
+		await page.waitForTimeout( 550 );
+	},
+	// Mid-jump: the photo comes in as a stream of frames.
+	echo: async ( page ) => {
+		await page.waitForTimeout( 1500 );
+		await page.evaluate( () => window.slider.to( ( window.slider.index + 3 ) % 8 ) );
+		await page.waitForTimeout( 140 );
+	},
 	// Dragged a little: the glass is seen where it bends.
 	wall: async ( page ) => {
 		await page.mouse.move( 700, 420 );

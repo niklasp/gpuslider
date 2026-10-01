@@ -1,0 +1,163 @@
+import { useEffect, useRef, useState } from 'react';
+import 'gpuslider/style.css';
+import 'gpuslider/loading.css';
+import './echo.css';
+import { createSlider, type Slider } from 'gpuslider';
+import { autoplay, keyboard, loading, thumbs } from 'gpuslider/plugins';
+import { canvas } from 'gpuslider/canvas';
+import { image, photo } from '@/lib/media';
+import { Bar, drawnBy, layer } from '../mount';
+import { echo, WAYS, type Way } from './echo-effect';
+
+// The eight photos, each once.
+const SLIDES = [ 1, 2, 3, 4, 5, 6, 7, 8 ];
+
+// What the effect reads on every frame: written into, never replaced.
+const PARAMS = Object.fromEntries(
+	Object.entries( WAYS.Frames ).map( ( [ name, value ] ) => [ name, [ value ] ] )
+) as Record< keyof ( typeof WAYS )[ Way ], number[] >;
+
+/**
+ * Echo: a reel whose pictures leave frames of themselves behind as they
+ * move, the farther apart the faster. A thumbnail sends the reel to its
+ * picture, and the picture arrives as a stream of frames. One canvas draws
+ * it all: no picture is copied in the page. After the repeating image
+ * transition of Manoela Ilic on Codrops.
+ */
+export default function Echo() {
+	const stage = useRef< HTMLDivElement >( null );
+	const strip = useRef< HTMLDivElement >( null );
+	const reel = useRef< Slider >( null );
+	const [ by, setBy ] = useState( '' );
+	const [ at, setAt ] = useState( 0 );
+	const [ way, setWay ] = useState< Way >( 'Frames' );
+	const [ frames, setFrames ] = useState( WAYS.Frames.frames );
+
+	const choose = ( to: Way ) => {
+		for ( const [ name, value ] of Object.entries( WAYS[ to ] ) ) {
+			PARAMS[ name as keyof typeof PARAMS ][ 0 ] = value;
+		}
+		setFrames( WAYS[ to ].frames );
+		reel.current?.wake();
+		setWay( to );
+	};
+
+	useEffect( () => {
+		const made = createSlider( stage.current!, {
+			loop: true,
+			align: 'center',
+			plugins: [
+				loading( { min: 500 } ),
+				autoplay( 3600 ),
+				keyboard(),
+				canvas( { effects: [ echo( PARAMS ) ], layer: layer() } ),
+			],
+			on: {
+				change: ( index: number ) => setAt( index ),
+				'canvas:ready': ( name: string ) => setBy( drawnBy( name ) ),
+			},
+		} );
+		const strips = createSlider( strip.current!, {
+			align: 'center',
+			plugins: [ thumbs( made ) ],
+		} );
+		reel.current = made;
+		Object.assign( window, { slider: made } );
+		return () => {
+			strips.destroy();
+			made.destroy();
+		};
+	}, [] );
+
+	return (
+		<>
+			<header>
+				<Bar>Echo{ by && ` · drawn by ${ by }` }</Bar>
+			</header>
+			<main>
+				<div ref={ stage } className="gs reel" aria-label="Photos">
+					<div className="gs-track">
+						{ SLIDES.map( ( n ) => (
+							<div className="gs-slide" key={ n }>
+								<img
+									className="gs-media"
+									{ ...image( n, 'photos' ) }
+									sizes="(max-width: 700px) 84vw, 60vw"
+									alt={ photo( n ).alt }
+									draggable={ false }
+								/>
+							</div>
+						) ) }
+					</div>
+				</div>
+
+				<p className="said" aria-live="polite">
+					<span className="count">
+						{ String( at + 1 ).padStart( 2, '0' ) } / { String( SLIDES.length ).padStart( 2, '0' ) }
+					</span>
+					<span className="alt">{ photo( SLIDES[ at ] ).alt }</span>
+				</p>
+
+				<div ref={ strip } className="gs strip" aria-label="Go to a photo">
+					<div className="gs-track">
+						{ SLIDES.map( ( n ) => (
+							<div className="gs-slide" key={ n }>
+								<img
+									className="gs-media"
+									{ ...image( n, 'photos' ) }
+									sizes="120px"
+									alt={ photo( n ).alt }
+									draggable={ false }
+								/>
+							</div>
+						) ) }
+					</div>
+				</div>
+
+				<div className="ways" role="group" aria-label="How the frames fall">
+					{ ( Object.keys( WAYS ) as Way[] ).map( ( one ) => (
+						<button
+							key={ one }
+							type="button"
+							aria-pressed={ one === way }
+							onClick={ () => choose( one ) }
+						>
+							{ one }
+						</button>
+					) ) }
+					<label className="length">
+						Frames
+						<input
+							type="range"
+							min={ 1 }
+							max={ 8 }
+							step={ 1 }
+							value={ frames }
+							onChange={ ( event ) => {
+								const n = Number( event.target.value );
+								setFrames( n );
+								PARAMS.frames[ 0 ] = n;
+								reel.current?.wake();
+							} }
+						/>
+					</label>
+				</div>
+			</main>
+			<footer>
+				<p>
+					Drag the reel, or pick a photo below: it arrives as a stream of
+					frames, the farther apart the faster it goes. One effect,{ ' ' }
+					<code>echo()</code>, written for this page: the slide and its frames
+					are one pass of the canvas, and nothing is copied in the page.
+				</p>
+				<p>
+					After{ ' ' }
+					<a href="https://tympanus.net/codrops/2025/04/28/animating-in-frames-repeating-image-transition/">
+						Animating in Frames
+					</a>{ ' ' }
+					by Manoela Ilic. Photos from Pexels.
+				</p>
+			</footer>
+		</>
+	);
+}

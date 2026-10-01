@@ -1,0 +1,245 @@
+/*
+ * Echo: a dark projection room, a reel of photos across it, and a strip
+ * of the same photos to send it to one.
+ */
+
+:root {
+	--ground: #0c0a09;
+	--ink: #ece4d8;
+	--dim: rgb(236 228 216 / 0.6);
+}
+
+html,
+body {
+	margin: 0;
+	height: 100%;
+}
+
+body {
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	min-height: 100svh;
+	background: var(--ground);
+	color: var(--ink);
+	font: 13px/1.5 ui-sans-serif, system-ui, sans-serif;
+	overflow-x: hidden;
+}
+
+#root {
+	display: contents;
+}
+
+header,
+footer {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	gap: 8px 24px;
+	padding: 18px clamp(16px, 4vw, 40px);
+	color: var(--dim);
+}
+
+header a,
+footer a {
+	color: var(--ink);
+}
+
+footer p {
+	max-width: 56ch;
+	margin: 0;
+}
+
+main {
+	display: grid;
+	align-content: center;
+	gap: 18px;
+	min-width: 0;
+}
+
+/* The reel. Its frames reach behind a slide and swing above and below it:
+   room for them in the padding and between the slides. */
+.reel {
+	--gs-gap: clamp(48px, 14vw, 240px);
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--ink);
+	padding-block: clamp(16px, 5svh, 56px);
+}
+
+.reel .gs-slide {
+	flex: 0 0 min(60vw, 980px, 72svh);
+	aspect-ratio: 16 / 10;
+}
+
+.reel .gs-media {
+	border-radius: 18px;
+	corner-shape: squircle;
+}
+
+/* The photo that is shown: its number and what is in it. */
+.said {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	align-items: baseline;
+	gap: 4px 14px;
+	margin: 0;
+	padding: 0 16px;
+	text-align: center;
+	color: var(--dim);
+}
+
+.said .count {
+	color: var(--ink);
+	font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+	letter-spacing: 0.08em;
+}
+
+/* The strip: one thumbnail per photo, the one shown marked. */
+.strip {
+	--gs-gap: 8px;
+	justify-self: center;
+	max-width: 100%;
+	padding: 4px 16px;
+	box-sizing: border-box;
+}
+
+.strip .gs-slide {
+	flex: 0 0 clamp(56px, 9vw, 104px);
+	aspect-ratio: 3 / 2;
+	cursor: pointer;
+	border-radius: 10px;
+	corner-shape: squircle;
+	opacity: 0.5;
+	transition: opacity 0.25s, transform 0.25s;
+}
+
+.strip .gs-slide:hover,
+.strip .gs-slide:focus-visible {
+	opacity: 0.85;
+}
+
+.strip .gs-slide.gs-active {
+	opacity: 1;
+	transform: translateY(-3px);
+}
+
+.strip .gs-slide:focus-visible {
+	outline: 2px solid var(--ink);
+	outline-offset: 2px;
+}
+
+.strip .gs-media {
+	border-radius: 10px;
+	corner-shape: squircle;
+}
+
+/* How the frames fall: squircle pills in a dock, as on Loom. */
+.ways {
+	justify-self: center;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 4px;
+	margin: 6px 16px 0;
+	padding: 5px;
+	border-radius: 999px;
+	corner-shape: squircle;
+	background: rgb(255 255 255 / 0.06);
+	box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+	backdrop-filter: blur(20px) saturate(1.4);
+}
+
+.ways button {
+	height: 36px;
+	padding: 0 14px;
+	border: 0;
+	border-radius: 999px;
+	corner-shape: squircle;
+	background: none;
+	color: var(--dim);
+	font: 500 13px/1 ui-sans-serif, system-ui, sans-serif;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+}
+
+.ways button:hover {
+	color: var(--ink);
+}
+
+.ways button[aria-pressed="true"] {
+	background: var(--ink);
+	color: var(--ground);
+}
+
+.ways button:focus-visible {
+	outline: 2px solid var(--ink);
+	outline-offset: 2px;
+}
+
+.ways .length {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 36px;
+	padding: 0 14px 0 16px;
+	border-left: 1px solid rgb(255 255 255 / 0.1);
+	color: var(--dim);
+	font: 500 13px/1 ui-sans-serif, system-ui, sans-serif;
+}
+
+.length input {
+	appearance: none;
+	width: 6rem;
+	height: 1.25rem;
+	background: none;
+	cursor: pointer;
+}
+
+.length input::-webkit-slider-runnable-track {
+	height: 4px;
+	border-radius: 2px;
+	background: rgb(255 255 255 / 0.2);
+}
+
+.length input::-moz-range-track {
+	height: 4px;
+	border-radius: 2px;
+	background: rgb(255 255 255 / 0.2);
+}
+
+.length input::-webkit-slider-thumb {
+	appearance: none;
+	width: 16px;
+	height: 16px;
+	margin-top: -6px;
+	border-radius: 50%;
+	background: var(--ink);
+	box-shadow: 0 1px 4px rgb(0 0 0 / 0.4);
+}
+
+.length input::-moz-range-thumb {
+	width: 16px;
+	height: 16px;
+	border: 0;
+	border-radius: 50%;
+	background: var(--ink);
+}
+
+.length input:focus-visible {
+	outline: 2px solid var(--ink);
+	outline-offset: 4px;
+}
+
+@media (max-width: 700px) {
+	.reel {
+		--gs-gap: 12vw;
+	}
+
+	.reel .gs-slide {
+		flex-basis: 80vw;
+	}
+
+	.ways .length {
+		border-left: 0;
+	}
+}

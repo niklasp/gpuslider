@@ -1,0 +1,90 @@
+import type { Effect } from 'gpuslider/effects';
+
+/**
+ * How much of a squircle, or of a rounded box, of `size` centred at the
+ * origin covers the point `q`: as the canvas rounds a slide, with corners
+ * of radius `r` and the exponent `shape` (2 round, 4 a squircle).
+ */
+const COVER = `
+float echoCover_( vec2 q, vec2 size, float r, float shape ) {
+	float rr = max( r, 0.001 );
+	vec2 d = abs( q ) - size * 0.5 + rr;
+	vec2 e = pow( max( d, vec2( 0.0 ) ) / rr, vec2( shape ) );
+	float away = pow( e.x + e.y, 1.0 / shape ) * rr + min( max( d.x, d.y ), 0.0 ) - rr;
+	return clamp( 0.5 - away, 0.0, 1.0 );
+}
+`;
+
+// How far behind its slide the echo reaches, in px, and how high it may
+// swing: the same sums in the mesh and in the pixels. `D` follows the
+// speed, as frames of a film taken at a fixed rate are farther apart the
+// faster what they show moves; `b` is the side the slide comes from.
+const REACH = `
+	float v = uVelocity;
+	float m = smoothstep( 0.02, 0.35, abs( v ) );
+	float D = min( abs( v ) * uView.x * lag, reach * uQuad.z ) * m;
+	float b = v < 0.0 ? 1.0 : -1.0;
+	float A = abs( curve ) * uQuad.w * m;`;
+
+/**
+ * Echo: a slide that moves leaves frames of itself behind, as a film run
+ * slowly does. The copies are drawn by the same pass as the slide, in the
+ * mesh of the slide made longer behind it: no element is copied. The
+ * faster the slide, the farther apart the frames; at rest there are none.
+ *
+ * Every parameter is an array of one: the page writes into it and the next
+ * frame has it.
+ *
+ * - `frames`: how many copies, 0 to 8
+ * - `lag`: seconds of movement between the slide and its last frame
+ * - `reach`: the longest echo, in widths of the slide
+ * - `shrink`: how much smaller each frame is than the one before
+ * - `curve`: how far the frames swing up and down, in heights of the slide
+ * - `turns`: half waves of the swing along the echo
+ * - `fade`: how fast the frames fade, the higher the faster
+ * - `tint`: how much the frames turn to the warm grey of old film
+ */
+export const echo = ( params: Record< string, number[] > ): Effect => ( {
+	params,
+	head: COVER,
+	vertex: `${ REACH }
+	return vec3(
+		p.x * ( uQuad.z + D ) / uQuad.z + b * D * 0.5,
+		p.y * ( uQuad.w + 2.0 * A ) / uQuad.w,
+		p.z
+	);`,
+	color: `${ REACH }
+	vec2 size = uQuad.zw;
+	// Where this pixel is, in px from the middle of the slide at rest.
+	float left = -size.x * 0.5 + min( b, 0.0 ) * D;
+	vec2 q = vec2( left + uv.x * ( size.x + D ), -size.y * 0.5 - A + uv.y * ( size.y + 2.0 * A ) );
+	vec4 sum = media( q / size + 0.5 ) * echoCover_( q, size, uRadius, uShape );
+	float n = max( frames, 1.0 );
+	for ( int k = 1; k <= 8; k++ ) {
+		float f = float( k );
+		if ( f <= frames ) {
+			float s = max( 1.0 - shrink * f, 0.2 );
+			vec2 at = vec2( b * D * f / n, curve * size.y * sin( PI * turns * f / n ) * m );
+			vec2 r = ( q - at ) / s;
+			float cover = echoCover_( r, size, uRadius, uShape );
+			if ( cover > 0.0 ) {
+				vec4 c = media( r / size + 0.5 );
+				float grey = dot( c.rgb, vec3( 0.3, 0.55, 0.15 ) );
+				float t = tint * f / n;
+				c = vec4( mix( c.rgb, grey * vec3( 1.0, 0.86, 0.7 ) * c.a, t ) * ( 1.0 - 0.05 * f ), c.a );
+				float a = m * pow( 1.0 - f / ( n + 1.0 ), fade );
+				sum += c * cover * a * ( 1.0 - sum.a );
+			}
+		}
+	}
+	return sum;`,
+} );
+
+/** Ways the frames fall: the parameters of `echo()`, each a number. */
+export const WAYS = {
+	Frames: { frames: 6, lag: 0.2, reach: 1.4, shrink: 0.06, curve: 0, turns: 1, fade: 0.9, tint: 0.55 },
+	Ghost: { frames: 8, lag: 0.08, reach: 0.8, shrink: 0.015, curve: 0, turns: 1, fade: 1.8, tint: 0 },
+	Arc: { frames: 7, lag: 0.14, reach: 1.2, shrink: 0.08, curve: 0.16, turns: 1, fade: 1.1, tint: 0.3 },
+	Spiral: { frames: 8, lag: 0.16, reach: 1.3, shrink: 0.085, curve: 0.2, turns: 2.5, fade: 1, tint: 0.2 },
+};
+export type Way = keyof typeof WAYS;

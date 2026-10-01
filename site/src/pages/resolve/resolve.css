@@ -1,0 +1,174 @@
+/*
+ * Resolve: a dark page of rows, each picture coming out of its pixels as
+ * it rises into view.
+ */
+
+:root {
+	--ground: #0e0d13;
+	--ink: #f1eef6;
+	--dim: rgb(241 238 246 / 0.55);
+	--side: clamp(16px, 4vw, 56px);
+}
+
+body {
+	margin: 0;
+	background: var(--ground);
+	color: var(--ink);
+	font: 14px/1.5 ui-sans-serif, system-ui, sans-serif;
+	overflow-x: hidden;
+}
+
+header {
+	position: fixed;
+	inset: 0 0 auto;
+	z-index: 5;
+	display: flex;
+	justify-content: space-between;
+	gap: 8px 24px;
+	padding: 18px var(--side);
+	font: 12px/1.5 ui-monospace, Menlo, monospace;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	mix-blend-mode: difference;
+}
+
+header a,
+footer a {
+	color: inherit;
+}
+
+header > a {
+	white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+	header {
+		padding-block: 14px;
+		font-size: 10px;
+		letter-spacing: 0.04em;
+	}
+}
+
+/* The screen while the pictures load: the whole page. */
+main > .gs-loading {
+	--gs-loading-back: var(--ground);
+	--gs-loading-color: var(--ink);
+
+	position: fixed;
+	z-index: 6;
+	font-family: ui-monospace, Menlo, monospace;
+}
+
+.intro {
+	padding: clamp(96px, 18vh, 180px) var(--side) clamp(24px, 5vh, 56px);
+	display: grid;
+	gap: 18px;
+}
+
+h1 {
+	margin: 0;
+	font: 600 clamp(64px, 15vw, 240px) / 0.84 "Helvetica Neue", Helvetica, Arial, sans-serif;
+	letter-spacing: -0.06em;
+}
+
+.intro p {
+	max-width: 46ch;
+	margin: 0;
+	color: var(--dim);
+	font-size: clamp(15px, 1.3vw, 18px);
+	text-wrap: pretty;
+}
+
+.set {
+	padding-block: clamp(28px, 7vh, 72px) 0;
+}
+
+.label {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 0 0 14px;
+	padding-inline: var(--side);
+	font: 12px/1.4 ui-monospace, Menlo, monospace;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+}
+
+.label span + span {
+	color: var(--dim);
+}
+
+.gs.row {
+	--gs-gap: clamp(8px, 1.2vw, 18px);
+
+	padding-inline: var(--side);
+	cursor: zoom-in;
+}
+
+.row .gs-media {
+	border-radius: 10px;
+	transition: opacity 0.4s;
+}
+
+/* Until its canvas is there, a row shows nothing: the pictures come out of
+ * their pixels, not out of the page. Without a canvas, as they are. */
+main:not(.plain) .row:not(.drawn) .gs-media {
+	opacity: 0;
+}
+
+.hero .gs-slide {
+	flex: 0 0 min(80vw, 1100px);
+	aspect-ratio: 2 / 1;
+}
+
+.tall .gs-slide {
+	flex: 0 0 clamp(200px, 26vw, 400px);
+	aspect-ratio: 4 / 5;
+}
+
+.card .gs-slide {
+	flex: 0 0 clamp(240px, 36vw, 540px);
+	aspect-ratio: 3 / 2;
+}
+
+.wide .gs-slide {
+	flex: 0 0 min(88vw, 1200px);
+	aspect-ratio: 21 / 9;
+}
+
+.small .gs-slide {
+	flex: 0 0 clamp(120px, 14vw, 180px);
+	aspect-ratio: 1;
+}
+
+.small .gs-media {
+	border-radius: 6px;
+}
+
+@media (max-width: 700px) {
+	.hero .gs-slide {
+		flex-basis: 84vw;
+		aspect-ratio: 4 / 3;
+	}
+
+	.wide .gs-slide {
+		aspect-ratio: 16 / 9;
+	}
+}
+
+footer {
+	display: grid;
+	gap: 10px;
+	max-width: 52ch;
+	padding: clamp(64px, 16vh, 160px) var(--side) 30vh;
+	color: var(--dim);
+}
+
+footer p {
+	margin: 0;
+}
+
+footer code {
+	color: var(--ink);
+	font: 13px ui-monospace, Menlo, monospace;
+}
