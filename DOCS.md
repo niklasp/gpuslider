@@ -693,9 +693,9 @@ Effects under the pointer (`waves()`, `spotlight()`, `magnify()` and the others)
 `slider.plugins.hit.at( x, y )` is the slide that is seen at a point of the page, `.where( index )` is what is around a slide as it is drawn. What is there to be used in a slide (links, buttons) is where the page has it.
 
 Transitions, for `stack()`, one at a time:
-`liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`, `distance`, `glyphs`, `weave`. Without one the stack fades.
+`liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`, `distance`, `glyphs`, `weave`, `lightning`. Without one the stack fades.
 
-`glyphs( { cells, tint } )` turns the image into characters that scramble and settle as the next one, `cells` rows of them in the height; `weave( { threads, tint } )` weaves the next image in, `threads` in the height, down from the top and across from either side. `tint` is how much they glint on their way, 0 to 1.
+`glyphs( { cells, tint } )` turns the image into characters that scramble and settle as the next one, `cells` rows of them in the height; `weave( { threads, tint } )` weaves the next image in, `threads` in the height, down from the top and across from either side. `tint` is how much they glint on their way, 0 to 1. `lightning( { bolts, tint } )` strikes down from the top: the next image opens behind a front of bolts, about `bolts` across, lit blue as much as `tint` says, with a flash now and then.
 
 ```js
 createSlider( element, {

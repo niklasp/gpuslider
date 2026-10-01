@@ -8,7 +8,7 @@
 
 ## Why
 
-- **Shader effects on real content.** Images and videos that stretch with the speed, colours that split, lenses, waves and ASCII art under the pointer, slides of jelly or thick glass. More than twenty effects, and as many transitions: liquid, burn, glitch, glyphs, weave and more. Your own effect is a few lines of GLSL; it runs on WebGPU and WebGL alike.
+- **Shader effects on real content.** Images and videos that stretch with the speed, colours that split, lenses, waves and ASCII art under the pointer, slides of jelly or thick glass. More than twenty effects, and as many transitions: liquid, burn, glitch, glyphs, weave, lightning and more. Your own effect is a few lines of GLSL; it runs on WebGPU and WebGL alike.
 - **Its own motion.** A spring solved exactly on every frame. Drag, swipe, wheel and keys; it snaps, loops, rests anywhere, goes sideways or down.
 - **Fast by default.** Nothing is drawn while nothing moves. The canvas loads only when a slider needs it, and only the layer the browser can use.
 - **Never broken.** WebGPU, else WebGL 2, else the page moves the slides itself (a transition becomes a crossfade). Without JavaScript it is a native row that scrolls and snaps.

@@ -24,6 +24,7 @@ export { wind } from './wind.js';
 export { distance } from './distance.js';
 export { glyphs } from './glyphs.js';
 export { weave } from './weave.js';
+export { lightning } from './lightning.js';
 
 // Several of them, and one picked.
 export { choose } from '../choose.js';

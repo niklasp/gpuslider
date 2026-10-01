@@ -407,7 +407,7 @@ export default function Playground() {
 							<h3 className="text-2xl font-semibold md:text-4xl">
 								On top of each other
 							</h3>
-							<p className="text-white/80">Twenty-three transitions to choose from.</p>
+							<p className="text-white/80">Twenty-four transitions to choose from.</p>
 						</Slide>
 						<Slide image={ 4 } alt="Pink colour field" className="hero" sizes={ WIDE }>
 							<h3 className="text-2xl font-semibold md:text-4xl">
