@@ -326,31 +326,6 @@ export default function Playground() {
 				</Section>
 
 				<Section
-					title="A fan"
-					note="A layout that is an effect of the canvas: the slider moves as ever, the effect says where a slide is drawn. Without the canvas it is a row."
-				>
-					<GpuSlider
-						id="fan"
-						label="A fan"
-						options={ { ...options, align: 'center' } }
-						className="laid wide"
-						made={ made }
-						measured={ measured }
-						plugins={ () => pluginsOf( config, 'fan' ) }
-					>
-						{ [ 2, 4, 6, 8, 1, 3, 5, 7 ].map( ( n ) => (
-							<Slide
-								key={ n }
-								image={ n }
-								alt={ `Colour field ${ n }` }
-								className="cover"
-								sizes="(max-width: 640px) 60vw, 25vw"
-							/>
-						) ) }
-					</GpuSlider>
-				</Section>
-
-				<Section
 					title="As wide as the image"
 					note="Every slide takes the width of its image."
 				>

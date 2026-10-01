@@ -152,20 +152,9 @@ html {
 	border-radius: 0;
 }
 
-/* As wide as the page, with more cards to fan. */
-.laid.wide {
-	--gs-per-view: 4.5;
-
-	padding-bottom: 10rem;
-}
-
 @media (max-width: 640px) {
 	.laid {
 		--gs-per-view: 1.6;
-	}
-
-	.laid.wide {
-		--gs-per-view: 2.2;
 	}
 }
 
