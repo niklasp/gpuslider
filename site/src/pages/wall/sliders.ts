@@ -12,6 +12,7 @@ import { createSlider, type Slider } from 'gpuslider';
 import { loading, marquee } from 'gpuslider/plugins';
 import { canvas } from 'gpuslider/canvas';
 import { dome, jelly, slab } from 'gpuslider/effects';
+import { lightbox } from 'gpuslider/lightbox';
 import { drawnBy, layer } from '../mount';
 
 type Quad = { speed: number };
@@ -110,10 +111,12 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 						density: win.innerWidth < 800 ? 2 : 1.5,
 						layer: layer(),
 					} ),
+					// A card that is clicked grows to the screen.
+					lightbox( { slider: { loop: true } } ),
 				],
 				on: {
 					'canvas:ready': ( name: string ) => {
-						said.textContent = `Drag the wall · drawn by ${ drawnBy(
+						said.textContent = `Drag the wall, open a card · drawn by ${ drawnBy(
 							name
 						) }`;
 						// Every card swings its own way.
@@ -199,7 +202,12 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 		y: number;
 		from: number[];
 		samples: number[][];
+		moved: boolean;
 	} | null = null;
+
+	// Further than this, px, and the pointer drags: before, it may still
+	// click a card, which the lightbox opens.
+	const STILL = 6;
 
 	root.addEventListener(
 		'pointerdown',
@@ -213,8 +221,8 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 				y: event.clientY,
 				from: all.map( ( slider ) => slider.motion.pos ),
 				samples: [],
+				moved: false,
 			};
-			root.setPointerCapture( event.pointerId );
 			root.classList.add( 'gs-dragging' );
 			all.forEach( ( slider ) => slider.grab() );
 		},
@@ -234,6 +242,12 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 			const { from, samples } = held;
 			const dx = event.clientX - held.x;
 			const dy = event.clientY - held.y;
+			// The wall keeps the pointer once it drags: then the click that
+			// ends it is the wall's, and opens no card.
+			if ( ! held.moved && Math.hypot( dx, dy ) > STILL ) {
+				held.moved = true;
+				root.setPointerCapture( event.pointerId );
+			}
 			all.forEach( ( slider, i ) =>
 				slider.drag( from[ i ] - ( i ? dx : dy ) )
 			);
@@ -248,12 +262,18 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 		{ signal }
 	);
 
+	// The click that ends a drag opens nothing.
+	let dragged = false;
 	const up = ( event: PointerEvent ) => {
 		if ( ! held || event.pointerId !== held.id ) {
 			return;
 		}
-		const { samples, from } = held;
+		const { samples, from, moved } = held;
 		held = null;
+		if ( moved ) {
+			dragged = true;
+			win.setTimeout( () => ( dragged = false ) );
+		}
 		root.classList.remove( 'gs-dragging' );
 		let vx = 0;
 		let vy = 0;
@@ -271,6 +291,38 @@ export function wall( root: HTMLElement, intro: HTMLElement, said: HTMLElement )
 	};
 	root.addEventListener( 'pointerup', up, { signal } );
 	root.addEventListener( 'pointercancel', up, { signal } );
+
+	/*
+	 * A click opens the card that is seen under it in the lightbox: under
+	 * the dome a card is drawn away from where the page has it, so each row
+	 * is asked what it draws there. While a card is open the wall stands.
+	 */
+	root.addEventListener(
+		'click',
+		( event ) => {
+			if ( dragged ) {
+				event.stopPropagation();
+				return;
+			}
+			for ( const { slider } of rows ) {
+				const card = slider.plugins.hit?.at( event.clientX, event.clientY );
+				if ( card >= 0 ) {
+					event.stopPropagation();
+					slider.plugins.lightbox.open( card );
+					return;
+				}
+			}
+		},
+		{ capture: true, signal }
+	);
+	for ( const { slider } of rows ) {
+		slider.on( 'lightbox:open', () =>
+			rows.forEach( ( row ) => row.slider.plugins.marquee.pause() )
+		);
+		slider.on( 'lightbox:close', () =>
+			rows.forEach( ( row ) => row.slider.plugins.marquee.play() )
+		);
+	}
 
 	/*
 	 * The wheel and two fingers on a trackpad, both ways too.

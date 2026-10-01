@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import 'gpuslider/style.css';
+import 'gpuslider/lightbox.css';
 import './wall.css';
 import pictures from '@/lib/wall.json';
 import { pinned } from '@/lib/media';
@@ -61,7 +62,7 @@ export default function Wall() {
 				ref={ root }
 				id="wall"
 				className="gs wall"
-				aria-label="A wall of pictures. Drag it, or use the arrow keys."
+				aria-label="A wall of pictures. Drag it, or use the arrow keys; a click opens a picture."
 			>
 				<div className="gs-track">
 					{ rows.map( ( row, at ) => (
