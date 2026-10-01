@@ -332,13 +332,18 @@ export function gl( {
 		);
 		slider.on( 'settle', ahead );
 
+		// Off the screen it lets go of its canvas and textures, a while
+		// after: a page scrolled back and forth keeps them, and its slides
+		// do not change from the page's to the canvas's and back.
+		let leaving;
 		const observer = new win.IntersectionObserver(
 			( entries ) => {
 				near = entries[ entries.length - 1 ].isIntersecting;
+				win.clearTimeout( leaving );
 				if ( near ) {
 					attach();
 				} else {
-					detach();
+					leaving = win.setTimeout( detach, 3000 );
 				}
 			},
 			{ rootMargin: '25%' }
