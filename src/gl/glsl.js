@@ -68,3 +68,25 @@ export const CENTRE = `
 float toCentre() {
 	return uView.x * 0.5 - uQuad.x - uQuad.z * 0.5;
 }`;
+
+/**
+ * `glyph( q, c )`: 1 where a character is drawn in a cell, 0 where not,
+ * at `q` in the cell, 0 to 1. Which character is by how light `c` is,
+ * from none to `.`, `:`, `+`, `#` and `O`: a ramp of ASCII art, made of
+ * shapes, no font.
+ */
+export const GLYPH = `
+float glyph( vec2 q, vec3 c ) {
+	float level = floor( clamp( dot( c, vec3( 0.3, 0.59, 0.11 ) ) * 1.3, 0.0, 0.999 ) * 6.0 );
+	vec2 d = abs( q - 0.5 );
+	float low = step( length( q - vec2( 0.5, 0.74 ) ), 0.11 );
+	float high = step( length( q - vec2( 0.5, 0.3 ) ), 0.11 );
+	float plus = max( step( d.x, 0.07 ) * step( d.y, 0.32 ), step( d.y, 0.07 ) * step( d.x, 0.32 ) );
+	float grid = max( step( abs( d.x - 0.17 ), 0.06 ), step( abs( d.y - 0.17 ), 0.06 ) ) * step( d.x, 0.36 ) * step( d.y, 0.38 );
+	float ring = max( step( abs( length( q - 0.5 ) - 0.3 ), 0.07 ), step( length( q - 0.5 ), 0.1 ) );
+	float g = level < 0.5 ? 0.0 : low;
+	g = level < 1.5 ? g : max( low, high );
+	g = level < 2.5 ? g : plus;
+	g = level < 3.5 ? g : grid;
+	return level < 4.5 ? g : ring;
+}`;

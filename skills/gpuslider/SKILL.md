@@ -61,9 +61,9 @@ Options of the core are props. `plugins` is read once, when the slider is made; 
 
 ## What to pick
 
-- **One slide at a time with a transition:** `stack()` plus one transition in the effects: `liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`, `distance`.
+- **One slide at a time with a transition:** `stack()` plus one transition in the effects: `liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`, `distance`, `glyphs`, `weave`.
 - **A row of slides:** no `stack()`; slides per view and gap are CSS (`--gs-per-view: 2.5; --gs-gap: 12px;`, in media queries for responsive) or `perView` / `gap`. Effects that move with speed: `stretch`, `split`, `jelly`, `bend`, `parallax`, `slab`. Layouts: `coverflow`, `fan`, `pile`, `wave`, `dome`, `unweave` (with `align: 'center'`).
-- **Under the pointer:** `glass`, `waves`, `spotlight`, `magnify`, `pixels`, `reveal`, `tilt`, `smear`, `shift`, `cells`. Any number of effects combine, in the order given.
+- **Under the pointer:** `glass`, `waves`, `spotlight`, `magnify`, `pixels`, `ascii`, `threads`, `reveal`, `tilt`, `smear`, `shift`, `cells`. Any number of effects combine, in the order given.
 - **Lightbox:** `lightbox()` from `gpuslider/lightbox`.
 
 ## Rules

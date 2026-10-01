@@ -8,9 +8,9 @@ import 'gpuslider/style.css';
 //
 // 1. Another transition. Change liquid to burn, here below and in the
 //    import above: import { burn } from 'gpuslider/effects';
-//    There are 21: liquid, ripple, glitch, burn, pixelate, swirl, lens,
+//    There are 23: liquid, ripple, glitch, burn, pixelate, swirl, lens,
 //    fluted, warp, zoom, mosaic, blocks, fold, signal, push, chroma,
-//    kaleido, displace, datamosh, wind, distance.
+//    kaleido, displace, datamosh, wind, distance, glyphs, weave.
 //
 // 2. More slides in view. Delete stack(), which lays the slides on top of
 //    each other, and add perView={ 2.5 } and gap={ 12 } next to loop. The

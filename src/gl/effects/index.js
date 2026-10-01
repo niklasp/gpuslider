@@ -4,7 +4,7 @@
  * With the speed of the slider: `stretch`, `split`, `jelly`.
  * What the slides are made of: `slab`.
  * With the pointer: `magnify`, `cells`, `spotlight`, `smear`, `shift`,
- * `tilt`, `waves`, `reveal`, `glass`, `pixels`.
+ * `tilt`, `waves`, `reveal`, `glass`, `pixels`, `ascii`, `threads`.
  * With the place of the slide, which makes them layouts: `bend`,
  * `coverflow`, `pile`, `fan`, `parallax`, `dome`, `wave`, `unweave`.
  */
@@ -20,6 +20,8 @@ export { waves } from './waves.js';
 export { reveal } from './reveal.js';
 export { glass } from './glass.js';
 export { pixels } from './pixels.js';
+export { ascii } from './ascii.js';
+export { threads } from './threads.js';
 export { bend } from './bend.js';
 export { coverflow } from './coverflow.js';
 export { pile } from './pile.js';

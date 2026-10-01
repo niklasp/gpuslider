@@ -660,6 +660,8 @@ Any number, in the order given.
 | `reveal( { size } )` | The images lose their colours, except around the pointer | Pointer |
 | `glass( { size, lines, amount } )` | Fluted glass around the pointer | Pointer |
 | `pixels( { size, cells } )` | Coarse pixels around the pointer | Pointer |
+| `ascii( { size, cells } )` | ASCII art around the pointer: characters as light as the image, made of shapes, no font | Pointer |
+| `threads( { size, threads, amount } )` | The image is woven around the pointer: threads down and across, over and under, each pulled along itself | Pointer |
 | `tilt( { angle } )` | The slide leans to the pointer; turns the mesh | Pointer |
 | `waves( { size, amount, speed } )` | Rings run away from the pointer, while it is over the slider | Pointer and time |
 | `smear( { size, amount } )` | The pointer drags the image along | Speed of the pointer |
@@ -692,7 +694,9 @@ Effects under the pointer (`waves()`, `spotlight()`, `magnify()` and the others)
 `slider.plugins.hit.at( x, y )` is the slide that is seen at a point of the page, `.where( index )` is what is around a slide as it is drawn. What is there to be used in a slide (links, buttons) is where the page has it.
 
 Transitions, for `stack()`, one at a time:
-`liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`, `distance`. Without one the stack fades.
+`liquid`, `ripple`, `glitch`, `burn`, `pixelate`, `swirl`, `lens`, `fluted`, `warp`, `zoom`, `mosaic`, `blocks`, `fold`, `signal`, `push`, `chroma`, `kaleido`, `displace`, `datamosh`, `wind`, `distance`, `glyphs`, `weave`. Without one the stack fades.
+
+`glyphs( { cells, tint } )` turns the image into characters that scramble and settle as the next one, `cells` rows of them in the height; `weave( { threads, tint } )` weaves the next image in, `threads` in the height, down from the top and across from either side. `tint` is how much they glint on their way, 0 to 1.
 
 ```js
 createSlider( element, {
