@@ -816,11 +816,13 @@ export function gpu( {
 					( ( panes?.ends() || [ [ from, upcoming, mix ] ] ) as number[][] ).forEach( ( [ out, into, turned, x, i = out ] ) => {
 						const box = panes && boxes[ i ];
 						const { w, h } = box ? box.at : { w: width, h: height };
-						// `map()` gives the array as the third argument, so its default
-						// is never taken: `dx` and `dy` are 0.
-						const [ a, b ] = [ out, into ].map( ( ( k: number, _: number, { dx = 0, dy = 0 }: { dx?: number; dy?: number } = box ? {} : boxes[ k ] || {} ) =>
-							down ? bind( k, dy, dx, w, h ) : bind( k, dx, dy, w, h ) ) as ( k: number ) => Bound | null
-						);
+						// A place is drawn at its media; the view, at where the
+						// media of each slide is in it.
+						const [ a, b ] = [ out, into ].map( ( k ) => {
+							const dx = box ? 0 : boxes[ k ]?.dx || 0;
+							const dy = box ? 0 : boxes[ k ]?.dy || 0;
+							return down ? bind( k, dy, dx, w, h ) : bind( k, dx, dy, w, h );
+						} );
 						if ( a || b ) {
 							// As the other slides: one that the lightbox lets
 							// grow out of the stack is drawn once, where it is.

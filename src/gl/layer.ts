@@ -710,10 +710,10 @@ export function gl( {
 					( ( panes?.ends() || [ [ from, upcoming, mix ] ] ) as number[][] ).forEach( ( [ out, into, turned, x, i = out ] ) => {
 						const box = panes && boxes[ i ];
 						const { w, h } = box ? box.at : { w: width, h: height };
-						// `map()` gives the array as the third argument, so its default
-						// is never taken: `dx` and `dy` are 0.
-						const [ a, b ] = [ out, into ].map( ( ( k: number, unit: number, { dx = 0, dy = 0 }: { dx?: number; dy?: number } = box ? {} : boxes[ k ] || {} ) =>
-							turn( ( u, v ) => bind( k, unit, u, v, w, h ), dx, dy ) ) as ( k: number, unit: number ) => Float32Array | null
+						// A place is drawn at its media; the view, at where the
+						// media of each slide is in it.
+						const [ a, b ] = [ out, into ].map( ( k, unit ) =>
+							turn( ( u, v ) => bind( k, unit, u, v, w, h ), box ? 0 : boxes[ k ]?.dx || 0, box ? 0 : boxes[ k ]?.dy || 0 )
 						);
 						if ( a || b ) {
 							// As the other slides: one that the lightbox lets
