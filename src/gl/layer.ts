@@ -39,6 +39,9 @@ export type Media = HTMLImageElement & HTMLVideoElement;
 // Contexts in use. Browsers drop the oldest beyond about 16 per page.
 const MAX_LIVE = 12;
 let live = 0;
+// Sliders that wanted a context when there was none: when one is let
+// go, they ask again.
+const waiting = new Set< () => void >();
 
 // Canvases of sliders that went off screen, with their context, by
 // document: a context is only freed when the browser collects it, so
@@ -189,6 +192,7 @@ export function gl( {
 			if ( ! spare ) {
 				// The page draws, until the slider is used again.
 				if ( live >= MAX_LIVE ) {
+					waiting.add( attach );
 					return;
 				}
 				const canvas = doc.createElement( 'canvas' );
@@ -338,6 +342,12 @@ export function gl( {
 			const { spare, g, mesh, buffers, nothing, textures } = context;
 			context = null;
 			live--;
+			// A slider that is used takes it first; then those that waited.
+			win.setTimeout( () => {
+				const all = [ ...waiting ];
+				waiting.clear();
+				all.forEach( ( next ) => next() );
+			}, 250 );
 			drawn.forEach( ( element ) => show( element, false ) );
 			root.classList.remove( 'gs-gl' );
 			slider.emit( 'gl:off', !! lost );
@@ -808,7 +818,9 @@ export function gl( {
 
 			destroy() {
 				destroyed = true;
+				waiting.delete( attach );
 				win.clearTimeout( retry );
+				win.clearTimeout( leaving );
 				observer.disconnect();
 				detach();
 			},

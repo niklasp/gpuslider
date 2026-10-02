@@ -1020,6 +1020,7 @@ export function gpu( {
 
 			destroy() {
 				destroyed = true;
+				win.clearTimeout( leaving );
 				observer.disconnect();
 				detach();
 			},
