@@ -57,6 +57,9 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, turn, pause }: { s
 		// scrolled, and which way it runs: 1, or -1 after up with `turn`.
 		let was = win.scrollY;
 		let pace = 0;
+		// When the last frame was: what was scrolled while none came is
+		// not a speed.
+		let last = 0;
 		let way = 1;
 		// What is left of the speed: eased, for the pointer over the slider.
 		let rate = 1;
@@ -121,11 +124,14 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, turn, pause }: { s
 			/** Runs on. */
 			play: () => stop( false ),
 
-			frame( _view, dt ) {
+			frame( _view, dt, time ) {
 				const now = win.scrollY;
 				const ease = 1 - Math.exp( -8 * dt );
 				// The scrolling eased in and out: it glides, as a hand does.
-				pace += ( ( now - was ) / dt - pace ) * ( 1 - Math.exp( -4 * dt ) );
+				if ( time - last < 100 ) {
+					pace += ( ( now - was ) / dt - pace ) * ( 1 - Math.exp( -4 * dt ) );
+				}
+				last = time;
 				was = now;
 				if ( turn && Math.abs( pace ) > 30 ) {
 					way = Math.sign( pace );
