@@ -814,7 +814,12 @@ export function gpu( {
 					// The view is one quad; with `panes()` each place is
 					// one, of the media of its slides where the place is.
 					( ( panes?.ends() || [ [ from, upcoming, mix ] ] ) as number[][] ).forEach( ( [ out, into, turned, x, i = out ] ) => {
-						const box = panes && boxes[ i ];
+						// A place has the box of the media of either slide; with
+						// none, nothing of it is drawn.
+						const box = panes && ( boxes[ i ] || boxes[ into ] );
+						if ( panes && ! box ) {
+							return;
+						}
 						const { w, h } = box ? box.at : { w: width, h: height };
 						// A place is drawn at its media; the view, at where the
 						// media of each slide is in it.
