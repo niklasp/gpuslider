@@ -44,8 +44,8 @@
 				FADE,
 			],
 			// The same over the whole view, and at the ends of a row.
-			...[ [ 'sweep, choose', ( all ) => transitions.sweep( all ), FADE ], [ 'edges, choose', ( all ) => effects.edges( all ), null ] ].map(
-				( [ name, wrap, transition ] ) => [
+			...[ [ 'sweep, choose', ( all ) => transitions.sweep( all ), FADE ], [ 'sweep, choose, down', ( all ) => transitions.sweep( all ), FADE, true ], [ 'edges, choose', ( all ) => effects.edges( all ), null ] ].map(
+				( [ name, wrap, transition, y ] ) => [
 					name,
 					[
 						wrap(
@@ -57,6 +57,7 @@
 						),
 					],
 					transition,
+					y,
 				]
 			),
 		];

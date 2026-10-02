@@ -234,7 +234,7 @@ export function compose( effects: Effect[], transition: string | null, y?: boole
 			params[ `e${ k }_${ name }` ] = all;
 		}
 		if ( effect.transition ) {
-			base = named( define + effect.transition + '\n' + undefine );
+			base = named( define + effect.transition.replace( /\$T/g, turned ) + '\n' + undefine );
 		}
 		let hook: Hook;
 		for ( hook in hooks ) {
