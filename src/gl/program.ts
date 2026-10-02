@@ -86,6 +86,11 @@ export interface Effect {
 	color?: string;
 	/** For a stack: mixes two slides. */
 	transition?: string;
+	/**
+	 * Whether its transition is drawn in a row too, as `edges()` does; any
+	 * other is for a stack, and a row leaves it out.
+	 */
+	row?: boolean;
 	/** GLSL the bodies need: helper functions. */
 	head?: string | string[];
 	/** What `vertex` does, in JS: where a point of the mesh is drawn. */
@@ -233,7 +238,7 @@ export function compose( effects: Effect[], transition: string | null, y?: boole
 			undefine += `#undef ${ name }\n`;
 			params[ `e${ k }_${ name }` ] = all;
 		}
-		if ( effect.transition ) {
+		if ( effect.transition && ( transition !== null || effect.row ) ) {
 			base = named( define + effect.transition.replace( /\$T/g, turned ) + '\n' + undefine );
 		}
 		let hook: Hook;

@@ -343,11 +343,7 @@ export function gl( {
 			context = null;
 			live--;
 			// A slider that is used takes it first; then those that waited.
-			win.setTimeout( () => {
-				const all = [ ...waiting ];
-				waiting.clear();
-				all.forEach( ( next ) => next() );
-			}, 250 );
+			win.setTimeout( () => [ ...waiting ].forEach( ( next ) => waiting.delete( next ) && next() ), 250 );
 			drawn.forEach( ( element ) => show( element, false ) );
 			root.classList.remove( 'gs-gl' );
 			slider.emit( 'gl:off', !! lost );

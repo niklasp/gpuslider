@@ -28,8 +28,17 @@ const FADE =
  * @param options.to Where it ends.
  * @return Effect.
  */
-export const edges = ( transition: Effect = { transition: FADE }, { from = 0, to = 1 }: { from?: number; to?: number } = {} ): Effect => ( {
-	head: [ transition.head, OUT ].flat().filter( Boolean ) as string[],
-	params: { ...transition.params, edgeFrom: from, edgeTo: to },
-	transition: transition.transition!.replace( /\bprogress\b/g, 'out_( edgeFrom, edgeTo )' ),
-} );
+export const edges = ( transition: Effect = { transition: FADE }, { from = 0, to = 1 }: { from?: number; to?: number } = {} ): Effect => {
+	if ( ! transition.transition ) {
+		throw new TypeError( 'gpuslider: edges() takes a transition, such as burn().' );
+	}
+	return {
+		// As it is: `choose()` keeps its `pick()`.
+		...transition,
+		head: [ transition.head, OUT ].flat().filter( Boolean ) as string[],
+		// Never an end before its beginning.
+		params: { ...transition.params, edgeFrom: from, edgeTo: Math.max( to, from + 0.01 ) },
+		row: true,
+		transition: transition.transition.replace( /\bprogress\b/g, 'out_( edgeFrom, edgeTo )' ),
+	};
+};

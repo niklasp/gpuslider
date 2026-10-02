@@ -96,7 +96,7 @@ export function compose( effects: Effect[], transition: string | null, y?: boole
 			told[ 4 - all.length ].push( own[ name ] );
 			params[ own[ name ] ] = all;
 		}
-		if ( effect.transition ) {
+		if ( effect.transition && ( transition !== null || effect.row ) ) {
 			base = named( rename( effect.transition.replace( /\$T/g, turned ), own ) );
 		}
 		let hook: 'vertex' | 'uv' | 'color';
