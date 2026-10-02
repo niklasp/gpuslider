@@ -7,7 +7,7 @@
 		"plugin: keyboard": 380,
 		"plugin: loading": 974,
 		"plugin: marquee": 983,
-		"plugin: panes": 932,
+		"plugin: panes": 939,
 		"plugin: progress": 305,
 		"plugin: stack": 576,
 		"plugin: thumbs": 481,
@@ -78,7 +78,7 @@
 		"auto.js": 8416,
 		"canvas.js": 371,
 		"effects.js": 8369,
-		"full.js": 10593,
+		"full.js": 10603,
 		"gl.js": 17420,
 		"gpu.js": 19257,
 		"hit.js": 1134,
@@ -86,7 +86,7 @@
 		"lightbox.css": 801,
 		"lightbox.js": 9462,
 		"loading.css": 393,
-		"plugins.js": 5656,
+		"plugins.js": 5668,
 		"style.css": 715
 	}
 }

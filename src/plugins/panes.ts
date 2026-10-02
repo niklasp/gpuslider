@@ -102,7 +102,12 @@ export function panes( { order = 'start', stagger = 0.6 }: { order?: 'start' | '
 			order,
 			/** How much of a move lies between the first place and the last. */
 			stagger,
-			slides: clear,
+			// Other slides: what was laid out was for the ones before, so
+			// they are laid out again.
+			slides() {
+				clear();
+				slider.update();
+			},
 			pane,
 			mix,
 			/**
