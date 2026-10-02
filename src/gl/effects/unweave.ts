@@ -62,6 +62,8 @@ export const unweave = ( {
 }: { amount?: number | number[]; threads?: number | number[]; start?: number | number[]; gap?: number | number[]; split?: number | number[]; lift?: number | number[] } = {} ): Effect => ( {
 	head: AT_EDGE,
 	params: { amount, threads, start, gap, split, lift },
+	// Lifted threads sway, at rest too; an array may be lifted later.
+	animated: lift !== 0,
 	vertex: `
 	float g = grow_( amount, start );
 	return vec3( p.x * ( 1.0 + g ) + side_() * g * uQuad.z * 0.5, p.y, p.z );`,
