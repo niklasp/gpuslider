@@ -545,8 +545,18 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 
 - **What:** `npm run test:node` (issue #3) runs the exact tests of the shaders in WGSL (`tests/exact.js`) in Node, on Dawn, the WebGPU of Chromium, from the package `webgpu`: no browser, no flags. It needs `lib/` built and `webgpu` installed by hand (`npm install --no-save webgpu`); without it, it says so and passes.
 - **Why only those:** a test that needs a page (layout, pointer, scrolling, pictures of the canvas) needs a page. The layers draw into a canvas of the page, read media elements and listen to the pointer; in Node that is a shim of the DOM larger than what it tests. The exact tests need a device and the translation, nothing else: what WebGPU computes, against what JS computes.
-- **Why not a dependency:** Dawn for Node is 130 MB, for every install of the repository, and the browsers of the tests have WebGPU already. It is a check that is quick to run where it is installed: 0.2 s for all effects that lay out.
+- **Why not a dependency:** Dawn for Node is 130 MB, for every install of the repository, and the browsers of the tests have WebGPU already. It is a check that is quick to run where it is installed: less than half a second for all effects that lay out.
 - **Found on the way:** the object `create()` gives has to be kept while the device is used; collected, it takes the process down.
+
+### 39. No drawing in a worker
+
+- **Looked at on 2026-10-07:** `OffscreenCanvas` and a worker that draws, for pages with many sliders.
+- **Not, because:**
+  - What the main thread pays for drawing is small: 0.15 ms of script in a frame while six sliders move (WebGL, `bench.json`), and the slider has to work out every quad on the main thread anyway, from the motion, the hooks of the page and `change`. A worker would take the calls of the context off it, not the work.
+  - The canvas and the HTML of the slides are written in the same frame from the same position (see the risks). A canvas of a worker is shown when the worker is done, not with the frame of the page: the captions would be a frame apart from their pictures, which is the one thing the layers are built not to do.
+  - Videos would be sent to the worker as a `VideoFrame` every frame, and the media of the page are elements of the page: textures would be made on the main thread and handed over, which is what happens now, plus a copy.
+  - Many sliders were the reason. WebGPU has one device for all of them (decision 16); WebGL has a pool of contexts. That is where many sliders are paid for.
+- **What would change this:** a page whose main thread is so busy that frames are lost while it draws. Then the position comes from the main thread late anyway, and a worker would draw a late position on time.
 
 ## Modules
 
@@ -610,7 +620,6 @@ Each phase ends with something that runs and with tests.
 
 ## Open
 
-- **Drawing in a worker** (`OffscreenCanvas`): the next step for pages with many sliders. It changes how textures get to the canvas. One device for all sliders of a page is there with WebGPU (decision 16).
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
