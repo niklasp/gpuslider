@@ -43,7 +43,7 @@ export function autoplay( options: number | { delay?: number; pause?: Elements; 
 		const doc = root.ownerDocument;
 		const { all } = elements( slider, { pause } );
 		let timer = 0;
-		let seen = true;
+		let seen = false;
 		let held = false;
 		let paused = false;
 

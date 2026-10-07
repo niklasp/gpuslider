@@ -16,7 +16,7 @@ import type { Plugin, Slider } from '../index.js';
 export function videos() {
 	// The plugin, for the `plugins` of a slider.
 	return ( slider: Slider ) => {
-		let seen = true;
+		let seen = false;
 		let found: HTMLVideoElement[][] = [];
 		let playing: boolean[] = [];
 		let self: HTMLVideoElement[] = [];

@@ -47,7 +47,7 @@ export function marquee( { speed = 40, hover = 1, scroll = 0, turn, pause }: { s
 		const doc = root.ownerDocument;
 		const { all } = elements( slider, { pause } );
 		const still = win.matchMedia( '(prefers-reduced-motion: reduce)' );
-		let seen = true;
+		let seen = false;
 		let over = false;
 		// The focus of the keys is in it: it stands, so what has the focus
 		// stays in view.
