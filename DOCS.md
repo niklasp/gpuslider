@@ -76,7 +76,7 @@ import 'gpuslider/style.css';
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.6 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.7 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
@@ -960,8 +960,8 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.2 KB |
-| Canvas layer of WebGL 2 | 7.4 KB |
+| Canvas layer of WebGPU | 9.3 KB |
+| Canvas layer of WebGL 2 | 7.5 KB |
 | An effect | 0.2 to 0.8 KB |
 | A transition | 0.2 to 0.8 KB |
 | Lightbox | 2.2 KB |
@@ -977,7 +977,6 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 - Effects that cross the borders of slides (a ripple that follows the pointer over the whole slider): needs a second pass.
 - Slide content is HTML and is not distorted with the image.
 - Cross-origin media needs CORS headers and `crossorigin` on the element; without them the page draws that slide.
-- Pointer effects are not switched off by `prefers-reduced-motion`; moves and speed effects are.
 - Tried on real phones: not yet. The tests run desktop engines.
 - WebGPU in Firefox is not tested: the Firefox of the tests has no GPU to give. There `canvas()` takes WebGL.
 - Videos on WebGPU are copied into a texture on every frame, as on WebGL. WebGPU can draw them without a copy, which is not used yet.
