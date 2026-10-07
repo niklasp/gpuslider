@@ -371,7 +371,7 @@ export function gl( {
 			( element, w ) =>
 				context?.textures.get(
 					element,
-					w * Math.min( density, win.devicePixelRatio || 1 )
+					w * Math.min( layer.density, win.devicePixelRatio || 1 )
 				),
 			() => context?.textures.sweep()
 		);
@@ -508,6 +508,12 @@ export function gl( {
 			 */
 			lift: null as HTMLElement | null,
 
+			/**
+			 * Most device pixels per px drawn: what `density` says, until
+			 * something lowers it (see `quality()`).
+			 */
+			density,
+
 			/** The post pass, when an effect has one: loaded then. */
 			post: null as ( ( g: WebGL2RenderingContext ) => void ) | null,
 
@@ -602,7 +608,7 @@ export function gl( {
 				}
 				const { g, at, indices, spare } = context;
 				const { params } = shader!;
-				const to = Math.min( density, win.devicePixelRatio || 1 );
+				const to = Math.min( layer.density, win.devicePixelRatio || 1 );
 				// As high as the view gets: with auto height the view
 				// changes on every frame, the canvas does not.
 				const high = slider.plugins.autoHeight?.most || layout.height;

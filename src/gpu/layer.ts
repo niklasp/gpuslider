@@ -440,7 +440,7 @@ export function gpu( {
 				context?.shared.textures.get(
 					slider.wake,
 					element,
-					w * Math.min( density, win.devicePixelRatio || 1 ),
+					w * Math.min( layer.density, win.devicePixelRatio || 1 ),
 					maxSize
 				),
 			() => context?.shared.textures.sweep( slider.wake )
@@ -586,6 +586,12 @@ export function gpu( {
 			 */
 			lift: null as HTMLElement | null,
 
+			/**
+			 * Most device pixels per px drawn: what `density` says, until
+			 * something lowers it (see `quality()`).
+			 */
+			density,
+
 			/** The post pass, when an effect has one: loaded then. */
 			post: null as ReturnType< typeof import( './post.js' ).post > | null,
 
@@ -676,7 +682,7 @@ export function gpu( {
 				}
 				const { shared, canvas, surface, pipeline, mesh, groups } = context;
 				const { device, told, shown, sampler, nothing } = shared;
-				const to = Math.min( density, win.devicePixelRatio || 1 );
+				const to = Math.min( layer.density, win.devicePixelRatio || 1 );
 				// As high as the view gets: with auto height the view
 				// changes on every frame, the canvas does not.
 				const high = slider.plugins.autoHeight?.most || layout.height;

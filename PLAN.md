@@ -534,6 +534,13 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **What it does not do:** the canvas draws a slide where it is laid out, not as the page turns or scales it: with the canvas, what moves a slide is an effect, or `draw()`. A transform with a translation of its own, or about another origin, is measured as if it were about the middle.
 - **Sizes:** 30 bytes in the core; see the budgets.
 
+### 37. The canvas draws fewer pixels when frames come late
+
+- **What:** `quality()`, a plugin of `gpuslider/plugins` (issue #4). While the slider moves, it measures the time between frames; three in a row later than 25 ms make a step: the layer draws with fewer device pixels per px (`density`, which the layers now have as a property): 1, then 0.75. It never goes back up. On a battery that is low and not charging, where the browser says so (`getBattery`, Chromium), it takes a step at once. `quality:lower` says so.
+- **Why:** Chrome saving energy on battery draws thirty frames a second; phones and old laptops are slow with `slab`, `unweave`, or many sliders. The pixels are what an effect costs: every one of them runs the whole shader.
+- **Not:** a cheaper body of an effect, swapped in: that is another shader, which the layers do not swap at runtime (decision 32). Nor pausing animated effects: what moves by itself would stop, which is a change the page sees, not a lower quality. Nor going back up when frames are on time again: the picture would change back and forth.
+- **Sizes:** 0.4 KB, a plugin; the property in each layer, 9 and 4 bytes.
+
 ## Modules
 
 | File | Does |
@@ -546,7 +553,7 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 | `src/full.ts` | The core with the plugins that options switch |
 | `src/auto.ts` | Sliders from `data-gs`, without a script of one's own |
 | `src/react.ts` | `<Slider>`, `<Slide>`, `useSliderContext()`, `useSlider()` |
-| `src/plugins/*.ts` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading` |
+| `src/plugins/*.ts` | One plugin per file: `controls`, `keyboard`, `wheel`, `autoplay`, `marquee`, `thumbs`, `videos`, `autoHeight`, `stack`, `progress`, `loading`, `quality` |
 | `src/loading.css` | The screen of `loading()`, for pages that have none of their own |
 | `src/lightbox.ts`, `src/lightbox.css` | The lightbox: a slider in a `<dialog>`, the canvas draws the way there |
 | `src/style.css` | Layout for all three tiers |

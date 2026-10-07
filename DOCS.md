@@ -348,6 +348,7 @@ From `gpuslider/plugins`. Each is 0.3 to 1 KB.
 | `panes( { order, stagger } )` | Several slides in view that stay where they are: a move turns each place into the next slide of that place, with the transition of the canvas, one place after another. `order`: `'start'`, `'end'`, `'center'` or `'random'` |
 | `progress()` | Tells the slides where they are, for animations in CSS |
 | `loading( { screen, min, timeout, also } )` | A screen while the media load, and events that say how far they are |
+| `quality( { late, frames, steps } )` | The canvas draws fewer pixels when frames come late, and stays so: when `frames` frames of a move in a row are later than `late` ms (3 and 25), it takes the next of `steps`, device pixels per px (`[ 1, 0.75 ]`). On a low battery that is not charging, where the browser says so, at once. `slider.plugins.quality.density` is what it lowered to |
 
 And `canvas()` from `gpuslider/canvas`, `lightbox()` from `gpuslider/lightbox`.
 
@@ -420,6 +421,7 @@ slider.on( '*', ( name, detail, slider ) => {} );
 | `gpu:on`, `gpu:off`, `gl:on`, `gl:off` | The canvas took over, or gave the slides back to the page |
 | `loading:start`, `loading:progress`, `loading:done` | `loading()`: how many media there are, how many of them are there, and that all are |
 | `lightbox:open`, `lightbox:close` | Index of the slide |
+| `quality:lower` | `quality()`: the device pixels per px the canvas draws with now |
 
 Whether the slider is at an end: `canNext` and `canPrev`, at `change`.
 
@@ -983,7 +985,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `canvas()`, which chooses the layer | 0.4 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
 | Canvas layer of WebGPU | 9.4 KB |
-| Canvas layer of WebGL 2 | 7.6 KB |
+| Canvas layer of WebGL 2 | 7.7 KB |
 | The post pass, for an effect over the whole canvas | 2.3 KB with WebGL, 2.8 KB with WebGPU |
 | An effect | 0.2 to 0.8 KB |
 | A transition | 0.2 to 0.8 KB |
