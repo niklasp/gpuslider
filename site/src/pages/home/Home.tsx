@@ -179,14 +179,14 @@ const FEATURES: {
 	},
 	{
 		title: 'The best there is',
-		text: 'WebGPU where the browser has it, else WebGL 2: the same picture, and tests that hold them to it. Without either, the page moves the slides and a transition is a crossfade. Without a script, a row that scrolls and snaps.',
+		text: 'WebGPU where the browser has it, else WebGL 2: the same picture, and tests that hold them to it, to a hundredth of a pixel. When frames come late, it draws fewer pixels. Without either, the page moves the slides and a transition is a crossfade. Without a script, a row that scrolls and snaps.',
 		to: '/docs/canvas/',
 		more: 'The canvas',
 		icon: Cpu,
 	},
 	{
 		title: `${ count( 'effect' ) } effects, written once`,
-		text: 'Images that give way to the speed, colours that come apart, lenses and waves under the pointer, slides of jelly and of thick glass. An effect is a few lines of GLSL, and is translated for WebGPU when the shader is made.',
+		text: 'Images that give way to the speed, colours that come apart, lenses and waves under the pointer, slides of jelly and of thick glass, a loupe that crosses the gaps between slides. Covers and fans may leave the slider onto a stage around it. An effect is a few lines of GLSL, and is translated for WebGPU when the shader is made.',
 		to: '/docs/effects/',
 		more: 'Effects',
 		icon: MagicWand,
@@ -647,7 +647,9 @@ function Stage() {
 						>
 							Try it in your browser
 						</a>
-						<div className="flex max-w-full flex-wrap items-center gap-2">
+						{ /* Side by side where both fit, from 1400 px; not where the font
+						   decides, which would move the text above once it is there. */ }
+						<div className="flex max-w-full flex-col items-start gap-2 min-[1400px]:flex-row min-[1400px]:items-center">
 						<div
 							ref={ pills }
 							role="group"

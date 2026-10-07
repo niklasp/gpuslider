@@ -8,11 +8,11 @@
 
 ## Why
 
-- **Shader effects on real content.** Images and videos that stretch with the speed, colours that split, lenses, waves and ASCII art under the pointer, slides of jelly or thick glass. More than twenty effects, and as many transitions: liquid, burn, glitch, glyphs, weave, lightning and more. Your own effect is a few lines of GLSL; it runs on WebGPU and WebGL alike.
+- **Shader effects on real content.** Images and videos that stretch with the speed, colours that split, lenses, waves and ASCII art under the pointer, slides of jelly or thick glass. More than twenty effects, and as many transitions: liquid, burn, glitch, glyphs, weave, lightning and more. A loupe that crosses the gaps between slides, and covers that may leave the slider onto a stage around it. Your own effect is a few lines of GLSL; it runs on WebGPU and WebGL alike.
 - **Its own motion.** A spring solved exactly on every frame. Drag, swipe, wheel and keys; it snaps, loops, rests anywhere, goes sideways or down.
-- **Fast by default.** Nothing is drawn while nothing moves. The canvas loads only when a slider needs it, and only the layer the browser can use.
+- **Fast by default.** Nothing is drawn while nothing moves. The canvas loads only when a slider needs it, and only the layer the browser can use. A gallery of hundreds of pictures keeps only the textures it drew last, and `quality()` draws fewer pixels when frames come late.
 - **Never broken.** WebGPU, else WebGL 2, else the page moves the slides itself (a transition becomes a crossfade). Without JavaScript it is a native row that scrolls and snaps.
-- **Small.** The core is under 5 KB gzipped. Arrows, dots, autoplay, a lightbox, thumbnails, a ticker, a loading screen: each is a plugin, and what you don't import isn't in your bundle.
+- **Small.** The core is under 5 KB gzipped. Arrows, dots, autoplay, a lightbox, thumbnails, a ticker with dots, a loading screen: each is a plugin, and what you don't import isn't in your bundle.
 - **A lightbox** where the image grows out of its slide, drawn by the same canvas, effects and all.
 - **React and SSR.** `<Slider>` and `<Slide>`, ready for Next.js server rendering with no hydration mismatch and no layout shift. Vue and plain HTML work too.
 - **Accessible.** Real HTML slides, keyboard support, `aria` for arrows and dots. With reduced motion asked for, moves are instant, and speed and pointer effects stay still.
