@@ -505,6 +505,14 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **And the far ones are let go (2026-10-07):** after the textures ahead, a slider keeps the 16 it asked for last (`KEEP` in `gl/fit.ts`) and lets go of the rest. A slider of 16 pictures or fewer never lets go of one. One that comes back is made again; until it is there, the page draws the picture. In WebGPU a texture that several sliders draw is freed when the last of them lets go.
 - **Not:** a time after which a texture goes: a slider at rest asks for nothing, so its time says nothing of what is near.
 
+### 34. A stage for what leaves the slider
+
+- **What:** `canvas( { stage } )`, an element around the slider. The canvas goes into it, over the whole of it, draws the view where the view is, and no slide is cut at the edge of the slider: what coverflow, a fan or a pile lay out is drawn as far as the stage reaches.
+- **How:** with what the lightbox has (decision 30): `lift` puts the canvas into another element, and a quad with `clip: false` is not cut. `canvas()` lifts the layer onto the stage and has a hook that unclips every quad. The lightbox gives the canvas back to the stage it took it from, not to the slider.
+- **Why not a canvas larger by what an effect asks for:** the slider cuts what is in it (`overflow: hidden`), and has to, for its HTML; a canvas in it cannot be larger than it. `overflow-clip-margin` would let it, and the HTML of the slides next to the view with it, and not in every browser.
+- **Not for stacks:** lifted, a stack is drawn as a row, as in the lightbox.
+- **Sizes:** in `canvas()` only, 36 bytes; the layers are as they were.
+
 ## Modules
 
 | File | Does |
@@ -565,7 +573,6 @@ Each phase ends with something that runs and with tests.
 
 ## Open
 
-- **Effects that lay out are cut** at the edge of the slider: the canvas is as large as the slider. A canvas that is larger than its slider by what an effect asks for would lift this.
 - **Drawing in a worker** (`OffscreenCanvas`): the next step for pages with many sliders. It changes how textures get to the canvas. One device for all sliders of a page is there with WebGPU (decision 16).
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.

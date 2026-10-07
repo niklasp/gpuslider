@@ -614,6 +614,12 @@ canvas( { effects: [ stretch() ], eager: false, density: 2, maxSize: 2048, persp
 
 `canvas()` draws with WebGPU where the browser has it and with WebGL 2 where not. It is 0.3 KB, and loads the layer it takes when the page has time: no page loads the layer it does not draw with. Both layers draw the same picture from the same effects; the tests hold them against each other, effect by effect. `canvas:ready` says which one it is, and the layer is `slider.plugins.gpu` or `slider.plugins.gl`.
 
+The canvas is as large as the slider, so what an effect lays out beyond the slider is cut at its edge. `stage`, an element around the slider, makes the canvas cover that element instead: covers that turn out of the slider, a fan wider than it, are drawn as far as the stage reaches. The stage is positioned (`position: relative`) and measured with the slider. For rows: a stack on a stage is drawn as a row.
+
+```js
+canvas( { effects: [ coverflow() ], stage: element.parentElement } )
+```
+
 `canvas( { layer: 'gl' } )` and `layer: 'gpu'` say which. Who wants the layer in the bundle, and no request for it later, names it:
 
 ```js
@@ -958,7 +964,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | A plugin | 0.3 to 1 KB |
 | `gpuslider/full`: the core with all its options | 7.1 KB |
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
-| `canvas()`, which chooses the layer | 0.3 KB |
+| `canvas()`, which chooses the layer | 0.4 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
 | Canvas layer of WebGPU | 9.4 KB |
 | Canvas layer of WebGL 2 | 7.6 KB |
@@ -973,7 +979,6 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 ## Not yet
 
 - A file for `<script>` without `type="module"`.
-- Effects that lay out are cut at the edge of the slider.
 - Effects that cross the borders of slides (a ripple that follows the pointer over the whole slider): needs a second pass.
 - Slide content is HTML and is not distorted with the image.
 - Cross-origin media needs CORS headers and `crossorigin` on the element; without them the page draws that slide.

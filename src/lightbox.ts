@@ -236,10 +236,15 @@ export function lightbox( {
 			};
 		};
 
-		// The canvas of the slider goes into the lightbox, or back.
+		// The canvas of the slider goes into the lightbox, or back: to the
+		// stage it was on, if it had one.
+		let stage: HTMLElement | null = null;
 		const lift = ( on: boolean ) => {
 			if ( outer ) {
-				outer.lift = on ? dialog : null;
+				if ( on && outer.lift !== dialog ) {
+					stage = outer.lift;
+				}
+				outer.lift = on ? dialog : stage;
 				outer.change = on ? grow : null;
 				slider.wake();
 			}
@@ -446,7 +451,7 @@ export function lightbox( {
 			if ( ! shown ) {
 				return;
 			}
-			if ( outer?.lift ) {
+			if ( dialog && outer?.lift === dialog ) {
 				// The dialog goes once the slider has drawn itself where it
 				// is again: its canvas is in it until then.
 				lift( false );

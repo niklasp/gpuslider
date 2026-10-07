@@ -17,7 +17,7 @@
 		"react: what <Slider> and <Slide> add": 592,
 		"full: the slider with all its options": 7229,
 		"canvas layer, no effects": 7773,
-		"canvas: what chooses the layer": 351,
+		"canvas: what chooses the layer": 387,
 		"canvas: which slide is seen at a point": 1065,
 		"canvas layer of WebGPU, no effects": 9582,
 		"choose: several transitions, one picked": 282,
@@ -72,11 +72,11 @@
 		"transition: zoom": 308,
 		"a page in React: arrows and dots": 5897,
 		"the same with the canvas and stretch": 13448,
-		"lightbox": 2229
+		"lightbox": 2251
 	},
 	"dist": {
 		"auto.js": 8441,
-		"canvas.js": 372,
+		"canvas.js": 407,
 		"effects.js": 8369,
 		"full.js": 10630,
 		"gl.js": 17526,
@@ -84,7 +84,7 @@
 		"hit.js": 1134,
 		"index.js": 4838,
 		"lightbox.css": 801,
-		"lightbox.js": 9498,
+		"lightbox.js": 9522,
 		"loading.css": 393,
 		"plugins.js": 5668,
 		"style.css": 715

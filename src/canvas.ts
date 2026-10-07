@@ -18,6 +18,14 @@
  *     slider.plugins.canvas.draw( ( i, quad ) => {
  *         quad.y += Math.sin( quad.p * Math.PI ) * 40;
  *     } );
+ *
+ * The canvas is as large as the slider, and what effects lay out beyond
+ * it is cut there. With `stage`, an element around the slider, the canvas
+ * covers that element instead, and the slides are drawn as far as it
+ * reaches: covers that turn out of the slider, a fan wider than it. The
+ * element is measured with the slider, and is positioned (`relative`).
+ *
+ *     canvas( { effects: [ coverflow() ], stage: element.parentElement } )
  */
 
 import type { Plugin, Slider } from './index.js';
@@ -82,12 +90,17 @@ export interface Options {
 	preserve?: boolean;
 	/** That layer, whatever the browser has. */
 	layer?: 'gpu' | 'gl';
+	/**
+	 * An element around the slider that the canvas covers: the slides are
+	 * drawn as far as it reaches, not cut at the edge of the slider.
+	 */
+	stage?: HTMLElement;
 }
 
 /**
  * @param options Options.
  */
-export function canvas( { layer, ...options }: Options = {} ) {
+export function canvas( { layer, stage, ...options }: Options = {} ) {
 	// The plugin, for the `plugins` of a slider.
 	return ( slider: Slider ) => {
 		const { win, signal } = slider;
@@ -109,10 +122,14 @@ export function canvas( { layer, ...options }: Options = {} ) {
 				if ( seen ) {
 					slider.use( seen( options ) );
 				}
-				slider.emit(
-					'canvas:ready',
-					( slider.use( made( { ...options, hooks } ) ) as Plugin ).name
-				);
+				const used = slider.use( made( { ...options, hooks } ) ) as Plugin & { lift: HTMLElement | null };
+				if ( stage ) {
+					used.lift = stage;
+					hooks.add( ( _, quad ) => {
+						quad.clip = false;
+					} );
+				}
+				slider.emit( 'canvas:ready', used.name );
 			}
 		} );
 		return {
