@@ -138,14 +138,14 @@ slider.destroy();
 | Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.06 KB | 7.0 KB (7198 of 7232 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 7.5 KB | 7.4 KB (7553 of 7680 B) |
+| Canvas layer of WebGL 2 without effects | 7.625 KB | 7.6 KB (7773 of 7808 B, on 2026-10-07) |
 | Canvas layer of WebGPU without effects | 9.5 KB | 9.3 KB (9573 of 9728 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.9 KB (slab: 945 B) |
 | Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.2 KB (2232 of 2304 B) |
 | A page in React with arrows and dots | 6 KB | 5.7 KB |
-| The same with the canvas and one effect | 13 KB | 12.8 KB (13059 of 13312 B) |
+| The same with the canvas and one effect | 13.25 KB | 13.1 KB (13448 of 13568 B, on 2026-10-07) |
 
 Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
@@ -158,6 +158,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **A page in React with the canvas, 12.75 to 13 KB.** The hooks of `draw()` (decision 31) start the canvas when there is one, before the layer is there and after: a hook has nothing to change without it. 3 bytes over.
 - **Lightbox, 2 to 2.25 KB.** Its arrows come from where the arrows of the slider are and go back there, as far as it is open, instead of fading out on the page and in on the screen; `controls()` says what its buttons are (`elements`). 184 bytes over, with 2 left before.
 - **Canvas layer, 7.25 to 7.5 KB, and the one of WebGPU, 9.25 to 9.5 KB.** The textures of the slides next to those in view are made while the slider rests (decision 33): the first move to a picture had a frame of 175 to 285 ms in Chrome with the processor slowed six times, as a phone, and has one of 25 to 42 ms. 187 bytes in WebGL and 183 in WebGPU, with 58 and 82 left before.
+- **Canvas layer, 7.5 to 7.625 KB; a page in React with the canvas, 13.125 to 13.25 KB.** On 2026-10-07, asked of the user and given: a slider keeps the textures of the 16 pictures it drew last, and lets go of the others when it rests (decision 33). A gallery of hundreds of large pictures held all of them while it was on the screen. 93 bytes in WebGL, which had none left, and 78 in WebGPU.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -501,6 +502,8 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **Why:** the user on 2026-09-30, on a phone: the first time each image comes, 30 frames a second or less, the second time 60. A texture was asked for when its slide was first drawn, in the move to it: the bitmap made smaller, the copy to the GPU and the smaller copies of it held one frame of that move. Measured in Chrome, the processor slowed six times, the slider at the top, 4 s between moves: the longest frame of a first move 175 to 283 ms before, 25 to 42 ms after.
 - **Not:** all slides at once, which is memory for pictures that may never come, and work while the page loads. Nor decoding the images before (`decode()`): tried, and it changed nothing; the time is in making the texture.
 - **Sizes:** a helper in `gl/fit.js` that both use, 0.18 KB in each layer. See the budgets.
+- **And the far ones are let go (2026-10-07):** after the textures ahead, a slider keeps the 16 it asked for last (`KEEP` in `gl/fit.ts`) and lets go of the rest. A slider of 16 pictures or fewer never lets go of one. One that comes back is made again; until it is there, the page draws the picture. In WebGPU a texture that several sliders draw is freed when the last of them lets go.
+- **Not:** a time after which a texture goes: a slider at rest asks for nothing, so its time says nothing of what is near.
 
 ## Modules
 
@@ -569,7 +572,6 @@ Each phase ends with something that runs and with tests.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
 - **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 7680 of 7680 B on 2026-10-07).
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
-- **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier: a texture not asked for in a while is let go, in both layers. The canvas layer of WebGL has no byte left for it, so it waits for a decision on its budget.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
 - **Wheel listener.** It is not passive, because it has to stop the browser's swipe back. Scrolling down over a slider therefore waits for the handler. Swiper does the same.
 

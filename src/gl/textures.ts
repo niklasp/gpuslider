@@ -9,7 +9,7 @@
  * asks for them.
  */
 
-import { empty } from './fit.js';
+import { empty, KEEP } from './fit.js';
 
 /** The texture of a media element, and what is known of it. */
 export interface Texture {
@@ -20,6 +20,10 @@ export interface Texture {
 	width: number;
 	/** Width it was asked for at last, px. */
 	asked: number;
+	/** When it was asked for at last: a count. */
+	used?: number;
+	/** Let go of, while it was loading. */
+	gone?: boolean;
 	/** How often the picture came empty. */
 	tries?: number;
 	/** A video has a frame that is not uploaded yet. */
@@ -44,6 +48,7 @@ export function createTextures( gl: WebGL2RenderingContext, { maxSize, changed }
 	const records = new Map< string | Video, Texture >();
 	const waiting = new Set< Image >();
 	let destroyed = false;
+	let uses = 0;
 
 	const create = ( mipmaps: boolean ): Texture => {
 		const texture = gl.createTexture()!;
@@ -94,6 +99,7 @@ export function createTextures( gl: WebGL2RenderingContext, { maxSize, changed }
 			Math.round( ( width * image.naturalHeight ) / image.naturalWidth )
 		);
 		record.asked = width;
+		const kept = () => ! destroyed && ! record.gone;
 		// Decoded first: WebKit makes an empty bitmap of an image it has
 		// loaded but not decoded yet.
 		image
@@ -114,11 +120,11 @@ export function createTextures( gl: WebGL2RenderingContext, { maxSize, changed }
 				if ( record.tries < 10 && empty( shrink( bitmap, 4, 4 ) ) ) {
 					setTimeout( () => {
 						record.asked = 0;
-						if ( ! destroyed ) {
+						if ( kept() ) {
 							changed();
 						}
 					}, 200 );
-				} else if ( ! destroyed ) {
+				} else if ( kept() ) {
 					upload(
 						record,
 						bitmap.width > width * 1.5
@@ -132,12 +138,12 @@ export function createTextures( gl: WebGL2RenderingContext, { maxSize, changed }
 			.catch( () => {
 				// What cannot become a bitmap may still be drawn: SVG
 				// without a size of its own, for one.
-				if ( ! destroyed ) {
+				if ( kept() ) {
 					upload( record, image, true );
 				}
 			} )
 			.then( () => {
-				if ( ! destroyed ) {
+				if ( kept() ) {
 					record.width = width;
 					changed();
 				}
@@ -165,6 +171,7 @@ export function createTextures( gl: WebGL2RenderingContext, { maxSize, changed }
 			record = create( true );
 			records.set( key, record );
 		}
+		record.used = ++uses;
 		const { naturalWidth: w, naturalHeight: h } = media;
 		// Not at most its natural width: of an image of a `srcset` that is
 		// the width of its CSS pixels, not of the file.
@@ -186,6 +193,7 @@ export function createTextures( gl: WebGL2RenderingContext, { maxSize, changed }
 			record.fresh = true;
 			records.set( media, record );
 		}
+		record.used = ++uses;
 		if ( record.failed || media.readyState < 2 ) {
 			return record.ready ? record : null;
 		}
@@ -218,6 +226,18 @@ export function createTextures( gl: WebGL2RenderingContext, { maxSize, changed }
 		 */
 		get: ( media: HTMLElement, width: number ): Texture | null =>
 			media.tagName === 'VIDEO' ? video( media as Video ) : image( media as Image, width ),
+
+		/** Lets go of all but the `KEEP` textures asked for last. */
+		sweep() {
+			[ ...records ]
+				.sort( ( a, b ) => b[ 1 ].used! - a[ 1 ].used! )
+				.slice( KEEP )
+				.forEach( ( [ key, record ] ) => {
+					record.gone = true;
+					gl.deleteTexture( record.texture );
+					records.delete( key );
+				} );
+		},
 
 		destroy() {
 			destroyed = true;

@@ -11,7 +11,7 @@
  * and its lightbox, is there once. A texture is freed when the last slider
  * that used it lets go.
  */
-import { empty } from '../gl/fit.js';
+import { empty, KEEP } from '../gl/fit.js';
 
 const SMALLER = `
 struct Point {
@@ -39,7 +39,8 @@ type User = () => void;
 /** The texture of a media element, and what is known of it. */
 export interface Texture {
 	key: string | Video;
-	users: Set< User >;
+	/** Who draws it, and when they asked for it last: a count. */
+	users: Map< User, number >;
 	/** Width it was asked for at last, px. */
 	asked: number;
 	/** Says when there is another texture. */
@@ -59,13 +60,15 @@ export interface Texture {
 /**
  * @param device Device.
  * @param sampler Sampler that takes the mean of pixels.
- * @return `get( user, media, width, maxSize )`, `free( user )`.
+ * @return `get( user, media, width, maxSize )`, `sweep( user )`,
+ *         `free( user )`.
  */
 export function createTextures( device: GPUDevice, sampler: GPUSampler ) {
 	const records = new Map< string | Video, Texture >();
 	const waiting = new WeakSet< Image >();
 	let smaller: GPURenderPipeline | undefined;
 	let versions = 0;
+	let uses = 0;
 
 	/**
 	 * A texture with the pixels of a source.
@@ -158,7 +161,15 @@ export function createTextures( device: GPUDevice, sampler: GPUSampler ) {
 		record.ready = true;
 	};
 
-	const changed = ( record: Texture ) => record.users.forEach( ( user ) => user() );
+	const changed = ( record: Texture ) => record.users.forEach( ( _, user ) => user() );
+
+	// A user lets go of it: freed when it was the last.
+	const drop = ( record: Texture, user: User ) => {
+		if ( record.users.delete( user ) && ! record.users.size ) {
+			record.texture?.destroy();
+			records.delete( record.key );
+		}
+	};
 
 	// Draws a source smaller, for browsers that decode at full size only.
 	const shrink = ( source: CanvasImageSource, width: number, height: number ) => {
@@ -221,10 +232,10 @@ export function createTextures( device: GPUDevice, sampler: GPUSampler ) {
 	const recordOf = ( key: string | Video, user: User ) => {
 		let record = records.get( key );
 		if ( ! record ) {
-			record = { key, users: new Set(), asked: 0, version: 0 };
+			record = { key, users: new Map(), asked: 0, version: 0 };
 			records.set( key, record );
 		}
-		record.users.add( user );
+		record.users.set( user, ++uses );
 		return record;
 	};
 
@@ -300,15 +311,23 @@ export function createTextures( device: GPUDevice, sampler: GPUSampler ) {
 				: image( user, media as Image, width, maxSize ),
 
 		/**
+		 * Lets go of all but the `KEEP` textures a user asked for last.
+		 *
+		 * @param user Who draws.
+		 */
+		sweep( user: User ) {
+			[ ...records.values() ]
+				.filter( ( record ) => record.users.has( user ) )
+				.sort( ( a, b ) => b.users.get( user )! - a.users.get( user )! )
+				.slice( KEEP )
+				.forEach( ( record ) => drop( record, user ) );
+		},
+
+		/**
 		 * @param user Who no longer draws.
 		 */
 		free( user: User ) {
-			records.forEach( ( record, key ) => {
-				if ( record.users.delete( user ) && ! record.users.size ) {
-					record.texture?.destroy();
-					records.delete( key );
-				}
-			} );
+			records.forEach( ( record ) => drop( record, user ) );
 		},
 	};
 }

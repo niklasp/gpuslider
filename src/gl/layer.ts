@@ -364,11 +364,16 @@ export function gl( {
 
 		// The textures of the slides next to those in view, made while the
 		// slider rests.
-		const ahead = nearby( slider, media, boxes, ( element, w ) =>
-			context?.textures.get(
-				element,
-				w * Math.min( density, win.devicePixelRatio || 1 )
-			)
+		const ahead = nearby(
+			slider,
+			media,
+			boxes,
+			( element, w ) =>
+				context?.textures.get(
+					element,
+					w * Math.min( density, win.devicePixelRatio || 1 )
+				),
+			() => context?.textures.sweep()
 		);
 		slider.on( 'settle', ahead );
 

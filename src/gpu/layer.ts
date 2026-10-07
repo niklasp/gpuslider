@@ -432,13 +432,18 @@ export function gpu( {
 
 		// The textures of the slides next to those in view, made while the
 		// slider rests.
-		const ahead = nearby( slider, media, boxes, ( element, w ) =>
-			context?.shared.textures.get(
-				slider.wake,
-				element,
-				w * Math.min( density, win.devicePixelRatio || 1 ),
-				maxSize
-			)
+		const ahead = nearby(
+			slider,
+			media,
+			boxes,
+			( element, w ) =>
+				context?.shared.textures.get(
+					slider.wake,
+					element,
+					w * Math.min( density, win.devicePixelRatio || 1 ),
+					maxSize
+				),
+			() => context?.shared.textures.sweep( slider.wake )
 		);
 		slider.on( 'settle', ahead );
 

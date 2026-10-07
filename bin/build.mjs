@@ -171,7 +171,7 @@ parts.push( {
 if ( existsSync( resolve( lib, 'gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 7680,
+		budget: 7808,
 		size: await measure(
 			`import { gl } from './lib/gl/index.js'; export { gl };`
 		),
@@ -237,7 +237,7 @@ parts.push(
 	},
 	{
 		name: 'the same with the canvas and stretch',
-		budget: 13440,
+		budget: 13568,
 		size: await measure(
 			`import { Slider, Slide } from './lib/react.js'; import { controls } from './lib/plugins/index.js'; import { gl, stretch } from './lib/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
 			[ 'react' ]

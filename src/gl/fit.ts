@@ -157,20 +157,26 @@ export const empty = ( canvas: OffscreenCanvas ): boolean =>
  * Makes the textures of the slides next to those in view, when the page
  * has time: the first move to a picture does not wait for its texture,
  * which on a phone costs frames. Images only: a video is uploaded while it
- * plays.
+ * plays. Then lets go of the textures that were not drawn for longest.
  *
  * @param slider Slider.
  * @param media The media of the slides.
  * @param boxes Their boxes, as the layers measure them.
  * @param get Asks
  *        for the texture of an image drawn so wide, px.
+ * @param sweep Lets go of the textures beyond `KEEP`.
  * @return Does it, when the page has time.
  */
+// Textures a slider keeps: those it drew last. A gallery of hundreds of
+// pictures does not hold all of them while it is on the screen.
+export const KEEP = 16;
+
 export const nearby = (
 	slider: Slider,
 	media: ( HTMLElement | null | undefined )[],
 	boxes: ( Box | null )[],
-	get: ( element: HTMLImageElement, width: number ) => void
+	get: ( element: HTMLImageElement, width: number ) => void,
+	sweep: () => void
 ): ( () => void ) => () =>
 	( slider.win.requestIdleCallback || setTimeout )( () => {
 		const { places } = slider.view;
@@ -193,4 +199,5 @@ export const nearby = (
 				);
 			}
 		} );
+		sweep();
 	} );
