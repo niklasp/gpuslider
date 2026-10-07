@@ -95,8 +95,8 @@
 
 /*
  * The dots of the dock: close together, and the one of the slide that is
- * seen is a bar that fills while its time runs. `.running` and --run are
- * given by the events of autoplay (see Stage in Home.tsx).
+ * seen is a bar that fills while its time runs. `.running`, `.waiting` and
+ * --run are given by the events of autoplay (see Stage in Home.tsx).
  */
 .dock .dots .gs-dot {
 	width: 14px;
@@ -126,9 +126,14 @@
 		rgb(255 255 255 / 0.3);
 }
 
-/* While the time runs, the bar fills from nothing. */
+/* While the time runs, the bar fills from nothing; while it waits (a move,
+ * a pointer over the slider) it stands where it is. */
 .running .dock .dots .gs-dot[aria-current]::before {
 	animation: run var(--run, 5s) linear calc(-1 * var(--ran, 0ms)) forwards;
+}
+
+.waiting .dock .dots .gs-dot[aria-current]::before {
+	animation-play-state: paused;
 }
 
 @property --filled {

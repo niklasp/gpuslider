@@ -561,17 +561,23 @@ function Stage() {
 		if ( event === 'change' ) {
 			at.current.index = detail as number;
 			setIndex( detail as number );
+			// The bar of the next slide waits empty for its time, which runs
+			// when the slider is there.
+			root?.style.setProperty( '--ran', '0ms' );
+			root?.classList.add( 'waiting' );
 		} else if ( root && event === 'autoplay:run' ) {
 			const { delay, left } = detail as { delay: number; left: number };
 			at.current.ends = performance.now() + left;
 			root.style.setProperty( '--run', `${ delay }ms` );
 			root.style.setProperty( '--ran', `${ delay - left }ms` );
 			// Again from where it is: a class taken away and given again.
-			root.classList.remove( 'running' );
+			root.classList.remove( 'running', 'waiting' );
 			void root.offsetWidth;
 			root.classList.add( 'running' );
 		} else if ( root && event === 'autoplay:wait' ) {
-			root.classList.remove( 'running' );
+			// Stands where it is: a full bar would jump back to nothing when
+			// the time runs again.
+			root.classList.add( 'waiting' );
 		}
 	}, [] );
 	// Asked while the slider is made: what is left of the time of now.
