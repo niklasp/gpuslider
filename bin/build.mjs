@@ -166,7 +166,7 @@ parts.push(
 
 parts.push( {
 	name: 'full: the slider with all its options',
-	budget: 7232,
+	budget: 7296,
 	size: await measure(
 		`import { createSlider } from './lib/full.js'; export { createSlider };`
 	),

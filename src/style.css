@@ -2,7 +2,8 @@
  * gpuslider: the layout, in three tiers.
  *
  * 1. Without the script the track is a native scroller with scroll-snap.
- * 2. With the script (.gs-on) the slides are moved by transforms.
+ * 2. With the script (.gs-on) the slides are moved by `translate`; their
+ *    `transform`, `scale` and `rotate` are the page's.
  * 3. With the canvas layer (.gs-gl) the canvas draws the media.
  *
  * The page decides the layout; the script only measures it:

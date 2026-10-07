@@ -68,7 +68,7 @@ const RUBBER = 0.3;
  * @param slides The slides.
  * @param options Slider options.
  * @param moved How far each slide is moved by its own
- *              transform at the moment.
+ *              translation at the moment.
  * @param shape Gets what was measured and may change it:
  *              for plugins that lay out another way.
  * @return Layout.
@@ -90,12 +90,18 @@ export function measure( root: HTMLElement, track: HTMLElement, slides: HTMLElem
 	const size: number[] = [];
 	slides.forEach( ( el, i ) => {
 		const r = el.getBoundingClientRect();
+		const drawn = y ? r.height : r.width;
+		const laid = ( y ? el.offsetHeight : el.offsetWidth ) * scale;
+		// A slide that the page scales or turns about its middle is as
+		// large as it is laid out, around the same middle; in whole
+		// pixels then.
+		const off = Math.abs( drawn - laid ) > 1 ? ( drawn - laid ) / 2 : 0;
 		let from = rtl ? around.right - r.right : r.left - around.left;
 		if ( y ) {
 			from = r.top - around.top;
 		}
-		left.push( from / scale - ( moved[ i ] || 0 ) );
-		size.push( ( y ? r.height : r.width ) / scale );
+		left.push( ( from + off ) / scale - ( moved[ i ] || 0 ) );
+		size.push( ( drawn - 2 * off ) / scale );
 	} );
 	const span = y ? height : width;
 	const measured: Measured = { y, rtl, width, height, span, gap, left, size };

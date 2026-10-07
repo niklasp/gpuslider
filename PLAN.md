@@ -135,7 +135,7 @@ slider.destroy();
 |---|---|---|
 | Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.6 KB |
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
-| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.06 KB | 7.0 KB (7198 of 7232 B) |
+| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.125 KB | 7.1 KB (7258 of 7296 B, on 2026-10-07) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
 | Canvas layer of WebGL 2 without effects | 7.75 KB | 7.6 KB (7829 of 7936 B, on 2026-10-07) |
@@ -162,6 +162,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **Canvas layer, 7.25 to 7.5 KB, and the one of WebGPU, 9.25 to 9.5 KB.** The textures of the slides next to those in view are made while the slider rests (decision 33): the first move to a picture had a frame of 175 to 285 ms in Chrome with the processor slowed six times, as a phone, and has one of 25 to 42 ms. 187 bytes in WebGL and 183 in WebGPU, with 58 and 82 left before.
 - **Canvas layer, 7.5 to 7.625 KB; a page in React with the canvas, 13.125 to 13.25 KB.** On 2026-10-07, asked of the user and given: a slider keeps the textures of the 16 pictures it drew last, and lets go of the others when it rests (decision 33). A gallery of hundreds of large pictures held all of them while it was on the screen. 93 bytes in WebGL, which had none left, and 78 in WebGPU.
 - **Canvas layer, 7.625 to 7.75 KB.** On 2026-10-07, in the same work as the one before, which the user asked for whole ("do the open work", then "all"): the seam of the post pass (decision 35), 56 bytes, which loads it when an effect asks for it and has the slides drawn into its picture. The pass itself is a part of its own, not counted with the layer.
+- **Full, 7.06 to 7.125 KB.** On 2026-10-07, in the same work: the core moves slides by `translate`, and measures a slide that the page scales or turns as it is laid out (decision 36). 30 bytes, with 3 left before; the ticker that tells `change` and `view.still` had taken the rest that day.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -525,6 +526,14 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **What it costs:** in WebGL the picture has one sample a pixel: the edges of a mesh that bends lose their smoothing while a post effect is there. The numbers the pass reads are its own, the pointer in px of the canvas: a post hook knows nothing of the quads.
 - **Sizes:** 56 bytes in WebGL and 81 in WebGPU for the seam; the passes 2.3 and 2.8 KB, each a part with a budget (see the budgets).
 
+### 36. A slide's transform is the page's
+
+- **What:** the core moves the track, and a slide that a loop sets down on the other side, by `translate`, not by `transform`. `transform`, `scale` and `rotate` of a slide are the page's: a slide that grows under the pointer, or is smaller the further it is from the middle (with `progress()`). A slide that is drawn larger or smaller than it is laid out (by more than a pixel) is measured as large as it is laid out, around the middle where it is drawn.
+- **Why:** before, a loop wrote the `transform` of a slide that it set down on the other side, over what the page had there; and a scaled slide was measured as drawn, so the snaps were where the scaled slides were.
+- **Not:** a plugin that owns the transforms of slides, as this plan said before. The page has CSS for that; what was in the way was the slider.
+- **What it does not do:** the canvas draws a slide where it is laid out, not as the page turns or scales it: with the canvas, what moves a slide is an effect, or `draw()`. A transform with a translation of its own, or about another origin, is measured as if it were about the middle.
+- **Sizes:** 30 bytes in the core; see the budgets.
+
 ## Modules
 
 | File | Does |
@@ -590,7 +599,6 @@ Each phase ends with something that runs and with tests.
 - **Drawing in a worker** (`OffscreenCanvas`): the next step for pages with many sliders. It changes how textures get to the canvas. One device for all sliders of a page is there with WebGPU (decision 16).
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
-- **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
 - **Wheel listener.** It is not passive, because it has to stop the browser's swipe back. Scrolling down over a slider therefore waits for the handler. Swiper does the same.

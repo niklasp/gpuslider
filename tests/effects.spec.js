@@ -158,7 +158,7 @@ test.describe( 'effects', () => {
 	test( 'moving, stretch draws something else than the page would', async ( { page } ) => {
 		await open( page, { n: 5 } );
 		await page.evaluate( () => {
-			window.slider.track.style.transform = 'translate3d(-400px,0,0)';
+			window.slider.track.style.translate = '-400px 0 0';
 		} );
 		const plain = await shot( page );
 		await open( page, { n: 5, plugins: 'gl', effects: 'stretch' } );

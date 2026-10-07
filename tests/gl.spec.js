@@ -180,7 +180,7 @@ test.describe( 'the canvas follows the slider', () => {
 		await settled( page );
 		await open( page, { n: 4 } );
 		await page.evaluate( () => {
-			window.slider.track.style.transform = 'translate3d(-300px,0,0)';
+			window.slider.track.style.translate = '-300px 0 0';
 		} );
 		const { mean, far } = await difference( page, held, await shot( page ) );
 		expect( mean ).toBeLessThan( 2 );

@@ -570,7 +570,7 @@ test.describe( 'at rest', () => {
 			return {
 				classes: root.className,
 				role: root.getAttribute( 'role' ),
-				transform: root.querySelector( '.gs-track' ).style.transform,
+				translate: root.querySelector( '.gs-track' ).style.translate,
 				dots: root.querySelectorAll( '[data-gs-dot]' ).length,
 				inert: [ ...root.querySelectorAll( '.gs-slide' ) ].some(
 					( el ) => el.inert
@@ -580,7 +580,7 @@ test.describe( 'at rest', () => {
 		expect( state ).toEqual( {
 			classes: 'gs',
 			role: null,
-			transform: '',
+			translate: '',
 			dots: 0,
 			inert: false,
 		} );

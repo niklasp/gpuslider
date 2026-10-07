@@ -3,8 +3,11 @@
  * assistive technology what they are.
  *
  * The track moves as a whole (one style per frame). When looping, a slide
- * that left on one side is set down on the other by its own transform,
+ * that left on one side is set down on the other by its own translation,
  * which only changes at that moment.
+ *
+ * They are moved by `translate`, not `transform`: `transform`, `scale` and
+ * `rotate` of a slide are the page's, for its own animations.
  */
 
 import type { Layout } from './layout.js';
@@ -43,7 +46,7 @@ export function createDom( root: HTMLElement, track: HTMLElement, slides: HTMLEl
 	} );
 
 	return {
-		/** How far each slide is moved by its own transform. */
+		/** How far each slide is moved by its own translation. */
 		moved: shift,
 
 		/**
@@ -54,9 +57,7 @@ export function createDom( root: HTMLElement, track: HTMLElement, slides: HTMLEl
 		frame( layout: Layout, motion: Motion, places: Place[] ) {
 			const { stack, rtl, y, left } = layout;
 			const to = ( by: number ) =>
-				y
-					? `translate3d(0,${ by }px,0)`
-					: `translate3d(${ rtl ? -by : by }px,0,0)`;
+				y ? `0 ${ by }px 0` : `${ rtl ? -by : by }px 0 0`;
 			// They lie on top of each other: nothing to move.
 			if ( stack ) {
 				return;
@@ -74,10 +75,10 @@ export function createDom( root: HTMLElement, track: HTMLElement, slides: HTMLEl
 					) / 100;
 				if ( by !== shift[ i ] ) {
 					shift[ i ] = by;
-					slides[ i ].style.transform = by ? to( by ) : '';
+					slides[ i ].style.translate = by ? to( by ) : '';
 				}
 			}
-			track.style.transform = to( snap( -motion.pos ) );
+			track.style.translate = to( snap( -motion.pos ) );
 		},
 
 		/**
@@ -97,9 +98,9 @@ export function createDom( root: HTMLElement, track: HTMLElement, slides: HTMLEl
 
 		destroy() {
 			given.forEach( ( [ el, name ] ) => el.removeAttribute( name ) );
-			track.style.transform = '';
+			track.style.translate = '';
 			slides.forEach( ( slide ) => {
-				slide.style.transform = '';
+				slide.style.translate = '';
 				slide.inert = false;
 			} );
 		},

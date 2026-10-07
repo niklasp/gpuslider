@@ -45,7 +45,7 @@ Three ways, from the least to write to the least to load.
 | `data-gs-lightbox` | A lightbox, drawn by the canvas of the slider, which it gives the slider if it has none. Needs `dist/lightbox.css` |
 | `data-gs-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
-`auto.js` is one file of 8.2 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
+`auto.js` is one file of 8.3 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
 
 The element tells when its slider is made: `gs:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
 
@@ -249,6 +249,15 @@ The script measures what the page lays out, so responsive settings are media que
 ```
 
 Give the slides a height, an `aspect-ratio`, or use `autoHeight()`.
+
+The slider moves slides with `translate`. Their `transform`, `scale` and `rotate` are yours: a slide that grows under the pointer, or is smaller the further it is from the middle. A scaled slide is measured as large as it is laid out, around its middle. The canvas draws slides where they are laid out: with it, an effect or `draw()` moves them.
+
+```css
+.gs-slide { transition: scale 0.3s; }
+.gs-slide:hover { scale: 1.04; }
+/* With progress(): smaller the further from the middle. */
+.gs-slide { scale: calc( 1 - var( --gs-away, 0 ) * 0.1 ); }
+```
 
 ### Corners
 
