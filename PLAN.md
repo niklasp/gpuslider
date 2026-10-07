@@ -1,6 +1,6 @@
 # gpu slider — plan
 
-Named on 2026-09-29: gpu slider, the package `gpuslider`, the prefix `gs-`. The folder of the repo is still called `shaderslide`.
+Named on 2026-09-29: gpu slider, the package `gpuslider`, the prefix `gs-`. The folder of the repo was called `shaderslide` until 2026-10-06, and is `gpuslider` since.
 
 A slider that draws its media on a WebGL canvas and owns its own motion, with no Swiper and no other dependency.
 The question it answers: how far can a canvas slider go and still be small, fast and usable anywhere?
@@ -107,7 +107,7 @@ Browsers allow about 16 contexts per page; sliders beyond the cap run as tier 2 
 - Root: `role="region"`, `aria-roledescription="carousel"`.
 - Slides: `role="group"`, `aria-roledescription="slide"`, "n of m" label. Slides out of view are `inert`.
 - Keyboard: arrow keys, Home, End. Arrows and dots are real buttons.
-- `prefers-reduced-motion`: moves are instant and velocity effects get zero.
+- `prefers-reduced-motion`: moves are instant, velocity effects get zero, and effects under the pointer stay as they are without it (`view.still`).
 - The canvas is `aria-hidden` and takes no pointer events.
 
 ### 11. API and packaging
@@ -543,7 +543,7 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 
 Each phase ends with something that runs and with tests.
 
-| # | Phase | Result | State on 2026-09-28 |
+| # | Phase | Result | State |
 |---|---|---|---|
 | 0 | Skeleton | Repo, this plan, static server, size script, generated demo media, no-script demo | Done |
 | 1 | Engine and DOM | Drag, snap, loop, keyboard, arrows, dots, several per view, stack crossfade. A complete slider without WebGL | Done |
@@ -562,20 +562,15 @@ Each phase ends with something that runs and with tests.
 
 ## Open
 
-- **Before 1.0:** the name and the licence (MIT is in `package.json` as a placeholder). The user on 2026-09-28: later. After 1.0 these cost a major version.
-- **A ticker with dots.** `marquee()` moves the slider past its slides without being at one. Telling `change` while it runs would make dots and thumbnails follow.
 - **Effects that lay out are cut** at the edge of the slider: the canvas is as large as the slider. A canvas that is larger than its slider by what an effect asks for would lift this.
 - **Drawing in a worker** (`OffscreenCanvas`): the next step for pages with many sliders. It changes how textures get to the canvas. One device for all sliders of a page is there with WebGPU (decision 16).
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
-- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 6.6 of 6.75 KB).
+- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 7680 of 7680 B on 2026-10-07).
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
-- **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier.
+- **Textures of slides far from view** are kept until the slider leaves the screen. A slider with very many large images should free them earlier: a texture not asked for in a while is let go, in both layers. The canvas layer of WebGL has no byte left for it, so it waits for a decision on its budget.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
-- **Pointer effects and `prefers-reduced-motion`.** Moves and speed effects are off for visitors who ask for less motion; effects under the pointer are not.
-- **A WebGPU layer**, as an experiment (decision 7).
-- **The first moment below the fold.** The slider takes itself to be on the screen until the browser says otherwise, so a video or autoplay far down the page may start for a frame. Starting as "off screen" is the fix; it needs a look at the first frame of videos.
 - **Wheel listener.** It is not passive, because it has to stop the browser's swipe back. Scrolling down over a slider therefore waits for the handler. Swiper does the same.
 
 ## Tests (Playwright)
