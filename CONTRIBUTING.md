@@ -21,6 +21,7 @@ npm install
 npm start          # http://localhost:4173/bench/: the two layers, measured
 npm test           # Chromium, Firefox and WebKit
 npm run test:gpu   # the same, drawn by WebGPU: Chromium and WebKit
+npm run test:node  # the shaders of WebGPU, exactly, in Node through Dawn: npm install --no-save webgpu first
 npm run bench      # WebGPU and WebGL, measured against each other
 npm run site       # the site with everything in it, http://localhost:5183/
 npm run size       # gzipped sizes, fails over budget; builds dist/

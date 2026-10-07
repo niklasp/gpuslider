@@ -541,6 +541,13 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **Not:** a cheaper body of an effect, swapped in: that is another shader, which the layers do not swap at runtime (decision 32). Nor pausing animated effects: what moves by itself would stop, which is a change the page sees, not a lower quality. Nor going back up when frames are on time again: the picture would change back and forth.
 - **Sizes:** 0.4 KB, a plugin; the property in each layer, 9 and 4 bytes.
 
+### 38. The shaders of WebGPU in Node, through Dawn
+
+- **What:** `npm run test:node` (issue #3) runs the exact tests of the shaders in WGSL (`tests/exact.js`) in Node, on Dawn, the WebGPU of Chromium, from the package `webgpu`: no browser, no flags. It needs `lib/` built and `webgpu` installed by hand (`npm install --no-save webgpu`); without it, it says so and passes.
+- **Why only those:** a test that needs a page (layout, pointer, scrolling, pictures of the canvas) needs a page. The layers draw into a canvas of the page, read media elements and listen to the pointer; in Node that is a shim of the DOM larger than what it tests. The exact tests need a device and the translation, nothing else: what WebGPU computes, against what JS computes.
+- **Why not a dependency:** Dawn for Node is 130 MB, for every install of the repository, and the browsers of the tests have WebGPU already. It is a check that is quick to run where it is installed: 0.2 s for all effects that lay out.
+- **Found on the way:** the object `create()` gives has to be kept while the device is used; collected, it takes the process down.
+
 ## Modules
 
 | File | Does |

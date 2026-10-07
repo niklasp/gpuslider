@@ -103,6 +103,7 @@
 		"test:dist": "node bin/build.mjs && FROM=dist playwright test",
 		"prepack": "node bin/build.mjs --check && npm run types",
 		"test:gpu": "LAYER=gpu playwright test --project=chromium --project=webkit --project=site",
+		"test:node": "node bin/exact-node.mjs",
 		"release": "node bin/release.mjs patch",
 		"release:minor": "node bin/release.mjs minor",
 		"release:major": "node bin/release.mjs major"
