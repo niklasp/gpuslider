@@ -331,7 +331,7 @@ From `gpuslider/plugins`. Each is 0.3 to 1 KB.
 | `keyboard()` | Arrow keys, Home, End. Makes the slider focusable |
 | `wheel()` | The wheel and two fingers on a trackpad, along the slider |
 | `autoplay( 3500 )` | Goes on by itself. Waits for the pointer, the focus, the tab and the screen; `{ delay, hover: false }` does not wait for the pointer, `{ delay, left }` gives the first slide less time, for a slider made again that goes on where it was. `slider.plugins.autoplay.pause()`, `.play()`, `.paused` |
-| `marquee( { speed, hover, scroll, turn } )` | A ticker: runs evenly and without an end, slower under the pointer, faster while the page is scrolled, eased in and out; with `turn` it runs the other way after the page is scrolled up. For `loop: true` |
+| `marquee( { speed, hover, scroll, turn } )` | A ticker: runs evenly and without an end, slower under the pointer, faster while the page is scrolled, eased in and out; with `turn` it runs the other way after the page is scrolled up. It tells `change` for each slide it passes, so dots and thumbnails follow it. For `loop: true` |
 | `thumbs( other )` | The slides are the buttons of another slider |
 | `videos()` | Videos play while their slide is in view. One that says `preload="none"` is loaded when its slide comes into view, not before |
 | `autoHeight()` | As high as the slides in view; the height follows the move |
@@ -376,7 +376,7 @@ createSlider( three, { plugins: [ thumbs( photos ) ] } );
 | `on( name, fn )`, `once( name, fn )` | Both return a function that removes the listener |
 | `off( name, fn )`, `emit( name, detail )` | |
 | `grab()`, `drag( position )`, `release( velocity )` | Move it as a pointer does |
-| `shift( by, push )` | Moves it and where it is going by the same distance; as a push it counts as speed |
+| `shift( by, push )` | Moves it and where it is going by the same distance; as a push it counts as speed. Past a snap it tells `change` |
 | `wake()` | Asks for a frame |
 | `root`, `track`, `slides`, `options`, `layout()`, `motion`, `view`, `win`, `signal` | For plugins. `signal` ends with the slider: what listens with it needs no removing |
 | `destroy()` | Gives the page back as it was |
@@ -973,7 +973,6 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 ## Not yet
 
 - A file for `<script>` without `type="module"`.
-- A ticker has no slide it is at: no `change`, no dots.
 - Effects that lay out are cut at the edge of the slider.
 - Effects that cross the borders of slides (a ripple that follows the pointer over the whole slider): needs a second pass.
 - Slide content is HTML and is not distorted with the image.

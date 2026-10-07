@@ -11,8 +11,8 @@
  * with the scrolling. With `turn` it runs the other way while the page is
  * scrolled up, until it is scrolled down again.
  *
- * While it runs the slider is at no slide: its `index` is the one it was
- * at last, and it tells no `change`.
+ * While it runs, its `index` is the slide it passes last, and it tells
+ * `change` for each: dots and thumbnails follow it.
  *
  * It stands still while the slider is not on the screen, while the focus
  * of the keys is in it, for visitors who ask for less motion, and when it

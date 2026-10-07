@@ -522,7 +522,7 @@ export function createSlider( root: HTMLElement, options: Options = {} ) {
 		wake: engine.wake,
 		/**
 		 * Moves the slider and where it is going by the same distance: what
-		 * it is doing goes on from there.
+		 * it is doing goes on from there. Past a snap, it tells `change`.
 		 *
 		 * @param by Distance, px.
 		 * @param push Whether it counts as speed of the slider,
@@ -530,6 +530,9 @@ export function createSlider( root: HTMLElement, options: Options = {} ) {
 		 */
 		shift( by: number, push?: boolean ) {
 			engine.shift( by, push );
+			// Past a snap, it is at the next one: dots and thumbnails follow
+			// a ticker.
+			aim( within( nearest( layout, motion.target ) ), current() );
 			engine.wake();
 		},
 
@@ -773,7 +776,7 @@ export interface Slider {
 	wake: () => void;
 	/**
 	 * Moves the slider and where it is going by the same distance: what it
-	 * is doing goes on from there.
+	 * is doing goes on from there. Past a snap, it tells `change`.
 	 *
 	 * @param by   Distance, px.
 	 * @param push Whether it counts as speed of the slider, which effects
