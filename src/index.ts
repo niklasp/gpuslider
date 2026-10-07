@@ -645,17 +645,19 @@ export function createSlider( root: HTMLElement, options: Options = {} ) {
 	};
 
 	// Sizes change with the window, with images that load and with styles.
+	// How long the view is, along the way of the slides.
 	let wide = 0;
+	const along = () => ( o.axis === 'y' ? root.clientHeight : root.clientWidth );
 	const observer = new win.ResizeObserver( ( entries ) => {
-		// The slider alone, and as wide as before: its height has changed,
-		// which a plugin may do on every frame of a move. What the height
-		// of its slides does is seen on them.
+		// The slider alone, and as long as before: it has changed across,
+		// which a plugin may do on every frame of a move (auto height).
+		// What the size of its slides does is seen on them.
 		const own =
 			entries.every( ( entry ) => entry.target === root ) &&
-			Math.abs( root.clientWidth - wide ) < 1;
+			Math.abs( along() - wide ) < 1;
 		if ( ! own ) {
 			update();
-			wide = root.clientWidth;
+			wide = along();
 		}
 	} );
 
@@ -674,7 +676,7 @@ export function createSlider( root: HTMLElement, options: Options = {} ) {
 	engine.to( positionOf( layout, index ), true );
 	previous = current();
 
-	wide = layout.width;
+	wide = layout.span;
 	observer.observe( root );
 
 	// Slides that are added or removed.

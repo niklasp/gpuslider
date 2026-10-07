@@ -50,6 +50,8 @@ The engine reads each slide's offset and size once per resize and derives the sn
 
 Why: responsive settings become plain CSS media queries on two custom properties, so the JS needs no breakpoint system. Slides of different widths work without extra code. The layout is identical before and after the script runs.
 
+- **The guard of the `ResizeObserver`** (2026-10-07): an entry of the slider alone, as long as it was along the way of its slides, is not measured again: that is auto height, on every frame of a move. It compared the width, also for a slider that goes down, and swallowed a change of its height when its slides keep their size (`perView: 'auto'`): the snaps were those of the old height. It compares the length along the way now.
+
 ### 4. Three tiers, one markup
 
 1. No script: the track is a native horizontal scroller with scroll-snap.
@@ -620,7 +622,6 @@ Each phase ends with something that runs and with tests.
 
 ## Open
 
-- **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
