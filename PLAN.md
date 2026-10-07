@@ -608,6 +608,7 @@ Each phase ends with something that runs and with tests.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
+- **Exact checks of `color` and `uv`.** The exact tests hold a shader against JS where JS says the same (`place`). For the bodies of the fragment, the twin in JS would have to be written for the test.
 - **Wheel listener.** It is not passive, because it has to stop the browser's swipe back. Scrolling down over a slider therefore waits for the handler. Swiper does the same.
 
 ## Tests (Playwright)
@@ -639,6 +640,7 @@ Each phase ends with something that runs and with tests.
 - A click on a slider that moves holds it, and is a click on the slide under it.
 - A parameter that is written into is drawn in the next frame.
 - `loading()`: the screen and its numbers while media are held back, what fails, the time that is over, two sliders with one screen (`tests/loading.spec.js`).
+- What the `vertex` of every effect that lays out gives is what its `place()` gives in JS, to a hundredth of a pixel, at fourteen places and speeds of a slide and 25 points of it: the GLSL run by WebGL with transform feedback, the WGSL it is translated into by WebGPU in a compute shader, numbers read back, not pictures (`tests/exact.spec.js`, issue #2). A change of one percent in `dome` is two pixels. What `color` and `uv` do (the bevel of `slab`, the threads of `unweave`) has no twin in JS, and is still held against the other layer in pictures.
 
 ## Risks
 

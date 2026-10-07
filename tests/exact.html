@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>gpu slider: the shaders, exactly</title>
+<script type="module">
+	/*
+	 * Every effect that lays out, its `vertex` run by WebGL and by WebGPU
+	 * and held against its `place`: `window.said` has, per effect, how far
+	 * the furthest point of each is from what `place` says, px.
+	 */
+	import { runGlsl, runWgsl, expected, apart, CASES } from './exact.js';
+
+	const from = new URLSearchParams( location.search ).get( 'from' ) || 'src';
+	// What is built has the effects in one file, with the shaders made
+	// small; the translation is the one of `lib/`.
+	const effects = await import( from === 'dist' ? '../dist/effects.js' : `../${ from }/gl/effects/index.js` );
+	const { wgsl, rename } = await import( `../${ from === 'dist' ? 'lib' : from }/gpu/wgsl.js` );
+	const gl = document.createElement( 'canvas' ).getContext( 'webgl2' );
+	const device = await ( await navigator.gpu?.requestAdapter() )?.requestDevice();
+	const said = {};
+	for ( const [ name, make ] of Object.entries( effects ) ) {
+		// What is built has the transitions in the same file: some of them
+		// are made of others.
+		let effect;
+		try {
+			effect = make();
+		} catch {
+			continue;
+		}
+		if ( ! effect?.place || ! effect.vertex ) {
+			continue;
+		}
+		const wanted = CASES.map( ( about ) => expected( effect, about ) );
+		const worst = ( got ) => Math.max( ...got.map( ( points, i ) => apart( points, wanted[ i ] ) ) );
+		said[ name ] = {
+			gl: gl ? worst( runGlsl( gl, effect ) ) : null,
+			gpu: device ? worst( await runWgsl( device, effect, wgsl, rename ) ) : null,
+		};
+	}
+	window.said = said;
+</script>
+</html>
