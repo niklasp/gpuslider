@@ -9,6 +9,10 @@
  *     uv          vec2 ( vec2 uv )               moves the lookup
  *     color       vec4 ( vec4 color, vec2 uv )   changes the result; may
  *                                                call `media( uv )`
+ * and, over the whole canvas, after all slides are drawn (see `pass.js`),
+ *
+ *     post        vec4 ( vec4 color, vec2 uv )   may call `scene( uv )`
+ *
  * and, for a stack,
  *
  *     transition  GLSL with a function `vec4 transition( vec2 uv )` that
@@ -86,6 +90,11 @@ export interface Effect {
 	color?: string;
 	/** For a stack: mixes two slides. */
 	transition?: string;
+	/**
+	 * Changes what all slides drew, over the whole canvas: crosses the
+	 * gaps and the borders of the slides (see `pass.js`).
+	 */
+	post?: string;
 	/**
 	 * Whether its transition is drawn in a row too, as `edges()` does; any
 	 * other is for a stack, and a row leaves it out.

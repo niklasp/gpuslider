@@ -586,6 +586,9 @@ export function gpu( {
 			 */
 			lift: null as HTMLElement | null,
 
+			/** The post pass, when an effect has one: loaded then. */
+			post: null as ReturnType< typeof import( './post.js' ).post > | null,
+
 			/**
 			 * @param element Media element.
 			 * @return Whether the canvas draws it.
@@ -602,6 +605,12 @@ export function gpu( {
 						stack ? FADE : null,
 						slider.layout().y
 					);
+					if ( effects.some( ( effect ) => effect.post ) ) {
+						import( './post.js' ).then( ( made ) => {
+							layer.post = made.post( slider, layer, effects );
+							slider.wake();
+						} );
+					}
 					if ( shader.pointer ) {
 						[ 'pointerdown', 'pointermove' ].forEach( ( name ) =>
 							root.addEventListener( name, move as EventListener, listening )
@@ -938,7 +947,9 @@ export function gpu( {
 				);
 
 				const encoder = device.createCommandEncoder();
-				const screen = surface.getCurrentTexture().createView();
+				const real = surface.getCurrentTexture().createView();
+				// With a post pass, the slides go into its picture first.
+				const screen = layer.post?.into( device, shared.format, real ) || real;
 				const [ colour, depth ] = context.views || [];
 				const pass = encoder.beginRenderPass( {
 					colorAttachments: [
@@ -1005,6 +1016,7 @@ export function gpu( {
 					pass.drawIndexed( mesh.indices );
 				} );
 				pass.end();
+				layer.post?.draw( encoder );
 				device.queue.submit( [ encoder.finish() ] );
 				if ( preserve ) {
 					context.picture = new OffscreenCanvas(

@@ -138,7 +138,9 @@ slider.destroy();
 | Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.06 KB | 7.0 KB (7198 of 7232 B) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 7.625 KB | 7.6 KB (7773 of 7808 B, on 2026-10-07) |
+| Canvas layer of WebGL 2 without effects | 7.75 KB | 7.6 KB (7829 of 7936 B, on 2026-10-07) |
+| Post pass of WebGL, loaded when an effect asks for it | 2.5 KB | 2.3 KB (2383 of 2560 B) |
+| Post pass of WebGPU, loaded when an effect asks for it | 3 KB | 2.8 KB (2878 of 3072 B) |
 | Canvas layer of WebGPU without effects | 9.5 KB | 9.3 KB (9573 of 9728 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
@@ -159,6 +161,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **Lightbox, 2 to 2.25 KB.** Its arrows come from where the arrows of the slider are and go back there, as far as it is open, instead of fading out on the page and in on the screen; `controls()` says what its buttons are (`elements`). 184 bytes over, with 2 left before.
 - **Canvas layer, 7.25 to 7.5 KB, and the one of WebGPU, 9.25 to 9.5 KB.** The textures of the slides next to those in view are made while the slider rests (decision 33): the first move to a picture had a frame of 175 to 285 ms in Chrome with the processor slowed six times, as a phone, and has one of 25 to 42 ms. 187 bytes in WebGL and 183 in WebGPU, with 58 and 82 left before.
 - **Canvas layer, 7.5 to 7.625 KB; a page in React with the canvas, 13.125 to 13.25 KB.** On 2026-10-07, asked of the user and given: a slider keeps the textures of the 16 pictures it drew last, and lets go of the others when it rests (decision 33). A gallery of hundreds of large pictures held all of them while it was on the screen. 93 bytes in WebGL, which had none left, and 78 in WebGPU.
+- **Canvas layer, 7.625 to 7.75 KB.** On 2026-10-07, in the same work as the one before, which the user asked for whole ("do the open work", then "all"): the seam of the post pass (decision 35), 56 bytes, which loads it when an effect asks for it and has the slides drawn into its picture. The pass itself is a part of its own, not counted with the layer.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).
@@ -513,6 +516,15 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 - **Not for stacks:** lifted, a stack is drawn as a row, as in the lightbox.
 - **Sizes:** in `canvas()` only, 36 bytes; the layers are as they were.
 
+### 35. A post pass, loaded when an effect asks for it
+
+- **What:** a fifth hook of an effect, `post`: `vec4 ( vec4 color, vec2 uv )` over the whole canvas, after all slides are drawn, with `scene( uv )` for what they drew anywhere. The slides are drawn into a picture (a framebuffer in WebGL, a texture in WebGPU), and that picture onto the canvas through one shader of all post hooks. `loupe()` is the first effect with it: a lens that crosses the gaps and the borders of the slides.
+- **Where the work is:** in `gl/post.ts` and `gpu/post.ts`, which a layer imports when one of its effects has a `post` hook, and `gl/pass.ts`, which both share: the hooks made into functions, the numbers they read packed in slots of four, the pointer over the canvas. In the layers a seam only: WebGL calls `post( g )` before its clear, which binds the framebuffer, and the pass draws it on the canvas in the `frame` event after; WebGPU asks `post.into()` for what to draw into and calls `post.draw( encoder )` before it submits, so the picture of `preserve` has the pass in it.
+- **Until its shader is compiled** the slides are drawn on the canvas as they are; a shader that does not compile is said in the console and the pass is left out.
+- **Not:** the pass from outside the layers, by taking over their target: it would rest on what they do not promise (a program bound once, when they clear, the samples of a mesh). Nor in the layers: they would carry it whether an effect needs it or not.
+- **What it costs:** in WebGL the picture has one sample a pixel: the edges of a mesh that bends lose their smoothing while a post effect is there. The numbers the pass reads are its own, the pointer in px of the canvas: a post hook knows nothing of the quads.
+- **Sizes:** 56 bytes in WebGL and 81 in WebGPU for the seam; the passes 2.3 and 2.8 KB, each a part with a budget (see the budgets).
+
 ## Modules
 
 | File | Does |
@@ -549,6 +561,8 @@ Asked for by the user on 2026-09-30: "why handover. can we not use the same canv
 | `bin/make-wall.mjs` | The pictures of the wall |
 | `src/gl/fit.ts` | Where `object-fit` and `object-position` put the pixels |
 | `src/gl/effects/*.ts` | One effect per file |
+| `src/gl/pass.ts` | What the post passes share: the post hooks as functions, the numbers they read, the pointer over the canvas |
+| `src/gl/post.ts`, `src/gpu/post.ts` | The post pass of each layer, loaded when an effect has a `post` hook |
 
 ## Phases
 
@@ -577,7 +591,6 @@ Each phase ends with something that runs and with tests.
 - **The guard of the `ResizeObserver`** (an entry of the slider alone with the width it had is skipped) is there for every slider since the split, not only for auto height. No test has shown a resize that it swallows.
 - **The wheel and the swipe back.** `overscroll-behavior-x: contain` on the slider could make the listener passive. It needs a hand on a trackpad.
 - **Transforms on a slide.** The slider moves slides by `transform` and measures their boxes, so CSS that scales or turns a slide itself gets in its way. What is in the slide can be transformed freely. A plugin for DOM animations that owns the transform of the slide would lift this.
-- **Post pass.** Slides into a framebuffer, then one shader over the whole canvas: pointer trails and ripples that cross slide borders. It should be a second, optional layer so that the canvas layer stays in its budget (it is at 7680 of 7680 B on 2026-10-07).
 - **Real phones.** Texture memory, touch feel and video on iOS are only reasoned about so far, not measured.
 - **Too few slides to loop.** The slider then does not loop. Drawing a slide twice on the canvas would work; the HTML content of a slide cannot be in two places.
 - **Wheel listener.** It is not passive, because it has to stop the browser's swipe back. Scrolling down over a slider therefore waits for the handler. Swiper does the same.

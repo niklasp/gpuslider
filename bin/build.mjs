@@ -121,6 +121,10 @@ async function measure( source, external = [] ) {
 
 const parts = [];
 
+// What the layers load when an effect asks for it, and not before: not
+// counted with them.
+const later = [ './lib/gl/post.js', './lib/gpu/post.js' ];
+
 parts.push( {
 	name: 'core',
 	budget: 5120,
@@ -171,9 +175,10 @@ parts.push( {
 if ( existsSync( resolve( lib, 'gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 7808,
+		budget: 7936,
 		size: await measure(
-			`import { gl } from './lib/gl/index.js'; export { gl };`
+			`import { gl } from './lib/gl/index.js'; export { gl };`,
+			later
 		),
 	} );
 	parts.push( {
@@ -194,8 +199,19 @@ if ( existsSync( resolve( lib, 'gl/index.js' ) ) ) {
 		name: 'canvas layer of WebGPU, no effects',
 		budget: 9728,
 		size: await measure(
-			`import { gpu } from './lib/gpu/index.js'; export { gpu };`
+			`import { gpu } from './lib/gpu/index.js'; export { gpu };`,
+			later
 		),
+	} );
+	parts.push( {
+		name: 'post pass of WebGL, loaded when an effect asks for it',
+		budget: 2560,
+		size: await measure( `export * from './lib/gl/post.js';` ),
+	} );
+	parts.push( {
+		name: 'post pass of WebGPU, loaded when an effect asks for it',
+		budget: 3072,
+		size: await measure( `export * from './lib/gpu/post.js';` ),
 	} );
 	parts.push( {
 		name: 'choose: several transitions, one picked',
@@ -240,7 +256,7 @@ parts.push(
 		budget: 13568,
 		size: await measure(
 			`import { Slider, Slide } from './lib/react.js'; import { controls } from './lib/plugins/index.js'; import { gl, stretch } from './lib/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
-			[ 'react' ]
+			[ 'react', ...later ]
 		),
 	}
 );

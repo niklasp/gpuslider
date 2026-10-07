@@ -8,6 +8,8 @@
  * With the place of the slide, which makes them layouts: `bend`,
  * `coverflow`, `pile`, `fan`, `parallax`, `dome`, `wave`, `unweave`, and
  * `edges`, which is any transition at the two ends of the view.
+ * Over the whole slider, across the gaps and the borders of the slides:
+ * `loupe`, drawn by the post pass.
  */
 export { stretch } from './stretch.js';
 export { split } from './split.js';
@@ -33,3 +35,4 @@ export { unweave } from './unweave.js';
 export { edges } from './edges.js';
 export { jelly } from './jelly.js';
 export { slab } from './slab.js';
+export { loupe } from './loupe.js';

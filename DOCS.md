@@ -675,6 +675,12 @@ Any number, in the order given.
 | `jelly( { amount, across } )` | The slides are soft: what moves them pulls them out of shape; bends the mesh | Speed |
 | `slab( { edge, bend, spread, shine, zoom } )` | The slides are thick glass with a round bevel: the flat magnifies a little (`zoom`), the image is refracted through the bevel and its colours come apart most at the rim, the rim and the bevel catch a light at the top left, and a gloss with a streak of reflection lies on the flat | Speed, a little |
 
+Over the whole slider, across the gaps and the borders of the slides: the slides are drawn into a picture first, and the effect is laid over all of it (the post pass, 2.3 to 2.8 KB, loaded when such an effect is there).
+
+| Effect | Does | Moves with |
+|---|---|---|
+| `loupe( { size, strength } )` | A loupe with a rim of glass that the pointer carries over the whole slider, gaps and borders too; `size` in px | Pointer |
+
 Effects that lay out: the slider moves as ever, the effect says where a slide is drawn. For one slide per view or `align: 'center'`; give the slider padding for what leaves its place.
 
 | Effect | Does |
@@ -783,6 +789,7 @@ const wobble = ( { amount = 0.02 } = {} ) => ( {
 | `uv` | `vec2 ( vec2 uv )` | Moves the lookup |
 | `color` | `vec4 ( vec4 color, vec2 uv )` | Changes the result; may call `media( uv )` |
 | `transition` | GLSL with `vec4 transition( vec2 uv )` | Stack only. `getFromColor`, `getToColor`, `progress`: what is written for gl-transitions runs as it is |
+| `post` | `vec4 ( vec4 color, vec2 uv )` | Over the whole canvas, after all slides are drawn: `uv` from its top left, `scene( uv )` is what the slides drew anywhere. It reads `uPointer` and `uPointerSpeed` in px of the canvas, `uView` (its size), `uPointerIn`, `uTime` and `uVelocity`. See `src/gl/pass.ts` |
 
 A parameter is a number, or an array of 1 to 4. An array stays the array it was given: what the page writes into it is drawn in the next frame, which `slider.wake()` asks for. That is how a page tells an effect what only the page knows: where it is scrolled to, how loud the music is, where the middle of a wall of sliders is.
 
@@ -968,6 +975,7 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
 | Canvas layer of WebGPU | 9.4 KB |
 | Canvas layer of WebGL 2 | 7.6 KB |
+| The post pass, for an effect over the whole canvas | 2.3 KB with WebGL, 2.8 KB with WebGPU |
 | An effect | 0.2 to 0.8 KB |
 | A transition | 0.2 to 0.8 KB |
 | Lightbox | 2.2 KB |
@@ -979,7 +987,6 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 ## Not yet
 
 - A file for `<script>` without `type="module"`.
-- Effects that cross the borders of slides (a ripple that follows the pointer over the whole slider): needs a second pass.
 - Slide content is HTML and is not distorted with the image.
 - Cross-origin media needs CORS headers and `crossorigin` on the element; without them the page draws that slide.
 - Tried on real phones: not yet. The tests run desktop engines.

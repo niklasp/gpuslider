@@ -508,6 +508,9 @@ export function gl( {
 			 */
 			lift: null as HTMLElement | null,
 
+			/** The post pass, when an effect has one: loaded then. */
+			post: null as ( ( g: WebGL2RenderingContext ) => void ) | null,
+
 			/**
 			 * @param element Media element.
 			 * @return Whether the canvas draws it.
@@ -525,6 +528,12 @@ export function gl( {
 						layout.y
 					);
 					kind = `${ shader.mesh }${ preserve }`;
+					if ( effects.some( ( effect ) => effect.post ) ) {
+						import( './post.js' ).then( ( made ) => {
+							layer.post = made.post( slider, layer, effects );
+							slider.wake();
+						} );
+					}
 					if ( shader.pointer ) {
 						[ 'pointerdown', 'pointermove' ].forEach( ( name ) =>
 							root.addEventListener( name, move as EventListener, listening )
@@ -640,6 +649,7 @@ export function gl( {
 				// Effects have the way of the slides as their x.
 				const down = layout.y;
 				const turn = < T >( fn: ( x: number, y: number ) => T, x: number, y: number ) => ( down ? fn( y, x ) : fn( x, y ) );
+				layer.post?.( g );
 				g.clear( g.COLOR_BUFFER_BIT | g.DEPTH_BUFFER_BIT );
 				turn( ( x, y ) => g.uniform2f( at.uView, x, y ), width, height );
 				if ( down ) {
