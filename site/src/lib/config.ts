@@ -23,6 +23,7 @@ import {
 	dome,
 	jelly,
 	slab,
+	loupe,
 	type Effect,
 } from 'gpuslider/effects';
 import * as transitions from '../../../src/gl/transitions/index.js';
@@ -66,6 +67,7 @@ export const POINTERS = {
 	glass: 'Fluted glass',
 	cells: 'Pixels',
 	ascii: 'ASCII',
+	loupe: 'Loupe, over the gaps',
 } as const;
 
 export type PointerName = keyof typeof POINTERS;
@@ -176,6 +178,7 @@ const point = ( name: PointerName, k: number ): Effect[] =>
 		glass: () => [ glass( { amount: k } ) ],
 		cells: () => [ cells( { zoom: 0.8 * k } ) ],
 		ascii: () => [ ascii( { size: 0.5 * k } ) ],
+		loupe: () => [ loupe( { strength: Math.min( 0.8, 0.4 * k ) } ) ],
 	} )[ name ]();
 
 /**
