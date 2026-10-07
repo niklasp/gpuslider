@@ -15,7 +15,7 @@
 - **Small.** The core is under 5 KB gzipped. Arrows, dots, autoplay, a lightbox, thumbnails, a ticker, a loading screen: each is a plugin, and what you don't import isn't in your bundle.
 - **A lightbox** where the image grows out of its slide, drawn by the same canvas, effects and all.
 - **React and SSR.** `<Slider>` and `<Slide>`, ready for Next.js server rendering with no hydration mismatch and no layout shift. Vue and plain HTML work too.
-- **Accessible.** Real HTML slides, keyboard support, `aria` for arrows and dots. With reduced motion asked for, moves are instant and speed effects stay still.
+- **Accessible.** Real HTML slides, keyboard support, `aria` for arrows and dots. With reduced motion asked for, moves are instant, and speed and pointer effects stay still.
 
 ## Install
 

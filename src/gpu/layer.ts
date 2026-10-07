@@ -464,7 +464,8 @@ export function gpu( {
 			const box = root.getBoundingClientRect();
 			pointer.tx = event.clientX - box.left - root.clientLeft;
 			pointer.ty = event.clientY - box.top - root.clientTop;
-			pointer.tin = 1;
+			// Under the pointer nothing moves for who asks for less motion.
+			pointer.tin = +! slider.view.still;
 			// It comes in where it is, not from where it left.
 			if ( pointer.in < 0.01 ) {
 				pointer.x = pointer.tx;

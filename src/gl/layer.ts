@@ -394,7 +394,8 @@ export function gl( {
 			const box = root.getBoundingClientRect();
 			pointer.tx = event.clientX - box.left - root.clientLeft;
 			pointer.ty = event.clientY - box.top - root.clientTop;
-			pointer.tin = 1;
+			// Under the pointer nothing moves for who asks for less motion.
+			pointer.tin = +! slider.view.still;
 			// It comes in where it is, not from where it left.
 			if ( pointer.in < 0.01 ) {
 				pointer.x = pointer.tx;
@@ -510,13 +511,13 @@ export function gl( {
 
 			slides: read,
 
-			measure() {
+			measure( { layout } ) {
 				if ( ! shader ) {
-					stack = slider.layout().stack;
+					stack = layout.stack;
 					shader = compose(
 						effects,
 						stack ? FADE : null,
-						slider.layout().y
+						layout.y
 					);
 					kind = `${ shader.mesh }${ preserve }`;
 					if ( shader.pointer ) {
@@ -545,7 +546,7 @@ export function gl( {
 				const scale = root.offsetWidth
 					? around.width / root.offsetWidth || 1
 					: 1;
-				const down = slider.layout().y;
+				const down = layout.y;
 				slides.forEach( ( slide, i ) => {
 					const element = media[ i ];
 					if ( ! element ) {

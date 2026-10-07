@@ -87,6 +87,8 @@ export interface View {
 	places: Place[];
 	/** Views per second; zero for visitors who want less motion. */
 	velocity: number;
+	/** Whether the visitor wants less motion. */
+	still: boolean;
 }
 
 /** What the slider calls of a plugin. */
@@ -291,6 +293,7 @@ export function createSlider( root: HTMLElement, options: Options = {} ) {
 		motion: null as unknown as Motion,
 		places,
 		velocity: 0,
+		still: false,
 	};
 
 	// The slides in view that were told last.
@@ -302,7 +305,8 @@ export function createSlider( root: HTMLElement, options: Options = {} ) {
 	const engine = createEngine( win, {
 		frame( motion, dt, now ) {
 			place( layout, motion.pos, places );
-			view.velocity = still.matches
+			view.still = still.matches;
+			view.velocity = view.still
 				? 0
 				: motion.smooth / ( layout.span || 1 );
 			dom.frame( layout, motion, places );

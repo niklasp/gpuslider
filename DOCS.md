@@ -378,7 +378,7 @@ createSlider( three, { plugins: [ thumbs( photos ) ] } );
 | `grab()`, `drag( position )`, `release( velocity )` | Move it as a pointer does |
 | `shift( by, push )` | Moves it and where it is going by the same distance; as a push it counts as speed. Past a snap it tells `change` |
 | `wake()` | Asks for a frame |
-| `root`, `track`, `slides`, `options`, `layout()`, `motion`, `view`, `win`, `signal` | For plugins. `signal` ends with the slider: what listens with it needs no removing |
+| `root`, `track`, `slides`, `options`, `layout()`, `motion`, `view`, `win`, `signal` | For plugins. `signal` ends with the slider: what listens with it needs no removing. `view.still` says whether the visitor asks for less motion |
 | `destroy()` | Gives the page back as it was |
 
 Slides that are added to the track or removed from it are seen by the slider: render them with whatever renders your page.
@@ -954,9 +954,9 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 
 | Part | Size |
 |---|---|
-| Core | 4.6 KB |
+| Core | 4.7 KB |
 | A plugin | 0.3 to 1 KB |
-| `gpuslider/full`: the core with all its options | 7.0 KB |
+| `gpuslider/full`: the core with all its options | 7.1 KB |
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.3 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
