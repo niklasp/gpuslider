@@ -623,7 +623,7 @@ import { stretch } from 'gpuslider/effects';
 canvas( { effects: [ stretch() ], eager: false, density: 2, maxSize: 2048, perspective: 1200 } )
 ```
 
-`canvas()` draws with WebGPU where the browser has it and with WebGL 2 where not. It is 0.3 KB, and loads the layer it takes when the page has time: no page loads the layer it does not draw with. Both layers draw the same picture from the same effects; the tests hold them against each other, effect by effect. `canvas:ready` says which one it is, and the layer is `slider.plugins.gpu` or `slider.plugins.gl`.
+`canvas()` draws with WebGPU where the browser has it and with WebGL 2 where not, or where WebGPU has not answered within two seconds. It is 0.3 KB, and loads the layer it takes when the page has time: no page loads the layer it does not draw with. Both layers draw the same picture from the same effects; the tests hold them against each other, effect by effect. `canvas:ready` says which one it is, and the layer is `slider.plugins.gpu` or `slider.plugins.gl`.
 
 The canvas is as large as the slider, so what an effect lays out beyond the slider is cut at its edge. `stage`, an element around the slider, makes the canvas cover that element instead: covers that turn out of the slider, a fan wider than it, are drawn as far as the stage reaches. The stage is positioned (`position: relative`) and measured with the slider. For rows: a stack on a stage is drawn as a row.
 

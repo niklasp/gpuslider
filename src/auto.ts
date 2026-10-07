@@ -72,13 +72,15 @@ export function auto( within: Document | Element = document ) {
 		if ( drawn !== undefined || gsLightbox !== undefined ) {
 			const win = root.ownerDocument.defaultView!;
 			( win.requestIdleCallback || win.setTimeout )( async () => {
-				// A browser may know WebGPU and have nothing to run it on.
+				// A browser may know WebGPU and have nothing to run it on, or
+				// not answer at all: after two seconds WebGL draws.
 				const can =
 					gsGpu !== undefined ||
 					( gsGl === undefined &&
-						( await win.navigator.gpu
-							?.requestAdapter()
-							.catch( () => null ) ) );
+						( await Promise.race( [
+							win.navigator.gpu?.requestAdapter().catch( () => null ),
+							new Promise( ( done ) => win.setTimeout( done, 2000 ) ),
+						] ) ) );
 				// The effects and the layer, by their name.
 				const canvas: Record< string, Function > = can
 					? await import( './gpu/index.js' )

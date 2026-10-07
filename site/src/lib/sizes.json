@@ -18,7 +18,7 @@
 		"react: what <Slider> and <Slide> add": 596,
 		"full: the slider with all its options": 7270,
 		"canvas layer, no effects": 7838,
-		"canvas: what chooses the layer": 387,
+		"canvas: what chooses the layer": 417,
 		"canvas: which slide is seen at a point": 1065,
 		"canvas layer of WebGPU, no effects": 9667,
 		"post pass of WebGL, loaded when an effect asks for it": 2383,
@@ -79,8 +79,8 @@
 		"lightbox": 2228
 	},
 	"dist": {
-		"auto.js": 8482,
-		"canvas.js": 407,
+		"auto.js": 8504,
+		"canvas.js": 437,
 		"effects.js": 8464,
 		"full.js": 10973,
 		"gl.js": 17893,

@@ -106,10 +106,14 @@ export function canvas( { layer, stage, ...options }: Options = {} ) {
 		const { win, signal } = slider;
 		const hooks = new Set< Hook >();
 		( win.requestIdleCallback || win.setTimeout )( async () => {
-			// A browser may know WebGPU and have nothing to run it on.
+			// A browser may know WebGPU and have nothing to run it on, or
+			// not answer at all: after two seconds WebGL draws.
 			const can =
 				layer !== 'gl' &&
-				( await win.navigator.gpu?.requestAdapter().catch( () => null ) );
+				( await Promise.race( [
+					win.navigator.gpu?.requestAdapter().catch( () => null ),
+					new Promise( ( done ) => win.setTimeout( done, 2000 ) ),
+				] ) );
 			const made =
 				can || layer === 'gpu'
 					? ( await import( './gpu/layer.js' ) ).gpu
