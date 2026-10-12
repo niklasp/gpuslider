@@ -154,6 +154,12 @@ A slider is an element with a track in it, and the slides are the children of th
 		lead: 'What each part costs in the bundle of who imports it. And what the library does not do, said as plainly as what it does.',
 		parts: [ 'Size', 'Not yet' ],
 	},
+	{
+		slug: 'compared',
+		title: 'Compared with Swiper and others',
+		lead: 'gpuslider beside Swiper, Splide, Embla and Keen Slider: what each draws with, what it weighs, and when to take which. With the questions that are asked most.',
+		parts: [ { part: 'Compared', bare: true }, 'Questions' ],
+	},
 ];
 
 /** The name of a page in `virtual:docs/<name>`. */

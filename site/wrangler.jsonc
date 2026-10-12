@@ -1,5 +1,5 @@
 // The site on Cloudflare: the files of `dist/` as they are built, at
-// gpuslider.com. `npm run build`, then `npx wrangler deploy`.
+// gpuslider.com. `npm run build`, then `npx wrangler deploy`, then `npm run indexnow`.
 {
 	"name": "gpuslider",
 	"compatibility_date": "2026-09-30",

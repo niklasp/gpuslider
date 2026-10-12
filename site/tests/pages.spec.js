@@ -23,6 +23,7 @@ const DOCS = [
 	[ '/docs/extending/', 'Extending' ],
 	[ '/docs/community/', 'Community plugins' ],
 	[ '/docs/size/', 'Size, and what is not there yet' ],
+	[ '/docs/compared/', 'Compared with Swiper and others' ],
 ];
 
 /** What the console of a page said that should not be said. */

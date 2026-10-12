@@ -16,8 +16,10 @@
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { embeddable } from './embed.js';
 
 const dist = resolve( import.meta.dirname, 'dist' );
 const { render, pages } = await import(
@@ -36,6 +38,27 @@ const unescape = ( text ) =>
 const ORIGIN = ( process.env.SITE_URL || 'https://gpuslider.com' ).replace( /\/$/, '' );
 const NAME = 'gpu slider';
 const REPO = 'https://github.com/niklasp/gpuslider';
+const NPM = 'https://www.npmjs.com/package/gpuslider';
+const { version } = JSON.parse( readFileSync( resolve( import.meta.dirname, '../package.json' ), 'utf8' ) );
+
+// The questions of DOCS.md, with their answers as plain text: for the
+// page that has them, as FAQPage.
+const questions = (
+	readFileSync( resolve( import.meta.dirname, '../DOCS.md' ), 'utf8' ).split( /^## Questions$/m )[ 1 ] || ''
+)
+	.split( /^## /m )[ 0 ]
+	.split( /^### /m )
+	.slice( 1 )
+	.map( ( part ) => {
+		const [ question, ...rest ] = part.trim().split( '\n' );
+		const answer = rest
+			.join( ' ' )
+			.replace( /\[([^\]]+)\]\([^)]+\)/g, '$1' )
+			.replace( /`/g, '' )
+			.replace( /\s+/g, ' ' )
+			.trim();
+		return { question, answer };
+	} );
 
 // The picture of a shared link: the page, taken by `og.mjs`. A page
 // without one of its own, the one of the page it is in.
@@ -55,14 +78,29 @@ function head( path, title, description ) {
 		? [
 				site,
 				{
-					'@type': 'SoftwareSourceCode',
+					'@type': [ 'SoftwareApplication', 'SoftwareSourceCode' ],
+					'@id': `${ ORIGIN }/#software`,
 					name: NAME,
+					alternateName: 'gpuslider',
 					description,
 					url,
+					softwareVersion: version,
+					applicationCategory: 'DeveloperApplication',
+					applicationSubCategory: 'JavaScript slider and carousel library',
+					operatingSystem: 'Web browser',
+					offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
 					codeRepository: REPO,
-					programmingLanguage: [ 'JavaScript', 'GLSL', 'WGSL' ],
+					downloadUrl: NPM,
+					installUrl: NPM,
+					programmingLanguage: [ 'JavaScript', 'TypeScript', 'GLSL', 'WGSL' ],
 					runtimePlatform: 'Web browser (WebGPU, WebGL 2)',
 					license: 'https://opensource.org/licenses/MIT',
+					author: {
+						'@type': 'Person',
+						name: 'Niklas Jurij Plessing',
+						url: 'https://github.com/niklasp',
+					},
+					sameAs: [ REPO, NPM ],
 				},
 		  ]
 		: [
@@ -85,6 +123,18 @@ function head( path, title, description ) {
 							item: `${ ORIGIN }/${ parts.slice( 0, i + 1 ).join( '/' ) }/`,
 						} ) ),
 				},
+				...( path === '/docs/compared/' && questions.length
+					? [
+							{
+								'@type': 'FAQPage',
+								mainEntity: questions.map( ( { question, answer } ) => ( {
+									'@type': 'Question',
+									name: question,
+									acceptedAnswer: { '@type': 'Answer', text: answer },
+								} ) ),
+							},
+					  ]
+					: [] ),
 		  ];
 	const image = `${ ORIGIN }/og/${ picture( path ) }.jpg`;
 	const attr = ( text ) => escape( text );
@@ -101,12 +151,25 @@ function head( path, title, description ) {
 		`<meta property="og:image:alt" content="${ attr( title ) }" />`,
 		'<meta name="twitter:card" content="summary_large_image" />',
 		'<link rel="alternate" type="text/plain" href="/llms.txt" title="For language models" />',
+		...( embeddable( path ) ? embed( url, title ) : [] ),
 		`<script type="application/ld+json">${ JSON.stringify( {
 			'@context': 'https://schema.org',
 			'@graph': facts,
 		} ).replace( /</g, '\\u003c' ) }</script>`,
 	].join( '\n\t\t' );
 }
+/**
+ * For a page that other sites can embed: where they find it as a frame
+ * (oEmbed, see `embed.js`), and, in a frame, links that open in a tab of
+ * their own, not in the frame; the way back to the examples is not
+ * there.
+ */
+const embed = ( url, title ) => [
+	`<link rel="alternate" type="application/json+oembed" href="${ ORIGIN }/oembed?url=${ encodeURIComponent( url ) }&amp;format=json" title="${ escape( title ) }" />`,
+	`<script>if(top!==self){document.documentElement.dataset.embedded='';addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(a&&!a.target&&a.getAttribute('href')[0]!=='#'){a.target='_blank';a.rel='noopener'}},true)}</script>`,
+	'<style>[data-embedded] header a[href="/examples/"]{display:none}</style>',
+];
+
 // The pages that are to be found: in the sitemap.
 const found = [];
 // What each of them says of itself: for its Markdown.
@@ -200,14 +263,34 @@ for ( const [ page, { from = page, title, description } ] of Object.entries(
 }
 rmSync( resolve( dist, 'server' ), { recursive: true } );
 
-// For search engines: the pages, and where the list of them is.
-const day = new Date().toISOString().slice( 0, 10 );
+// For search engines: the pages, and where the list of them is. A page
+// was last changed when what it is made of was last committed: DOCS.md
+// for the docs, its folder in `src/pages` for the others.
+const today = new Date().toISOString().slice( 0, 10 );
+const changed = ( path ) => {
+	const name = path.match( /^\/(?:examples\/)?([a-z]+)\// )?.[ 1 ] || 'home';
+	const source = path.startsWith( '/docs/' )
+		? '../DOCS.md'
+		: existsSync( resolve( import.meta.dirname, `src/pages/${ name }` ) )
+		? `src/pages/${ name }`
+		: '.';
+	try {
+		return (
+			execFileSync( 'git', [ 'log', '-1', '--format=%cs', '--', source ], {
+				cwd: import.meta.dirname,
+				encoding: 'utf8',
+			} ).trim() || today
+		);
+	} catch {
+		return today;
+	}
+};
 writeFileSync(
 	resolve( dist, 'sitemap.xml' ),
 	`<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${ found
-	.map( ( path ) => `\t<url><loc>${ ORIGIN }${ path }</loc><lastmod>${ day }</lastmod></url>` )
+	.map( ( path ) => `\t<url><loc>${ ORIGIN }${ path }</loc><lastmod>${ changed( path ) }</lastmod></url>` )
 	.join( '\n' ) }
 </urlset>
 `

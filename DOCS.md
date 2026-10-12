@@ -1000,6 +1000,49 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 - A file for `<script>` without `type="module"`.
 - Slide content is HTML and is not distorted with the image.
 - Cross-origin media needs CORS headers and `crossorigin` on the element; without them the page draws that slide.
-- Tried on real phones: not yet. The tests run desktop engines.
 - WebGPU in Firefox is not tested: the Firefox of the tests has no GPU to give. There `canvas()` takes WebGL.
 - Videos on WebGPU are copied into a texture on every frame, as on WebGL. WebGPU can draw them without a copy, which is not used yet.
+
+## Compared
+
+What the other sliders are, said for who chooses between them. The sizes are of the core alone, without plugins: each one bundled by esbuild, made small and gzipped the same way (swiper 11.2 with navigation and pagination, @splidejs/splide 4, embla-carousel 8.6, keen-slider 6.8). `npm run size`, which counts otherwise, has the core of gpuslider at 4.7 KB.
+
+| | Core | Draws the media | Effects of shaders | Dependencies |
+|---|---|---|---|---|
+| gpuslider | 4.6 KB | on a canvas, with WebGPU or WebGL 2; HTML where neither | built in, open, and your own in GLSL | none |
+| Swiper | 23.9 KB | as HTML, moved by CSS | a paid add-on of its authors (Shaders Slider) | none |
+| Splide | 13.5 KB | as HTML, moved by CSS | an add-on for sponsors, with three.js, for the fade only | none |
+| Embla Carousel | 7.4 KB | as HTML, moved by CSS | none | none |
+| Keen Slider | 5.9 KB | as HTML, moved by CSS | none | none |
+
+Take another one when the slides are mostly text and controls, or when what you need is the many options of a slider that has been in use for many years: Swiper has them. Take gpuslider when the slides are pictures and films and the page is to do something with them that HTML cannot: bend them as they move, turn one into the next in a shader, put them on a cylinder.
+
+## Questions
+
+### Is gpuslider an alternative to Swiper?
+
+Yes, for sliders of pictures and films. The markup is a track with slides in it, as with Swiper; slides per view, the gap and the direction are CSS. What Swiper does with CSS transforms, gpuslider does on a canvas with shaders, and its core is a fifth of the size. Swiper has more options for slides of text and forms.
+
+### What happens in a browser without WebGPU?
+
+The canvas takes WebGL 2, which every browser of the last years has; the effects are the same, written once in GLSL. Without either, or without a script, the page shows the slides as HTML, and the slider works as before.
+
+### Does it work with React and Next.js?
+
+Yes: `<Slider>` and `<Slide>` from `gpuslider/react`, and the hook `useSlider` for markup of your own. A server renders the slides first, in Next.js and in Nuxt. See [React](https://gpuslider.com/docs/react/).
+
+### Can I use it without a bundler?
+
+Yes: one `<script type="module">` from a CDN, and attributes in the HTML. See [Without a script](https://gpuslider.com/docs/html/).
+
+### How big is it?
+
+The core is 4.7 KB gzipped, a plugin 0.3 to 1 KB, an effect 0.2 to 0.8 KB, the canvas 7.7 KB with WebGL 2 or 9.4 KB with WebGPU. A page loads what it imports, and a visitor loads one of the two layers. See [Size](https://gpuslider.com/docs/size/).
+
+### Can I write my own transition?
+
+Yes, as a function in GLSL; the same code runs on WebGPU and on WebGL 2. See [Effects](https://gpuslider.com/docs/effects/).
+
+### What does it cost?
+
+Nothing: it is MIT licensed, and every effect is in the package.
