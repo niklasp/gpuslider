@@ -155,6 +155,12 @@ A slider is an element with a track in it, and the slides are the children of th
 		parts: [ 'Size', 'Not yet' ],
 	},
 	{
+		slug: 'embed',
+		title: 'Embed an example',
+		lead: 'The examples and the playground in other sites, running: paste the link in WordPress, Ghost, Notion or Medium, or write the frame yourself.',
+		parts: [ { part: 'Embed an example', bare: true } ],
+	},
+	{
 		slug: 'compared',
 		title: 'Compared with Swiper and others',
 		lead: 'gpuslider beside Swiper, Splide, Embla and Keen Slider: what each draws with, what it weighs, and when to take which. With the questions that are asked most.',

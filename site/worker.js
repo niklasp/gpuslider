@@ -81,7 +81,7 @@ async function oembed( url, env ) {
 		author_url: 'https://github.com/niklasp',
 		width,
 		height,
-		html: `<iframe src="${ attr( page.href ) }" width="${ width }" height="${ height }" style="border:0;max-width:100%" allow="autoplay; fullscreen" loading="lazy" title="${ attr( title ) }"></iframe>`,
+		html: `<iframe src="${ attr( page.href ) }" width="${ width }" height="${ height }" style="border:0;width:100%;max-width:${ width }px;height:auto;aspect-ratio:${ width }/${ height }" allow="autoplay; fullscreen" loading="lazy" title="${ attr( title ) }"></iframe>`,
 		...( picture && {
 			thumbnail_url: picture,
 			thumbnail_width: 1200,

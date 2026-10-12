@@ -18,6 +18,7 @@
 - [Extending](/docs/extending/): plugins, effects, slides placed by a script with `draw()`, the types, and a list for agents
 - [Community plugins](/docs/community/): plugins and effects that others have written, and how to publish one with the keyword `gpuslider-plugin`
 - [Size, and what is not there yet](/docs/size/)
+- [Embed an example](/docs/embed/): the examples and the playground in other sites, by oEmbed or a frame
 - [Compared with Swiper and others](/docs/compared/): beside Swiper, Splide, Embla and Keen Slider, measured; and the questions that are asked most
 
 ## Examples

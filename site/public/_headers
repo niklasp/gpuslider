@@ -1,4 +1,7 @@
-# Cloudflare Pages: what the browser may keep, and for how long.
+# Cloudflare Pages: what the browser may keep, and for how long. And that
+# the files of the pages may be used from any origin: a page embedded in a
+# sandbox (WordPress does it) has none, and its scripts, fonts and media
+# come from elsewhere to it.
 
 /*
   X-Content-Type-Options: nosniff
@@ -7,12 +10,15 @@
 # Named by their content: they never change under their name.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
 
 /media/*
   Cache-Control: public, max-age=2592000
+  Access-Control-Allow-Origin: *
 
 /og/*
   Cache-Control: public, max-age=604800
+  Access-Control-Allow-Origin: *
 
 /shots/*
   Cache-Control: public, max-age=604800

@@ -1003,6 +1003,24 @@ A visitor loads one of the two layers. `dist/` has the same for pages without a 
 - WebGPU in Firefox is not tested: the Firefox of the tests has no GPU to give. There `canvas()` takes WebGL.
 - Videos on WebGPU are copied into a texture on every frame, as on WebGL. WebGPU can draw them without a copy, which is not used yet.
 
+## Embed an example
+
+The examples, the playground and the first page of https://gpuslider.com can be shown in other sites, running: paste the link, and the site asks gpuslider.com for a frame by [oEmbed](https://oembed.com). This shows the examples of the site; a slider of your own pictures is made with the library, as above.
+
+- **WordPress** and **Ghost**: paste the link on a line of its own, or into the Embed block or card.
+- **Notion** and **Medium**: through Iframely and Embedly, once they list gpuslider.com. Until then a card with the picture.
+- **Anywhere else**: a frame of your own.
+
+```html
+<iframe src="https://gpuslider.com/examples/reveal/" width="800" height="450"
+	style="border:0;width:100%;max-width:800px;height:auto;aspect-ratio:800/450"
+	allow="autoplay; fullscreen" loading="lazy" title="Reveal · gpu slider"></iframe>
+```
+
+What an example is set to goes with its link: `https://gpuslider.com/examples/echo/?frames=6` is Echo with six frames, in the frame too.
+
+The endpoint is `https://gpuslider.com/oembed?url=<link>`, in JSON, with `maxwidth` and `maxheight`. A frame is 800 by 450, and 800 by 600 for the examples that are scrolled (Reel, Orbit, Fold, Tape, Wave); it is as wide as the column up to that, at the same proportion. In a frame, the links open a tab of their own. The docs are not embedded: they are read here, or as Markdown.
+
 ## Compared
 
 What the other sliders are, said for who chooses between them. The sizes are of the core alone, without plugins: each one bundled by esbuild, made small and gzipped the same way (swiper 11.2 with navigation and pagination, @splidejs/splide 4, embla-carousel 8.6, keen-slider 6.8). `npm run size`, which counts otherwise, has the core of gpuslider at 4.7 KB.

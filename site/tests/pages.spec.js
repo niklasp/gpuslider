@@ -23,6 +23,7 @@ const DOCS = [
 	[ '/docs/extending/', 'Extending' ],
 	[ '/docs/community/', 'Community plugins' ],
 	[ '/docs/size/', 'Size, and what is not there yet' ],
+	[ '/docs/embed/', 'Embed an example' ],
 	[ '/docs/compared/', 'Compared with Swiper and others' ],
 ];
 

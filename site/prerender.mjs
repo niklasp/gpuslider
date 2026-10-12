@@ -166,7 +166,9 @@ function head( path, title, description ) {
  */
 const embed = ( url, title ) => [
 	`<link rel="alternate" type="application/json+oembed" href="${ ORIGIN }/oembed?url=${ encodeURIComponent( url ) }&amp;format=json" title="${ escape( title ) }" />`,
-	`<script>if(top!==self){document.documentElement.dataset.embedded='';addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(a&&!a.target&&a.getAttribute('href')[0]!=='#'){a.target='_blank';a.rel='noopener'}},true)}</script>`,
+	// In a sandbox without an origin of its own, the media are another
+	// origin's to the page: asked for with CORS, the canvas may draw them.
+	`<script>if(top!==self){document.documentElement.dataset.embedded='';addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[href]');if(a&&!a.target&&a.getAttribute('href')[0]!=='#'){a.target='_blank';a.rel='noopener'}},true);if(self.origin==='null'){var c=function(n){if((n.tagName==='IMG'||n.tagName==='VIDEO')&&!n.hasAttribute('crossorigin'))n.crossOrigin='anonymous'};document.querySelectorAll('img,video').forEach(c);new MutationObserver(function(l){l.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType===1){c(n);n.querySelectorAll&&n.querySelectorAll('img,video').forEach(c)}})})}).observe(document.documentElement,{childList:true,subtree:true})}}</script>`,
 	'<style>[data-embedded] header a[href="/examples/"]{display:none}</style>',
 ];
 
