@@ -12,7 +12,9 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 - **Best practices** ([Component best practices](https://www.framer.com/help/articles/component-best-practices/)): optional, not checked by anyone. Among them: one instance of the component in the preview; no branding, ads or unrelated content in it; no unnecessary text in the thumbnails; no deprecated APIs; a sensible default size; descriptions on complex controls; works on phone, tablet and desktop.
 - **Paid:** Framer does not take the payment. A paid listing has a price and a link to a checkout of your own (Lemon Squeezy, Stripe, Gumroad, Contra) that goes straight to paying, shows the same price and a refund policy; after paying, the buyer gets the component URL from you. The pricing of a listing can be changed later ([Accept payments in the Community](https://www.framer.com/help/articles/accept-payments-in-the-community/)).
 - **The form** (2026-10-13): Name at most 20 characters, Byline at most 34, one Category, Free or Paid; then Description, Media, Post.
-- **Review:** the help page says none, but the profile's links open "once a Marketplace item is approved": count on one.
+- **Review:** none. Posted on 2026-10-13, it was live at once: https://www.framer.com/marketplace/components/gpu-slider/ (by @eedee, component URL `https://framer.com/m/GpuSlider-Ols8Ho.js@rFC5ohZfjzu0ZssPyN6r`, project "gpuslider").
+- **Media:** a component takes one picture, the cover (`1-cover-burn.jpg`); the other two are for elsewhere.
+- **Posting** asks once to accept the affiliate terms.
 
 ## Where it may rub
 
