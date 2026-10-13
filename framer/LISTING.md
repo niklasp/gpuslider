@@ -63,8 +63,7 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 
 1. `1-cover-burn.jpg`: the cover, Burn half way
 2. `2-liquid.jpg`: Liquid
-3. `3-ripple.jpg`: Ripple
-4. `4-glitch.jpg`: Glitch
+3. `3-glitch.jpg`: Glitch
 
 Each is the component itself (its arrows, dots and link), caught in the middle of a transition with the four pictures it shows by default, and nothing else. They were drawn by the published 1.2.1 in a browser without a window.
 
