@@ -166,7 +166,7 @@ parts.push(
 
 parts.push( {
 	name: 'full: the slider with all its options',
-	budget: 7296,
+	budget: 7424,
 	size: await measure(
 		`import { createSlider } from './lib/full.js'; export { createSlider };`
 	),
@@ -175,7 +175,7 @@ parts.push( {
 if ( existsSync( resolve( lib, 'gl/index.js' ) ) ) {
 	parts.push( {
 		name: 'canvas layer, no effects',
-		budget: 7936,
+		budget: 8064,
 		size: await measure(
 			`import { gl } from './lib/gl/index.js'; export { gl };`,
 			later
@@ -197,7 +197,7 @@ if ( existsSync( resolve( lib, 'gl/index.js' ) ) ) {
 	} );
 	parts.push( {
 		name: 'canvas layer of WebGPU, no effects',
-		budget: 9728,
+		budget: 9856,
 		size: await measure(
 			`import { gpu } from './lib/gpu/index.js'; export { gpu };`,
 			later
@@ -253,7 +253,7 @@ parts.push(
 	},
 	{
 		name: 'the same with the canvas and stretch',
-		budget: 13568,
+		budget: 13824,
 		size: await measure(
 			`import { Slider, Slide } from './lib/react.js'; import { controls } from './lib/plugins/index.js'; import { gl, stretch } from './lib/gl/index.js'; export { Slider, Slide, controls, gl, stretch };`,
 			[ 'react', ...later ]

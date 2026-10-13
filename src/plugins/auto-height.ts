@@ -5,6 +5,7 @@
  * the move and never jumps.
  */
 
+import { turned } from '../seen.js';
 import type { Plugin, Slider } from '../index.js';
 
 export function autoHeight() {
@@ -25,11 +26,12 @@ export function autoHeight() {
 			},
 
 			measure() {
-				const scale = root.offsetWidth
-					? root.getBoundingClientRect().width / root.offsetWidth || 1
-					: 1;
-				tall = slides.map(
-					( slide ) => slide.getBoundingClientRect().height / scale
+				const box = root.getBoundingClientRect();
+				const scale = root.offsetWidth ? box.width / root.offsetWidth || 1 : 1;
+				// Turned, the slides are as high as they are laid out.
+				const turn = turned( root, box );
+				tall = slides.map( ( slide ) =>
+					turn ? slide.offsetHeight : slide.getBoundingClientRect().height / scale
 				);
 				// What the slider has around its track stays.
 				most =

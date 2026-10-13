@@ -7,6 +7,7 @@
  *
  */
 
+import { turned } from './seen.js';
 import type { Options, Place } from './index.js';
 
 /** What `measure()` reads of the page; plugins may change it to lay out. */
@@ -80,15 +81,32 @@ export function measure( root: HTMLElement, track: HTMLElement, slides: HTMLElem
 	const box = root.getBoundingClientRect();
 	const around = track.getBoundingClientRect();
 	// Boxes are measured as drawn: inside a scaled parent they are scaled.
+	// Inside a turned one they are not the slider's: then it is measured as
+	// it is laid out (see seen.ts).
+	const turn = turned( root, box );
 	const scale = root.offsetWidth ? box.width / root.offsetWidth || 1 : 1;
-	const width =
-		box.width / scale - ( root.offsetWidth - root.clientWidth );
-	const height =
-		box.height / scale - ( root.offsetHeight - root.clientHeight );
+	const width = turn
+		? root.clientWidth
+		: box.width / scale - ( root.offsetWidth - root.clientWidth );
+	const height = turn
+		? root.clientHeight
+		: box.height / scale - ( root.offsetHeight - root.clientHeight );
 	const gap = parseFloat( y ? style.rowGap : style.columnGap ) || 0;
 	const left: number[] = [];
 	const size: number[] = [];
 	slides.forEach( ( el, i ) => {
+		if ( turn ) {
+			const laid = y ? el.offsetHeight : el.offsetWidth;
+			left.push(
+				y
+					? el.offsetTop
+					: rtl
+						? track.clientWidth - el.offsetLeft - laid
+						: el.offsetLeft
+			);
+			size.push( laid );
+			return;
+		}
 		const r = el.getBoundingClientRect();
 		const drawn = y ? r.height : r.width;
 		const laid = ( y ? el.offsetHeight : el.offsetWidth ) * scale;

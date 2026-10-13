@@ -141,6 +141,27 @@ test.describe( 'the canvas draws what the page would', () => {
 		expect( far ).toBeLessThan( 0.01 );
 	} );
 
+	// The page has the upright box around what is turned: the canvas
+	// measures in the slider, as it is laid out.
+	test( 'a slider that is turned', async ( { page } ) => {
+		const { mean, far } = await compare( page, {
+			n: 4,
+			css: '#slider { rotate: 20deg; } .gs { --gs-per-view: 2; --gs-gap: 10px; }',
+		} );
+		expect( mean ).toBeLessThan( 2 );
+		expect( far ).toBeLessThan( 0.01 );
+	} );
+
+	test( 'a stack in a parent that turns and scales', async ( { page } ) => {
+		const { mean, far } = await compare( page, {
+			n: 4,
+			o: { mode: 'stack' },
+			css: 'body { rotate: -12deg; scale: 0.8; transform-origin: 400px 200px; }',
+		} );
+		expect( mean ).toBeLessThan( 2 );
+		expect( far ).toBeLessThan( 0.01 );
+	} );
+
 	test( 'right to left', async ( { page } ) => {
 		const { mean, far } = await compare(
 			page,

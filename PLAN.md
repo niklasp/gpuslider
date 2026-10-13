@@ -137,19 +137,19 @@ slider.destroy();
 |---|---|---|
 | Core: engine, layout, drag, DOM, events, plugins | 5 KB | 4.6 KB |
 | A plugin | 1 KB | 0.3 to 0.9 KB (`loading`: 0.96) |
-| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.125 KB | 7.1 KB (7258 of 7296 B, on 2026-10-07) |
+| Full: `createSlider` of `gpuslider/full`, with the plugins its options switch | 7.25 KB | 7.1 KB (7258 of 7296 B, on 2026-10-07) |
 | `useSlider` for React, on top of the core | 0.5 KB | 0.1 KB |
 | `<Slider>` and `<Slide>` for React, on top of the core | 1 KB | 0.6 KB |
-| Canvas layer of WebGL 2 without effects | 7.75 KB | 7.6 KB (7829 of 7936 B, on 2026-10-07) |
+| Canvas layer of WebGL 2 without effects | 7.875 KB | 7.6 KB (7829 of 7936 B, on 2026-10-07) |
 | Post pass of WebGL, loaded when an effect asks for it | 2.5 KB | 2.3 KB (2383 of 2560 B) |
 | Post pass of WebGPU, loaded when an effect asks for it | 3 KB | 2.8 KB (2878 of 3072 B) |
-| Canvas layer of WebGPU without effects | 9.5 KB | 9.3 KB (9573 of 9728 B) |
+| Canvas layer of WebGPU without effects | 9.625 KB | 9.3 KB (9573 of 9728 B) |
 | `canvas()`, which chooses the layer | 0.5 KB | 0.3 KB |
 | `hit()`, which says what is seen at a point | 1.25 KB | 1.0 KB |
 | One effect or transition | 1 KB | 0.2 to 0.9 KB (slab: 945 B) |
 | Lightbox, on top of core, controls, keyboard and canvas | 2.25 KB | 2.2 KB (2232 of 2304 B) |
 | A page in React with arrows and dots | 6 KB | 5.7 KB |
-| The same with the canvas and one effect | 13.25 KB | 13.1 KB (13448 of 13568 B, on 2026-10-07) |
+| The same with the canvas and one effect | 13.5 KB | 13.1 KB (13448 of 13568 B, on 2026-10-07) |
 
 Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are the user's to take back:
 
@@ -165,6 +165,7 @@ Budgets that were changed by me on 2026-09-28 and 29, not by the user, and are t
 - **Canvas layer, 7.5 to 7.625 KB; a page in React with the canvas, 13.125 to 13.25 KB.** On 2026-10-07, asked of the user and given: a slider keeps the textures of the 16 pictures it drew last, and lets go of the others when it rests (decision 33). A gallery of hundreds of large pictures held all of them while it was on the screen. 93 bytes in WebGL, which had none left, and 78 in WebGPU.
 - **Canvas layer, 7.625 to 7.75 KB.** On 2026-10-07, in the same work as the one before, which the user asked for whole ("do the open work", then "all"): the seam of the post pass (decision 35), 56 bytes, which loads it when an effect asks for it and has the slides drawn into its picture. The pass itself is a part of its own, not counted with the layer.
 - **Full, 7.06 to 7.125 KB.** On 2026-10-07, in the same work: the core moves slides by `translate`, and measures a slide that the page scales or turns as it is laid out (decision 36). 30 bytes, with 3 left before; the ticker that tells `change` and `view.still` had taken the rest that day.
+- **Full, 7.125 to 7.25 KB; canvas layer, 7.75 to 7.875 KB, and the one of WebGPU, 9.5 to 9.625 KB; a page in React with the canvas, 13.25 to 13.5 KB.** On 2026-10-13, asked of the user ("do a fix and test and publish"): a slider in a parent that turns, as Framer turns a frame, was drawn by the canvas too short and lower than the page has it. The boxes of the page are the upright boxes around what is turned, and were read as if scaled. A turned slider is now measured as it is laid out (`seen.ts`): 84 bytes in the core, 101 in full, 107 in WebGL and 101 in WebGPU, with 26, 98 and 61 left before. The pointer of effects that follow it, and `hit()`, still read the page's boxes: on a turned slider they are near, not exact; that needs the angle, two points put in the slider to measure it, and bytes that no budget had.
 - **Full means what `createSlider` of `gpuslider/full` uses.** Before, it was every plugin of `plugins/`, which with the ticker and the thumbnails is 7.5 KB. A bundler leaves out what `createSlider` does not use, so the old number was the bundle of nobody. The file for pages without a bundler, `dist/full.js`, has all of them: 8.5 KB.
 
 For scale: Swiper's core is about 20 KB, plus 9 KB for arrows, dots, keyboard, autoplay and a11y (measured in the Gutenslider build).

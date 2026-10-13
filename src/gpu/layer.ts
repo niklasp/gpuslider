@@ -12,6 +12,7 @@
  * Without WebGPU, or after the device is lost, the layer does nothing and
  * the page shows its own media.
  */
+import { placer } from '../seen.js';
 import { compose } from './program.js';
 import { createTextures } from './textures.js';
 import { fit, nearby, styleOf } from '../gl/fit.js';
@@ -639,32 +640,26 @@ export function gpu( {
 					}
 					attach();
 				}
-				const around = root.getBoundingClientRect();
-				const scale = root.offsetWidth
-					? around.width / root.offsetWidth || 1
-					: 1;
+				// Where the slider has them, from where its padding begins.
+				const place = placer( root );
 				const down = slider.layout().y;
 				slides.forEach( ( slide, i ) => {
 					const element = media[ i ];
 					if ( ! element ) {
 						return;
 					}
-					const outer = slide.getBoundingClientRect();
-					const inner = element.getBoundingClientRect();
-					const x = inner.left - ( down ? around : outer ).left;
-					const y = inner.top - ( down ? outer : around ).top;
+					const outer = place( slide );
+					const inner = place( element );
 					boxes[ i ] = {
 						// Along the way of the slides, in the slide: the slide
 						// moves, this does not. And where the track begins in
 						// the root, after its padding.
 						dx:
-							( down ? y : x ) / scale +
+							inner[ +down ] - outer[ +down ] +
 							( down ? slider.track.offsetTop : slider.track.offsetLeft ),
 						// Across, in the view: that way slides do not move.
-						dy:
-							( down ? x : y ) / scale -
-							( down ? root.clientLeft : root.clientTop ),
-						at: { x: 0, y: 0, w: inner.width / scale, h: inner.height / scale },
+						dy: inner[ +! down ],
+						at: { x: 0, y: 0, w: inner[ 2 ], h: inner[ 3 ] },
 						style: styleOf( element ),
 					};
 				} );
