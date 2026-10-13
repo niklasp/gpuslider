@@ -44,6 +44,7 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 > - Autoplay in seconds, which waits while the pointer is over it
 > - Loop, duration of a transition, arrows, dots
 > - Fill or Fit, corner radius, background color
+> - A picker on it, if you like: buttons that let your visitors try the four transitions
 > - Drag and swipe, the arrow keys, a label for screen readers
 > - Fills the frame you give it, at any size and breakpoint
 > - The canvas starts at the first sign of use, so a page loads as fast as without it; in a browser without WebGPU and WebGL 2, the pictures fade
@@ -78,7 +79,7 @@ Each is the component itself (its arrows, dots and link), caught in the middle o
 3. **The preview page,** on Home in the same project:
    - The page background `#0b0a0f`, Desktop breakpoint.
    - One Stack, 100% wide and 100vh high, its content centered.
-   - gpu slider in it, 80% wide (at most 1000 px), 500 px high, Radius 24, Autoplay 3. One instance, nothing else on the page.
+   - gpu slider in it, 80% wide, 600 px high, Radius 24, Autoplay 3, Picker on. One instance, nothing else on the page.
    - Look at it in Preview at the size of a phone too (the device menu at the top).
 4. **Publish the project** (the blue Publish at the top right) to a free `….framer.website` address, for example `gpuslider`. That address is the Preview URL. Open it once in a private window: it moves, and the link opens gpuslider.com.
 5. **Copy the component URL:** Assets → Code → right-click GpuSlider → Copy URL.

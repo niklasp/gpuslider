@@ -7,7 +7,7 @@ Pictures that turn into each other by a shader: Liquid, Burn, Ripple or Glitch, 
 1. In Framer: **Assets** (left) → **Code** → **+** → **New code file**, named `GpuSlider`.
 2. Replace what is in it with all of [`GpuSlider.tsx`](GpuSlider.tsx), and save (⌘S).
 3. Drag **GpuSlider** from Assets → Code onto the canvas, and give it a size.
-4. On the right: **Images** (empty: four pictures to try it with), **Transition**, **Autoplay** in seconds (0: only by drag, arrows and dots), Loop, Duration, Arrows, Dots, Fill or Fit, Radius, Background, and a Label for screen readers.
+4. On the right: **Images** (empty: four pictures to try it with), **Transition**, **Autoplay** in seconds (0: only by drag, arrows and dots), Loop, Duration, Arrows, Dots, Fill or Fit, Radius, Background, **Picker** (buttons on it that switch the transition), and a Label for screen readers.
 5. **Preview** (▶ at the top right) shows it moving. On the canvas of the editor it is the first picture, standing still: a canvas of WebGL for every copy on the canvas would be too many for the browser.
 
 The library comes from jsDelivr at the version in `VERSION`: a published site keeps working with the same version until the file is changed.

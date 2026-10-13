@@ -15,13 +15,14 @@
  * @framerIntrinsicWidth 800
  * @framerIntrinsicHeight 500
  */
-import { useEffect, useRef, type CSSProperties } from "react"
+import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 
 const VERSION = "1.2.1"
 const CDN = `https://cdn.jsdelivr.net/npm/gpuslider@${VERSION}/dist/`
 
 const TRANSITIONS = ["liquid", "burn", "ripple", "glitch"] as const
+const TITLES = ["Liquid", "Burn", "Ripple", "Glitch"]
 type Transition = (typeof TRANSITIONS)[number] | "fade"
 
 type Image = { src: string; srcSet?: string; alt?: string }
@@ -52,7 +53,11 @@ const CSS = `.gs{--gs-per-view: 1;--gs-gap: 0px;position:relative;min-width:0;ov
 .gsf-dots .gs-dot::before{content:"";width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.4);transition:background .2s,width .3s}
 .gsf-dots .gs-dot[aria-current]{width:30px}.gsf-dots .gs-dot[aria-current]::before{width:22px;background:#fff}
 .gsf-badge{position:absolute;top:10px;right:10px;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(0,0,0,.45);color:rgba(255,255,255,.85);font:11px/1.4 system-ui,sans-serif;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.gsf-badge:hover{color:#fff}`
+.gsf-badge:hover{color:#fff}
+.gsf-picker{position:absolute;top:10px;left:10px;z-index:3;display:flex;gap:2px;max-width:calc(100% - 180px);padding:3px;overflow-x:auto;border-radius:999px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);scrollbar-width:none;backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5)}
+.gsf-picker button{all:unset;box-sizing:border-box;flex:none;height:30px;padding:0 12px;border-radius:999px;color:rgba(255,255,255,.7);font:500 13px/30px system-ui,sans-serif;cursor:pointer;transition:background .3s,color .3s}
+.gsf-picker button:hover{color:#fff}.gsf-picker button[aria-current]{background:#fff;color:#000}.gsf-picker button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+@media (max-width:480px){.gsf-picker{max-width:calc(100% - 20px)}.gsf-picker+.gsf-badge{display:none}}`
 
 function useStyles() {
     useEffect(() => {
@@ -82,6 +87,7 @@ const DEFAULTS = {
     radius: 0,
     background: "#0a0a0a",
     label: "Pictures",
+    picker: false,
 }
 
 interface Props {
@@ -96,6 +102,7 @@ interface Props {
     radius?: number
     background?: string
     label?: string
+    picker?: boolean
     style?: CSSProperties
 }
 
@@ -128,11 +135,13 @@ export default function GpuSlider(props: Props) {
         radius = DEFAULTS.radius,
         background = DEFAULTS.background,
         label = DEFAULTS.label,
+        picker = DEFAULTS.picker,
         style,
     } = props
     const images = props.images?.length ? props.images : DEMO
     const root = useRef<HTMLDivElement>(null)
     const turn = useRef<{ pick: (i: number) => void } | null>(null)
+    const made = useRef<{ next(): void } | null>(null)
     // On the canvas of the editor and in thumbnails: the first picture,
     // and no canvas of WebGL for every copy of it.
     const still =
@@ -140,12 +149,16 @@ export default function GpuSlider(props: Props) {
         RenderTarget.current() === RenderTarget.thumbnail
     useStyles()
 
-    const order = TRANSITIONS.indexOf(transition as (typeof TRANSITIONS)[number])
+    const given = TRANSITIONS.indexOf(transition as (typeof TRANSITIONS)[number])
+    // What the picker chose, until the transition is set again.
+    const [picked, setPicked] = useState<number | null>(null)
+    useEffect(() => setPicked(null), [given])
+    const order = picked ?? given
 
     useEffect(() => {
         const element = root.current
         if (still || !element) return
-        let slider: { destroy(): void } | undefined
+        let slider: { destroy(): void; next(): void } | undefined
         let gone = false
         Promise.all([
             import("https://cdn.jsdelivr.net/npm/gpuslider@1.2.1/dist/full.js"),
@@ -172,10 +185,12 @@ export default function GpuSlider(props: Props) {
                     }),
                 ],
             })
+            made.current = slider!
         })
         return () => {
             gone = true
             turn.current = null
+            made.current = null
             slider?.destroy()
         }
         // The transition is picked without a new slider, below; a change
@@ -239,6 +254,26 @@ export default function GpuSlider(props: Props) {
             )}
             {dots && images.length > 1 && (
                 <div className="gsf-dots" data-gs-dots="" />
+            )}
+            {picker && (
+                <div className="gsf-picker" role="group" aria-label="Transition">
+                    {TRANSITIONS.map((name, i) => (
+                        <button
+                            type="button"
+                            key={name}
+                            aria-current={order === i ? "true" : undefined}
+                            onClick={() => {
+                                // Chosen for the next move, and moved, so
+                                // that it is seen.
+                                turn.current?.pick(i)
+                                setPicked(i)
+                                if (order >= 0) made.current?.next()
+                            }}
+                        >
+                            {TITLES[i]}
+                        </button>
+                    ))}
+                </div>
             )}
             <a
                 className="gsf-badge"
@@ -322,6 +357,12 @@ addPropertyControls(GpuSlider, {
         type: ControlType.Color,
         title: "Background",
         defaultValue: DEFAULTS.background,
+    },
+    picker: {
+        type: ControlType.Boolean,
+        title: "Picker",
+        defaultValue: DEFAULTS.picker,
+        description: "Buttons on it to try the transitions.",
     },
     label: {
         type: ControlType.String,
