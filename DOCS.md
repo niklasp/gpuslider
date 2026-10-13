@@ -232,9 +232,9 @@ onBeforeUnmount( () => slider?.destroy() );
 
 ### In Framer
 
-A component of its own, free on the Framer Marketplace: [Shader Image Slider](https://www.framer.com/marketplace/components/shader-image-slider/). Copy Component, paste it into a page, and the panel on the right has the rest: the images, from Framer's picker; the transition, Liquid, Burn, Ripple, Glitch or a fade; autoplay, loop and the time of a move; arrows, dots, Fill or Fit, the corners; and buttons on it that let a visitor try the transitions.
+A component of its own, free on the Framer Marketplace: [Shader Image Slider](https://www.framer.com/marketplace/components/shader-image-slider/). Copy Component, paste it into a page, and the panel on the right has the rest: the images, from Framer's picker; the transition, Liquid, Burn, Ripple, Glitch, Lightning or a fade; autoplay, loop and the time of a move; arrows, dots, Fill or Fit, the corners; and buttons on it that let a visitor try the transitions.
 
-It draws in Preview and on the published site; on the canvas of the editor it is the first picture, standing still. Images from Framer's own store are drawn by the canvas; an image from another site is drawn when that site sends CORS, else the slides fade. The free component has a small link to gpuslider.com in a corner.
+It draws in Preview and on the published site; on the canvas of the editor it is the first picture, standing still. Images from Framer's own store are drawn by the canvas; an image from another site is drawn when that site sends CORS, else the slides fade.
 
 Try it first: [the preview](https://gpuslider.framer.website). The code is [`framer/GpuSlider.tsx`](https://github.com/niklasp/gpuslider/blob/main/framer/GpuSlider.tsx) in the repository, to paste into a code file of a project (Assets → Code), as it is or changed.
 
@@ -1059,7 +1059,7 @@ Yes: `<Slider>` and `<Slide>` from `gpuslider/react`, and the hook `useSlider` f
 
 ### Does it work in Framer?
 
-Yes: a free component on the Framer Marketplace, [Shader Image Slider](https://www.framer.com/marketplace/components/shader-image-slider/), with four transitions and the images from Framer's picker. See [Framer](https://gpuslider.com/docs/framer/).
+Yes: a free component on the Framer Marketplace, [Shader Image Slider](https://www.framer.com/marketplace/components/shader-image-slider/), with five transitions and the images from Framer's picker. See [Framer](https://gpuslider.com/docs/framer/).
 
 ### Can I use it without a bundler?
 

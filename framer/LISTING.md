@@ -20,7 +20,7 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 
 ## Where it may rub
 
-- **The "Made with gpu slider" link.** The best practices ask a preview without branding. It is advice, not a rule, and the link is part of what the free component is: the listing says so in the first lines, and the Pro version will be the one without. *Decision: keep it (recommended), or make it a switch.*
+- **A link back.** The best practices ask a preview without branding, and the code is MIT on GitHub, so a badge would not hold anyone; it is gone (2026-10-13). What links back is where others put it too (DNA Carousel, Liquid Carousel, CrumpledPaper Reveal): the description of the last control in the panel, which only who builds with it sees, and the last line of the listing (nofollow there). A Pro version is to be bought for what it does more, not for a badge it takes away.
 - **The library from jsDelivr.** The component imports `gpuslider@1.2.2` from cdn.jsdelivr.net. Publishing, Framer copies those files to its own server (framerusercontent.com) and serves them from there: a published site does not ask jsDelivr. Framer runs that (tried in a project on 2026-10-13); its npm FAQ calls imports of packages experimental, and most of them fail because they expect a bundler. This one is a plain ES module and needs nothing. The version is fixed, so a published site does not change under anyone.
 - **`defaultProps`** was the deprecated API: React ignores it on functions from 19 on. The defaults are now in the controls (`defaultValue`) and in the code.
 - **A Slideshow of Framer's own** exists. The best practices ask not to remake what Framer has: what this one adds is the shader, so the text leads with that.
@@ -40,31 +40,20 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 
 **Preview URL:** the published preview page (see below), `https://gpuslider.framer.website`.
 
-**Description:**
+**Description** (as on the Marketplace):
 
-> An image slider whose transitions are drawn on the GPU: one picture melts, burns, ripples or glitches into the next, with WebGPU, or WebGL 2 where there is none. Drag it, press the arrows or the dots, use the keys, or let it play by itself.
+> An image slider whose transitions are drawn on the GPU: one picture melts, burns, ripples, glitches or is struck by lightning into the next, with WebGPU, or WebGL 2 where there is none. Drag it, press the arrows or the dots, use the keys, or let it play by itself.
 >
-> **Features**
-> - Four shader transitions: Liquid, Burn, Ripple, Glitch, and a plain Fade
-> - Your own images, from Framer's image picker; empty, it shows four to try it with
-> - Autoplay in seconds, which waits while the pointer is over it
-> - Loop, duration of a transition, arrows, dots
-> - Fill or Fit, corner radius, background color
-> - A picker on it, if you like: buttons that let your visitors try the four transitions
-> - Drag and swipe, the arrow keys, a label for screen readers
-> - Fills the frame you give it, at any size and breakpoint
-> - The canvas starts at the first sign of use, so a page loads as fast as without it; in a browser without WebGPU and WebGL 2, the pictures fade
+> Features
+> - Five shader transitions: Liquid, Burn, Ripple, Glitch, Lightning, and a plain Fade
+> - A picker on it, if you like: buttons that let visitors try the transitions
+> - Your own images from Framer's picker; empty, it shows four to try it with
+> - Autoplay that waits while the pointer is over it; loop, duration, arrows, dots
+> - Fill or Fit, corner radius, background, a label for screen readers
+> - Fills its frame at any size and breakpoint; drag and swipe on phones
+> - Nothing of ours on your site: no badge, no link
 >
-> **How to use**
-> 1. Drag gpu slider onto the canvas and give it a size.
-> 2. Add images under Images on the right, and choose a Transition.
-> 3. Press Preview (▶): on the canvas it stands still on the first picture, so the editor stays fast; it moves in Preview and on the published site.
->
-> Images from Framer's own picker work with every transition. Images from another site work when that site allows it (CORS); otherwise they fade.
->
-> The free version shows a small "Made with gpu slider" link in the corner.
->
-> Built on gpu slider, an open-source (MIT) slider library: https://gpuslider.com · Docs: https://gpuslider.com/docs/ · Questions and bugs: https://github.com/niklasp/gpuslider/issues
+> Built on gpu slider, open source (MIT), with 24 transitions for your own code: https://gpuslider.com/docs/framer/
 
 **Images**, in this order, from `framer/listing/`:
 

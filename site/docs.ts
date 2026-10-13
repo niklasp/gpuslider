@@ -94,7 +94,7 @@ A slider is an element with a track in it, and the slides are the children of th
 	{
 		slug: 'framer',
 		title: 'Framer',
-		lead: 'A free component on the Framer Marketplace: four transitions, the images from Framer\'s picker, and the rest in the panel on the right.',
+		lead: 'A free component on the Framer Marketplace: five transitions, the images from Framer\'s picker, and the rest in the panel on the right.',
 		parts: [ { part: 'In Framer', bare: true } ],
 	},
 	{

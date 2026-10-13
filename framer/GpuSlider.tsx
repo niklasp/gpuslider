@@ -1,7 +1,7 @@
 /**
  * gpu slider for Framer: pictures that turn into each other by a shader,
- * drawn with WebGPU, or WebGL 2 where there is none. The free version:
- * four transitions, and a small link to gpuslider.com.
+ * drawn with WebGPU, or WebGL 2 where there is none: five transitions,
+ * free, and nothing of ours on the page.
  *
  * Paste this file into a code file of a Framer project (Assets → Code).
  * The library comes from jsDelivr, at the version below; the canvas runs
@@ -21,8 +21,8 @@ import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
 const VERSION = "1.2.2"
 const CDN = `https://cdn.jsdelivr.net/npm/gpuslider@${VERSION}/dist/`
 
-const TRANSITIONS = ["liquid", "burn", "ripple", "glitch"] as const
-const TITLES = ["Liquid", "Burn", "Ripple", "Glitch"]
+const TRANSITIONS = ["liquid", "burn", "ripple", "glitch", "lightning"] as const
+const TITLES = ["Liquid", "Burn", "Ripple", "Glitch", "Lightning"]
 type Transition = (typeof TRANSITIONS)[number] | "fade"
 
 type Image = { src: string; srcSet?: string; alt?: string }
@@ -52,12 +52,10 @@ const CSS = `.gs{--gs-per-view: 1;--gs-gap: 0px;position:relative;min-width:0;ov
 .gsf-dots .gs-dot{display:grid;place-items:center;width:16px;height:24px;transition:width .3s}
 .gsf-dots .gs-dot::before{content:"";width:8px;height:8px;border-radius:999px;background:rgba(255,255,255,.4);transition:background .2s,width .3s}
 .gsf-dots .gs-dot[aria-current]{width:30px}.gsf-dots .gs-dot[aria-current]::before{width:22px;background:#fff}
-.gsf-badge{position:absolute;top:10px;right:10px;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(0,0,0,.45);color:rgba(255,255,255,.85);font:11px/1.4 system-ui,sans-serif;text-decoration:none;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.gsf-badge:hover{color:#fff}
-.gsf-picker{position:absolute;top:10px;left:10px;z-index:3;display:flex;gap:2px;max-width:calc(100% - 180px);padding:3px;overflow-x:auto;border-radius:999px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);scrollbar-width:none;backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5)}
+.gsf-picker{position:absolute;top:10px;left:10px;z-index:3;display:flex;gap:2px;max-width:calc(100% - 20px);padding:3px;overflow-x:auto;border-radius:999px;background:rgba(0,0,0,.3);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);scrollbar-width:none;backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5)}
 .gsf-picker button{all:unset;box-sizing:border-box;flex:none;height:30px;padding:0 12px;border-radius:999px;color:rgba(255,255,255,.7);font:500 13px/30px system-ui,sans-serif;cursor:pointer;transition:background .3s,color .3s}
 .gsf-picker button:hover{color:#fff}.gsf-picker button[aria-current]{background:#fff;color:#000}.gsf-picker button:focus-visible{outline:2px solid #fff;outline-offset:1px}
-@media (max-width:480px){.gsf-picker{max-width:calc(100% - 20px)}.gsf-picker+.gsf-badge{display:none}}`
+`
 
 function useStyles() {
     useEffect(() => {
@@ -273,14 +271,6 @@ export default function GpuSlider(props: Props) {
                     ))}
                 </div>
             )}
-            <a
-                className="gsf-badge"
-                href="https://gpuslider.com/?ref=framer"
-                target="_blank"
-                rel="noopener"
-            >
-                Made with gpu slider
-            </a>
         </div>
     )
 }
@@ -299,7 +289,7 @@ addPropertyControls(GpuSlider, {
         title: "Transition",
         defaultValue: DEFAULTS.transition,
         options: [...TRANSITIONS, "fade"],
-        optionTitles: ["Liquid", "Burn", "Ripple", "Glitch", "Fade"],
+        optionTitles: [...TITLES, "Fade"],
     },
     autoplay: {
         type: ControlType.Number,
@@ -366,6 +356,9 @@ addPropertyControls(GpuSlider, {
         type: ControlType.String,
         title: "Label",
         defaultValue: DEFAULTS.label,
-        description: "What a screen reader says the slider is.",
+        // The last line of the panel: where it comes from, for who builds
+        // with it; the page it is put on shows nothing of ours.
+        description:
+            "What a screen reader says the slider is.\n\n[gpu slider](https://gpuslider.com/?ref=framer) by eedee · [Docs](https://gpuslider.com/docs/framer/)",
     },
 })

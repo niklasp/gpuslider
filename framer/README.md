@@ -1,6 +1,6 @@
 # gpu slider for Framer
 
-Pictures that turn into each other by a shader: Liquid, Burn, Ripple or Glitch, drawn with WebGPU, or WebGL 2 where there is none. The free version, with a small link to gpuslider.com in the corner.
+Pictures that turn into each other by a shader: Liquid, Burn, Ripple, Glitch or Lightning, drawn with WebGPU, or WebGL 2 where there is none. Free, and nothing of ours on the page it is put on; the panel has a link to the docs.
 
 ## Into a project
 
