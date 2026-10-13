@@ -515,7 +515,7 @@ test.describe( 'the page for phones', () => {
 	test( 'says what the browser has, measures, and writes it down', async ( { page } ) => {
 		test.slow();
 		await page.goto( '/phone/' );
-		await expect( page.getByTestId( 'has' ).getByRole( 'row' ) ).toHaveCount( 11 );
+		await expect( page.getByTestId( 'has' ).getByRole( 'row' ) ).toHaveCount( 12 );
 		await expect(
 			page.getByTestId( 'has' ).getByRole( 'row', { name: 'WebGL 2' } )
 		).toContainText( /^WebGL 2(yes|no)/ );

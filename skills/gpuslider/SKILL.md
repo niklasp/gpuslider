@@ -5,7 +5,7 @@ description: Add an image or video slider, carousel or gallery with GPU shader t
 
 # gpuslider
 
-A 4.7 KB image slider drawn on the GPU: WebGPU, else WebGL 2, else the page moves the slides, and without a script it scrolls and snaps. Layout is CSS; everything else is a plugin.
+A 4.8 KB image slider drawn on the GPU: WebGPU, else WebGL 2, else the page moves the slides, and without a script it scrolls and snaps. Layout is CSS; everything else is a plugin.
 
 The full API ships with the package: read `node_modules/gpuslider/DOCS.md` before going past what is here. Do not guess option or effect names.
 

@@ -309,10 +309,19 @@ test.describe( 'marquee', () => {
 			const off = window.slider.on( 'frame', ( view ) => {
 				most = Math.max( most, view.velocity );
 			} );
-			for ( let i = 0; i < 30; i++ ) {
-				window.scrollBy( 0, i < 15 ? 20 : -20 );
+			// Half a second, down and up at 1200 px/s, at whatever rate
+			// the browser has frames: Firefox has them at 120 a second.
+			const start = performance.now();
+			let last = start;
+			let down = 0;
+			for ( let now = start; now - start < 500; now = performance.now() ) {
+				const by = Math.round( ( now - start < 250 ? 1.2 : -1.2 ) * ( now - last ) );
+				down += by;
+				window.scrollBy( 0, by );
+				last = now;
 				await new Promise( ( done ) => requestAnimationFrame( done ) );
 			}
+			window.scrollBy( 0, -down );
 			off();
 			return { most, way: window.slider.motion.pos - from };
 		} );

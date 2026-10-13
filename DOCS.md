@@ -45,7 +45,7 @@ Three ways, from the least to write to the least to load.
 | `data-gs-lightbox` | A lightbox, drawn by the canvas of the slider, which it gives the slider if it has none. Needs `dist/lightbox.css` |
 | `data-gs-loading` | A screen while the media load, with the options of `loading()` as JSON, or nothing. Needs `dist/loading.css` |
 
-`auto.js` is one file of 8.3 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
+`auto.js` is one file of 8.4 KB. The canvas and the lightbox are loaded when a slider asks for them and the page has time; a page without them never loads them.
 
 The element tells when its slider is made: `gs:ready`, with the slider as `detail`, goes up to the document. For elements that come later, `import { auto, sliders } from '…/auto.js'` and call `auto()`; `sliders.get( element )` is the slider.
 
@@ -76,7 +76,7 @@ import 'gpuslider/style.css';
 createSlider( element, { loop: true, plugins: [ controls(), keyboard() ] } );
 ```
 
-The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.7 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
+The core moves slides: it measures, drags, snaps, loops, and says what happens. It is 4.8 KB. Everything else is a plugin, and what is not imported is not in the bundle: every entry has named exports only and no side effects.
 
 ### In React
 
@@ -153,7 +153,7 @@ const [ ref, slider ] = useSlider( { loop, plugins: [ controls() ] }, [ loop ] )
 
 Its second argument is what the slider is made again for.
 
-The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.7 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 13.1 KB.
+The components add 0.6 KB to the core, the hook alone 0.1 KB. The page above without the canvas is 5.9 KB in the bundle, arrows and dots in it; with the canvas and `stretch` it is 13.4 KB.
 
 ### Rendered on the server
 
@@ -978,14 +978,14 @@ Gzipped, in the bundle of who imports it, from `npm run size`. A KB is 1024 byte
 
 | Part | Size |
 |---|---|
-| Core | 4.7 KB |
+| Core | 4.8 KB |
 | A plugin | 0.3 to 1 KB |
-| `gpuslider/full`: the core with all its options | 7.1 KB |
+| `gpuslider/full`: the core with all its options | 7.2 KB |
 | `<Slider>` and `<Slide>` for React, or the hook alone | 0.6 KB, 0.1 KB |
 | `canvas()`, which chooses the layer | 0.4 KB |
 | `hit()`, which says what slide is seen at a point | 1.0 KB |
-| Canvas layer of WebGPU | 9.4 KB |
-| Canvas layer of WebGL 2 | 7.7 KB |
+| Canvas layer of WebGPU | 9.5 KB |
+| Canvas layer of WebGL 2 | 7.8 KB |
 | The post pass, for an effect over the whole canvas | 2.3 KB with WebGL, 2.8 KB with WebGPU |
 | An effect | 0.2 to 0.8 KB |
 | A transition | 0.2 to 0.8 KB |
@@ -1023,11 +1023,11 @@ The endpoint is `https://gpuslider.com/oembed?url=<link>`, in JSON, with `maxwid
 
 ## Compared
 
-What the other sliders are, said for who chooses between them. The sizes are of the core alone, without plugins: each one bundled by esbuild, made small and gzipped the same way (swiper 11.2 with navigation and pagination, @splidejs/splide 4, embla-carousel 8.6, keen-slider 6.8). `npm run size`, which counts otherwise, has the core of gpuslider at 4.7 KB.
+What the other sliders are, said for who chooses between them. The sizes are of the core alone, without plugins: each one bundled by esbuild, made small and gzipped the same way (swiper 11.2 with navigation and pagination, @splidejs/splide 4, embla-carousel 8.6, keen-slider 6.8). `npm run size`, which counts otherwise, has the core of gpuslider at 4.8 KB.
 
 | | Core | Draws the media | Effects of shaders | Dependencies |
 |---|---|---|---|---|
-| gpuslider | 4.6 KB | on a canvas, with WebGPU or WebGL 2; HTML where neither | built in, open, and your own in GLSL | none |
+| gpuslider | 4.7 KB | on a canvas, with WebGPU or WebGL 2; HTML where neither | built in, open, and your own in GLSL | none |
 | Swiper | 23.9 KB | as HTML, moved by CSS | a paid add-on of its authors (Shaders Slider) | none |
 | Splide | 13.5 KB | as HTML, moved by CSS | an add-on for sponsors, with three.js, for the fade only | none |
 | Embla Carousel | 7.4 KB | as HTML, moved by CSS | none | none |
@@ -1055,7 +1055,7 @@ Yes: one `<script type="module">` from a CDN, and attributes in the HTML. See [W
 
 ### How big is it?
 
-The core is 4.7 KB gzipped, a plugin 0.3 to 1 KB, an effect 0.2 to 0.8 KB, the canvas 7.7 KB with WebGL 2 or 9.4 KB with WebGPU. A page loads what it imports, and a visitor loads one of the two layers. See [Size](https://gpuslider.com/docs/size/).
+The core is 4.8 KB gzipped, a plugin 0.3 to 1 KB, an effect 0.2 to 0.8 KB, the canvas 7.8 KB with WebGL 2 or 9.5 KB with WebGPU. A page loads what it imports, and a visitor loads one of the two layers. See [Size](https://gpuslider.com/docs/size/).
 
 ### Can I write my own transition?
 
