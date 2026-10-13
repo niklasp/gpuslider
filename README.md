@@ -32,6 +32,8 @@ Or without a build, from a CDN:
 <script type="module" src="https://cdn.jsdelivr.net/npm/gpuslider@1/dist/auto.js"></script>
 ```
 
+In Framer: [Shader Image Slider](https://www.framer.com/marketplace/components/shader-image-slider/), a free component on the Marketplace.
+
 ## Quick start
 
 ### HTML only

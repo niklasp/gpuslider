@@ -92,6 +92,12 @@ A slider is an element with a track in it, and the slides are the children of th
 		parts: [ { part: 'In React', bare: true }, 'Rendered on the server' ],
 	},
 	{
+		slug: 'framer',
+		title: 'Framer',
+		lead: 'A free component on the Framer Marketplace: four transitions, the images from Framer\'s picker, and the rest in the panel on the right.',
+		parts: [ { part: 'In Framer', bare: true } ],
+	},
+	{
 		slug: 'layout',
 		title: 'Layout',
 		lead: 'How many slides are in view, how far they are apart, which way they go: all of it is CSS, and the script measures what the page lays out.',

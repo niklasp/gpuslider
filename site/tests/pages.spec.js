@@ -13,6 +13,7 @@ const DOCS = [
 	[ '/docs/', 'Get started' ],
 	[ '/docs/html/', 'Without a script' ],
 	[ '/docs/react/', 'React' ],
+	[ '/docs/framer/', 'Framer' ],
 	[ '/docs/layout/', 'Layout' ],
 	[ '/docs/options/', 'Options, API and events' ],
 	[ '/docs/plugins/', 'Plugins' ],

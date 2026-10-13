@@ -1103,6 +1103,9 @@ export default function Home() {
 						<a className={ FIRST } href="/docs/">
 							Get started
 						</a>
+						<a className={ SECOND } href="/docs/framer/">
+							In Framer
+						</a>
 					</div>
 				</Section>
 

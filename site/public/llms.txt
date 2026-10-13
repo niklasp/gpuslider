@@ -8,6 +8,7 @@
 - [Get started](/docs/): the markup, what to import, and the three tiers
 - [Without a script](/docs/html/): `auto.js` and attributes in the HTML, buttons anywhere
 - [React](/docs/react/): the components `<Slider>` and `<Slide>`, `useSliderContext()` for what is in a slider, and the hook `useSlider` for markup of your own
+- [Framer](/docs/framer/): a free component on the Framer Marketplace, Shader Image Slider: four transitions, the images from Framer's picker
 - [Layout](/docs/layout/): slides per view and gap as CSS, downwards, rows, the focus point
 - [Options, API and events](/docs/options/)
 - [Plugins](/docs/plugins/): the ones that come with it, and how to write one
