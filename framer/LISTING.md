@@ -13,7 +13,8 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 - **Paid:** Framer does not take the payment. A paid listing has a price and a link to a checkout of your own (Lemon Squeezy, Stripe, Gumroad, Contra) that goes straight to paying, shows the same price and a refund policy; after paying, the buyer gets the component URL from you. The pricing of a listing can be changed later ([Accept payments in the Community](https://www.framer.com/help/articles/accept-payments-in-the-community/)).
 - **The form** (2026-10-13): Name at most 20 characters, Byline at most 34, one Category, Free or Paid; then Description, Media, Post.
 - **Review:** none. Posted on 2026-10-13, it was live at once: https://www.framer.com/marketplace/components/gpu-slider/ (by @eedee, component URL `https://framer.com/m/GpuSlider-Ols8Ho.js@rFC5ohZfjzu0ZssPyN6r`, project "gpuslider").
-- **Media:** a component takes one picture, the cover (`1-cover-burn.jpg`); the other two are for elsewhere.
+- **Media:** a component takes one picture, the cover. It may move: an animated WebP (`0-cover.webp`, 1200 × 900, 7.6 s, 2.9 MB). The component goes through Liquid, Burn, Ripple and Glitch by its picker and ends where it began, so the loop has no seam; drawn in a browser without a window by a clock of its own (`performance.now` and `requestAnimationFrame` moved 50 ms a frame), then `img2webp -loop 0 -mixed -q 55 -m 6 -d 50`. The still JPEGs are for elsewhere.
+- **Code review:** an automatic one on posting. It passed, and proposed `useIsStaticRenderer()` (done) and the library bundled into the file instead of from jsDelivr (not done: publishing, Framer copies it to its own server already).
 - **Posting** asks once to accept the affiliate terms.
 
 ## Where it may rub

@@ -16,7 +16,7 @@
  * @framerIntrinsicHeight 500
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react"
-import { addPropertyControls, ControlType, RenderTarget } from "framer"
+import { addPropertyControls, ControlType, useIsStaticRenderer } from "framer"
 
 const VERSION = "1.2.2"
 const CDN = `https://cdn.jsdelivr.net/npm/gpuslider@${VERSION}/dist/`
@@ -142,11 +142,9 @@ export default function GpuSlider(props: Props) {
     const root = useRef<HTMLDivElement>(null)
     const turn = useRef<{ pick: (i: number) => void } | null>(null)
     const made = useRef<{ next(): void } | null>(null)
-    // On the canvas of the editor and in thumbnails: the first picture,
-    // and no canvas of WebGL for every copy of it.
-    const still =
-        RenderTarget.current() === RenderTarget.canvas ||
-        RenderTarget.current() === RenderTarget.thumbnail
+    // On the canvas of the editor, in thumbnails and in what Framer renders
+    // ahead: the first picture, without the library or a canvas of WebGL.
+    const still = useIsStaticRenderer()
     useStyles()
 
     const given = TRANSITIONS.indexOf(transition as (typeof TRANSITIONS)[number])
