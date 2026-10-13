@@ -18,7 +18,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react"
 import { addPropertyControls, ControlType, RenderTarget } from "framer"
 
-const VERSION = "1.2.1"
+const VERSION = "1.2.2"
 const CDN = `https://cdn.jsdelivr.net/npm/gpuslider@${VERSION}/dist/`
 
 const TRANSITIONS = ["liquid", "burn", "ripple", "glitch"] as const
@@ -161,9 +161,9 @@ export default function GpuSlider(props: Props) {
         let slider: { destroy(): void; next(): void } | undefined
         let gone = false
         Promise.all([
-            import("https://cdn.jsdelivr.net/npm/gpuslider@1.2.1/dist/full.js"),
-            import("https://cdn.jsdelivr.net/npm/gpuslider@1.2.1/dist/canvas.js"),
-            import("https://cdn.jsdelivr.net/npm/gpuslider@1.2.1/dist/effects.js"),
+            import("https://cdn.jsdelivr.net/npm/gpuslider@1.2.2/dist/full.js"),
+            import("https://cdn.jsdelivr.net/npm/gpuslider@1.2.2/dist/canvas.js"),
+            import("https://cdn.jsdelivr.net/npm/gpuslider@1.2.2/dist/effects.js"),
         ]).then(([full, gpu, effects]) => {
             if (gone) return
             const chosen = effects.choose(

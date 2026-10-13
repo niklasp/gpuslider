@@ -10,12 +10,14 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 - **Images:** the listings on the Marketplace use 1600 × 1200 (4:3) PNGs. That was measured on three of them (Simple Gallery, Image Compare, Film Negative); the help pages give no size. Ours are JPEGs of that size, 130 to 190 KB, not 2 MB PNGs in the repo.
 - **Live preview:** shown at 4:3 on the listing; the component in the middle of the page.
 - **Best practices** ([Component best practices](https://www.framer.com/help/articles/component-best-practices/)): optional, not checked by anyone. Among them: one instance of the component in the preview; no branding, ads or unrelated content in it; no unnecessary text in the thumbnails; no deprecated APIs; a sensible default size; descriptions on complex controls; works on phone, tablet and desktop.
-- **Revenue:** 100% stays with the creator, for a paid one later.
+- **Paid:** Framer does not take the payment. A paid listing has a price and a link to a checkout of your own (Lemon Squeezy, Stripe, Gumroad, Contra) that goes straight to paying, shows the same price and a refund policy; after paying, the buyer gets the component URL from you. The pricing of a listing can be changed later ([Accept payments in the Community](https://www.framer.com/help/articles/accept-payments-in-the-community/)).
+- **The form** (2026-10-13): Name at most 20 characters, Byline at most 34, one Category, Free or Paid; then Description, Media, Post.
+- **Review:** the help page says none, but the profile's links open "once a Marketplace item is approved": count on one.
 
 ## Where it may rub
 
 - **The "Made with gpu slider" link.** The best practices ask a preview without branding. It is advice, not a rule, and the link is part of what the free component is: the listing says so in the first lines, and the Pro version will be the one without. *Decision: keep it (recommended), or make it a switch.*
-- **The library from jsDelivr.** The component imports `gpuslider@1.2.1` from cdn.jsdelivr.net at run time. Framer runs that (tried in a project on 2026-10-13); its npm FAQ calls imports of packages experimental, and most of them fail because they expect a bundler. This one is a plain ES module and needs nothing. The version is fixed, so a published site does not change under anyone.
+- **The library from jsDelivr.** The component imports `gpuslider@1.2.2` from cdn.jsdelivr.net. Publishing, Framer copies those files to its own server (framerusercontent.com) and serves them from there: a published site does not ask jsDelivr. Framer runs that (tried in a project on 2026-10-13); its npm FAQ calls imports of packages experimental, and most of them fail because they expect a bundler. This one is a plain ES module and needs nothing. The version is fixed, so a published site does not change under anyone.
 - **`defaultProps`** was the deprecated API: React ignores it on functions from 19 on. The defaults are now in the controls (`defaultValue`) and in the code.
 - **A Slideshow of Framer's own** exists. The best practices ask not to remake what Framer has: what this one adds is the shader, so the text leads with that.
 - **"Liquid Carousel"** (Armand Luxey, free) is in Carousels already. The name and the byline say gpu and shader, not liquid.
@@ -26,13 +28,13 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 
 **Name:** gpu slider
 
-**Byline:** Images that turn into each other by a shader: Liquid, Burn, Ripple, Glitch.
+**Byline** (34 at most): Shader transitions for your images
 
-**Categories:** Carousels, Galleries, Effects
+**Category** (one): Carousels
 
 **Price:** free
 
-**Preview URL:** the published preview page (see below), for example `https://gpuslider.framer.website/`.
+**Preview URL:** the published preview page (see below), `https://gpuslider.framer.website`.
 
 **Description:**
 
