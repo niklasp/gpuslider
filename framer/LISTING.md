@@ -12,7 +12,8 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 - **Best practices** ([Component best practices](https://www.framer.com/help/articles/component-best-practices/)): optional, not checked by anyone. Among them: one instance of the component in the preview; no branding, ads or unrelated content in it; no unnecessary text in the thumbnails; no deprecated APIs; a sensible default size; descriptions on complex controls; works on phone, tablet and desktop.
 - **Paid:** Framer does not take the payment. A paid listing has a price and a link to a checkout of your own (Lemon Squeezy, Stripe, Gumroad, Contra) that goes straight to paying, shows the same price and a refund policy; after paying, the buyer gets the component URL from you. The pricing of a listing can be changed later ([Accept payments in the Community](https://www.framer.com/help/articles/accept-payments-in-the-community/)).
 - **The form** (2026-10-13): Name at most 20 characters, Byline at most 34, one Category, Free or Paid; then Description, Media, Post.
-- **Review:** none. Posted on 2026-10-13, it was live at once: https://www.framer.com/marketplace/components/gpu-slider/ (by @eedee, component URL `https://framer.com/m/GpuSlider-Ols8Ho.js@rFC5ohZfjzu0ZssPyN6r`, project "gpuslider").
+- **Review:** none. Posted on 2026-10-13, it was live at once: https://www.framer.com/marketplace/components/shader-image-slider/ (by @eedee, component URL `https://framer.com/m/GpuSlider-Ols8Ho.js@rFC5ohZfjzu0ZssPyN6r`, project "gpuslider").
+- **Name and search** (2026-10-13): the search of the Marketplace reads the name and the byline more than the description. As "gpu slider" it was first for "gpu slider", 39th for "shader", and not in the first 28 for "image slider" or "webgl"; so it is called "Shader Image Slider". The address follows the name, and the old one says "Component unavailable", without a redirect: link to it only after the name is settled.
 - **Media:** a component takes one picture, the cover. It may move: an animated WebP (`0-cover.webp`, 1200 × 900, 7.6 s, 2.9 MB). The component goes through Liquid, Burn, Ripple and Glitch by its picker and ends where it began, so the loop has no seam; drawn in a browser without a window by a clock of its own (`performance.now` and `requestAnimationFrame` moved 50 ms a frame), then `img2webp -loop 0 -mixed -q 55 -m 6 -d 50`. The still JPEGs are for elsewhere.
 - **Code review:** an automatic one on posting. It passed, and proposed `useIsStaticRenderer()` (done) and the library bundled into the file instead of from jsDelivr (not done: publishing, Framer copies it to its own server already).
 - **Posting** asks once to accept the affiliate terms.
@@ -29,9 +30,9 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 
 **Component URL:** in the project that holds the component, Assets → Code → right-click `GpuSlider` → Copy URL.
 
-**Name:** gpu slider
+**Name** (20 at most): Shader Image Slider
 
-**Byline** (34 at most): Shader transitions for your images
+**Byline** (34 at most): WebGL slider with shader effects
 
 **Category** (one): Carousels
 
