@@ -34,7 +34,7 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 
 **Byline** (34 at most): WebGL slider with shader effects
 
-**Category** (one): Carousels
+**Category** (one; the Tags box on the listing shows only it, a second is not possible): Effects, since 2026-10-15. Its neighbours are shaders (Liquid Image, Fluid Image, Pro Liquid Shader); Carousels has plain sliders, and "slider" in the name finds it by search anyway.
 
 **Price:** free
 
@@ -42,16 +42,17 @@ What the listing says, the pictures it shows, and what is done by hand to put it
 
 **Description** (as on the Marketplace):
 
-> An image slider whose transitions are drawn on the GPU: one picture melts, burns, ripples, glitches or is struck by lightning into the next, with WebGPU, or WebGL 2 where there is none. Drag it, press the arrows or the dots, use the keys, or let it play by itself.
+> An image slider and carousel with WebGL shader transitions: one picture melts, burns, ripples, glitches or is struck by lightning into the next. Drawn on the GPU with WebGPU, or WebGL 2 where there is none. Use it as a hero, a gallery or a portfolio slideshow: drag or swipe it, use the arrows, dots or keys, or let it autoplay.
 >
 > Features
 > - Five shader transitions: Liquid, Burn, Ripple, Glitch, Lightning, and a plain Fade
-> - A picker on it, if you like: buttons that let visitors try the transitions
+> - Optional picker: buttons that let visitors switch the transition
 > - Your own images from Framer's picker; empty, it shows four to try it with
-> - Autoplay that waits while the pointer is over it; loop, duration, arrows, dots
-> - Fill or Fit, corner radius, background, a label for screen readers
-> - Fills its frame at any size and breakpoint; drag and swipe on phones
-> - Nothing of ours on your site: no badge, no link
+> - Autoplay that pauses on hover; loop, duration, arrows and dots
+> - Fill or Fit, corner radius, background, an accessible label for screen readers
+> - Responsive: fills its frame at any size and breakpoint, with drag and swipe on mobile
+> - Falls back to a fade in browsers without WebGL 2
+> - No badge, no watermark, no link on your site
 >
 > Built on gpu slider, with 24 transitions for your own code: [gpuslider.com](https://gpuslider.com/docs/framer/)
 
