@@ -3,28 +3,33 @@ import {
 	useEffect,
 	useRef,
 	useState,
+	type CSSProperties,
 	type DragEvent,
 	type ReactNode,
 } from 'react';
 import {
+	Check,
 	ChevronLeft,
 	ChevronRight,
 	Download,
+	GripVertical,
 	ImagePlus,
 	Lock,
 	Pause,
 	Play,
+	Plus,
 	Share2,
 	Shuffle,
 	X,
 } from 'lucide-react';
 import '@/index.css';
 import './studio.css';
-import { BUTTON, FIRST, Footer, Nav, WIDTH } from '@/components/Frame';
+import { BUTTON, Footer, Nav, WIDTH } from '@/components/Frame';
 import {
 	FORMATS,
 	ORDER,
 	TRANSITIONS,
+	at,
 	length,
 	type Choice,
 	type Format,
@@ -41,8 +46,9 @@ const FEWEST = 2;
 /** The photos of the site, until the visitor brings theirs. */
 const SAMPLES = [ 5, 3, 7, 1, 9 ];
 
-// Loaded when the export begins: the page does not need it before.
+// Loaded when they are needed: the page does not need them before.
 const encoding = () => import( './encode' );
+const gallery = () => import( './gallery' );
 
 type Export =
 	| { state: 'idle' }
@@ -64,11 +70,17 @@ const shuffled = ( order: number[] ) => {
 	return out;
 };
 
-function Part( { title, note, children }: { title: string; note?: ReactNode; children: ReactNode } ) {
+/** A step of making the film: its number, its name, and what it holds. */
+function Part( { step, title, note, children }: { step: number; title: string; note?: ReactNode; children: ReactNode } ) {
 	return (
-		<section className="grid gap-3">
-			<div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-				<h2 className="font-display text-lg font-semibold tracking-[-0.02em]">{ title }</h2>
+		<section className="grid gap-3" aria-label={ title }>
+			<div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+				<h2 className="flex items-center gap-2.5 font-display text-lg font-semibold tracking-[-0.02em]">
+					<span aria-hidden className="grid size-6 place-items-center rounded-full bg-secondary font-sans text-xs text-muted-foreground tabular-nums">
+						{ step }
+					</span>
+					{ title }
+				</h2>
 				{ note && <span className="text-sm text-muted-foreground">{ note }</span> }
 			</div>
 			{ children }
@@ -78,10 +90,26 @@ function Part( { title, note, children }: { title: string; note?: ReactNode; chi
 
 /**
  * The film as it will be: drawn by the same stage as the export, at the
- * size of the box, on a loop. Time can be dragged.
+ * size of the box, on a loop, in a phone when it is as tall as one. Time
+ * can be dragged; an export shows how far it is over it.
  */
-function Preview( { photos, plan, format, samples }: { photos: Photo[]; plan: Plan; format: Format; samples: boolean } ) {
+function Preview( {
+	photos,
+	plan,
+	format,
+	samples,
+	out,
+	cancel,
+}: {
+	photos: Photo[];
+	plan: Plan;
+	format: Format;
+	samples: boolean;
+	out: Export;
+	cancel: () => void;
+} ) {
 	const { width, height } = FORMATS[ format ];
+	const phone = format === '9:16';
 	const canvas = useRef< HTMLCanvasElement >( null );
 	const over = useRef< HTMLCanvasElement >( null );
 	const stage = useRef< Stage | null >( null );
@@ -94,11 +122,15 @@ function Preview( { photos, plan, format, samples }: { photos: Photo[]; plan: Pl
 	now.current.plan = plan;
 	now.current.playing = playing;
 	const total = length( plan );
+	// The light behind the film: the colour of the photo that is seen.
+	const moment = photos.length ? at( plan, Math.min( time, total ) ) : null;
+	const light = moment ? photos[ moment.progress < 0.5 ? moment.from : moment.to ]?.color : undefined;
 
 	useEffect( () => {
 		const element = canvas.current!;
 		try {
-			// Kept, so that what is seen can be read back: by a test, a screenshot.
+			// Kept, so that what is seen can be read back: by a test, a
+			// screenshot.
 			stage.current = createStage( element, { preserve: true } );
 		} catch {
 			setBroken( true );
@@ -122,20 +154,20 @@ function Preview( { photos, plan, format, samples }: { photos: Photo[]; plan: Pl
 		size();
 		let frame = 0;
 		let last = performance.now();
-		const tick = ( at: number ) => {
+		const tick = ( at_: number ) => {
 			frame = requestAnimationFrame( tick );
 			const state = now.current;
 			const all = length( state.plan );
 			if ( state.playing && all > 0 ) {
-				state.time = ( state.time + Math.min( 0.1, ( at - last ) / 1000 ) ) % all;
+				state.time = ( state.time + Math.min( 0.1, ( at_ - last ) / 1000 ) ) % all;
 			}
-			last = at;
+			last = at_;
 			if ( state.photos.length ) {
 				stage.current!.draw( state.photos, state.plan, state.time );
 			}
 			// The bar of time, ten times a second.
-			if ( at - state.from > 100 ) {
-				state.from = at;
+			if ( at_ - state.from > 100 ) {
+				state.from = at_;
 				setTime( state.time );
 			}
 		};
@@ -151,36 +183,71 @@ function Preview( { photos, plan, format, samples }: { photos: Photo[]; plan: Pl
 	}, [] );
 
 	return (
-		<div className="grid gap-3">
+		<div className="grid gap-4">
 			<div
-				className="studio-frame relative mx-auto overflow-hidden bg-black ring-1 ring-white/10"
-				style={ {
-					aspectRatio: `${ width } / ${ height }`,
-					width: `min(100%, calc(var(--studio-high) * ${ width / height }))`,
-				} }
+				className="relative isolate mx-auto"
+				style={ { width: `min(100%, calc(var(--studio-high) * ${ width / height }))` } }
 			>
-				<canvas ref={ canvas } className="absolute inset-0 size-full" aria-label="Preview of the film" role="img" />
-				<canvas ref={ over } className="pointer-events-none absolute inset-0 size-full" aria-hidden />
-				{ ! photos.length && ! broken && (
-					<div className="absolute inset-0 grid place-items-center text-sm text-white/60">
-						Add photos to see the film
+				<div
+					aria-hidden
+					className="studio-glow"
+					style={ { '--studio-light': light || 'transparent' } as CSSProperties }
+				/>
+				<div className={ phone ? 'studio-phone' : 'studio-screen' }>
+					<div
+						className="relative overflow-hidden bg-black"
+						style={ { aspectRatio: `${ width } / ${ height }`, borderRadius: 'inherit' } }
+					>
+						<canvas ref={ canvas } className="absolute inset-0 size-full" aria-label="Preview of the film" role="img" />
+						<canvas ref={ over } className="pointer-events-none absolute inset-0 size-full" aria-hidden />
+						{ phone && <span aria-hidden className="studio-island" /> }
+						{ ! photos.length && ! broken && (
+							<div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-white/60">
+								Add photos to see the film
+							</div>
+						) }
+						{ broken && (
+							<div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-white/80">
+								This browser cannot draw the preview: it needs WebGL 2.
+							</div>
+						) }
+						{ samples && photos.length > 0 && out.state !== 'running' && (
+							<span className={ `sq-pill absolute start-3 bg-black/55 px-2.5 py-1 text-xs text-white/85 backdrop-blur ${ phone ? 'top-12' : 'top-3' }` }>
+								Sample photos
+							</span>
+						) }
+						{ out.state === 'running' && (
+							<div className="absolute inset-0 grid content-center justify-items-center gap-4 bg-black/60 p-6 text-center text-white backdrop-blur-sm">
+								<span className="font-display text-5xl font-semibold tabular-nums tracking-[-0.04em]">
+									{ Math.round( out.done * 100 ) }%
+								</span>
+								<span className="text-sm text-white/75">Rendering your video, frame by frame</span>
+								<div
+									className="h-1.5 w-2/3 overflow-hidden rounded-full bg-white/20"
+									role="progressbar"
+									aria-label="Export"
+									aria-valuemin={ 0 }
+									aria-valuemax={ 100 }
+									aria-valuenow={ Math.round( out.done * 100 ) }
+								>
+									<div className="h-full rounded-full bg-white" style={ { width: `${ out.done * 100 }%` } } />
+								</div>
+								<button
+									type="button"
+									className="sq-pill mt-1 h-11 bg-white/15 px-5 text-sm font-medium transition hover:bg-white/25"
+									onClick={ cancel }
+								>
+									Cancel
+								</button>
+							</div>
+						) }
 					</div>
-				) }
-				{ broken && (
-					<div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-white/80">
-						This browser cannot draw the preview: it needs WebGL 2.
-					</div>
-				) }
-				{ samples && photos.length > 0 && (
-					<span className="sq-pill absolute start-3 top-3 bg-black/55 px-2.5 py-1 text-xs text-white/85 backdrop-blur">
-						Sample photos
-					</span>
-				) }
+				</div>
 			</div>
-			<div className="mx-auto flex w-full max-w-xl items-center gap-3">
+			<div className="mx-auto flex w-full max-w-md items-center gap-3">
 				<button
 					type="button"
-					className={ `${ BUTTON } size-11 justify-center px-0` }
+					className={ `${ BUTTON } size-11 shrink-0 justify-center px-0` }
 					aria-label={ playing ? 'Pause' : 'Play' }
 					onClick={ () => setPlaying( ! playing ) }
 				>
@@ -207,7 +274,16 @@ function Preview( { photos, plan, format, samples }: { photos: Photo[]; plan: Pl
 	);
 }
 
-/** The photos, in their order: moved, taken out, more added. */
+/** A button on a photo of the strip: as large as a finger, drawn smaller. */
+function Tool( { label, onClick, disabled, children, className = '' }: { label: string; onClick: () => void; disabled?: boolean; children: ReactNode; className?: string } ) {
+	return (
+		<button type="button" aria-label={ label } className={ `studio-tool ${ className }` } disabled={ disabled } onClick={ onClick }>
+			<span>{ children }</span>
+		</button>
+	);
+}
+
+/** The photos, in their order: a strip to move them in, and more to add. */
 function Photos( {
 	photos,
 	samples,
@@ -243,11 +319,13 @@ function Photos( {
 		}
 	};
 	const room = MOST - ( samples ? 0 : photos.length );
+	const own = ! samples && photos.length > 0;
+	const choose = () => input.current?.click();
 	return (
-		<Part title="Photos" note={ samples ? `${ FEWEST } to ${ MOST }` : `${ photos.length } of ${ MOST }` }>
+		<Part step={ 1 } title="Photos" note={ own ? `${ photos.length } of ${ MOST }` : `${ FEWEST } to ${ MOST }` }>
 			<div
-				className={ `studio-drop sq-tile grid gap-3 border border-dashed p-3 transition ${
-					over ? 'border-primary bg-primary/10' : 'border-white/15 bg-card'
+				className={ `studio-drop grid gap-3 rounded-2xl border border-dashed p-3 transition ${
+					over ? 'border-foreground/60 bg-accent' : 'border-border bg-card'
 				}` }
 				onDragOver={ ( event ) => {
 					if ( dragged.current < 0 ) {
@@ -258,12 +336,12 @@ function Photos( {
 				onDragLeave={ () => setOver( false ) }
 				onDrop={ ( event ) => dragged.current < 0 && dropped( event ) }
 			>
-				{ ! samples && photos.length > 0 && (
-					<ol className="grid grid-cols-3 gap-2 sm:grid-cols-4" aria-label="Photos in the order of the film">
+				{ own ? (
+					<ol className="studio-strip flex gap-2 overflow-x-auto pb-1" aria-label="Photos in the order of the film">
 						{ photos.map( ( photo, i ) => (
 							<li
 								key={ photo.id }
-								className="group relative aspect-square overflow-hidden rounded-lg bg-black"
+								className="studio-thumb relative aspect-[4/5] w-24 shrink-0 overflow-hidden rounded-xl bg-black"
 								draggable
 								onDragStart={ () => ( dragged.current = i ) }
 								onDragEnd={ () => ( dragged.current = -1 ) }
@@ -275,61 +353,66 @@ function Photos( {
 								} }
 							>
 								<img src={ photo.thumb } alt={ photo.name } className="size-full object-cover" draggable={ false } />
-								<span className="absolute start-1.5 top-1.5 rounded bg-black/60 px-1.5 text-xs tabular-nums text-white">
+								<span
+									aria-hidden
+									title="Drag to move"
+									className="absolute start-1 top-1 flex cursor-grab items-center gap-0.5 rounded-md bg-black/60 py-0.5 pe-1.5 ps-0.5 text-xs tabular-nums text-white"
+								>
+									<GripVertical size={ 14 } />
 									{ i + 1 }
 								</span>
-								<button
-									type="button"
-									aria-label={ `Remove ${ photo.name }` }
-									className="studio-tool absolute end-1 top-1"
-									onClick={ () => {
-										drop( photo );
-										set( photos.filter( ( one ) => one !== photo ) );
-									} }
-								>
-									<X size={ 16 } />
-								</button>
-								<div className="absolute inset-x-1 bottom-1 flex justify-between">
-									<button
-										type="button"
-										aria-label={ `Move ${ photo.name } earlier` }
-										className="studio-tool"
-										disabled={ i === 0 }
-										onClick={ () => move( i, i - 1 ) }
-									>
+								<Tool label={ `Remove ${ photo.name }` } className="absolute -end-1 -top-1" onClick={ () => {
+									drop( photo );
+									set( photos.filter( ( one ) => one !== photo ) );
+								} }>
+									<X size={ 14 } />
+								</Tool>
+								<div className="absolute inset-x-0 -bottom-1 flex justify-between">
+									<Tool label={ `Move ${ photo.name } earlier` } disabled={ i === 0 } onClick={ () => move( i, i - 1 ) }>
 										<ChevronLeft size={ 16 } />
-									</button>
-									<button
-										type="button"
-										aria-label={ `Move ${ photo.name } later` }
-										className="studio-tool"
-										disabled={ i === photos.length - 1 }
-										onClick={ () => move( i, i + 1 ) }
-									>
+									</Tool>
+									<Tool label={ `Move ${ photo.name } later` } disabled={ i === photos.length - 1 } onClick={ () => move( i, i + 1 ) }>
 										<ChevronRight size={ 16 } />
-									</button>
+									</Tool>
 								</div>
 							</li>
 						) ) }
+						{ room > 0 && (
+							<li className="shrink-0">
+								<button
+									type="button"
+									className="grid aspect-[4/5] w-24 place-items-center rounded-xl border border-dashed border-border text-muted-foreground transition hover:border-foreground/40 hover:text-foreground"
+									disabled={ busy }
+									onClick={ choose }
+								>
+									<span className="grid justify-items-center gap-1 text-xs">
+										<Plus size={ 20 } />
+										Add
+									</span>
+								</button>
+							</li>
+						) }
 					</ol>
-				) }
-				<div className="flex flex-wrap items-center gap-3">
+				) : (
 					<button
 						type="button"
-						className={ `${ BUTTON } h-11 gap-2` }
-						disabled={ busy || room <= 0 }
-						onClick={ () => input.current?.click() }
+						className="grid justify-items-center gap-2 rounded-xl px-4 py-7 text-center transition hover:bg-accent"
+						disabled={ busy }
+						onClick={ choose }
 					>
-						<ImagePlus size={ 18 } />
-						{ samples || ! photos.length ? 'Choose photos' : 'Add photos' }
+						<span className="grid size-12 place-items-center rounded-full bg-secondary">
+							<ImagePlus size={ 22 } />
+						</span>
+						<span className="font-medium">{ busy ? 'Reading…' : 'Choose photos' }</span>
+						<span className="text-sm text-muted-foreground">or drop them here · the samples play until then</span>
 					</button>
-					<span className="text-sm text-muted-foreground">
-						{ busy ? 'Reading…' : room <= 0 ? `That is ${ MOST }, the most a film has.` : 'or drop them here' }
-					</span>
-					{ ! samples && photos.length > 0 && (
+				) }
+				{ own && (
+					<div className="flex items-center gap-3 text-sm text-muted-foreground">
+						<span>{ busy ? 'Reading…' : room <= 0 ? `That is ${ MOST }, the most a film has.` : 'Drag to reorder, or drop more here.' }</span>
 						<button
 							type="button"
-							className="ms-auto text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+							className="ms-auto min-h-11 underline-offset-4 hover:text-foreground hover:underline"
 							onClick={ () => {
 								photos.forEach( drop );
 								set( [] );
@@ -337,8 +420,8 @@ function Photos( {
 						>
 							Remove all
 						</button>
-					) }
-				</div>
+					</div>
+				) }
 				<input
 					ref={ input }
 					type="file"
@@ -355,10 +438,108 @@ function Photos( {
 					} }
 				/>
 				{ problems.length > 0 && (
-					<p role="alert" className="text-sm text-amber-300">
+					<p role="alert" className="text-sm text-amber-600 dark:text-amber-300">
 						{ problems.join( ' ' ) }
 					</p>
 				) }
+			</div>
+		</Part>
+	);
+}
+
+/**
+ * The transitions, each as it looks: a strip of frames between two of the
+ * sample photos, made when the list comes near, played by CSS.
+ */
+function Transitions( { choice, set, shuffle }: { choice: Choice; set: ( choice: Choice ) => void; shuffle: () => void } ) {
+	const list = useRef< HTMLDivElement >( null );
+	const [ looks, setLooks ] = useState< Record< number, string > >( {} );
+	useEffect( () => {
+		const stop = new AbortController();
+		const made: string[] = [];
+		const observer = new IntersectionObserver(
+			( [ entry ] ) => {
+				if ( ! entry.isIntersecting ) {
+					return;
+				}
+				observer.disconnect();
+				Promise.all( [ gallery(), read( '/media/p5.jpg', 'a' ), read( '/media/p3.jpg', 'b' ) ] )
+					.then( ( [ { strips }, ...two ] ) =>
+						strips(
+							two,
+							Math.round( 96 * Math.min( 2, window.devicePixelRatio || 1 ) ),
+							( i, url ) => {
+								made.push( url );
+								setLooks( ( had ) => ( { ...had, [ i ]: url } ) );
+							},
+							stop.signal
+						).finally( () => two.forEach( drop ) )
+					)
+					.catch( () => {} );
+			},
+			{ rootMargin: '200px' }
+		);
+		observer.observe( list.current! );
+		return () => {
+			observer.disconnect();
+			stop.abort();
+			made.forEach( ( url ) => URL.revokeObjectURL( url ) );
+		};
+	}, [] );
+	const tile =
+		'studio-tile group relative grid aspect-square content-end overflow-hidden rounded-xl bg-secondary text-start';
+	const picked = ( on: boolean ) =>
+		on && (
+			<span aria-hidden className="absolute end-1.5 top-1.5 grid size-5 place-items-center rounded-full bg-white text-black">
+				<Check size={ 13 } strokeWidth={ 3 } />
+			</span>
+		);
+	return (
+		<Part
+			step={ 2 }
+			title="Transition"
+			note={
+				choice === 'mix' ? (
+					<button type="button" className="inline-flex min-h-11 items-center gap-1.5 hover:text-foreground" onClick={ shuffle }>
+						<Shuffle size={ 14 } /> Shuffle the mix
+					</button>
+				) : (
+					TRANSITIONS[ choice ][ 0 ]
+				)
+			}
+		>
+			<div ref={ list } className="grid grid-cols-4 gap-2 sm:grid-cols-5 lg:grid-cols-4 xl:grid-cols-5" role="group" aria-label="Transition">
+				<button
+					type="button"
+					className={ `${ tile } studio-mix` }
+					aria-current={ choice === 'mix' ? 'true' : undefined }
+					onClick={ () => set( 'mix' ) }
+				>
+					<span aria-hidden className="absolute inset-0 grid place-items-center text-white/90">
+						<Shuffle size={ 22 } />
+					</span>
+					<span className="studio-label">Mix</span>
+					{ picked( choice === 'mix' ) }
+				</button>
+				{ TRANSITIONS.map( ( [ name ], i ) => (
+					<button
+						key={ name }
+						type="button"
+						className={ tile }
+						aria-current={ choice === i ? 'true' : undefined }
+						onClick={ () => set( i ) }
+					>
+						<span
+							aria-hidden
+							className={ `absolute inset-0 ${ looks[ i ] ? 'studio-sprite' : 'studio-waiting' }` }
+							// Each at another moment of its strip: not all of them on the
+							// same photo at once.
+							style={ looks[ i ] ? { backgroundImage: `url(${ looks[ i ] })`, animationDelay: `${ -( ( i * 0.53 ) % 4.8 ) }s` } : undefined }
+						/>
+						<span className="studio-label">{ name }</span>
+						{ picked( choice === i ) }
+					</button>
+				) ) }
 			</div>
 		</Part>
 	);
@@ -378,7 +559,7 @@ function Range( {
 	set: ( value: number ) => void;
 } ) {
 	return (
-		<label className="grid gap-1.5">
+		<label className="grid gap-1">
 			<span className="flex justify-between text-sm">
 				<span>{ label }</span>
 				<span className="font-mono tabular-nums text-muted-foreground">{ seconds( value ) }</span>
@@ -395,6 +576,19 @@ function Range( {
 		</label>
 	);
 }
+
+/** A rectangle of the shape of a format. */
+const Shape = ( { format }: { format: Format } ) => {
+	const { width, height } = FORMATS[ format ];
+	const big = 22;
+	return (
+		<span
+			aria-hidden
+			className="rounded-[3px] border-2 border-current"
+			style={ { width: ( big * width ) / Math.max( width, height ), height: ( big * height ) / Math.max( width, height ) } }
+		/>
+	);
+};
 
 /**
  * A photo slideshow as a film for Reels, TikTok and Shorts, with the
@@ -531,14 +725,15 @@ export default function Studio() {
 		out.state === 'done' &&
 		typeof navigator !== 'undefined' &&
 		!! navigator.canShare?.( { files: [ out.file ] } );
+	const total = length( plan );
 
 	return (
 		<>
 			<Nav at="studio" />
 			<main className={ `${ WIDTH } grid grid-cols-[minmax(0,1fr)] gap-10 pb-24` }>
-				<div className="grid gap-4 pt-10 md:pt-16">
+				<div className="grid gap-3 pt-8 md:pt-12">
 					<p className="font-mono text-xs tracking-[0.2em] text-muted-foreground uppercase">Studio</p>
-					<h1 className="max-w-4xl font-display text-4xl font-semibold tracking-[-0.035em] text-balance md:text-6xl">
+					<h1 className="max-w-4xl font-display text-4xl font-semibold tracking-[-0.035em] text-balance md:text-5xl">
 						Photo slideshow maker with shader transitions
 					</h1>
 					<p className="max-w-2xl text-lg text-balance text-muted-foreground">
@@ -555,12 +750,19 @@ export default function Studio() {
 					</p>
 				</div>
 
-				<div className="grid grid-cols-[minmax(0,1fr)] items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+				<div className="grid grid-cols-[minmax(0,1fr)] items-start gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:gap-14">
 					<div className="lg:sticky lg:top-20">
-						<Preview photos={ photos } plan={ plan } format={ format } samples={ samples } />
+						<Preview
+							photos={ photos }
+							plan={ plan }
+							format={ format }
+							samples={ samples }
+							out={ out }
+							cancel={ () => stop.current?.abort() }
+						/>
 					</div>
 
-					<div className="grid gap-8">
+					<div className="grid gap-9">
 						<Photos
 							photos={ photos }
 							samples={ samples }
@@ -570,63 +772,31 @@ export default function Studio() {
 							problems={ problems }
 						/>
 
-						<Part
-							title="Transition"
-							note={
-								choice === 'mix' ? (
-									<button
-										type="button"
-										className="inline-flex items-center gap-1.5 hover:text-foreground"
-										onClick={ () => setOrder( shuffled( ORDER ) ) }
-									>
-										<Shuffle size={ 14 } /> Shuffle the mix
-									</button>
-								) : undefined
-							}
-						>
-							<div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4" role="group" aria-label="Transition">
-								<button
-									type="button"
-									className={ `${ BUTTON } h-11 justify-center` }
-									aria-current={ choice === 'mix' ? 'true' : undefined }
-									onClick={ () => setChoice( 'mix' ) }
-								>
-									Mix
-								</button>
-								{ TRANSITIONS.map( ( [ name ], i ) => (
-									<button
-										key={ name }
-										type="button"
-										className={ `${ BUTTON } h-11 justify-center px-2` }
-										aria-current={ choice === i ? 'true' : undefined }
-										onClick={ () => setChoice( i ) }
-									>
-										{ name }
-									</button>
-								) ) }
-							</div>
-						</Part>
+						<Transitions choice={ choice } set={ setChoice } shuffle={ () => setOrder( shuffled( ORDER ) ) } />
 
-						<Part title="Speed" note={ `${ seconds( length( plan ) ) } in all` }>
-							<div className="grid gap-4">
+						<Part step={ 3 } title="Timing" note={ `${ seconds( total ) } in all` }>
+							<div className="grid gap-3 rounded-2xl bg-card p-4">
 								<Range label="Transition" value={ turn } min={ 0.4 } max={ 3 } set={ setTurn } />
 								<Range label="Time on each photo" value={ hold } min={ 0.2 } max={ 4 } set={ setHold } />
 							</div>
 						</Part>
 
-						<Part title="Format" note={ FORMATS[ format ].note }>
-							<div className="grid grid-cols-3 gap-1.5" role="group" aria-label="Format">
+						<Part step={ 4 } title="Format" note={ FORMATS[ format ].note }>
+							<div className="grid grid-cols-3 gap-2" role="group" aria-label="Format">
 								{ ( Object.keys( FORMATS ) as Format[] ).map( ( one ) => (
 									<button
 										key={ one }
 										type="button"
-										className={ `${ BUTTON } h-14 flex-col justify-center gap-0.5 leading-none` }
+										className="studio-choice flex h-16 items-center justify-center gap-3 rounded-xl bg-secondary px-2 text-sm font-medium"
 										aria-current={ format === one ? 'true' : undefined }
 										onClick={ () => setFormat( one ) }
 									>
-										<span>{ FORMATS[ one ].label }</span>
-										<span className="text-[0.7rem] opacity-60">
-											{ FORMATS[ one ].width } × { FORMATS[ one ].height }
+										<Shape format={ one } />
+										<span className="grid text-start leading-tight">
+											<span>{ FORMATS[ one ].label }</span>
+											<span className="text-[0.7rem] font-normal opacity-60">
+												{ FORMATS[ one ].width }×{ FORMATS[ one ].height }
+											</span>
 										</span>
 									</button>
 								) ) }
@@ -636,14 +806,14 @@ export default function Studio() {
 								role="switch"
 								aria-checked={ loop }
 								onClick={ () => setLoop( ! loop ) }
-								className="flex min-h-11 items-center gap-3 text-start"
+								className="flex min-h-11 items-center gap-3 rounded-xl px-1 text-start"
 							>
 								<span
 									aria-hidden
-									className={ `relative h-6 w-10 shrink-0 rounded-full transition ${ loop ? 'bg-primary' : 'bg-white/15' }` }
+									className={ `relative h-6 w-10 shrink-0 rounded-full transition ${ loop ? 'bg-primary' : 'bg-secondary ring-1 ring-border' }` }
 								>
 									<span
-										className={ `absolute top-0.5 size-5 rounded-full bg-background transition-[left] ${ loop ? 'left-[1.125rem]' : 'left-0.5' }` }
+										className={ `absolute top-0.5 size-5 rounded-full shadow transition-[left] motion-reduce:transition-none ${ loop ? 'left-[1.125rem] bg-primary-foreground' : 'left-0.5 bg-muted-foreground' }` }
 									/>
 								</span>
 								<span className="grid">
@@ -654,67 +824,65 @@ export default function Studio() {
 											: 'Ends on the last photo.' }
 									</span>
 								</span>
-								<span className="ms-auto font-mono text-sm tabular-nums text-muted-foreground" data-testid="duration">
-									{ seconds( length( plan ) ) }
+								<span className="ms-auto font-mono text-sm whitespace-nowrap tabular-nums text-muted-foreground" data-testid="duration">
+									{ seconds( total ) }
 								</span>
 							</button>
 						</Part>
 
-						<Part title="Export">
-							<div className="sq-tile grid gap-3 bg-card p-4">
+						<Part step={ 5 } title="Export">
+							<div className="grid gap-3">
 								{ running ? (
-									<>
-										<div
-											className="h-2 overflow-hidden rounded-full bg-white/10"
-											role="progressbar"
-											aria-label="Export"
-											aria-valuemin={ 0 }
-											aria-valuemax={ 100 }
-											aria-valuenow={ Math.round( out.done * 100 ) }
-										>
-											<div className="h-full bg-primary transition-[width]" style={ { width: `${ out.done * 100 }%` } } />
-										</div>
-										<div className="flex items-center justify-between gap-3 text-sm">
-											<span className="tabular-nums text-muted-foreground">
-												Rendering frame by frame… { Math.round( out.done * 100 ) }%
-											</span>
-											<button type="button" className={ `${ BUTTON } h-11` } onClick={ () => stop.current?.abort() }>
-												Cancel
-											</button>
-										</div>
-									</>
+									<button
+										type="button"
+										className="studio-export flex h-16 w-full items-center justify-center gap-2 rounded-2xl bg-secondary text-base font-medium"
+										onClick={ () => stop.current?.abort() }
+									>
+										Rendering { Math.round( out.done * 100 ) }% · Cancel
+									</button>
 								) : (
 									<button
 										type="button"
-										className={ `${ FIRST } w-full justify-center gap-2 disabled:cursor-default disabled:opacity-40` }
+										className="studio-export flex h-16 w-full items-center justify-center gap-2.5 rounded-2xl bg-primary text-base font-semibold text-primary-foreground disabled:cursor-default disabled:opacity-40"
 										disabled={ ! enough || can === 'no' || reading }
 										onClick={ start }
 									>
-										<Download size={ 18 } />
-										Export MP4 · { size.width } × { size.height }
+										<Download size={ 20 } />
+										Export video
+										<span className="font-normal opacity-70">
+											· { seconds( total ) } · { FORMATS[ format ].label }
+										</span>
 									</button>
 								) }
 								{ out.state === 'done' && (
-									<div className="flex flex-wrap items-center gap-3 text-sm">
-										<span className="text-muted-foreground">
-											Done: { seconds( out.seconds ) }, { ( out.file.size / 1024 / 1024 ).toFixed( 1 ) } MB.
+									<div className="flex flex-wrap items-center gap-3 rounded-2xl bg-card p-4 text-sm">
+										<span className="grid size-8 place-items-center rounded-full bg-primary text-primary-foreground">
+											<Check size={ 16 } strokeWidth={ 3 } />
 										</span>
-										<a className={ `${ BUTTON } h-11 gap-2` } href={ out.url } download={ out.file.name } data-testid="download">
-											<Download size={ 16 } /> Download
-										</a>
-										{ shareable && (
-											<button
-												type="button"
-												className={ `${ BUTTON } h-11 gap-2` }
-												onClick={ () => navigator.share( { files: [ out.file ] } ).catch( () => {} ) }
-											>
-												<Share2 size={ 16 } /> Share
-											</button>
-										) }
+										<span className="grid">
+											<span className="font-medium">Your video is ready</span>
+											<span className="text-muted-foreground">
+												Done: { seconds( out.seconds ) }, { ( out.file.size / 1024 / 1024 ).toFixed( 1 ) } MB.
+											</span>
+										</span>
+										<span className="ms-auto flex gap-2">
+											<a className={ `${ BUTTON } h-11 gap-2` } href={ out.url } download={ out.file.name } data-testid="download">
+												<Download size={ 16 } /> Download
+											</a>
+											{ shareable && (
+												<button
+													type="button"
+													className={ `${ BUTTON } h-11 gap-2` }
+													onClick={ () => navigator.share( { files: [ out.file ] } ).catch( () => {} ) }
+												>
+													<Share2 size={ 16 } /> Share
+												</button>
+											) }
+										</span>
 									</div>
 								) }
 								{ out.state === 'failed' && (
-									<p role="alert" className="text-sm text-amber-300">
+									<p role="alert" className="text-sm text-amber-600 dark:text-amber-300">
 										{ out.message }
 									</p>
 								) }
@@ -723,16 +891,14 @@ export default function Studio() {
 										? 'This browser cannot make the video: it needs WebCodecs with H.264, which Chrome, Edge and Safari 17.4 or later have. The preview works all the same.'
 										: ! enough
 										? `A film needs ${ FEWEST } photos at least.`
-										: samples
-										? 'These are sample photos: choose yours to make your own.'
-										: `H.264 at 30 frames a second${ allowed().mark ? ', with a small gpuslider.com mark in a corner' : '' }.` }
+										: `${ size.width } × ${ size.height }, H.264 at 30 frames a second${ allowed().mark ? ', with a small gpuslider.com mark in a corner' : '' }.${ samples ? ' These are sample photos: choose yours to make your own.' : '' }` }
 								</p>
 							</div>
 						</Part>
 					</div>
 				</div>
 
-				<section className="grid max-w-3xl gap-3 border-t border-white/8 pt-10">
+				<section className="grid max-w-3xl gap-3 border-t border-border pt-10">
 					<h2 className="font-display text-2xl font-semibold tracking-[-0.03em]">How it is made</h2>
 					<p className="text-muted-foreground">
 						The transitions are the ones of{ ' ' }

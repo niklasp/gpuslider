@@ -13,6 +13,8 @@ export interface Photo {
 	height: number;
 	/** A small picture for the list: an address of a blob. */
 	thumb: string;
+	/** Its colour, on average: for the light behind the preview. */
+	color: string;
 }
 
 let made = 0;
@@ -41,6 +43,11 @@ export async function read( source: Blob | string, name: string ): Promise< Phot
 	canvas.height = Math.max( 1, Math.round( height * scale ) );
 	canvas.getContext( '2d' )!.drawImage( full, 0, 0, canvas.width, canvas.height );
 	full.close();
+	const one = document.createElement( 'canvas' );
+	one.width = one.height = 1;
+	const dot = one.getContext( '2d', { willReadFrequently: true } )!;
+	dot.drawImage( canvas, 0, 0, 1, 1 );
+	const [ r, g, b ] = dot.getImageData( 0, 0, 1, 1 ).data;
 	const thumb = await new Promise< Blob | null >( ( done ) =>
 		canvas.toBlob( done, 'image/jpeg', 0.8 )
 	);
@@ -51,6 +58,7 @@ export async function read( source: Blob | string, name: string ): Promise< Phot
 		width,
 		height,
 		thumb: thumb ? URL.createObjectURL( thumb ) : '',
+		color: `rgb(${ r } ${ g } ${ b })`,
 	};
 }
 

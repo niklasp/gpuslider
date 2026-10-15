@@ -48,7 +48,7 @@ test.describe( 'the studio', () => {
 		await page.getByTestId( 'photos' ).setInputFiles( [ media( 'p1.jpg' ), media( 'p3.jpg' ), media( 'p5.jpg' ) ] );
 		const list = page.getByRole( 'list', { name: 'Photos in the order of the film' } );
 		// Read on a busy machine too: four tests draw at once.
-		await expect( list.locator( 'li' ) ).toHaveCount( 3, { timeout: 15000 } );
+		await expect( list.locator( 'img' ) ).toHaveCount( 3, { timeout: 15000 } );
 		// The samples are gone with the first photos of the visitor.
 		await expect( page.getByText( 'Sample photos', { exact: true } ) ).toHaveCount( 0 );
 		await expect( list.locator( 'img' ).first() ).toHaveAttribute( 'alt', 'p1.jpg' );
@@ -121,7 +121,7 @@ test.describe( 'the studio', () => {
 	/** Exports, and gives the file. */
 	const exported = async ( page ) => {
 		const download = page.waitForEvent( 'download', { timeout: 90000 } );
-		await page.getByRole( 'button', { name: /Export MP4/ } ).click();
+		await page.getByRole( 'button', { name: /Export video/ } ).click();
 		const file = await download;
 		if ( process.env.STUDIO_OUT ) {
 			await file.saveAs( process.env.STUDIO_OUT );

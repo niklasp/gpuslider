@@ -6,7 +6,7 @@
  */
 import { createStage } from './stage';
 import { length, at, type Plan } from './timeline';
-import { mark, type Allowed } from './plan';
+import { mark, MARK_SIZE, type Allowed } from './plan';
 import { mux, type Sample } from './mp4';
 import type { Photo } from './photos';
 
@@ -105,7 +105,7 @@ export async function encode( {
 	film.height = height;
 	const context = film.getContext( '2d' )!;
 	if ( allowed.mark ) {
-		await document.fonts.load( `600 ${ Math.round( Math.min( width, height ) * 0.03 ) }px 'Funnel Display Variable'` ).catch( () => {} );
+		await document.fonts.load( `600 ${ Math.round( Math.min( width, height ) * MARK_SIZE ) }px 'Funnel Display Variable'` ).catch( () => {} );
 	}
 
 	const samples: Sample[] = [];

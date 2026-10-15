@@ -18,6 +18,9 @@ export const FREE: Allowed = { mark: true, short: 1080 };
 /** What the visitor may do. */
 export const allowed = (): Allowed => FREE;
 
+/** How high the letters of the mark are, of the short side of the film. */
+export const MARK_SIZE = 0.0235;
+
 /** The mark, as the film shows it. */
 export const MARK = 'gpuslider.com';
 
@@ -32,7 +35,8 @@ export const MARK = 'gpuslider.com';
  */
 export function mark( context: CanvasRenderingContext2D, width: number, height: number ) {
 	const short = Math.min( width, height );
-	const size = Math.round( short * 0.03 );
+	// 2.35 % of the short side: 25 px in a film 1080 wide.
+	const size = Math.round( short * MARK_SIZE );
 	const tall = height > width * 1.2;
 	// Below the bar of the apps at the top, in a tall film.
 	const x = width - Math.round( short * 0.05 );
