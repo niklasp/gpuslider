@@ -163,8 +163,13 @@ export async function encode( {
 			// A key frame every two seconds.
 			encoder.encode( frame, { keyFrame: i % ( FPS * 2 ) === 0 } );
 			frame.close();
+			// The encoder says when it has taken a frame; a timer, only for
+			// a browser that does not.
 			while ( encoder.encodeQueueSize > 4 ) {
-				await later( 4 );
+				await Promise.race( [
+					new Promise( ( done ) => encoder.addEventListener( 'dequeue', done, { once: true } ) ),
+					later( 50 ),
+				] );
 			}
 			progress( ( i + 1 ) / count );
 			await breathe();
