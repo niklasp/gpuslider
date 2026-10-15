@@ -1,11 +1,12 @@
 /**
- * What an export may do. Free: the films are 1080 px on their short side
- * and carry the mark of the site in a corner.
+ * What an export may do, free or with Pro: here, and nowhere else.
  *
- * PRO: a paid plan comes in here, and only here: `{ mark: false, short:
- * 2160 }` for films without the mark, in 4K (3840 × 2160 needs H.264 of
- * level 5.1, see `CODECS` in `encode.ts`). Nothing is paid for in v1.
+ * Free: films up to 1080 px on their short side, with the mark of the
+ * site in a corner. Pro: up to 4K (2160 px on the short side), without
+ * the mark. Pro is unlocked by a license key (see `license.ts`); nothing
+ * can be paid for yet.
  */
+
 export interface Allowed {
 	/** The mark of the site in the film. */
 	mark: boolean;
@@ -15,8 +16,34 @@ export interface Allowed {
 
 export const FREE: Allowed = { mark: true, short: 1080 };
 
-/** What the visitor may do. */
-export const allowed = (): Allowed => FREE;
+/** The short sides Pro offers, with their names. */
+export const SIZES = [
+	[ 1080, '1080p' ],
+	[ 1440, '1440p' ],
+	[ 2160, '4K' ],
+] as const;
+
+export type Short = ( typeof SIZES )[ number ][ 0 ];
+
+/** What Pro costs, as it is said on the page. */
+export const PRICE = '$29, once';
+
+/**
+ * Where Pro is bought. TODO: the checkout of the payment provider, once
+ * one is chosen. Not live: the button says so.
+ */
+export const CHECKOUT = '#pro-checkout';
+
+/** Whether `CHECKOUT` leads anywhere yet. */
+export const SELLING = ! CHECKOUT.startsWith( '#' );
+
+/**
+ * @param pro Whether Pro is unlocked and chosen.
+ * @param short The short side chosen, for Pro.
+ * @return What the export may do.
+ */
+export const allowed = ( pro = false, short: Short = 2160 ): Allowed =>
+	pro ? { mark: false, short } : FREE;
 
 /** How high the letters of the mark are, of the short side of the film. */
 export const MARK_SIZE = 0.0235;

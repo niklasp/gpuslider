@@ -37,7 +37,8 @@ import {
 } from './timeline';
 import { drop, read, type Photo } from './photos';
 import { createStage, type Stage } from './stage';
-import { allowed, mark } from './plan';
+import { CHECKOUT, PRICE, SELLING, SIZES, allowed, mark, type Short } from './plan';
+import { check, keep, kept } from './license';
 
 /** Most photos in a film, and fewest. */
 const MOST = 20;
@@ -100,6 +101,7 @@ function Preview( {
 	samples,
 	out,
 	cancel,
+	marked,
 }: {
 	photos: Photo[];
 	plan: Plan;
@@ -107,6 +109,8 @@ function Preview( {
 	samples: boolean;
 	out: Export;
 	cancel: () => void;
+	/** Whether the film will have the mark: the preview shows it then. */
+	marked: boolean;
 } ) {
 	const { width, height } = FORMATS[ format ];
 	const phone = format === '9:16';
@@ -117,7 +121,8 @@ function Preview( {
 	const [ playing, setPlaying ] = useState( true );
 	const [ time, setTime ] = useState( 0 );
 	// What the loop reads, as it is now.
-	const now = useRef( { photos, plan, playing, time: 0, from: 0 } );
+	const now = useRef( { photos, plan, playing, time: 0, from: 0, marked, redraw: () => {} } );
+	now.current.marked = marked;
 	now.current.photos = photos;
 	now.current.plan = plan;
 	now.current.playing = playing;
@@ -145,8 +150,15 @@ function Preview( {
 				one.width = w;
 				one.height = h;
 			} );
-			if ( allowed().mark ) {
-				mark( over.current!.getContext( '2d' )!, w, h );
+			now.current.redraw();
+		};
+		// The mark over the film, when it will have one.
+		now.current.redraw = () => {
+			const layer = over.current!;
+			const context = layer.getContext( '2d' )!;
+			context.clearRect( 0, 0, layer.width, layer.height );
+			if ( now.current.marked ) {
+				mark( context, layer.width, layer.height );
 			}
 		};
 		const observer = new ResizeObserver( size );
@@ -173,7 +185,7 @@ function Preview( {
 		};
 		frame = requestAnimationFrame( tick );
 		// The fonts of the mark may come after it was drawn.
-		document.fonts?.ready.then( size );
+		document.fonts?.ready.then( () => now.current.redraw() );
 		return () => {
 			cancelAnimationFrame( frame );
 			observer.disconnect();
@@ -181,6 +193,7 @@ function Preview( {
 			stage.current = null;
 		};
 	}, [] );
+	useEffect( () => now.current.redraw(), [ marked ] );
 
 	return (
 		<div className="grid gap-4">
@@ -577,6 +590,160 @@ function Range( {
 	);
 }
 
+/**
+ * Free or Pro: a choice beside the export, not in its way. Pro that is not
+ * unlocked opens what it is, and where a key is entered; free stays as it
+ * is, whatever is chosen here.
+ */
+function Quality( {
+	unlocked,
+	pro,
+	short,
+	offer,
+	setPro,
+	setShort,
+	setOffer,
+	unlock,
+	lock,
+}: {
+	unlocked: boolean;
+	pro: boolean;
+	short: Short;
+	offer: boolean;
+	setPro: ( pro: boolean ) => void;
+	setShort: ( short: Short ) => void;
+	setOffer: ( offer: boolean ) => void;
+	unlock: ( key: string ) => Promise< boolean >;
+	lock: () => void;
+} ) {
+	const [ key, setKey ] = useState( '' );
+	const [ wrong, setWrong ] = useState( false );
+	const [ checking, setChecking ] = useState( false );
+	const option = ( on: boolean ) =>
+		`studio-choice grid min-h-14 content-center gap-0.5 rounded-xl px-3 py-2 text-start text-sm ${ on ? '' : 'bg-secondary' }`;
+	return (
+		<div className="grid gap-2">
+			<div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Quality">
+				<button type="button" role="radio" aria-checked={ ! pro } aria-current={ ! pro ? 'true' : undefined } className={ option( ! pro ) } onClick={ () => setPro( false ) }>
+					<span className="font-medium">Free · 1080p</span>
+					<span className="text-xs opacity-65">with gpuslider.com</span>
+				</button>
+				<button
+					type="button"
+					role="radio"
+					aria-checked={ pro }
+					aria-current={ pro ? 'true' : undefined }
+					className={ option( pro ) }
+					onClick={ () => ( unlocked ? setPro( true ) : setOffer( ! offer ) ) }
+					aria-expanded={ unlocked ? undefined : offer }
+				>
+					<span className="flex items-center gap-1.5 font-medium">
+						Pro · up to 4K { ! unlocked && <Lock size={ 13 } aria-label="locked" /> }
+					</span>
+					<span className="text-xs opacity-65">no mark</span>
+				</button>
+			</div>
+			{ pro && (
+				<div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Size">
+					{ SIZES.map( ( [ side, name ] ) => (
+						<button
+							key={ side }
+							type="button"
+							role="radio"
+							aria-checked={ short === side }
+							aria-current={ short === side ? 'true' : undefined }
+							className="studio-choice h-11 rounded-xl bg-secondary text-sm font-medium"
+							onClick={ () => setShort( side ) }
+						>
+							{ name }
+						</button>
+					) ) }
+				</div>
+			) }
+			{ pro && short === 2160 && (
+				<p className="text-sm text-muted-foreground">
+					4K takes about four times as long as 1080p, and needs a lot of memory: on a phone, 1440p is safer.
+				</p>
+			) }
+			{ offer && ! unlocked && (
+				<section aria-label="Pro" className="relative grid gap-3 rounded-2xl border border-border bg-card p-4">
+					<button
+						type="button"
+						aria-label="Close"
+						className="absolute end-1 top-1 grid size-11 place-items-center text-muted-foreground hover:text-foreground"
+						onClick={ () => setOffer( false ) }
+					>
+						<X size={ 18 } />
+					</button>
+					<h3 className="font-display text-lg font-semibold tracking-[-0.02em]">Studio Pro</h3>
+					<ul className="grid gap-1.5 text-sm">
+						{ [ 'Videos in 4K or 1440p, not only 1080p', 'No gpuslider.com mark', 'One payment, for good' ].map( ( line ) => (
+							<li key={ line } className="flex items-start gap-2">
+								<Check size={ 16 } className="mt-0.5 shrink-0" /> { line }
+							</li>
+						) ) }
+					</ul>
+					<p className="text-sm text-muted-foreground">The free export stays as it is: 1080p, with the mark.</p>
+					<div className="flex flex-wrap items-center gap-3">
+						<a
+							href={ CHECKOUT }
+							className="sq-pill inline-flex h-11 items-center bg-primary px-5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/85 aria-disabled:cursor-default aria-disabled:opacity-50"
+							aria-disabled={ SELLING ? undefined : 'true' }
+							onClick={ ( event ) => SELLING || event.preventDefault() }
+						>
+							Get Pro · { PRICE }
+						</a>
+						{ ! SELLING && <span className="text-sm text-muted-foreground">Not on sale yet.</span> }
+					</div>
+					<form
+						className="grid gap-2 border-t border-border pt-3"
+						onSubmit={ async ( event ) => {
+							event.preventDefault();
+							setChecking( true );
+							const good = await unlock( key );
+							setChecking( false );
+							setWrong( ! good );
+							if ( good ) {
+								setKey( '' );
+							}
+						} }
+					>
+						<label htmlFor="studio-key" className="text-sm font-medium">
+							I have a license key
+						</label>
+						<div className="flex gap-2">
+							<input
+								id="studio-key"
+								value={ key }
+								onChange={ ( event ) => setKey( event.target.value ) }
+								autoComplete="off"
+								spellCheck={ false }
+								className="h-11 min-w-0 flex-1 rounded-xl border border-input bg-background px-3 font-mono text-sm"
+							/>
+							<button type="submit" className={ `${ BUTTON } h-11` } disabled={ ! key.trim() || checking }>
+								Unlock
+							</button>
+						</div>
+						{ wrong && (
+							<p role="alert" className="text-sm text-amber-600 dark:text-amber-300">
+								That key does not unlock Pro.
+							</p>
+						) }
+					</form>
+				</section>
+			) }
+			{ unlocked && (
+				<p className="text-sm text-muted-foreground">
+					Pro is unlocked in this browser.{ ' ' }
+					<button type="button" className="min-h-11 underline underline-offset-4 hover:text-foreground" onClick={ lock }>
+						Remove the license key
+					</button>
+				</p>
+			) }
+		</div>
+	);
+}
+
 /** A rectangle of the shape of a format. */
 const Shape = ( { format }: { format: Format } ) => {
 	const { width, height } = FORMATS[ format ];
@@ -609,12 +776,31 @@ export default function Studio() {
 	const [ out, setOut ] = useState< Export >( { state: 'idle' } );
 	const [ can, setCan ] = useState< Can >( 'unknown' );
 	const stop = useRef< AbortController | null >( null );
+	// Pro: unlocked in this browser, chosen, and at which size.
+	const [ unlocked, setUnlocked ] = useState( false );
+	const [ tier, setTier ] = useState< 'free' | 'pro' >( 'free' );
+	const [ short, setShort ] = useState< Short >( 2160 );
+	const [ offer, setOffer ] = useState( false );
+	const [ said, setSaid ] = useState( '' );
 
 	const plan: Plan = { count: photos.length, hold, turn, choice, order, loop };
+	const pro = unlocked && tier === 'pro';
+	const rights = allowed( pro, short );
 	const { width, height } = FORMATS[ format ];
-	const short = allowed().short;
-	const scale = short / Math.min( width, height );
-	const size = { width: Math.round( width * scale ), height: Math.round( height * scale ) };
+	const sized = ( side: number ) => {
+		const scale = side / Math.min( width, height );
+		return { width: Math.round( width * scale ), height: Math.round( height * scale ) };
+	};
+	const size = sized( rights.short );
+	const named = SIZES.find( ( [ side ] ) => side === rights.short )![ 1 ];
+
+	// A key this browser keeps unlocks Pro again, if it still does.
+	useEffect( () => {
+		const key = kept();
+		if ( key ) {
+			check( key ).then( ( good ) => ( good ? setUnlocked( true ) : keep( null ) ) );
+		}
+	}, [] );
 
 	// The photos of the site, while the visitor has none of theirs.
 	useEffect( () => {
@@ -633,16 +819,28 @@ export default function Studio() {
 		};
 	}, [] );
 
-	// Whether the browser can encode a film of this size.
+	// Whether the browser can encode a film of the free size, and of the
+	// one chosen: a larger one it cannot is made smaller, and it says so.
+	const [ fits, setFits ] = useState( true );
 	useEffect( () => {
 		let gone = false;
+		const free = sized( 1080 );
 		encoding()
-			.then( ( { settingFor } ) => settingFor( size.width, size.height ) )
-			.then( ( setting ) => gone || setCan( setting ? 'yes' : 'no' ) )
+			.then( async ( { settingFor } ) => [
+				await settingFor( free.width, free.height ),
+				await settingFor( size.width, size.height ),
+			] )
+			.then( ( [ base, chosen ] ) => {
+				if ( ! gone ) {
+					setCan( base ? 'yes' : 'no' );
+					setFits( !! chosen );
+				}
+			} )
 			.catch( () => gone || setCan( 'no' ) );
 		return () => {
 			gone = true;
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ size.width, size.height ] );
 
 	// A finished film is another one once anything changes.
@@ -654,7 +852,7 @@ export default function Studio() {
 			return was.state === 'running' ? was : { state: 'idle' };
 		} );
 	}, [] );
-	useEffect( forget, [ photos, choice, order, turn, hold, format, loop, forget ] );
+	useEffect( forget, [ photos, choice, order, turn, hold, format, loop, pro, short, forget ] );
 
 	const add = async ( files: File[] ) => {
 		setReading( true );
@@ -689,17 +887,35 @@ export default function Studio() {
 		const controller = new AbortController();
 		stop.current = controller;
 		setOut( { state: 'running', done: 0 } );
+		setSaid( '' );
 		try {
-			const { encode } = await encoding();
+			const { encode, settingFor } = await encoding();
+			// The size chosen, or the largest below it that the encoder of
+			// the browser takes.
+			let side = 0;
+			for ( const [ one ] of [ ...SIZES ].reverse() ) {
+				if ( one <= rights.short && ( await settingFor( sized( one ).width, sized( one ).height ) ) ) {
+					side = one;
+					break;
+				}
+			}
+			if ( ! side ) {
+				throw new Error( 'This browser cannot encode H.264 at any of these sizes.' );
+			}
+			if ( side !== rights.short ) {
+				setSaid(
+					`This browser cannot encode ${ named } here: the video is ${ SIZES.find( ( [ one ] ) => one === side )![ 1 ] } instead.`
+				);
+			}
 			const blob = await encode( {
 				photos,
 				plan,
-				...size,
-				allowed: allowed(),
+				...sized( side ),
+				allowed: { ...rights, short: side },
 				signal: controller.signal,
 				progress: ( done ) => setOut( { state: 'running', done } ),
 			} );
-			const name = `slideshow-${ format.replace( ':', 'x' ) }${ loop ? '-loop' : '' }.mp4`;
+			const name = `slideshow-${ format.replace( ':', 'x' ) }${ loop ? '-loop' : '' }${ pro && side !== 1080 ? `-${ SIZES.find( ( [ one ] ) => one === side )![ 1 ].toLowerCase() }` : '' }.mp4`;
 			const file = new File( [ blob ], name, { type: 'video/mp4' } );
 			const url = URL.createObjectURL( file );
 			setOut( { state: 'done', url, file, seconds: length( plan ) } );
@@ -759,6 +975,7 @@ export default function Studio() {
 							samples={ samples }
 							out={ out }
 							cancel={ () => stop.current?.abort() }
+							marked={ rights.mark }
 						/>
 					</div>
 
@@ -832,6 +1049,30 @@ export default function Studio() {
 
 						<Part step={ 5 } title="Export">
 							<div className="grid gap-3">
+								<Quality
+									unlocked={ unlocked }
+									pro={ pro }
+									short={ short }
+									offer={ offer }
+									setPro={ ( on ) => setTier( on ? 'pro' : 'free' ) }
+									setShort={ setShort }
+									setOffer={ setOffer }
+									unlock={ async ( key ) => {
+										const good = await check( key );
+										if ( good ) {
+											keep( key );
+											setUnlocked( true );
+											setTier( 'pro' );
+											setOffer( false );
+										}
+										return good;
+									} }
+									lock={ () => {
+										keep( null );
+										setUnlocked( false );
+										setTier( 'free' );
+									} }
+								/>
 								{ running ? (
 									<button
 										type="button"
@@ -850,7 +1091,7 @@ export default function Studio() {
 										<Download size={ 20 } />
 										Export video
 										<span className="font-normal opacity-70">
-											· { seconds( total ) } · { FORMATS[ format ].label }
+											· { seconds( total ) } · { FORMATS[ format ].label } · { named }
 										</span>
 									</button>
 								) }
@@ -891,8 +1132,13 @@ export default function Studio() {
 										? 'This browser cannot make the video: it needs WebCodecs with H.264, which Chrome, Edge and Safari 17.4 or later have. The preview works all the same.'
 										: ! enough
 										? `A film needs ${ FEWEST } photos at least.`
-										: `${ size.width } × ${ size.height }, H.264 at 30 frames a second${ allowed().mark ? ', with a small gpuslider.com mark in a corner' : '' }.${ samples ? ' These are sample photos: choose yours to make your own.' : '' }` }
+										: `${ size.width } × ${ size.height }, H.264 at 30 frames a second${ rights.mark ? ', with a small gpuslider.com mark in a corner' : ', no mark' }.${ samples ? ' These are sample photos: choose yours to make your own.' : '' }` }
 								</p>
+								{ ( said || ( ! fits && can === 'yes' ) ) && (
+									<p role="status" className="text-sm text-amber-600 dark:text-amber-300">
+										{ said || `This browser cannot encode ${ named } here: the video will be the largest size it can.` }
+									</p>
+								) }
 							</div>
 						</Part>
 					</div>

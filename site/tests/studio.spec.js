@@ -14,6 +14,87 @@ const errors = ( page ) => {
 	return said;
 };
 
+/**
+ * Decodes a film of the page in the page, by WebCodecs: how far each frame
+ * is from the one before it (the mean difference of a colour, 0 to 255),
+ * and of the first frame the regions asked for, kept in the page as
+ * `studioCrops`.
+ *
+ * @param {Object}   options         Options.
+ * @param {string}   options.address Address of the film.
+ * @param {number[][]} options.crops Regions of the first frame: x, y, width, height.
+ * @return {Promise<Object>} `count`, `decoded`, `steps`.
+ */
+async function decodeFilm( { address, crops = [] } ) {
+	const data = new DataView( await ( await fetch( address ) ).arrayBuffer() );
+	const type = ( at ) => String.fromCharCode( ...[ 0, 1, 2, 3 ].map( ( i ) => data.getUint8( at + 4 + i ) ) );
+	const found = {};
+	const walk = ( from, to ) => {
+		for ( let at = from; at < to; at += data.getUint32( at ) ) {
+			const name = type( at );
+			const end = at + data.getUint32( at );
+			found[ name ] = at + 8;
+			if ( [ 'moov', 'trak', 'mdia', 'minf', 'stbl' ].includes( name ) ) {
+				walk( at + 8, end );
+			} else if ( name === 'stsd' ) {
+				// avc1 after the count, its boxes after its 78 bytes.
+				found.avc1 = at + 16 + 8;
+				walk( at + 16 + 8 + 78, at + 16 + data.getUint32( at + 16 ) );
+			}
+		}
+	};
+	walk( 0, data.byteLength );
+	const count = data.getUint32( found.stsz + 8 );
+	const sizes = Array.from( { length: count }, ( _, i ) => data.getUint32( found.stsz + 12 + i * 4 ) );
+	const keys = found.stss
+		? new Set( Array.from( { length: data.getUint32( found.stss + 4 ) }, ( _, i ) => data.getUint32( found.stss + 8 + i * 4 ) - 1 ) )
+		: null;
+	let offset = data.getUint32( found.stco + 8 );
+	const avcc = new Uint8Array( data.buffer, found.avcC, data.getUint32( found.avcC - 8 ) - 8 );
+	const codec = `avc1.${ [ ...avcc.subarray( 1, 4 ) ].map( ( n ) => n.toString( 16 ).padStart( 2, '0' ) ).join( '' ) }`;
+	const width = data.getUint16( found.avc1 + 24 );
+	const height = data.getUint16( found.avc1 + 26 );
+	const canvas = new OffscreenCanvas( 108, 192 );
+	const full = new OffscreenCanvas( width, height ).getContext( '2d', { willReadFrequently: true } );
+	const context = canvas.getContext( '2d', { willReadFrequently: true } );
+	const frames = [];
+	const decoder = new VideoDecoder( {
+		output( frame ) {
+			if ( ! frames.length ) {
+				full.drawImage( frame, 0, 0 );
+				window.studioCrops = [ ...( window.studioCrops || [] ), crops.map( ( [ x, y, w, h ] ) => full.getImageData( x, y, w, h ).data ) ];
+			}
+			context.drawImage( frame, 0, 0, 108, 192 );
+			frames.push( context.getImageData( 0, 0, 108, 192 ).data );
+			frame.close();
+		},
+		error() {},
+	} );
+	decoder.configure( { codec, description: avcc, codedWidth: width, codedHeight: height } );
+	sizes.forEach( ( size, i ) => {
+		decoder.decode(
+			new EncodedVideoChunk( {
+				type: ! keys || keys.has( i ) ? 'key' : 'delta',
+				timestamp: i,
+				data: new Uint8Array( data.buffer, offset, size ),
+			} )
+		);
+		offset += size;
+	} );
+	await decoder.flush();
+	const away = ( a, b ) => {
+		let sum = 0;
+		for ( let i = 0; i < a.length; i++ ) {
+			if ( i % 4 !== 3 ) {
+				sum += Math.abs( a[ i ] - b[ i ] );
+			}
+		}
+		return sum / ( ( a.length / 4 ) * 3 );
+	};
+	const steps = frames.map( ( frame, i ) => away( frame, frames[ ( i + frames.length - 1 ) % frames.length ] ) );
+	return { count, decoded: frames.length, steps, width, height };
+}
+
 test.describe( 'the studio', () => {
 	test.slow();
 
@@ -113,7 +194,8 @@ test.describe( 'the studio', () => {
 	/** Two photos, a short film: 0.2 s on each, transitions of 0.4 s. */
 	const short = async ( page ) => {
 		await page.getByTestId( 'photos' ).setInputFiles( [ media( 'p1.jpg' ), media( 'p3.jpg' ) ] );
-		await expect( page.getByText( '2 of 20' ) ).toBeVisible();
+		// Read on a busy machine too: several tests draw at once.
+		await expect( page.getByText( '2 of 20' ) ).toBeVisible( { timeout: 15000 } );
 		await page.getByRole( 'slider', { name: 'Transition' } ).fill( '0.4' );
 		await page.getByRole( 'slider', { name: 'Time on each photo' } ).fill( '0.2' );
 	};
@@ -160,67 +242,7 @@ test.describe( 'the studio', () => {
 		const href = await page.getByTestId( 'download' ).getAttribute( 'href' );
 		// The film decoded again, frame by frame, and how far each frame is
 		// from the one before it: the mean difference of a colour, 0 to 255.
-		const film = await page.evaluate( async ( address ) => {
-			const data = new DataView( await ( await fetch( address ) ).arrayBuffer() );
-			const type = ( at ) => String.fromCharCode( ...[ 0, 1, 2, 3 ].map( ( i ) => data.getUint8( at + 4 + i ) ) );
-			const found = {};
-			const walk = ( from, to ) => {
-				for ( let at = from; at < to; at += data.getUint32( at ) ) {
-					const name = type( at );
-					const end = at + data.getUint32( at );
-					found[ name ] = at + 8;
-					if ( [ 'moov', 'trak', 'mdia', 'minf', 'stbl' ].includes( name ) ) {
-						walk( at + 8, end );
-					} else if ( name === 'stsd' ) {
-						// avc1 after the count, its boxes after its 78 bytes.
-						walk( at + 16 + 8 + 78, at + 16 + data.getUint32( at + 16 ) );
-					}
-				}
-			};
-			walk( 0, data.byteLength );
-			const count = data.getUint32( found.stsz + 8 );
-			const sizes = Array.from( { length: count }, ( _, i ) => data.getUint32( found.stsz + 12 + i * 4 ) );
-			const keys = found.stss
-				? new Set( Array.from( { length: data.getUint32( found.stss + 4 ) }, ( _, i ) => data.getUint32( found.stss + 8 + i * 4 ) - 1 ) )
-				: null;
-			let offset = data.getUint32( found.stco + 8 );
-			const avcc = new Uint8Array( data.buffer, found.avcC, data.getUint32( found.avcC - 8 ) - 8 );
-			const codec = `avc1.${ [ ...avcc.subarray( 1, 4 ) ].map( ( n ) => n.toString( 16 ).padStart( 2, '0' ) ).join( '' ) }`;
-			const canvas = new OffscreenCanvas( 108, 192 );
-			const context = canvas.getContext( '2d', { willReadFrequently: true } );
-			const frames = [];
-			const decoder = new VideoDecoder( {
-				output( frame ) {
-					context.drawImage( frame, 0, 0, 108, 192 );
-					frames.push( context.getImageData( 0, 0, 108, 192 ).data );
-					frame.close();
-				},
-				error() {},
-			} );
-			decoder.configure( { codec, description: avcc, codedWidth: 1080, codedHeight: 1920 } );
-			sizes.forEach( ( size, i ) => {
-				decoder.decode(
-					new EncodedVideoChunk( {
-						type: ! keys || keys.has( i ) ? 'key' : 'delta',
-						timestamp: i,
-						data: new Uint8Array( data.buffer, offset, size ),
-					} )
-				);
-				offset += size;
-			} );
-			await decoder.flush();
-			const away = ( a, b ) => {
-				let sum = 0;
-				for ( let i = 0; i < a.length; i++ ) {
-					if ( i % 4 !== 3 ) {
-						sum += Math.abs( a[ i ] - b[ i ] );
-					}
-				}
-				return sum / ( ( a.length / 4 ) * 3 );
-			};
-			const steps = frames.map( ( frame, i ) => away( frame, frames[ ( i + frames.length - 1 ) % frames.length ] ) );
-			return { count, decoded: frames.length, steps };
-		}, href );
+		const film = await page.evaluate( decodeFilm, { address: href } );
 		expect( film.count ).toBe( Math.round( 1.2 * 30 ) );
 		expect( film.decoded ).toBe( film.count );
 		// steps[ i ]: frame i against the one before; steps[ 0 ], the first
@@ -239,5 +261,67 @@ test.describe( 'the studio', () => {
 		expect( wrap ).toBeLessThan( 3 * hold );
 		expect( wrap ).toBeLessThan( 2 * landing + hold );
 		expect( wrap ).toBeLessThan( turning / 10 );
+	} );
+	test( 'free films carry the mark; the key for development unlocks films without it', async ( { page } ) => {
+		await page.goto( '/studio/' );
+		await encoder( page );
+		await short( page );
+		await page.getByRole( 'switch', { name: /Loop/ } ).click();
+		// Where the mark is in a film 1080 × 1920, and a region of the
+		// photo away from it.
+		const crops = [ [ 780, 140, 300, 70 ], [ 240, 700, 600, 500 ] ];
+		const decoded = async () =>
+			page.evaluate( decodeFilm, { address: await page.getByTestId( 'download' ).getAttribute( 'href' ), crops } );
+
+		// Free: 1080p, with the mark.
+		await expect( page.getByRole( 'radio', { name: /Free/ } ) ).toHaveAttribute( 'aria-checked', 'true' );
+		await expect( page.getByText( /with a small gpuslider\.com mark/ ) ).toBeVisible();
+		expect( ( await exported( page ) ).suggestedFilename() ).toBe( 'slideshow-9x16.mp4' );
+		expect( ( await decoded() ).width ).toBe( 1080 );
+
+		// Pro without a key: what it is, and where the key goes. Free stays.
+		await page.getByRole( 'radio', { name: /Pro/ } ).click();
+		const offer = page.getByRole( 'region', { name: 'Pro' } );
+		await expect( offer ).toBeVisible();
+		await expect( offer.getByText( '$29, once' ) ).toBeVisible();
+		await expect( page.getByRole( 'radio', { name: /Free/ } ) ).toHaveAttribute( 'aria-checked', 'true' );
+		const key = offer.getByLabel( 'I have a license key' );
+		await key.fill( 'NOT-A-KEY' );
+		await offer.getByRole( 'button', { name: 'Unlock' } ).click();
+		await expect( offer.getByRole( 'alert' ) ).toHaveText( 'That key does not unlock Pro.' );
+		await key.fill( 'GPUSLIDER-DEV-PRO' );
+		await offer.getByRole( 'button', { name: 'Unlock' } ).click();
+		await expect( page.getByRole( 'radio', { name: /Pro/ } ) ).toHaveAttribute( 'aria-checked', 'true' );
+		await expect( offer ).toHaveCount( 0 );
+		await expect( page.getByRole( 'radiogroup', { name: 'Size' } ).getByRole( 'radio' ) ).toHaveCount( 3 );
+
+		// The same film at 1080p, without the mark.
+		await page.getByRole( 'radiogroup', { name: 'Size' } ).getByRole( 'radio', { name: '1080p' } ).click();
+		await expect( page.getByText( /, no mark\./ ) ).toBeVisible();
+		await exported( page );
+		expect( ( await decoded() ).width ).toBe( 1080 );
+		const [ mark, photo ] = await page.evaluate( () => {
+			const [ free, pro ] = window.studioCrops;
+			return free.map( ( one, k ) => {
+				let sum = 0;
+				for ( let i = 0; i < one.length; i++ ) {
+					if ( i % 4 !== 3 ) {
+						sum += Math.abs( one[ i ] - pro[ k ][ i ] );
+					}
+				}
+				return sum / ( ( one.length / 4 ) * 3 );
+			} );
+		} );
+		console.log( `free against pro: where the mark is ${ mark.toFixed( 2 ) }, elsewhere ${ photo.toFixed( 2 ) }` );
+		expect( mark ).toBeGreaterThan( 2 );
+		expect( photo ).toBeLessThan( mark / 3 );
+
+		// Kept for the next visit, and let go of on request.
+		expect( await page.evaluate( () => localStorage.getItem( 'gs-studio-license' ) ) ).toBe( 'GPUSLIDER-DEV-PRO' );
+		await page.reload();
+		await expect( page.getByText( 'Pro is unlocked in this browser.' ) ).toBeVisible();
+		await page.getByRole( 'button', { name: 'Remove the license key' } ).click();
+		await expect( page.getByRole( 'radio', { name: /Free/ } ) ).toHaveAttribute( 'aria-checked', 'true' );
+		expect( await page.evaluate( () => localStorage.getItem( 'gs-studio-license' ) ) ).toBe( null );
 	} );
 } );

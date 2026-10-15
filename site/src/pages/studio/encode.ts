@@ -13,9 +13,13 @@ import type { Photo } from './photos';
 /** Frames per second. */
 export const FPS = 30;
 
-// Main, then Baseline, then High; level 4.0 carries 1080 × 1920 at 30
-// frames. A film in 4K needs level 5.1: `avc1.640033`.
-const CODECS = [ 'avc1.4d0028', 'avc1.420028', 'avc1.640028', 'avc1.4d0033', 'avc1.640033' ];
+// Main, then Baseline, then High, at the level that a size needs: 4.0
+// carries 1080 × 1920 at 30 frames, 5.0 1440 × 2560, 5.1 4K.
+const CODECS = [
+	[ 2.1e6, [ 'avc1.4d0028', 'avc1.420028', 'avc1.640028' ] ],
+	[ 3.7e6, [ 'avc1.4d0032', 'avc1.420032', 'avc1.640032' ] ],
+	[ 8.9e6, [ 'avc1.4d0033', 'avc1.420033', 'avc1.640033' ] ],
+] as const;
 
 const SCALE = 90000;
 
@@ -32,14 +36,15 @@ export async function settingFor( width: number, height: number ): Promise< Vide
 	if ( ! canEncode() ) {
 		return null;
 	}
-	for ( const codec of CODECS ) {
+	const [ , codecs ] = CODECS.find( ( [ most ] ) => width * height <= most ) || CODECS[ CODECS.length - 1 ];
+	for ( const codec of codecs ) {
 		const config: VideoEncoderConfig = {
 			codec,
 			width,
 			height,
 			framerate: FPS,
 			// About 0.15 bits a pixel: photos that move stay sharp.
-			bitrate: Math.round( Math.min( 16e6, Math.max( 2e6, width * height * FPS * 0.15 ) ) ),
+			bitrate: Math.round( Math.min( 40e6, Math.max( 2e6, width * height * FPS * 0.15 ) ) ),
 			avc: { format: 'avc' },
 			latencyMode: 'quality',
 		};
