@@ -410,11 +410,13 @@ export default function Studio() {
 	const [ turn, setTurn ] = useState( 1.5 );
 	const [ hold, setHold ] = useState( 0.9 );
 	const [ format, setFormat ] = useState< Format >( '9:16' );
+	// The apps play a film again and again: by default it has no end.
+	const [ loop, setLoop ] = useState( true );
 	const [ out, setOut ] = useState< Export >( { state: 'idle' } );
 	const [ can, setCan ] = useState< Can >( 'unknown' );
 	const stop = useRef< AbortController | null >( null );
 
-	const plan: Plan = { count: photos.length, hold, turn, choice, order };
+	const plan: Plan = { count: photos.length, hold, turn, choice, order, loop };
 	const { width, height } = FORMATS[ format ];
 	const short = allowed().short;
 	const scale = short / Math.min( width, height );
@@ -458,7 +460,7 @@ export default function Studio() {
 			return was.state === 'running' ? was : { state: 'idle' };
 		} );
 	}, [] );
-	useEffect( forget, [ photos, choice, order, turn, hold, format, forget ] );
+	useEffect( forget, [ photos, choice, order, turn, hold, format, loop, forget ] );
 
 	const add = async ( files: File[] ) => {
 		setReading( true );
@@ -503,7 +505,7 @@ export default function Studio() {
 				signal: controller.signal,
 				progress: ( done ) => setOut( { state: 'running', done } ),
 			} );
-			const name = `slideshow-${ format.replace( ':', 'x' ) }.mp4`;
+			const name = `slideshow-${ format.replace( ':', 'x' ) }${ loop ? '-loop' : '' }.mp4`;
 			const file = new File( [ blob ], name, { type: 'video/mp4' } );
 			const url = URL.createObjectURL( file );
 			setOut( { state: 'done', url, file, seconds: length( plan ) } );
@@ -629,6 +631,33 @@ export default function Studio() {
 									</button>
 								) ) }
 							</div>
+							<button
+								type="button"
+								role="switch"
+								aria-checked={ loop }
+								onClick={ () => setLoop( ! loop ) }
+								className="flex min-h-11 items-center gap-3 text-start"
+							>
+								<span
+									aria-hidden
+									className={ `relative h-6 w-10 shrink-0 rounded-full transition ${ loop ? 'bg-primary' : 'bg-white/15' }` }
+								>
+									<span
+										className={ `absolute top-0.5 size-5 rounded-full bg-background transition-[left] ${ loop ? 'left-[1.125rem]' : 'left-0.5' }` }
+									/>
+								</span>
+								<span className="grid">
+									<span className="text-sm">Loop</span>
+									<span className="text-xs text-muted-foreground">
+										{ loop
+											? 'The last photo turns into the first: played again, there is no jump.'
+											: 'Ends on the last photo.' }
+									</span>
+								</span>
+								<span className="ms-auto font-mono text-sm tabular-nums text-muted-foreground" data-testid="duration">
+									{ seconds( length( plan ) ) }
+								</span>
+							</button>
 						</Part>
 
 						<Part title="Export">

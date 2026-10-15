@@ -80,7 +80,7 @@ export function createStage( canvas: HTMLCanvasElement, { preserve = false } = {
 		 */
 		prepare( photos: Photo[], moment: Moment ) {
 			const now = [ photos[ moment.from ], photos[ moment.to ] ].filter( Boolean ).map( picture );
-			const after = photos[ moment.to + 1 ];
+			const after = photos[ ( moment.to + 1 ) % photos.length ];
 			if ( after ) {
 				picture( after );
 			}

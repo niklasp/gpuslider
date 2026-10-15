@@ -86,14 +86,20 @@ export interface Plan {
 	choice: Choice;
 	/** For `mix`: the order of the transitions, by their index. */
 	order: number[];
+	/**
+	 * The last photo turns into the first, and the film ends one frame
+	 * before it is back: played again and again, as the apps play it,
+	 * there is no cut. It begins as without, on the first photo held.
+	 */
+	loop?: boolean;
 }
 
 /** One transition after the other, the first few the ones to show off. */
 export const ORDER = [ 0, 2, 1, 4, 22, 3, 5, 23, 11, 6, 12, 8, 16, 7, 9, 10, 13, 14, 15, 17, 18, 19, 20, 21 ];
 
 /** The whole film, s. */
-export const length = ( { count, hold, turn }: Plan ) =>
-	count > 0 ? count * hold + Math.max( 0, count - 1 ) * turn : 0;
+export const length = ( { count, hold, turn, loop }: Plan ) =>
+	count > 0 ? count * hold + ( loop && count > 1 ? count : count - 1 ) * turn : 0;
 
 /**
  * A move that begins and ends slowly and takes all of its time: the
@@ -127,16 +133,18 @@ export const transitionOf = ( plan: Plan, cut: number ) =>
  */
 export function at( plan: Plan, t: number ): Moment {
 	const { count, hold, turn } = plan;
+	const loop = plan.loop && count > 1;
 	const step = hold + turn;
 	const last = Math.max( 0, count - 1 );
 	const k = Math.min( last, Math.max( 0, Math.floor( t / step ) ) );
 	const into = t - k * step - hold;
-	if ( k >= last || into <= 0 ) {
+	// The last photo turns only in a loop: into the first.
+	if ( ( k >= last && ! loop ) || into <= 0 ) {
 		return { from: k, to: k, progress: 0, which: transitionOf( plan, k ) };
 	}
 	return {
 		from: k,
-		to: k + 1,
+		to: ( k + 1 ) % count,
 		progress: ease( Math.min( 1, into / turn ) ),
 		which: transitionOf( plan, k ),
 	};
