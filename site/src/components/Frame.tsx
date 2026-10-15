@@ -33,7 +33,7 @@ const PAGES = {
 	playground: [ '/playground/', 'Playground' ],
 } as const;
 
-export type At = keyof typeof PAGES | 'home';
+export type At = keyof typeof PAGES | 'home' | 'studio';
 
 const KINDS: [ Kind, string, typeof Swatches ][] = [
 	[ 'fields', 'Colour fields', Swatches ],
@@ -154,6 +154,9 @@ export function Footer() {
 					</a>
 					<a className="hover:text-foreground" href="/playground/">
 						Playground
+					</a>
+					<a className="hover:text-foreground" href="/studio/">
+						Studio
 					</a>
 					<a className="hover:text-foreground" href="/docs/size/">
 						Sizes

@@ -144,6 +144,7 @@ export default defineConfig( {
 					'examples/echo/index',
 					'playground/index',
 					'phone/index',
+					'studio/index',
 				].map( ( page ) => [
 					page.replaceAll( '/', '-' ),
 					path.resolve( import.meta.dirname, `${ page }.html` ),

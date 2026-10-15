@@ -1,0 +1,44 @@
+/*
+ * Studio: the film at the left, or on top on a phone; what it is made of
+ * beside it.
+ */
+
+/* How high the film may be: on a phone it leaves room for what is below. */
+.studio-frame {
+	--studio-high: 72svh;
+	border-radius: var(--tile);
+	corner-shape: squircle;
+}
+
+@media (min-width: 64rem) {
+	.studio-frame {
+		--studio-high: calc(100svh - 9rem);
+	}
+}
+
+/* Large enough for a finger. */
+.studio-range {
+	height: 2.75rem;
+	accent-color: var(--primary);
+	touch-action: pan-y;
+}
+
+/* The buttons on a photo of the list. */
+.studio-tool {
+	display: grid;
+	place-items: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 999px;
+	background: rgb(0 0 0 / 0.6);
+	color: white;
+	backdrop-filter: blur(6px);
+}
+
+.studio-tool:disabled {
+	opacity: 0.3;
+}
+
+.studio-tool:not(:disabled):hover {
+	background: rgb(0 0 0 / 0.85);
+}
