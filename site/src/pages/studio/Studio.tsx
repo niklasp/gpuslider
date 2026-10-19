@@ -768,8 +768,8 @@ export default function Studio() {
 	const [ problems, setProblems ] = useState< string[] >( [] );
 	const [ choice, setChoice ] = useState< Choice >( 'mix' );
 	const [ order, setOrder ] = useState( ORDER );
-	const [ turn, setTurn ] = useState( 1.5 );
-	const [ hold, setHold ] = useState( 0.9 );
+	const [ turn, setTurn ] = useState( 1 );
+	const [ hold, setHold ] = useState( 0.7 );
 	const [ format, setFormat ] = useState< Format >( '9:16' );
 	// The apps play a film again and again: by default it has no end.
 	const [ loop, setLoop ] = useState( true );
