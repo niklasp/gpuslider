@@ -226,7 +226,7 @@ test.describe( 'the studio', () => {
 		expect( bytes.length ).toBeGreaterThan( 10000 );
 		expect( bytes.subarray( 4, 8 ).toString() ).toBe( 'ftyp' );
 		expect( bytes.includes( Buffer.from( 'avcC' ) ) ).toBe( true );
-		await expect( page.getByText( /^Done: 0\.8 s/ ) ).toBeVisible();
+		await expect( page.getByText( /^Done: 0\.8\ss/ ) ).toBeVisible();
 	} );
 
 	test( 'a film that loops ends one frame before it begins', async ( { page } ) => {

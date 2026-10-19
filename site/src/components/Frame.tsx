@@ -97,11 +97,11 @@ export function Nav( { at }: { at: At } ) {
 				at === 'home' ? 'fixed' : 'sticky'
 			}` }
 		>
-			<div className="sq-pill pointer-events-auto flex h-12 items-center gap-x-1 bg-black/45 ps-4 pe-1.5 sm:ps-5 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150">
+			<div className="sq-pill pointer-events-auto flex h-12 max-w-full items-center gap-x-0.5 bg-black/70 ps-3.5 pe-1.5 sm:gap-x-1 sm:ps-5 ring-1 ring-white/10 backdrop-blur-2xl backdrop-saturate-150">
 				<a
 					href="/"
 					aria-current={ at === 'home' ? 'page' : undefined }
-					className="me-2 font-display text-[0.9375rem] font-semibold tracking-[-0.02em] sm:me-4"
+					className="me-1 shrink-0 whitespace-nowrap font-display text-[0.9375rem] font-semibold tracking-[-0.02em] sm:me-4"
 				>
 					{ NAME }
 				</a>
@@ -112,14 +112,14 @@ export function Nav( { at }: { at: At } ) {
 								key={ name }
 								href={ PAGES[ name ][ 0 ] }
 								aria-current={ at === name ? 'page' : undefined }
-								className="sq-pill px-2 py-2 text-white/65 transition hover:text-white aria-[current]:bg-white/12 aria-[current]:text-white sm:px-3.5"
+								className="sq-pill whitespace-nowrap px-1.5 py-2 text-white/65 transition hover:text-white aria-[current]:bg-white/12 aria-[current]:text-white sm:px-3.5"
 							>
 								{ PAGES[ name ][ 1 ] }
 							</a>
 						)
 					) }
 				</nav>
-				<span aria-hidden className="mx-1.5 h-6 w-px shrink-0 bg-white/15" />
+				<span aria-hidden className="mx-1.5 hidden h-6 w-px shrink-0 bg-white/15 min-[400px]:block" />
 				<Pictures />
 				<Photos />
 			</div>

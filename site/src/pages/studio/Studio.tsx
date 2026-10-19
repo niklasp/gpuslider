@@ -60,7 +60,7 @@ type Export =
 /** Whether the browser can export: unknown until the page runs. */
 type Can = 'unknown' | 'yes' | 'no';
 
-const seconds = ( s: number ) => `${ s.toFixed( 1 ).replace( /\.0$/, '' ) } s`;
+const seconds = ( s: number ) => `${ s.toFixed( 1 ).replace( /\.0$/, '' ) }\u202Fs`;
 
 const shuffled = ( order: number[] ) => {
 	const out = [ ...order ];
