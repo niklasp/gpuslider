@@ -24,6 +24,7 @@ import Resolve from './pages/resolve/Resolve';
 import Reveal from './pages/reveal/Reveal';
 import Panes from './pages/panes/Panes';
 import Echo from './pages/echo/Echo';
+import Studio from './pages/studio/Studio';
 
 type Page = {
 	/** The file of the build the page is made of, where it is another. */
@@ -74,6 +75,7 @@ export const pages: Record< string, Page > = {
 	),
 	'playground/index.html': { page: () => <Playground /> },
 	'phone/index.html': { page: () => <Phone /> },
+	'studio/index.html': { page: () => <Studio /> },
 	...Object.fromEntries(
 		docs.map( ( { slug, address, title, lead } ) => [
 			`${ address.slice( 1 ) }index.html`,
