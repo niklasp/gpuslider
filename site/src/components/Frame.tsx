@@ -167,6 +167,9 @@ export function Footer() {
 					<a className="hover:text-foreground" href={ REPO }>
 						GitHub
 					</a>
+					<a className="hover:text-foreground" href="https://gutenslider.org/">
+						On WordPress: Gutenslider
+					</a>
 				</nav>
 			</div>
 		</footer>
