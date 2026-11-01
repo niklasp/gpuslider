@@ -171,6 +171,9 @@ export function Footer() {
 						On WordPress: Gutenslider
 					</a>
 				</nav>
+				<p className="w-full text-xs">
+					This site counts visits with Cloudflare Web Analytics, which sets no cookies. It records things like the page address, the referring site, the browser type, the country and how fast the page loaded, and we only see them as totals.
+				</p>
 			</div>
 		</footer>
 	);
