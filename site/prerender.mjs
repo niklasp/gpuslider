@@ -66,7 +66,9 @@ const picture = ( path ) => {
 	const own = path.replace( /^\/(?:examples\/)?|\/$/g, '' ).replace( /\//g, '-' );
 	return existsSync( resolve( dist, `og/${ own }.jpg` ) )
 		? own
-		: path.match( /^\/(?:examples\/)?([a-z]+)\// )?.[ 1 ] || 'home';
+		: [ path.match( /^\/(?:examples\/)?([a-z]+)\// )?.[ 1 ] ].find(
+				( name ) => name && existsSync( resolve( dist, `og/${ name }.jpg` ) )
+		  ) || 'home';
 };
 
 /** What is in the head for search engines and shared links. */

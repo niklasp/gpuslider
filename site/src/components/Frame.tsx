@@ -33,7 +33,7 @@ const PAGES = {
 	playground: [ '/playground/', 'Playground' ],
 } as const;
 
-export type At = keyof typeof PAGES | 'home' | 'studio';
+export type At = keyof typeof PAGES | 'home' | 'studio' | 'legal';
 
 const KINDS: [ Kind, string, typeof Swatches ][] = [
 	[ 'fields', 'Colour fields', Swatches ],
@@ -171,8 +171,13 @@ export function Footer() {
 						On WordPress: Gutenslider
 					</a>
 				</nav>
-				<p className="w-full text-xs">
-					This site counts visits with Cloudflare Web Analytics, which sets no cookies. It records things like the page address, the referring site, the browser type, the country and how fast the page loaded, and we only see them as totals.
+				<p className="flex w-full gap-x-4 text-xs">
+					<a className="hover:text-foreground" href="/imprint/">
+						Imprint
+					</a>
+					<a className="hover:text-foreground" href="/privacy/">
+						Privacy
+					</a>
 				</p>
 			</div>
 		</footer>
